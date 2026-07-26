@@ -5,11 +5,11 @@
   },
   "plugins": [
     {
-      "name": "orquestra",
-      "source": "./orquestra",
+      "name": "orq",
+      "source": "./orq",
       "displayName": "Orquestra",
       "description": "Desenvolvimento orientado a board com time de agentes, memoria-wiki persistente e gates humanos. Adapta-se ao projeto.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "workflow",
       "keywords": [
         "kanban",

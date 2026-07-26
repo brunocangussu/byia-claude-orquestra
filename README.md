@@ -7,6 +7,22 @@ Nasceu da arquitetura que o Alison montou no app Terminals (canvas de terminais 
 redesenhada para as primitivas nativas do Claude Code — sem canvas, sem agentes residentes,
 sem `bypassPermissions`.
 
+## Você não digita comandos
+
+O plugin foi feito pra ser usado **conversando**. Você fala naturalmente e o Claude reconhece a
+intenção:
+
+| Você diz | Acontece |
+|---|---|
+| *"onde paramos?"* | mostra o board |
+| *"terminamos, pode limpar"* | salva tudo na memória e libera o `/clear` |
+| *"vamos planejar isso"* | planeja e traz pra você aprovar |
+| *"pode implementar"* | implementa, revisa e documenta |
+| *"anota isso"* | vira card no backlog |
+| *"vou dormir, adianta o que der"* | modo noturno |
+
+Os comandos `/orq:*` existem como mecanismo — use se quiser, mas não precisa.
+
 ## A ideia em uma frase
 
 > **Contexto é descartável. O estado do trabalho vive no board e nos artefatos.**
@@ -21,14 +37,14 @@ passo termina gravando no board (`memory/wiki/KANBAN.md`) e na wiki (`memory/wik
 /plugin marketplace add ~/Projetos\ DEV\ -\ Cursor/claude-orquestra
 
 # 2. instalar
-/plugin install orquestra@orquestra
+/plugin install orq@orquestra
 /reload-plugins
 
 # 3. montar no projeto (uma vez por projeto)
-/orquestra:init
+/orq:init
 ```
 
-O `/orquestra:init` **inspeciona o projeto** — stack, domínio, convenções, docs que já existem,
+O `/orq:init` **inspeciona o projeto** — stack, domínio, convenções, docs que já existem,
 trabalho em aberto e quais ferramentas estão disponíveis (MCPs, busca semântica, claude-mem,
 context-mode) — e **propõe** o time e a estrutura sob medida. Nada é escrito antes da sua aprovação.
 
@@ -37,11 +53,11 @@ Rodar de novo é seguro: ele completa o que falta e relata o que ignorou.
 ## O ciclo
 
 ```
-/orquestra:plan-next      → planeja o próximo card e traz pra você aprovar
+/orq:plan-next      → planeja o próximo card e traz pra você aprovar
         ↓ (você aprova)
-/orquestra:implement-next → implementa + review independente + docs → fica pra você validar
+/orq:implement-next → implementa + review independente + docs → fica pra você validar
         ↓
-/orquestra:checkpoint     → grava tudo na memória durável
+/orq:checkpoint     → grava tudo na memória durável
         ↓
 /clear                    → esvazia a janela; a próxima retoma pelo board
 ```
@@ -50,13 +66,15 @@ Rodar de novo é seguro: ele completa o que falta e relata o que ignorou.
 
 | Comando | O que faz |
 |---|---|
-| `/orquestra:init` | Instala e **adapta** o Orquestra a este projeto |
-| `/orquestra:plan-next` | Loop A — planeja o próximo card (gate humano no fim) |
-| `/orquestra:implement-next` | Loop B — implementa com review e documentação |
-| `/orquestra:quadro` | Mostra o board: o que espera você, o que está em curso, o progresso |
-| `/orquestra:checkpoint` | Fecha o bloco de trabalho na memória (rode antes do `/clear`) |
-| `/orquestra:wiki-lint` | Health-check da wiki: contradições, páginas órfãs, afirmações vencidas |
-| `/orquestra:lembrar` | Busca na memória de longo prazo (Supermemory) |
+| `/orq:init` | Instala e **adapta** o Orquestra a este projeto |
+| `/orq:plan-next` | Loop A — planeja o próximo card (gate humano no fim) |
+| `/orq:implement-next` | Loop B — implementa com review e documentação |
+| `/orq:quadro` | Mostra o board: o que espera você, o que está em curso, o progresso |
+| `/orq:checkpoint` | Fecha o bloco de trabalho na memória (rode antes do `/clear`) |
+| `/orq:wiki-lint` | Health-check da wiki: contradições, páginas órfãs, afirmações vencidas |
+| `/orq:lembrar` | Busca na memória de longo prazo (Supermemory) |
+| `/orq:dormir` | Modo noturno — adianta planejamento enquanto você dorme |
+| `/orq:acordar` | Relatório do modo noturno, com as perguntas numeradas |
 
 ## O time
 
@@ -108,11 +126,27 @@ responde *"como funciona hoje"*. Sem a página, responder a segunda pergunta vir
 - **Não** faz `push`, deploy ou migration sozinho.
 - **Não** marca card como feito porque houve commit — commit não é critério de pronto.
 
+## Modo noturno
+
+*"Vou dormir, adianta o que der"* → o Orquestra **planeja** os próximos cards do backlog enquanto
+você dorme e **estaciona** o que precisar de decisão sua, com a pergunta exata escrita no card.
+De manhã, *"bom dia"* traz o relatório com as perguntas numeradas — você responde "1-sim, 2-a
+segunda opção" e destrava a fila inteira de uma vez.
+
+**Limites duros:** 3 cards e 4 horas por padrão · para após 2 rodadas sem progresso · **só
+planejamento, nunca implementação** · nunca toca em schema, segurança, deploy, dependência ou
+qualquer coisa irreversível — esses ficam pra quando você acordar.
+
+⚠️ **Limitação honesta:** a sessão do Claude Code precisa ficar **aberta** (máquina ligada, sem
+suspender). Não existe execução realmente desacompanhada dentro do CLI — se a máquina dormir, o
+trabalho pausa e retoma quando ela voltar.
+
 ## Status
 
-`0.1.0` — núcleo funcional (board, time, dois loops, memória).
-Ainda não implementado: protocolo de trabalho noturno (`/dormir`), enforcement por hooks e
-workflows determinísticos. Ver o plano faseado na avaliação arquitetural.
+`0.2.0` — núcleo funcional: board, time, dois loops, memória, **interface natural** e **modo
+noturno (planejamento)**.
+Ainda não implementado: enforcement por hooks, workflows determinísticos e implementação noturna
+(só depois de pilotos bem-sucedidos do modo planejamento).
 
 ## Licença
 

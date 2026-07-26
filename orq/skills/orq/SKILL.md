@@ -1,9 +1,43 @@
 ---
-name: orquestra
-description: A disciplina do Orquestra — máquina de estados do board, papéis do time, regras de handoff e gates. Use ao coordenar trabalho com o board (planejar, implementar, revisar, concluir card) ou quando precisar lembrar como o fluxo funciona.
+name: orq
+description: >
+  A disciplina do Orquestra — board, time de agentes, memória-wiki e gates. Use SEMPRE que o
+  usuário falar naturalmente sobre o andamento do trabalho, sem precisar de comando. Gatilhos:
+  "o que estamos fazendo", "onde paramos", "o que falta", "cadê o board", "quais as pendências";
+  "vamos planejar isso", "próxima tarefa", "pode implementar", "manda ver", "toca essa";
+  "terminamos", "acabou essa parte", "vamos limpar o contexto", "pode reiniciar", "salva aí";
+  "anota isso", "guarda essa decisão", "cria uma tarefa pra isso", "isso vira card";
+  "vou dormir", "adianta o que der", "trabalha nisso enquanto isso"; e ao RETOMAR um projeto
+  ("bom dia", "voltei", "continuando"). Também para coordenar planejar/implementar/revisar/fechar
+  card, ou quando precisar lembrar como o fluxo funciona.
 ---
 
 # Orquestra — a disciplina
+
+## ⚡ Interface NATURAL — o dono não digita comando
+
+**Regra:** o Bruno conversa; **você** reconhece a intenção e executa. Os comandos `/orq:*` são o
+mecanismo interno — ele não precisa saber que existem.
+
+| Ele diz algo como… | Você faz |
+|---|---|
+| "onde paramos?" · "o que falta?" · "cadê o board?" · "quais as pendências?" | **Mostra o quadro** (`/orq:quadro`): esperando-ele primeiro, depois em curso e a validar |
+| "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board. **Depois** avise que é seguro dar `/clear` |
+| "vamos planejar X" · "próxima tarefa" · "o que vem agora?" | **Loop A** (`/orq:plan-next`) — e **pare** no gate pra ele aprovar |
+| "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
+| "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
+| "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória** (`/orq:lembrar`) + cruza com a wiki |
+| "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
+| "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |
+| Início de sessão num projeto **com** `memory/` | **Leia `memory/MEMORY.md`** e diga em 2 linhas onde paramos. Sem despejar arquivo |
+| Início num projeto **sem** `memory/` | **Ofereça** o `/orq:init` — não instale sozinho |
+
+**Quando o contexto passar de ~50%** ou ele mudar de assunto: **sugira** o checkpoint + limpeza.
+Não force — proponha em uma linha e siga se ele topar.
+
+**Não pergunte "quer que eu rode o comando X?"** — faça o que a intenção pede e diga o que fez.
+Peça confirmação só quando a ação for irreversível ou mudar o rumo do produto.
+
 
 Modelo de desenvolvimento orientado a **board**, com time de agentes **efêmeros** e memória
 **durável**. Adaptado do padrão que o Alison construiu no app Terminals, redesenhado para as
