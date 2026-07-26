@@ -58,6 +58,10 @@ ele quer **revisores externos** (Codex/GPT) no painel ou **só Claude**.
 **Stack complementar.** Do que faltou no item 6, proponha só o que se paga *neste* projeto — o
 `stack.md` traz o filtro (projeto pequeno não precisa de camada 3; o que exige chave só com ganho
 claro). Uma linha por ferramenta: o que resolve · ganho aqui · custo · repositório oficial.
+
+⚠️ **Antes de propor qualquer coisa, leia a seção "Dispensadas" de `memory/wiki/_stack.md`** (se
+existir) e **corte o que ele já recusou**. Vale principalmente no `--reinstalar`: repropor o que o
+dono dispensou é o jeito mais rápido de ele desligar isto.
 **Nada é instalado sem "pode instalar" explícito** — e isso é decisão separada da aprovação do time.
 
 **Páginas de wiki iniciais:** 1 a 3 dos subsistemas mais quentes. Não faça backfill especulativo —

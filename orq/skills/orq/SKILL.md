@@ -160,8 +160,9 @@ responder "como isso funciona?" volta a exigir arqueologia.
 5. **Estado real** (banco, deploy) → MCP do serviço, sempre leitura primeiro.
 
 **Nenhuma delas é dependência** — o Orquestra funciona sozinho. Se alguma faltar e fizer diferença
-*neste* projeto, o catálogo com ganho, custo e comando de instalação está em `stack.md` (raiz do
-plugin); `/orq:stack` detecta e propõe. **Nunca instale nada sem o "pode instalar" dele.**
+*neste* projeto, o catálogo com ganho, custo e **o repositório oficial** está em `stack.md` (raiz do
+plugin) — ele **não traz comando de instalação** de propósito; as instruções vêm do upstream, na
+hora. `/orq:stack` detecta e propõe. **Nunca instale nada sem o "pode instalar" dele.**
 O que ele dispensou fica em `memory/wiki/_stack.md` — **não reproponha**.
 
 Nunca guarde na memória o que é **derivável** (diff, git log, schema): guarde o *porquê*.

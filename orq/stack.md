@@ -27,6 +27,11 @@ responde *o que é e por que importa*; o upstream responde *como instalar*.
 4. **Registre o que ele recusou** em `memory/wiki/_stack.md`, para não ser reproposto a cada sessão.
 5. **Repositório oficial, não fork.** Vários destes têm forks populares com nome parecido. Confira o
    dono do repo antes.
+6. **Como detectar plugin do Claude Code:** o marketplace aparece em
+   `~/.claude/plugins/known_marketplaces.json` e o plugin em `~/.claude/plugins/installed_plugins.json`.
+   **Não procure plugin no PATH** — ele não é binário; `which <nome>` sempre falha e você concluiria
+   "ausente" para algo já instalado. MCP: procure em `~/.claude.json` (chave `mcpServers`) e confirme
+   que **responde**, não só que está configurado.
 
 ---
 
@@ -146,25 +151,34 @@ mais o tempo de indexação. Existem **forks populares** — confira que é o re
 
 ### `codex` — GPT no painel de revisores
 
-📦 [`openai/codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) · plugin do Claude Code
+📦 [`openai/codex`](https://github.com/openai/codex) · **a CLI** (pacote npm `@openai/codex`)
 
 **Por que importa no Orquestra:** modelos diferentes erram diferente. O valor está na **interseção**
 (alta confiança) e na **divergência** (onde vale investigar). Sem ele o painel roda só com o revisor
 Claude — funciona, você perde a diversidade.
 
+**É a CLI que o `/orq:revisar` usa** (`codex exec … < /dev/null`), não o plugin
+[`openai/codex-plugin-cc`](https://github.com/openai/codex-plugin-cc), que é outro artefato e serve a
+outro fluxo. Instalar um não instala o outro — não confunda os dois na hora de detectar.
+
 **Ativar depois de instalar:** marcar `ativo` na seção *Revisores externos* de
-`memory/wiki/_elenco.md`. **Detectar:** `codex` no PATH. **Custo:** conta OpenAI, cobrança à parte.
+`memory/wiki/_elenco.md`. **Detectar:** `codex` no PATH **e** responder a um teste trivial
+(`codex exec -s read-only "responda OK" < /dev/null`) — sem o `< /dev/null` ele trava esperando stdin
+e você concluiria "quebrado" por engano. **Custo:** conta OpenAI, cobrança à parte.
 
 ---
 
 ## Perfis sugeridos
 
-| Perfil | Vale instalar |
+**Os perfis não são cumulativos** — combine só o que se aplica. Um dono com cinco repositórios de 20
+arquivos é "mínimo + Supermemory", **não** arrasta a camada 3.
+
+| Perfil | Acrescenta |
 |---|---|
 | **Mínimo** (qualquer projeto) | `context-mode` + `claude-mem` |
-| **Repo grande** | mínimo + `codebase-memory` e/ou Serena |
-| **Trabalho crítico** | acima + `codex` no painel |
-| **Multi-projeto** | acima + Supermemory |
+| **Repo grande** (≳50 arquivos) | `codebase-memory` e/ou Serena |
+| **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | `codex` no painel |
+| **Multi-projeto** | Supermemory |
 
 Depois de instalar qualquer plugin ou MCP: **`/reload-plugins`** e confirmar que a ferramenta
 **responde** antes de dizer ao dono que está pronta. Instalado ≠ funcionando.

@@ -28,13 +28,22 @@ plugin existir).
 **Sempre — Claude interno:** subagente `orq-reviewer` (read-only, adversarial), com o modelo do papel
 `reviewer` do elenco.
 
-**Se o Codex estiver ATIVO no elenco** e o plugin disponível (`codex:codex-rescue`): dispare com
-`--fresh --model <o do elenco, ex. gpt-5.6-sol> --effort <o do elenco, ex. xhigh> --background`
-e prompt **READ-ONLY explícito**
-("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por afirmação + achados
-priorizados com `arquivo:linha` + cenário de falha concreto.
-> O forwarder devolve um bash-id, **não** o `task-mxxx`. Pegue o id real com
-> `node <companion> status | grep "| running | rescue"` e faça poll até concluir.
+> ⚠️ **Spawne o `orq-reviewer` SEM `name`.** Com `name` ele vira teammate endereçável e fica vivo em
+> loop de *idle* em vez de devolver o parecer — o painel morre esperando. Sem nome, ele retorna o
+> resultado normalmente. (Quebrou assim em 2026-07-26; ver `memory/gotchas.md`.)
+
+**Se o Codex estiver ATIVO no elenco** e a CLI existir (`codex` no PATH): rode direto, read-only:
+
+```bash
+codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only "<briefing>" < /dev/null
+```
+
+> ⚠️ **`< /dev/null` não é opcional.** Sem ele o `codex exec` fica bloqueado lendo stdin (não há TTY
+> aqui), trava até o timeout e não produz nada — mesmo com o prompt passado como argumento. Com o
+> stdin fechado responde em segundos.
+
+Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
+afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
 **Revisores extras** marcados como **ativo** na seção "Revisores externos" do `_elenco.md`: dispare
 também, do jeito registrado ali. Slot previsto p/ **Kimi K2** — hoje não instalado; quando houver

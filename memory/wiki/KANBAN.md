@@ -20,6 +20,7 @@ _(vazio)_
 
 ## 🟣 Validar
 
+- [?] `T-010` Painel de revisores consertado — **duas causas raiz, ambas corrigidas.** (a) `codex exec` bloqueia lendo stdin sem TTY: `< /dev/null` resolve, resposta em segundos. (b) Subagente spawnado **com `name`** vira teammate e nunca devolve resultado; sem nome, entregou em 231 s. O `/orq:revisar` foi reescrito para usar a CLI direto (era o plugin `codex:codex-rescue` com forwarder) e para proibir `name` no spawn. **Como validar:** rode `/orq:revisar` numa mudança real e confirme que **os dois** pareceres voltam e que a reconciliação separa confirmado-por-dois de achado-por-um.
 - [?] `T-009` Stack complementar auto-detectada — catálogo `orq/stack.md` + comando `/orq:stack` + integração no `init` + seção no README. **Como validar:** numa sessão nova, diga *"o que falta instalar aqui?"* e veja se ele detecta sem você citar comando; depois confirme que ele **não instala nada** antes do seu ok e que respeita `_stack.md` (não repropõe a indexação já dispensada).
 
 ---
@@ -33,7 +34,6 @@ _(vazio)_
 - [ ] `T-004` Workflows determinísticos em JS — 3 separados (plan-card / implement-card / finalize-card), nunca um só: workflow não aceita input humano no meio e há gate do dono entre as etapas. Roadmap#2. Só depois do T-003 — workflow sobre fluxo que ainda vai mudar é retrabalho garantido.
 - [ ] `T-005` Worktree obrigatório em card que escreve — hoje é instrução (`isolation: "worktree"`), não imposição. Roadmap#5.
 - [ ] `T-006` Implementação noturna limitada — só cards pré-aprovados, worktree próprio, commit local no máximo, sem merge/push/deploy. Roadmap#3. **Bloqueado por T-001 e T-003.**
-- [ ] `T-010` 🔴 O painel de revisores não entrega — **os dois revisores falharam** em 2026-07-26, na primeira vez que o `/orq:revisar` foi usado pra valer. **Repro:** (a) `codex exec -m gpt-5.6-sol -s read-only - < briefing.md` roda 10 min e o prompt que chega ao modelo tem 2.155+ linhas injetadas pelo ambiente do próprio Codex, não o briefing; (b) `orq-reviewer` spawnado responde *idle* e nunca produz parecer, mesmo com pedido de entrega parcial. **Hipótese:** (a) `~/.codex/` (context-mode, agents, skills) polui o stdin — testar com briefing trivial e `-c` desabilitando o que der; (b) investigar se o agente morre por tamanho de briefing ou por conflito com agent teams. **Por que é 🔴:** o painel é uma das promessas centrais do README, e hoje o `/orq:revisar` entrega menos do que promete. Enquanto não resolver, ele deve **avisar que o painel foi parcial** em vez de apresentar um parecer como consenso.
 - [ ] `T-007` Mais revisores no painel (Kimi K2) — slot já existe no `_elenco.md`. Roadmap#4. **Bloqueado:** sem CLI e sem MCP nesta máquina.
 
 ---

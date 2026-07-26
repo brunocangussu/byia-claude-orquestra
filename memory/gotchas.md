@@ -32,15 +32,34 @@ silenciosamente a escalação escolhida pro projeto — e ninguém percebe, porq
 O Manager é a sessão principal, definida pelo `/model`. Tentar trocá-lo via `/orq:elenco` não faz
 sentido e confunde — não é um spawn.
 
-### O Codex como revisor não-interativo não funciona nesta máquina
+### `codex exec` trava esperando stdin — sempre feche com `< /dev/null`
 
-`codex exec -m gpt-5.6-sol -s read-only - < briefing.md` rodou 10 minutos sem produzir parecer: o
-prompt que chegou ao modelo tinha 2.155+ linhas de contexto injetado pelo ambiente do próprio Codex
-(há `~/.codex/context-mode/`, `~/.codex/agents/` e skills próprias) em vez do briefing de 42 linhas.
-O briefing estava íntegro — a poluição é ambiental, do lado do Codex.
-→ Antes de contar com o Codex no painel, validar com um briefing trivial (`"responda OK"`) e medir o
-tempo. Se estourar, rode o painel só com o revisor Claude e **diga ao dono que o painel foi parcial** —
-nunca apresente parecer de um revisor como se fosse consenso de dois.
+**Causa raiz (diagnosticada em 2026-07-26, card `T-010`).** Sem TTY — que é o caso dentro do Bash tool
+do Claude Code — o `codex exec` imprime `Reading additional input from stdin...` e **bloqueia até o
+timeout**, mesmo com o prompt passado como argumento. Não é lentidão, não é o modelo, não é o tamanho
+do briefing: é o stdin que nunca fecha.
+
+```bash
+codex exec -s read-only "..." < /dev/null      # responde em segundos
+codex exec -s read-only "..."                  # trava até o timeout
+```
+
+Custou duas tentativas de 10 e 3 minutos, e a hipótese errada de "poluição de contexto do ambiente do
+Codex" — o que se via era só a sessão pendurada.
+
+### Subagente spawnado COM `name` não devolve resultado
+
+Com `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` no ambiente, passar `name` no spawn transforma o agente
+em **teammate endereçável**: ele fica vivo emitindo `idle_notification` e **nunca retorna o parecer**.
+Sem `name`, o mesmo agente com o mesmo prompt entregou em 231 s.
+→ Revisor, planner, implementer e docs: **spawnar sem `name`**. Nome só para agente com quem você
+realmente vai conversar em várias rodadas.
+
+### Painel parcial nunca vira "consenso"
+
+Se um revisor do painel não entregar, **diga ao dono que o painel foi parcial**. Nunca apresente
+parecer de um revisor como se fosse a interseção de dois — o valor do painel está justamente em
+confirmado-por-dois vs. achado-por-um.
 
 ### Lint de coerência não pode varrer `memory/`
 

@@ -57,7 +57,16 @@ Para cada ferramenta aprovada:
 2. **Confira que é o repo oficial, não um fork.** Vários destes têm forks populares de nome parecido.
 3. **Mostre ao dono o que você vai rodar** e de onde tirou. Ele aprovou a ferramenta, não um comando
    que ele não viu.
-4. Execute.
+4. **Instalação por slash command? Você NÃO consegue executar — entregue a ele.** Plugins do Claude
+   Code se instalam com `/plugin marketplace add …` e `/plugin install …`, que são comandos internos
+   do cliente: você não os invoca, e a CLI `claude plugin` **não tem** `install` nem `marketplace add`
+   (só `details`, `enable`, `disable`, `eval`). Escreva o comando pronto pra ele colar e diga que
+   essa parte é dele.
+
+   ⚠️ **Nunca improvise um equivalente.** Nada de `git clone` para dentro de `~/.claude/plugins/`,
+   nada de editar `config.json`, `installed_plugins.json` ou `known_marketplaces.json` na mão. Isso é
+   mutação da máquina dele por fora de todo gate, e quebra silenciosamente na próxima atualização.
+5. É executável por você (Homebrew, MCP por arquivo de config, binário solto)? Execute.
 
 **O que o "pode instalar" dele cobre:** a ferramenta que ele nomeou, instalada do jeito que o repo
 oficial manda. Mostrar o comando no passo 3 é transparência, não um segundo gate — **você não precisa
@@ -73,13 +82,18 @@ Aprovar a ferramenta não é aprovar mexer na máquina.
 - Falhou? Mostre o **erro real** e pare essa ferramenta. Não tente rota alternativa por conta própria.
 - O repositório sumiu, mudou de dono ou as instruções não batem com a plataforma? **Pare e relate.**
   Não improvise instalação a partir de fonte secundária.
-- Ao terminar: `/reload-plugins` e **confirme que a ferramenta responde** antes de dizer que está
-  pronta. Instalado ≠ funcionando.
+- Ao terminar: **confirme que a ferramenta responde** antes de dizer que está pronta. Instalado ≠
+  funcionando, e você **não pode afirmar** que responde sem ter verificado. Se a instalação foi por
+  slash command, quem roda o `/reload-plugins` é ele — peça, espere, e **só então** verifique.
 
 ## 5. Registrar
 
-Escreva `memory/wiki/_stack.md` com três seções — **é isso que impede a conversa de se repetir toda
-sessão**:
+**Só se o projeto já tiver `memory/`** (ou seja, se o Orquestra estiver instalado aqui). Rodando num
+projeto sem Orquestra, **não crie a árvore `memory/`** — ele não pediu isso; relate o resultado na
+conversa e ofereça o `/orq:init`.
+
+Havendo `memory/`, escreva `memory/wiki/_stack.md` com três seções — **é isso que impede a conversa
+de se repetir toda sessão**:
 
 ```markdown
 # Stack deste ambiente

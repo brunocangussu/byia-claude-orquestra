@@ -97,6 +97,41 @@ método — quem escreveu o texto é o pior leitor dele:
 
 O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único filtro real que restou.
 
+---
+
+## [2026-07-26] fix | painel de revisores consertado (T-010) + 8 achados aplicados no T-009
+
+**Duas causas raiz, ambas achadas por experimento, ambas contra a hipótese inicial:**
+
+1. **`codex exec` bloqueia lendo stdin quando não há TTY.** Imprime
+   `Reading additional input from stdin...` e trava até o timeout — **mesmo com o prompt passado como
+   argumento**. `< /dev/null` resolve: respondeu em 17 s. A hipótese anterior ("o ambiente do Codex
+   injeta 2.155 linhas no lugar do briefing") estava **errada** — o que se via era a sessão pendurada.
+2. **Subagente spawnado com `name` nunca devolve resultado.** Com
+   `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`, o `name` transforma o agente em teammate endereçável:
+   emite `idle_notification` e fica vivo esperando mensagem. O **mesmo** agente, mesmo prompt, **sem
+   nome**, entregou parecer completo em 231 s.
+
+**Consequência no produto:** o `/orq:revisar` usava o plugin `codex:codex-rescue` com um forwarder e
+poll de bash-id. Foi trocado pela CLI direta (`codex exec … < /dev/null`), que é mais simples e agora
+comprovadamente funciona. E ganhou a proibição explícita de `name` no spawn do revisor.
+
+**O painel funcionou e pagou o investimento.** O parecer trouxe 8 achados; o mais grave eu não teria
+encontrado sozinho: **3 das 7 ferramentas do catálogo se instalam por slash command** (`/plugin
+marketplace add`), que o modelo **não consegue invocar** — e a CLI `claude plugin` não tem `install`
+nem `marketplace add` (confirmei: só `details`, `enable`, `disable`, `eval`). Sem instrução explícita,
+o caminho natural do modelo seria improvisar `git clone` para dentro de `~/.claude/plugins/` ou editar
+`installed_plugins.json` na mão — mutação da máquina do dono por fora de todo gate. Agora o passo 4 do
+`/orq:stack` manda **entregar o comando pra ele colar** e proíbe o equivalente improvisado.
+
+**Outros aplicados:** `SKILL.md:163` ainda prometia "comando de instalação" (o commit anterior
+esqueceu esse arquivo) · catálogo confundia o **plugin** `codex-plugin-cc` com a **CLI** `openai/codex`,
+o que faria `/orq:revisar` cair para um revisor achando que tinha dois · detecção de plugin no PATH
+sempre falharia (plugin não é binário) · `init` não lia a seção "Dispensadas" antes de propor, então
+`--reinstalar` repropunha o recusado · perfis cumulativos arrastavam a camada 3 para quem não precisa ·
+`/orq:stack` criava árvore `memory/` em projeto sem Orquestra · `dormir.md` não listava "instalar
+ferramenta" entre o proibido à noite.
+
 **Veredito sobre a dúvida do dono (Serena é redundante com codebase-memory?):** não, mas se
 sobrepõem em ~20% — os dois acham símbolo por nome. Serena é LSP + **edição**; codebase-memory é
 grafo de **relações**. No Orquestra a sinergia é por papel: planner/reviewer ↔ grafo, implementer ↔

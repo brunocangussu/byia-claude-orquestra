@@ -28,8 +28,10 @@ Se já existir um manifesto **não expirado**, não abra outro — retome aquele
 ## 2. Escolher os cards
 
 Do BACKLOG, **em ordem**, no máximo `cards_max`. **Pule** qualquer card que envolva:
-schema/migration · segurança/permissão · dependência nova · deploy/infra · mudança de rumo do
-produto · qualquer coisa irreversível. Esses **exigem o dono acordado** — deixe no backlog com nota.
+schema/migration · segurança/permissão · dependência nova · **instalar ferramenta na máquina**
+(inclusive a stack complementar do `/orq:stack` — ela é opcional para o Orquestra, mas instalá-la
+altera a máquina do dono do mesmo jeito) · deploy/infra · mudança de rumo do produto · qualquer coisa
+irreversível. Esses **exigem o dono acordado** — deixe no backlog com nota.
 
 Se sobrar nenhum card seguro, diga isso e **não invente trabalho**.
 

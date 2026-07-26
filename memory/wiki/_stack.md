@@ -1,7 +1,8 @@
 # Stack deste ambiente
 
 > Levantado em 2026-07-26 a partir da máquina (marketplaces, MCPs e PATH reais — não presumido).
-> O catálogo com ganho, custo e comando de instalação é `orq/stack.md`.
+> O catálogo com ganho, custo e **repositório oficial** é `orq/stack.md` — ele não traz comando de
+> instalação de propósito.
 
 ## Ativas
 
