@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "orquestra",
+  "displayName": "Orquestra",
+  "version": "0.1.0",
+  "description": "Desenvolvimento orientado a board: time de agentes efemeros, memoria-wiki viva, gates humanos e contexto descartavel. O /orquestra:init inspeciona o projeto e monta a estrutura sob medida.",
+  "author": {
+    "name": "Bruno Canguçu"
+  },
+  "license": "MIT",
+  "keywords": [
+    "kanban",
+    "memoria",
+    "multi-agente",
+    "workflow",
+    "wiki",
+    "portugues"
+  ]
+}

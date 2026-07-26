@@ -1,0 +1,24 @@
+{
+  "name": "orquestra",
+  "owner": {
+    "name": "Bruno Canguçu"
+  },
+  "plugins": [
+    {
+      "name": "orquestra",
+      "source": "./orquestra",
+      "displayName": "Orquestra",
+      "description": "Desenvolvimento orientado a board com time de agentes, memoria-wiki persistente e gates humanos. Adapta-se ao projeto.",
+      "version": "0.1.0",
+      "category": "workflow",
+      "keywords": [
+        "kanban",
+        "memoria",
+        "multi-agente",
+        "workflow",
+        "portugues"
+      ]
+    }
+  ],
+  "description": "Plugins pessoais de fluxo de desenvolvimento do Bruno."
+}
