@@ -21,7 +21,9 @@ responde *o que é e por que importa*; o upstream responde *como instalar*.
 1. **Nunca instale sem consentimento explícito do dono.** Mostre o que vai rodar, e de onde tirou.
 2. **Nunca instale o que exige chave de API** sem que ele forneça a chave. Não invente credencial e
    não reaproveite chave de outro serviço.
-3. **Projeto pequeno merece stack pequena.** Abaixo de ~50 arquivos, camadas 3 e 4 não se pagam.
+3. **Projeto pequeno merece stack pequena.** Abaixo de ~50 arquivos, a camada 3 não se paga. **A
+   camada 4 é exceção** — revisor externo se decide por *criticidade*, não por tamanho: um script
+   pequeno que mexe com dinheiro ou dados de terceiros merece painel.
 4. **Registre o que ele recusou** em `memory/wiki/_stack.md`, para não ser reproposto a cada sessão.
 5. **Repositório oficial, não fork.** Vários destes têm forks populares com nome parecido. Confira o
    dono do repo antes.

@@ -82,9 +82,20 @@ resolveu a pendência de procedência: o `codebase-memory-mcp` é `DeusData/code
   software na máquina não é.
 - `/orq:stack` passo 2 não dizia o que fazer sem `_stack.md` (comando rodando antes do `init`).
 
-**Painel de revisores ficou parcial.** O Codex não entregou (ver `gotchas.md`) e o revisor Claude não
-retornou a tempo. Os achados acima vieram de autocrítica, não de revisão independente — o `T-009`
-segue em VALIDATE justamente por isso.
+**O painel de revisores falhou por inteiro — os dois revisores.** O Codex não entregou (ver
+`gotchas.md`). O `orq-reviewer` foi spawnado, respondeu três notificações de *idle* e **nunca produziu
+parecer**, nem após dois pedidos de entrega parcial. Parei na terceira, em vez de insistir.
+
+**Consequência honesta:** nenhum achado desta mudança veio de revisão independente. Todos vieram de
+autocrítica do Manager. Duas contradições só apareceram na segunda passada, o que mostra o limite do
+método — quem escreveu o texto é o pior leitor dele:
+- `commands/stack.md:15` mandava usar a *"coluna Detectar"* do catálogo, que a reescrita eliminou (a
+  detecção virou linha inline). Instrução apontando para estrutura inexistente.
+- `stack.md` regra 3 dizia que a **camada 4 não se paga em projeto pequeno** — errado e contraditório
+  com a própria seção da camada 4 e com os Perfis. Revisor externo se decide por **criticidade**, não
+  por tamanho: script pequeno que mexe com dinheiro merece painel.
+
+O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único filtro real que restou.
 
 **Veredito sobre a dúvida do dono (Serena é redundante com codebase-memory?):** não, mas se
 sobrepõem em ~20% — os dois acham símbolo por nome. Serena é LSP + **edição**; codebase-memory é

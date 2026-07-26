@@ -4,16 +4,17 @@ argument-hint: "[--verificar para só diagnosticar, sem propor instalação]"
 ---
 
 Você vai avaliar a **stack complementar** deste ambiente. Leia
-`${CLAUDE_PLUGIN_ROOT}/stack.md` — é o catálogo canônico, com o que cada ferramenta resolve, como
-detectá-la e como instalá-la.
+`${CLAUDE_PLUGIN_ROOT}/stack.md` — é o catálogo canônico: o que cada ferramenta resolve, por que
+importa neste fluxo, como detectá-la, quanto custa e **o repositório oficial**. Ele não traz comando
+de instalação de propósito (comando envelhece, repositório não).
 
 > **Nada disso é dependência do Orquestra.** Ele funciona sozinho. Estas ferramentas atacam um
 > problema vizinho — o contexto acaba — e por isso se somam bem. Não venda como obrigatório.
 
 ## 1. Detectar (sem perguntar nada ainda)
 
-Rode as verificações da coluna **Detectar** do catálogo. Verifique **de verdade**, não presuma:
-comando no PATH, marketplace registrado, MCP configurado e **respondendo**.
+Cada ferramenta do catálogo tem uma linha **Detectar:** — siga aquilo. Verifique **de verdade**, não
+presuma: comando no PATH, marketplace registrado, MCP configurado e **respondendo**.
 
 Registre três grupos: **presente** · **ausente** · **presente mas quebrado** (instalado e não
 responde — isso é pior que ausente, porque o dono acha que tem).
@@ -26,6 +27,9 @@ Não proponha a lista inteira. Corte pelo projeto:
 
 - **Menos de ~50 arquivos** → camada 3 (Serena / codebase-memory) não se paga. Não proponha.
 - **Sem repositório grande nem histórico longo** → Supermemory é prematuro.
+- **Camada 4 (revisor externo) não se filtra por tamanho** — o critério é **criticidade**. Projeto
+  pequeno que mexe com dinheiro, dados de terceiros ou segurança merece painel; projeto grande e
+  descartável, não.
 - **Já recusado antes** → leia `memory/wiki/_stack.md` e **não reproponha** o que ele já dispensou.
   Sem esse arquivo (projeto ainda sem Orquestra), trate como primeira vez — mas **não crie o arquivo
   agora**: ele nasce no passo 5, com o resultado real.
