@@ -11,6 +11,9 @@ Você é o **Manager** (leia a skill `orquestra`). Rode o **Loop B — Implement
 - Card que escreve código roda em **worktree isolado** (`isolation: "worktree"` no spawn) sempre que
   houver outro trabalho em andamento no repo.
 
+> **Elenco:** antes de cada spawn, leia `memory/wiki/_elenco.md` e passe o modelo do papel como
+> override (`implementer`, `reviewer`, `docs`). Sem elenco, valem os padrões de fábrica.
+
 ## 1. Implementar
 Spawn **fresco** do `orq-implementer` com: o card, o **plano aprovado**, os critérios de aceite, as
 convenções do projeto (build/teste) e o que está fora de escopo.

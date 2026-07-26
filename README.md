@@ -86,6 +86,7 @@ Ele **se adapta ao projeto** — não despeja estrutura genérica:
 | `/orq:plan-next` | **Loop A** — planeja o próximo card e para no gate |
 | `/orq:implement-next` | **Loop B** — implementa + painel de revisão + documentação |
 | `/orq:revisar` | Painel de revisores sobre a mudança atual |
+| `/orq:elenco` | Ver/trocar qual LLM toca cada papel |
 | `/orq:quadro` | Mostra o board e o progresso |
 | `/orq:checkpoint` | Fecha o bloco de trabalho na memória (antes do `/clear`) |
 | `/orq:wiki-lint` | Health-check da wiki: contradições, órfãs, afirmações vencidas |
@@ -112,6 +113,44 @@ arrastar premissas da tarefa anterior.
 
 ---
 
+## Elenco — escolher a LLM de cada papel
+
+Qual modelo interpreta cada papel é **configurável por projeto**, em `memory/wiki/_elenco.md`.
+Os comandos leem esse arquivo antes de spawnar e passam o modelo como override — o `model:` do
+arquivo do agente é só o padrão de fábrica.
+
+```bash
+/orq:elenco                    # mostra a escalação atual
+/orq:elenco planner fable      # troca o planner pro Fable 5
+/orq:elenco reviewer opus      # revisor interno em Opus
+/orq:elenco codex off          # tira o GPT do painel (só Claude)
+/orq:elenco codex xhigh        # ajusta o esforço do Codex
+```
+
+Ou simplesmente fale: *"quero o Fable planejando"* · *"tira o GPT da revisão"* · *"quem tá revisando?"*
+
+**Padrões de fábrica:**
+
+| Papel | Modelo | Por quê |
+|---|---|---|
+| `manager` | *sessão principal* | definido pelo `/model` — não é spawn, não muda por aqui |
+| `planner` | `opus` | achar causa raiz e desenhar solução é o trabalho mais difícil |
+| `implementer` | `inherit` | acompanha o modelo da sessão |
+| `reviewer` | `opus` | revisão adversarial exige raciocínio forte |
+| `docs` | `sonnet` | escrita objetiva sobre código já pronto |
+| `scout` | `sonnet` | leitura ampla e barata |
+
+Valores aceitos: `opus` · `sonnet` · `haiku` · `fable` · `inherit` · ou um id específico
+(`claude-opus-5`).
+
+**Onde modelo forte se paga:** planner e reviewer. Um erro de plano custa a implementação inteira;
+um review fraco deixa passar o que vai quebrar depois. Docs e scout resolvem com modelo menor.
+
+**Quer só Claude, sem GPT?** `/orq:elenco codex off` e deixe o reviewer em `opus`. Você perde a
+diversidade do painel (modelos diferentes erram diferente), mas ganha um fornecedor só.
+
+---
+
 ## Painel de revisores
 
 Revisores diferentes erram de formas diferentes: um acha o bug de lógica, outro acha o vazamento de
@@ -132,19 +171,19 @@ escopo. O valor está na **interseção** (alta confiança) e na **divergência*
 
 ### Acrescentar um revisor (ex.: Kimi K2)
 
-Crie `memory/wiki/_revisores.md` no projeto:
+Registre na seção **Revisores externos** do mesmo `memory/wiki/_elenco.md`:
 
 ```markdown
-# Revisores do painel
-
-## kimi-k2
-- como chamar: <comando CLI ou ferramenta MCP>
-- perfil: <no que ele é bom — ex.: raciocínio longo, código de sistema>
-- read-only: sim
+## Revisores externos
+| Revisor | Estado | Config |
+|---|---|---|
+| codex | ativo | `--model gpt-5.6-sol --effort xhigh` (read-only) |
+| kimi-k2 | ativo | `<comando CLI ou ferramenta MCP>` · bom em raciocínio longo · read-only |
 ```
 
-O `/orq:revisar` lê esse arquivo e inclui os revisores registrados. **Kimi K2 ainda não está
-instalado** nesta máquina (sem CLI e sem MCP) — quando estiver, basta registrar aqui.
+O `/orq:revisar` lê esse arquivo e inclui todo revisor marcado como **ativo**. **Kimi K2 ainda não
+está instalado** nesta máquina (sem CLI e sem MCP) — quando estiver, basta registrar aqui e marcar
+como ativo.
 
 Em card pequeno e de baixo risco, use `--rapido` (só o revisor interno). Painel em mudança trivial
 é desperdício.
@@ -253,8 +292,8 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.3.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
-· painel de revisores.
+`0.4.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+· painel de revisores · **elenco configurável de LLM por papel**.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

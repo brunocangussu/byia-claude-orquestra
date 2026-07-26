@@ -27,6 +27,7 @@ mecanismo interno — ele não precisa saber que existem.
 | "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
 | "revisa isso" · "manda revisar" · "o que você acha desse código?" | **Painel de revisores** (`/orq:revisar`) — Claude + Codex em paralelo, achados reconciliados |
+| "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória** (`/orq:lembrar`) + cruza com a wiki |
 | "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
 | "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |
@@ -57,6 +58,10 @@ por isso todo passo termina gravando no board e no arquivo de handoff.
 |---|---|---|
 | **Manager** | **a sessão principal (você)** | persistente — retém o fio da meada |
 | Planner / Implementer / Reviewer / Docs | **subagentes spawnados** | **fresco a cada card** |
+
+**Qual LLM toca cada papel** está em `memory/wiki/_elenco.md` (o "elenco"). **Leia-o antes de
+spawnar** e passe o modelo como override — o `model:` do arquivo do agente é só o padrão de fábrica.
+Sem elenco, use o padrão. Ver `/orq:elenco`.
 
 **O Manager NÃO é um subagente.** Ele é o control plane: só ele move cards, atribui responsável e
 fala com o dono. Os workers pedem; o Manager decide.

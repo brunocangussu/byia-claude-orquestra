@@ -14,7 +14,11 @@ Você é o **Manager** (leia a skill `orquestra`). Rode o **Loop A — Planejame
 Marque o card como `[>]` PLANNING no `memory/wiki/KANBAN.md`.
 
 ## 2. Despachar o Planner
-Spawn **fresco** do agente `orq-planner`. No prompt, inclua:
+Spawn **fresco** do agente `orq-planner`. **Antes de spawnar, leia `memory/wiki/_elenco.md`** e passe
+o modelo do papel `planner` como override (o `model:` do arquivo do agente é só o padrão de fábrica).
+Sem elenco, use o padrão.
+
+No prompt, inclua:
 - o card (ID, título, notas) e **por que ele existe**;
 - os arquivos-âncora e páginas de wiki relevantes que você já conhece — poupa a investigação dele;
 - restrições do projeto (build, testes, o que quebra deploy, o que é intocável);

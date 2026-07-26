@@ -21,17 +21,24 @@ comparáveis.
 
 ## 2. Disparar os revisores EM PARALELO
 
-**Sempre — Claude interno:** subagente `orq-reviewer` (read-only, adversarial).
+**Leia `memory/wiki/_elenco.md` primeiro** — ele define o modelo do reviewer interno e **quais
+revisores externos estão ativos**. Sem elenco, valem os padrões (reviewer `opus`; Codex ativo se o
+plugin existir).
 
-**Se o plugin Codex estiver disponível** (`codex:codex-rescue`): dispare com
-`--fresh --model gpt-5.6-sol --effort xhigh --background` e prompt **READ-ONLY explícito**
+**Sempre — Claude interno:** subagente `orq-reviewer` (read-only, adversarial), com o modelo do papel
+`reviewer` do elenco.
+
+**Se o Codex estiver ATIVO no elenco** e o plugin disponível (`codex:codex-rescue`): dispare com
+`--fresh --model <o do elenco, ex. gpt-5.6-sol> --effort <o do elenco, ex. xhigh> --background`
+e prompt **READ-ONLY explícito**
 ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por afirmação + achados
 priorizados com `arquivo:linha` + cenário de falha concreto.
 > O forwarder devolve um bash-id, **não** o `task-mxxx`. Pegue o id real com
 > `node <companion> status | grep "| running | rescue"` e faça poll até concluir.
 
-**Revisores extras configurados** (ver `memory/wiki/_revisores.md`, se existir): dispare também.
-Slot previsto p/ **Kimi K2** — hoje não instalado; quando houver CLI ou MCP, basta registrar lá.
+**Revisores extras** marcados como **ativo** na seção "Revisores externos" do `_elenco.md`: dispare
+também, do jeito registrado ali. Slot previsto p/ **Kimi K2** — hoje não instalado; quando houver
+CLI ou MCP, basta registrar e ativar.
 
 Com `--rapido`: só o revisor interno.
 

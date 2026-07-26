@@ -47,6 +47,10 @@ Para cada papel decida:
 - `tools` — **mínimo necessário**. Reviewer é **read-only** (sem Edit/Write). Só quem implementa escreve.
 - quando é chamado e o que entrega.
 
+**Proponha o ELENCO** (`memory/wiki/_elenco.md`) — qual LLM toca cada papel. Sugira uma escalação e
+deixe claro que ele pode mudar depois com `/orq:elenco planner fable`. Pergunte especificamente se
+ele quer **revisores externos** (Codex/GPT) no painel ou **só Claude**.
+
 **Estratégia de leitura** (o que economiza contexto neste projeto):
 - Repo grande → busca semântica primeiro; indexar se ainda não estiver.
 - Saída volumosa (testes, logs, git) → context-mode.
@@ -75,6 +79,8 @@ Apresente ao dono, curto e escaneável:
    Se já houver memória, **integre**: aproveite o conteúdo, não recomece.
 2. **Agentes** em `.claude/agents/` — só os aprovados, com `model`/`tools` decididos. Não duplique
    os que já existem; complemente.
+2b. **Elenco** em `memory/wiki/_elenco.md` — a escalação aprovada (papel → modelo) + os revisores
+   externos ativos. É esse arquivo que os comandos leem na hora de spawnar.
 3. **`CLAUDE.md`** — adicione (ou atualize) um bloco `<!-- orquestra:start -->…<!-- orquestra:end -->`
    com: o ciclo, onde vive a memória, quem move o board, e as convenções do projeto que você
    descobriu (build, teste, o que quebra o deploy). **Preserve todo o resto do arquivo.**
