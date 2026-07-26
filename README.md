@@ -81,10 +81,10 @@ exatamente isso. Elas não são requisito; são o que separa "funciona" de "rend
 
 | Camada | Ferramentas | O que muda |
 |---|---|---|
-| **Economia de contexto** | `context-mode` · `rtk` | um `npm test` de 4.000 linhas entra como as 12 que interessam |
-| **Memória entre sessões** | `claude-mem` · Supermemory | é o que torna `checkpoint` + `/clear` seguro em vez de `/compact` encadeado |
-| **Entender o código** | `codebase-memory` · Serena | só valem em repo grande — ver a comparação abaixo |
-| **Revisão independente** | `codex` | segundo modelo no painel; modelos diferentes erram diferente |
+| **Economia de contexto** | [`context-mode`](https://github.com/mksglu/context-mode) · [`rtk`](https://github.com/rtk-ai/rtk) | um `npm test` de 4.000 linhas entra como as 12 que interessam |
+| **Memória entre sessões** | [`claude-mem`](https://github.com/thedotmack/claude-mem) · [Supermemory](https://github.com/supermemoryai/supermemory) | é o que torna `checkpoint` + `/clear` seguro em vez de `/compact` encadeado |
+| **Entender o código** | [`codebase-memory`](https://github.com/DeusData/codebase-memory-mcp) · [Serena](https://github.com/oraios/serena) | só valem em repo grande — ver a comparação abaixo |
+| **Revisão independente** | [`codex`](https://github.com/openai/codex-plugin-cc) | segundo modelo no painel; modelos diferentes erram diferente |
 
 **Serena e codebase-memory são redundantes?** Não, mas se sobrepõem: os dois acham símbolo por nome, e
 a semelhança acaba aí. Serena é **LSP + edição** ("me dê o corpo disto e edite com precisão");
@@ -93,10 +93,14 @@ sinergia é por papel — planner e reviewer rendem com o grafo, implementer ren
 escolher um só: gargalo em *entender* → codebase-memory; em *editar* → Serena. Projeto com menos de
 ~50 arquivos → nenhum dos dois.
 
-O catálogo completo — o que cada uma resolve, como detectar, comando exato e custo honesto — está em
-[`orq/stack.md`](orq/stack.md). Ele é escrito para ser lido **por uma IA**: rodando `/orq:stack` (ou o
-`/orq:init`), o Claude verifica o que já existe nesta máquina, corta o que não se paga neste projeto,
-e propõe o resto com ganho e custo lado a lado.
+O catálogo completo — o que cada uma resolve, por que importa *neste* fluxo, como detectar e qual o
+custo honesto — está em [`orq/stack.md`](orq/stack.md). Ele é escrito para ser lido **por uma IA**:
+rodando `/orq:stack` (ou o `/orq:init`), o Claude verifica o que já existe na máquina, corta o que não
+se paga neste projeto, e propõe o resto com ganho e custo lado a lado.
+
+**O catálogo não traz comando de instalação, de propósito** — comando envelhece, repositório não. Ele
+aponta o repo oficial de cada ferramenta; na hora de instalar, o Claude vai lá, lê as instruções
+atuais e mostra a você o que pretende rodar antes de rodar.
 
 > **Nada é instalado sem o seu "pode instalar".** Nada que exija chave de API é instalado sem você
 > fornecer a chave. E o que você dispensar fica registrado em `memory/wiki/_stack.md` para **não ser

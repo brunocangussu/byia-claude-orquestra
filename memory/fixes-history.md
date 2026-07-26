@@ -65,6 +65,27 @@ natural na skill · seção no README · `memory/wiki/_stack.md` com o levantame
 - **Sem comando de instalação para `codebase-memory-mcp`.** É binário local sem origem rastreável;
   recomendar um comando adivinhado a terceiros seria pior que omitir.
 
+**Correção do dono, na mesma sessão:** tirar os comandos de instalação do catálogo e apontar só o
+repositório oficial + a importância da ferramenta. **O argumento dele é melhor que o desenho
+original:** comando envelhece, repositório não — e some a assimetria de ter deixado uma ferramenta
+sem comando. A IA passa a ler as instruções atuais no upstream na hora de instalar. Isso também
+resolveu a pendência de procedência: o `codebase-memory-mcp` é `DeusData/codebase-memory-mcp`
+(binário estático único, bate com o Mach-O de 255 MB local). Todas as 7 fontes confirmadas.
+
+**Autocrítica antes de entregar — três brechas próprias, corrigidas:**
+- `/orq:stack` passo 4 dizia "mostre o comando antes de rodar" sem definir se aquilo era um segundo
+  gate. Um modelo podia mostrar e executar na mesma resposta, ou travar pedindo aprovação de novo.
+  Agora está explícito: o "pode instalar" cobre a ferramenta; **voltar a perguntar só** se as
+  instruções exigirem `sudo`, mexer em PATH, `curl | sh` ou dependência de sistema.
+- `init.md` FASE 3: o "pode ir" genérico da instalação podia ser lido como aprovação da stack junto.
+  Agora são **duas decisões separadas** — instalar arquivos no projeto é reversível, instalar
+  software na máquina não é.
+- `/orq:stack` passo 2 não dizia o que fazer sem `_stack.md` (comando rodando antes do `init`).
+
+**Painel de revisores ficou parcial.** O Codex não entregou (ver `gotchas.md`) e o revisor Claude não
+retornou a tempo. Os achados acima vieram de autocrítica, não de revisão independente — o `T-009`
+segue em VALIDATE justamente por isso.
+
 **Veredito sobre a dúvida do dono (Serena é redundante com codebase-memory?):** não, mas se
 sobrepõem em ~20% — os dois acham símbolo por nome. Serena é LSP + **edição**; codebase-memory é
 grafo de **relações**. No Orquestra a sinergia é por papel: planner/reviewer ↔ grafo, implementer ↔

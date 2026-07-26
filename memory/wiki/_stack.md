@@ -27,8 +27,10 @@
 |---|---|
 | Kimi K2 (revisor) | sem CLI e sem MCP nesta máquina — card `T-007` |
 
-## Pendência de procedência
+## Procedência
 
-**`codebase-memory-mcp`** é um binário local sem origem rastreável (não veio de npm nem de pipx).
-Funciona aqui, mas o `orq/stack.md` **não recomenda comando de instalação** para terceiros até a
-fonte oficial ser confirmada. Não inventar comando.
+Todas as fontes oficiais estão confirmadas e registradas em `orq/stack.md`. O `codebase-memory-mcp`,
+que na primeira passada não tinha origem rastreável na máquina, é
+[`DeusData/codebase-memory-mcp`](https://github.com/DeusData/codebase-memory-mcp) — binário estático
+único, o que bate com o Mach-O de ~255 MB em `~/.local/bin/`. **Existem forks populares de nome
+parecido** (e o mesmo vale para o `rtk`): conferir o dono do repo antes de instalar em outra máquina.

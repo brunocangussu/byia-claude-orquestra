@@ -57,7 +57,7 @@ ele quer **revisores externos** (Codex/GPT) no painel ou **só Claude**.
 
 **Stack complementar.** Do que faltou no item 6, proponha só o que se paga *neste* projeto — o
 `stack.md` traz o filtro (projeto pequeno não precisa de camada 3; o que exige chave só com ganho
-claro). Uma linha por ferramenta: o que resolve · ganho aqui · custo · comando exato.
+claro). Uma linha por ferramenta: o que resolve · ganho aqui · custo · repositório oficial.
 **Nada é instalado sem "pode instalar" explícito** — e isso é decisão separada da aprovação do time.
 
 **Páginas de wiki iniciais:** 1 a 3 dos subsistemas mais quentes. Não faça backfill especulativo —
@@ -74,6 +74,11 @@ Apresente ao dono, curto e escaneável:
   inteira sem afetar o resto da instalação.
 
 **PARE e espere aprovação.** Se ele ajustar o time, incorpore. Nada é escrito antes do "pode ir".
+
+⚠️ **O "pode ir" cobre a instalação do Orquestra, NÃO a stack complementar.** São duas decisões
+separadas: instalar arquivos no projeto dele é reversível; instalar software na máquina dele não é.
+Se ele aprovou sem se pronunciar sobre a stack, **pergunte de novo, especificamente** — e siga com a
+FASE 4 sem ela se ele não responder ou disser não.
 
 ## FASE 4 — Instalar
 
@@ -95,7 +100,8 @@ Apresente ao dono, curto e escaneável:
    `statusLine` do settings pra ele. Se já houver statusline customizada, **não sobrescreva** —
    mostre a linha a acrescentar.
 6. **Stack complementar** — só o que ele aprovou explicitamente, seguindo as regras do `/orq:stack`
-   (comando exato, nada com chave sem ele fornecer, `/reload-plugins` e confirmar que responde).
+   (instruções lidas no repositório oficial e mostradas a ele antes de rodar, nada com chave sem ele
+   fornecer, `/reload-plugins` e confirmar que responde).
    Grave `memory/wiki/_stack.md` com o que ficou ativo e **o que ele dispensou** — sem isso a mesma
    proposta volta toda sessão.
 

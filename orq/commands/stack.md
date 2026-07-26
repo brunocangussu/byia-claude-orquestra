@@ -27,6 +27,8 @@ Não proponha a lista inteira. Corte pelo projeto:
 - **Menos de ~50 arquivos** → camada 3 (Serena / codebase-memory) não se paga. Não proponha.
 - **Sem repositório grande nem histórico longo** → Supermemory é prematuro.
 - **Já recusado antes** → leia `memory/wiki/_stack.md` e **não reproponha** o que ele já dispensou.
+  Sem esse arquivo (projeto ainda sem Orquestra), trate como primeira vez — mas **não crie o arquivo
+  agora**: ele nasce no passo 5, com o resultado real.
 - **Exige chave ou conta paga** → só proponha se houver ganho claro, e diga o custo na mesma linha.
 
 ## 3. Propor e ESPERAR
@@ -34,7 +36,7 @@ Não proponha a lista inteira. Corte pelo projeto:
 Para cada ferramenta ausente que sobreviveu ao filtro, uma linha honesta:
 
 > **`nome`** — o que resolve, em uma frase · **ganho aqui:** por que *neste* projeto · **custo:** chave,
-> serviço externo, disco, ou "nenhum" · `comando exato de instalação`
+> serviço externo, disco, ou "nenhum" · link do **repositório oficial**
 
 Ordene por **ganho/custo**, melhor primeiro. Se nada faz sentido, **diga isso** — não invente
 recomendação para parecer útil.
@@ -43,10 +45,30 @@ recomendação para parecer útil.
 
 ## 4. Instalar só o aprovado
 
-- Rode **o comando exato** que você mostrou. Nada além dele.
+O catálogo **não traz comando de instalação de propósito** — comando envelhece, repositório não.
+Para cada ferramenta aprovada:
+
+1. **Abra o repositório oficial** e leia as instruções de instalação **de lá**. São elas que estão
+   atualizadas e corretas para esta plataforma.
+2. **Confira que é o repo oficial, não um fork.** Vários destes têm forks populares de nome parecido.
+3. **Mostre ao dono o que você vai rodar** e de onde tirou. Ele aprovou a ferramenta, não um comando
+   que ele não viu.
+4. Execute.
+
+**O que o "pode instalar" dele cobre:** a ferramenta que ele nomeou, instalada do jeito que o repo
+oficial manda. Mostrar o comando no passo 3 é transparência, não um segundo gate — **você não precisa
+esperar ele aprovar o comando de novo**.
+
+**Volte a perguntar** se as instruções do repo exigirem qualquer coisa além de instalar: `sudo`,
+alterar PATH ou shell profile, desabilitar verificação de assinatura, instalar dependência de sistema,
+abrir porta, ou rodar script baixado por `curl | sh`. Nesses casos, mostre o que ele exige e **pare**.
+Aprovar a ferramenta não é aprovar mexer na máquina.
+
 - **Nunca** instale o que exige chave sem que ele forneça a chave. Não invente credencial, não leia
   chave de outro arquivo para reaproveitar.
 - Falhou? Mostre o **erro real** e pare essa ferramenta. Não tente rota alternativa por conta própria.
+- O repositório sumiu, mudou de dono ou as instruções não batem com a plataforma? **Pare e relate.**
+  Não improvise instalação a partir de fonte secundária.
 - Ao terminar: `/reload-plugins` e **confirme que a ferramenta responde** antes de dizer que está
   pronta. Instalado ≠ funcionando.
 
