@@ -20,7 +20,7 @@ _(vazio)_
 
 ## 🟣 Validar
 
-_(vazio)_
+- [?] `T-009` Stack complementar auto-detectada — catálogo `orq/stack.md` + comando `/orq:stack` + integração no `init` + seção no README. **Como validar:** numa sessão nova, diga *"o que falta instalar aqui?"* e veja se ele detecta sem você citar comando; depois confirme que ele **não instala nada** antes do seu ok e que respeita `_stack.md` (não repropõe a indexação já dispensada).
 
 ---
 

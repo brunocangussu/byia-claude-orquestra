@@ -42,3 +42,31 @@ roadmap morava em prosa no README. Instalados: `memory/` completo, board com o r
 - **Sem indexação semântica.** 24 arquivos de markdown: `grep` resolve. Registrado como decidido
   para não ser reproposto.
 - **Statusline não tocada** — o dono já tem uma customizada em `~/.claude/statusline.sh`.
+
+---
+
+## [2026-07-26] feat | stack complementar auto-detectada (0.5.0)
+
+**Motivação do dono:** a experiência dele com o Orquestra depende de uma stack de memória e contexto
+que ele já tinha montada — e que não estava documentada em lugar nenhum. Quem instalasse o plugin
+puro teria performance pior sem saber por quê. Pedido explícito: *"que uma IA leia esse repositório,
+veja o que é necessário e instale tudo, mesmo que não esteja diretamente no repositório"*.
+
+**Entregue:** `orq/stack.md` (catálogo canônico, escrito para ser lido por IA — detecção, comando
+exato, custo honesto) · comando `/orq:stack` · integração nas FASES 1/2/3/4 do `init` · gatilho
+natural na skill · seção no README · `memory/wiki/_stack.md` com o levantamento real desta máquina.
+
+**Decisões:**
+- **Consentimento é a espinha do desenho**, não um detalhe: nada instala sem "pode instalar", nada
+  que exija chave sem o dono fornecer, e recusa registrada é **permanente** até ele reabrir.
+- **`_stack.md` com seção "Dispensadas"** existe porque sem ela a mesma proposta volta toda sessão —
+  o tipo de ruído que faz o dono desligar a feature.
+- **Comandos levantados da máquina real**, não inventados: marketplaces, MCPs e PATH.
+- **Sem comando de instalação para `codebase-memory-mcp`.** É binário local sem origem rastreável;
+  recomendar um comando adivinhado a terceiros seria pior que omitir.
+
+**Veredito sobre a dúvida do dono (Serena é redundante com codebase-memory?):** não, mas se
+sobrepõem em ~20% — os dois acham símbolo por nome. Serena é LSP + **edição**; codebase-memory é
+grafo de **relações**. No Orquestra a sinergia é por papel: planner/reviewer ↔ grafo, implementer ↔
+LSP. Escolhendo um só: gargalo em *entender* → codebase-memory; em *editar* → Serena. Menos de ~50
+arquivos → nenhum dos dois.

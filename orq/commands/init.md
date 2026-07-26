@@ -29,11 +29,11 @@ Levante:
 5. **Trabalho em aberto** — TODO/FIXME no código, issues, itens não concluídos nos docs, testes
    quebrados. Vira o backlog inicial (com IDs `T-NNN`).
 6. **Ferramental disponível** (checar de verdade, não presumir):
-   - MCPs conectados (banco, deploy, observabilidade, design…)
-   - Plugins ativos: claude-mem, context-mode, codex, superpowers…
-   - Busca semântica: Serena e/ou codebase-memory — **e se o repo já está indexado**
-   - Memória de longo prazo (Supermemory) configurada?
+   - **Rode as verificações de `${CLAUDE_PLUGIN_ROOT}/stack.md`** — é o catálogo da stack
+     complementar (contexto, memória, busca semântica, revisor externo), com como detectar cada uma.
+   - MCPs conectados além dessas (banco, deploy, observabilidade, design…)
    - Subagentes que o projeto **já** tem em `.claude/agents/`
+   - Se houver busca semântica: **o repo já está indexado?**
 
 ## FASE 2 — Decidir (o julgamento)
 
@@ -54,7 +54,11 @@ ele quer **revisores externos** (Codex/GPT) no painel ou **só Claude**.
 **Estratégia de leitura** (o que economiza contexto neste projeto):
 - Repo grande → busca semântica primeiro; indexar se ainda não estiver.
 - Saída volumosa (testes, logs, git) → context-mode.
-- Se faltar ferramenta útil, **registre como sugestão** — não instale nada sozinho.
+
+**Stack complementar.** Do que faltou no item 6, proponha só o que se paga *neste* projeto — o
+`stack.md` traz o filtro (projeto pequeno não precisa de camada 3; o que exige chave só com ganho
+claro). Uma linha por ferramenta: o que resolve · ganho aqui · custo · comando exato.
+**Nada é instalado sem "pode instalar" explícito** — e isso é decisão separada da aprovação do time.
 
 **Páginas de wiki iniciais:** 1 a 3 dos subsistemas mais quentes. Não faça backfill especulativo —
 a wiki cresce com o uso.
@@ -66,7 +70,8 @@ Apresente ao dono, curto e escaneável:
 - o **time proposto** (papel · modelo · por que existe aqui);
 - o que será criado/alterado (com destaque para o que **altera arquivo existente**);
 - backlog inicial que você encontrou;
-- sugestões de ferramenta que ele pode querer ligar.
+- a **stack complementar** que falta e vale a pena aqui — como escolha à parte, que ele pode recusar
+  inteira sem afetar o resto da instalação.
 
 **PARE e espere aprovação.** Se ele ajustar o time, incorpore. Nada é escrito antes do "pode ir".
 
@@ -89,6 +94,10 @@ Apresente ao dono, curto e escaneável:
 5. **Statusline** (opcional, perguntar): garantir `~/.claude/scripts/kanban-status.sh` e apontar o
    `statusLine` do settings pra ele. Se já houver statusline customizada, **não sobrescreva** —
    mostre a linha a acrescentar.
+6. **Stack complementar** — só o que ele aprovou explicitamente, seguindo as regras do `/orq:stack`
+   (comando exato, nada com chave sem ele fornecer, `/reload-plugins` e confirmar que responde).
+   Grave `memory/wiki/_stack.md` com o que ficou ativo e **o que ele dispensou** — sem isso a mesma
+   proposta volta toda sessão.
 
 ## FASE 5 — Confirmar
 

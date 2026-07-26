@@ -35,6 +35,7 @@ O plugin foi feito pra ser usado **conversando**. Você fala; o Claude reconhece
 | *"lembra o que decidimos sobre X?"* | busca na memória de longo prazo |
 | *"vou dormir, adianta o que der"* | modo noturno |
 | *"bom dia"* | relatório do que rodou à noite |
+| *"tá lento"* · *"o que falta instalar?"* | detecta a stack que falta e instala o que você aprovar |
 
 Os comandos `/orq:*` existem como mecanismo. Use se quiser, mas não precisa.
 
@@ -72,6 +73,37 @@ Ele **se adapta ao projeto** — não despeja estrutura genérica:
 
 ---
 
+## Stack recomendada (opcional)
+
+**O Orquestra funciona sozinho.** Board, agentes, wiki e gates não dependem de mais nada. Mas ele
+convive com um problema vizinho — *o contexto acaba* — e existe um conjunto de ferramentas que ataca
+exatamente isso. Elas não são requisito; são o que separa "funciona" de "rende".
+
+| Camada | Ferramentas | O que muda |
+|---|---|---|
+| **Economia de contexto** | `context-mode` · `rtk` | um `npm test` de 4.000 linhas entra como as 12 que interessam |
+| **Memória entre sessões** | `claude-mem` · Supermemory | é o que torna `checkpoint` + `/clear` seguro em vez de `/compact` encadeado |
+| **Entender o código** | `codebase-memory` · Serena | só valem em repo grande — ver a comparação abaixo |
+| **Revisão independente** | `codex` | segundo modelo no painel; modelos diferentes erram diferente |
+
+**Serena e codebase-memory são redundantes?** Não, mas se sobrepõem: os dois acham símbolo por nome, e
+a semelhança acaba aí. Serena é **LSP + edição** ("me dê o corpo disto e edite com precisão");
+codebase-memory é **grafo de relações** ("quem chama isto, o que quebra se eu mudar"). No Orquestra a
+sinergia é por papel — planner e reviewer rendem com o grafo, implementer rende com o LSP. Se for
+escolher um só: gargalo em *entender* → codebase-memory; em *editar* → Serena. Projeto com menos de
+~50 arquivos → nenhum dos dois.
+
+O catálogo completo — o que cada uma resolve, como detectar, comando exato e custo honesto — está em
+[`orq/stack.md`](orq/stack.md). Ele é escrito para ser lido **por uma IA**: rodando `/orq:stack` (ou o
+`/orq:init`), o Claude verifica o que já existe nesta máquina, corta o que não se paga neste projeto,
+e propõe o resto com ganho e custo lado a lado.
+
+> **Nada é instalado sem o seu "pode instalar".** Nada que exija chave de API é instalado sem você
+> fornecer a chave. E o que você dispensar fica registrado em `memory/wiki/_stack.md` para **não ser
+> reproposto** toda sessão.
+
+---
+
 ## O ciclo
 
 ```
@@ -87,6 +119,7 @@ Ele **se adapta ao projeto** — não despeja estrutura genérica:
 | `/orq:implement-next` | **Loop B** — implementa + painel de revisão + documentação |
 | `/orq:revisar` | Painel de revisores sobre a mudança atual |
 | `/orq:elenco` | Ver/trocar qual LLM toca cada papel |
+| `/orq:stack` | Detecta ferramentas de contexto/memória que faltam e instala o que você aprovar |
 | `/orq:quadro` | Mostra o board e o progresso |
 | `/orq:checkpoint` | Fecha o bloco de trabalho na memória (antes do `/clear`) |
 | `/orq:wiki-lint` | Health-check da wiki: contradições, órfãs, afirmações vencidas |
@@ -282,6 +315,7 @@ orq/
 ├── commands/                     os /orq:*
 ├── agents/                       o time
 ├── skills/orq/SKILL.md           a disciplina (gatilhos naturais + regras)
+├── stack.md                      catálogo da stack complementar (lido por IA)
 └── scripts/                      helpers (busca na memória, progresso do board)
 ```
 
@@ -292,8 +326,8 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.4.1` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
-· painel de revisores · **elenco configurável de LLM por papel**.
+`0.5.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+· painel de revisores · elenco configurável de LLM por papel · **stack complementar auto-detectada**.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

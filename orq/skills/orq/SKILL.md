@@ -29,6 +29,7 @@ mecanismo interno — ele não precisa saber que existem.
 | "revisa isso" · "manda revisar" · "o que você acha desse código?" | **Painel de revisores** (`/orq:revisar`) — Claude + Codex em paralelo, achados reconciliados |
 | "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória** (`/orq:lembrar`) + cruza com a wiki |
+| "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
 | "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
 | "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |
 | Início de sessão num projeto **com** `memory/` | **Leia `memory/MEMORY.md`** e diga em 2 linhas onde paramos. Sem despejar arquivo |
@@ -157,5 +158,10 @@ responder "como isso funciona?" volta a exigir arqueologia.
 3. **Contexto de sessões passadas** → claude-mem (automático) + a wiki.
 4. **Decisão antiga** → memória de longo prazo (Supermemory), se configurada.
 5. **Estado real** (banco, deploy) → MCP do serviço, sempre leitura primeiro.
+
+**Nenhuma delas é dependência** — o Orquestra funciona sozinho. Se alguma faltar e fizer diferença
+*neste* projeto, o catálogo com ganho, custo e comando de instalação está em `stack.md` (raiz do
+plugin); `/orq:stack` detecta e propõe. **Nunca instale nada sem o "pode instalar" dele.**
+O que ele dispensou fica em `memory/wiki/_stack.md` — **não reproponha**.
 
 Nunca guarde na memória o que é **derivável** (diff, git log, schema): guarde o *porquê*.
