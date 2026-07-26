@@ -36,18 +36,21 @@ fecha em VALIDATE e o dono confirma usando o produto.
 
 ## Convenções deste projeto
 
-**Não há build nem teste automatizado.** A verificação é:
+**Não há build nem teste automatizado.** A verificação são dois comandos, **os dois obrigatórios**:
 
 ```bash
-claude plugin validate ./orq --strict     # tem que passar
+claude plugin validate ./orq --strict          # manifesto
+python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruções
 ```
 
-...seguida de **teste comportamental**: `/plugin marketplace update orquestra` + `/reload-plugins`,
+...seguidos de **teste comportamental**: `/plugin marketplace update orquestra` + `/reload-plugins`,
 e então conversar em português natural para ver se a intenção é reconhecida sem comando digitado.
 
-⚠️ **`validate` não prova correção.** Ele checa o manifesto, não a coerência das instruções entre si.
-Foi assim que `/orquestra:*` sobreviveu a três releases depois da renomeação para `orq`.
-**Ao renomear qualquer comando, skill ou agente, faça `grep` do nome antigo no `orq/` inteiro.**
+⚠️ **`validate` sozinho não prova correção.** Ele checa o manifesto e passa com instruções que mandam
+rodar comando inexistente — foi assim que `/orquestra:*` sobreviveu a três releases depois da
+renomeação para `orq`. O lint cobre esse buraco: comando, agente, skill e `${CLAUDE_PLUGIN_ROOT}/…`
+citados têm que existir. Ele **ignora `memory/` de propósito** — o log é append-only e cita nomes
+extintos ao descrever bugs passados.
 
 - **Commit:** `feat(0.X.0): descrição em minúscula, sem acento no assunto` — travessão pro subtítulo.
 - **Versão:** `orq/.claude-plugin/plugin.json` **e** a seção Status do README andam juntos.

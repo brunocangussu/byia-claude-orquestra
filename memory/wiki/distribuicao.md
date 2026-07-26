@@ -28,11 +28,26 @@ claude plugin validate ./orq --strict     # tem que passar
 O marketplace do dono aponta pro **caminho local deste repo**, então uma edição vale na hora — mas a
 sessão em curso pode ter os prompts em cache até o `/reload-plugins`.
 
-## O que a validação NÃO cobre
+## As duas verificações
 
-`validate --strict` checa o **manifesto**. Ele passa com instruções que se contradizem ou que mandam
-rodar comando inexistente — foi assim que o namespace `/orquestra:*` sobreviveu a três releases.
-A checagem de coerência interna é o card `T-008`.
+`validate --strict` checa o **manifesto** e nada mais: passa com instruções que mandam rodar comando
+inexistente — foi assim que o namespace `/orquestra:*` sobreviveu a três releases.
+
+Por isso existe a segunda:
+
+```bash
+python3 orq/scripts/lint-coerencia.py .
+```
+
+Confere que todo `/orq:x`, `` `orq-agente` ``, `` skill `nome` `` e `${CLAUDE_PLUGIN_ROOT}/arquivo`
+citado **existe de fato**. Sai com código 1 e lista `arquivo:linha` quando não.
+
+**Ele ignora `memory/` de propósito** — o log é append-only e o `gotchas.md` citam nomes de comandos
+extintos ao descrever bugs passados. Sem essa exclusão o lint acusaria falso positivo em todo
+checkpoint, e lint que grita à toa é lint desligado.
+
+**O que nenhuma das duas cobre:** contradição semântica entre arquivos (uma regra que nega outra em
+linguagem natural). Isso é trabalho do painel de revisores — e é onde ele se paga.
 
 O teste que importa é **comportamental**: instalar, conversar com o Claude em português natural e ver
 se ele reconhece a intenção sem que ninguém digite comando.

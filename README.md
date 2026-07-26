@@ -308,8 +308,9 @@ cd byia-claude-orquestra
 /plugin install orq@orquestra
 ```
 
-Ao editar: `claude plugin validate ./orq --strict`, depois
-`/plugin marketplace update orquestra` + `/reload-plugins`.
+Ao editar, as duas verificações — `claude plugin validate ./orq --strict` (manifesto) e
+`python3 orq/scripts/lint-coerencia.py .` (coerência: todo comando/agente/skill citado existe?) —
+depois `/plugin marketplace update orquestra` + `/reload-plugins`.
 
 **Estrutura:**
 ```
@@ -320,7 +321,7 @@ orq/
 ├── agents/                       o time
 ├── skills/orq/SKILL.md           a disciplina (gatilhos naturais + regras)
 ├── stack.md                      catálogo da stack complementar (lido por IA)
-└── scripts/                      helpers (busca na memória, progresso do board)
+└── scripts/                      helpers (lint de coerência, busca na memória, board)
 ```
 
 A **skill** é onde se mexe no comportamento geral (quando agir, o que é inviolável). Os **commands**
@@ -330,7 +331,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.5.1` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.5.2` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de revisores (Claude + Codex, **os dois entregando**) · elenco configurável de LLM por papel
 · **stack complementar auto-detectada**.
 

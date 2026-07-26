@@ -99,6 +99,27 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-26] feat | lint de coerência interna (T-008)
+
+`orq/scripts/lint-coerencia.py`. Confere que todo `/orq:x`, `` `orq-agente` ``, `` skill `nome` `` e
+`${CLAUDE_PLUGIN_ROOT}/arquivo` citado **existe**. Sai com 1 e lista `arquivo:linha`.
+
+**Por que existe:** `claude plugin validate --strict` valida o manifesto e passa com instruções que
+mandam rodar comando inexistente. Foi assim que `/orquestra:*` sobreviveu a três releases.
+
+**Ignora `memory/` de propósito** — requisito que só apareceu ao rodar o protótipo: o log é
+append-only e o `gotchas.md` citam nomes extintos ao descrever bugs passados (hoje são 6 ocorrências).
+Sem a exclusão, o lint acusaria falso positivo em todo checkpoint — e lint que grita à toa é lint
+desligado.
+
+**Testado nos dois sentidos**, que é o que separa lint de teatro: passa no estado atual (18 nomes) e
+pega os 4 tipos de defeito quando injetados de propósito.
+
+**Virou verificação obrigatória** no `CLAUDE.md`, ao lado do `validate`. O que nenhum dos dois cobre —
+contradição semântica entre arquivos — é trabalho do painel de revisores.
+
+---
+
 ## [2026-07-26] fix | painel de revisores consertado (T-010) + 8 achados aplicados no T-009
 
 **Duas causas raiz, ambas achadas por experimento, ambas contra a hipótese inicial:**
