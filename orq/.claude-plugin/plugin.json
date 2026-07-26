@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "orq",
   "displayName": "Orquestra",
-  "version": "0.2.0",
-  "description": "Desenvolvimento orientado a board: time de agentes efemeros, memoria-wiki viva, gates humanos e contexto descartavel. O /orquestra:init inspeciona o projeto e monta a estrutura sob medida.",
+  "version": "0.3.0",
+  "description": "Desenvolvimento orientado a board com time de agentes efemeros, memoria-wiki duravel, painel de revisores e modo noturno. Interface natural: voce conversa, o Claude executa.",
   "author": {
     "name": "Bruno Canguçu"
   },
@@ -15,5 +15,6 @@
     "workflow",
     "wiki",
     "portugues"
-  ]
+  ],
+  "repository": "https://github.com/brunocangussu/byia-claude-orquestra"
 }

@@ -18,12 +18,19 @@ convenções do projeto (build/teste) e o que está fora de escopo.
 Exija de volta: o que foi feito, como testou, o que **não** conseguiu fazer, e as decisões tomadas
 no caminho.
 
-## 2. Revisar (independente e read-only)
-Spawn **fresco** do `orq-reviewer` — ele **não corrige**, só aponta. Passe o diff/escopo e os
-critérios de aceite. Ele devolve achados priorizados com arquivo:linha.
+## 2. Revisar (painel independente, read-only)
+Rode o **painel de revisores** (`/orq:revisar`): `orq-reviewer` (Claude) **em paralelo** com o Codex
+(gpt-5.6-sol, read-only) e demais revisores configurados. Passe a todos o **mesmo briefing**: diff,
+critérios de aceite, o que está fora de escopo.
 
-**Aplicar as correções é do implementer**, não do reviewer. Se houver achado grave, devolva ao
-implementer e revise de novo. Repita no máximo 2 rodadas; persistindo, escale pro dono.
+**Reconcilie** antes de agir: confirmado por 2+ = alta confiança; achado solitário você **verifica no
+código** antes de aceitar; divergência **você desempata**.
+
+Em card pequeno e de baixo risco, um revisor só basta (`--rapido`) — não gaste painel em mudança
+trivial.
+
+**Aplicar as correções é do implementer**, não do reviewer. Achado grave → devolva ao implementer e
+revise de novo. Máximo 2 rodadas; persistindo, escale pro dono.
 
 ## 3. Documentar (sobre o código FINAL)
 Só depois do review fechado, spawn do `orq-docs` — senão a documentação descreve algo que mudou.
