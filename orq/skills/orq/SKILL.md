@@ -98,11 +98,11 @@ No `KANBAN.md` isso são as seções; o estado de cada card é o marcador da lin
 
 ## Os dois loops
 
-**Loop A — Planejar** (`/orquestra:plan-next`): Manager ⇄ Planner
+**Loop A — Planejar** (`/orq:plan-next`): Manager ⇄ Planner
 pega o 1º do BACKLOG → Planner investiga e escreve o plano → mudança visual pede mockup →
 **leva ao dono** → aprovado vira READY com responsável definido.
 
-**Loop B — Implementar** (`/orquestra:implement-next`): Manager ⇄ Implementer
+**Loop B — Implementar** (`/orq:implement-next`): Manager ⇄ Implementer
 pega o 1º READY → implementa em **worktree isolado** → Reviewer (read-only) audita →
 correções → Docs escreve sobre o código **final** → commit local → VALIDATE.
 

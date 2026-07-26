@@ -3,7 +3,7 @@ description: Instala o Orquestra neste projeto — inspeciona o código, detecta
 argument-hint: "[--reinstalar para refazer a análise]"
 ---
 
-Você vai instalar o **Orquestra** neste projeto. Leia a skill `orquestra` primeiro (a disciplina).
+Você vai instalar o **Orquestra** neste projeto. Leia a skill `orq` primeiro (a disciplina).
 
 **Regra de ouro: este comando se ADAPTA ao projeto.** Não despeje uma estrutura genérica — investigue,
 decida o que faz sentido *aqui*, e só então proponha. Um script Python de 200 linhas não precisa do
@@ -92,10 +92,10 @@ Apresente ao dono, curto e escaneável:
 
 ## FASE 5 — Confirmar
 
-Mostre: o que foi criado vs alterado · o board inicial (`/orquestra:quadro`) · e o ciclo em 3 linhas:
+Mostre: o que foi criado vs alterado · o board inicial (`/orq:quadro`) · e o ciclo em 3 linhas:
 
-> `/orquestra:plan-next` planeja o próximo card → você aprova → `/orquestra:implement-next`
-> implementa com review → `/checkpoint` grava → `/clear` limpa a janela.
+> `/orq:plan-next` planeja o próximo card → você aprova → `/orq:implement-next`
+> implementa com review → `/orq:checkpoint` grava → `/clear` limpa a janela.
 
 Registre a instalação no log (`fixes-history.md`).
 

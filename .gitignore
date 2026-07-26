@@ -1,1 +1,4 @@
 .DS_Store
+
+# config local de ferramenta (Serena) — por projeto, não versionar
+.serena/

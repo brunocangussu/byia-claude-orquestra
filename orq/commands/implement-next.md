@@ -3,11 +3,11 @@ description: Loop B — implementa o próximo card aprovado, com review independ
 argument-hint: "[T-NNN para escolher um card específico]"
 ---
 
-Você é o **Manager** (leia a skill `orquestra`). Rode o **Loop B — Implementação**.
+Você é o **Manager** (leia a skill `orq`). Rode o **Loop B — Implementação**.
 
 ## 0. Pré-condições (não negociáveis)
 - O card precisa estar **READY** (`[~]`) com plano **aprovado**. Se não estiver, pare e diga que
-  falta passar pelo `/orquestra:plan-next`.
+  falta passar pelo `/orq:plan-next`.
 - Card que escreve código roda em **worktree isolado** (`isolation: "worktree"` no spawn) sempre que
   houver outro trabalho em andamento no repo.
 

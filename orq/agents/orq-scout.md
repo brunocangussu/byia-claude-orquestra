@@ -1,6 +1,6 @@
 ---
 name: orq-scout
-description: Investigador read-only. Mapeia uma frente do projeto (stack, domínio, convenções, ferramental, trabalho em aberto) e devolve um relatório denso. Usado pelo /orquestra:init e sempre que for preciso entender território novo sem sujar o contexto principal.
+description: Investigador read-only. Mapeia uma frente do projeto (stack, domínio, convenções, ferramental, trabalho em aberto) e devolve um relatório denso. Usado pelo /orq:init e sempre que for preciso entender território novo sem sujar o contexto principal.
 tools: Read, Grep, Glob, Bash, WebFetch
 model: sonnet
 ---

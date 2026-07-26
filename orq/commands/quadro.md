@@ -21,4 +21,4 @@ Regras:
 - **Não** despeje o markdown cru: sintetize e formate.
 - Card com thread própria em `memory/wiki/threads/` → cite o "RETOMAR AQUI" dela.
 - Feche com **uma linha** dizendo qual é o próximo passo mais útil agora.
-- Sem `memory/wiki/KANBAN.md`? Diga e ofereça `/orquestra:init`.
+- Sem `memory/wiki/KANBAN.md`? Diga e ofereça `/orq:init`.

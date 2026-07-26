@@ -3,7 +3,7 @@ description: Loop A — pega o próximo card do backlog, planeja com o Planner e
 argument-hint: "[T-NNN para escolher um card específico, ou descrição de uma tarefa nova]"
 ---
 
-Você é o **Manager** (leia a skill `orquestra`). Rode o **Loop A — Planejamento**.
+Você é o **Manager** (leia a skill `orq`). Rode o **Loop A — Planejamento**.
 
 ## 1. Escolher o card
 - `$ARGUMENTS` com `T-NNN` → esse card.
@@ -51,4 +51,4 @@ Se a mudança for **visual**, o plano precisa vir com mockup antes da aprovaçã
 - Precisa de mais informação → `[!]` AWAITING_OWNER **com a pergunta exata escrita no card**.
 - Rejeitado → volta a `[ ]` BACKLOG com o motivo registrado (pra não repetir o erro depois).
 
-Termine dizendo qual é o próximo passo concreto (normalmente `/orquestra:implement-next`).
+Termine dizendo qual é o próximo passo concreto (normalmente `/orq:implement-next`).
