@@ -99,6 +99,44 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-27] fix | painel REPROVOU a 0.6.0 — parser do board endurecido (0.6.1)
+
+**Primeiro painel completo do projeto** (Claude + Codex, os dois entregando). Deu 10 achados e uma
+**divergência de veredito**: Claude disse "aprovar com correções", Codex disse **REPROVAR**.
+Desempatei com o Codex — o próximo `/orq:init` em projeto de terceiro repetiria a falha silenciosa.
+
+**Confirmado pelos dois (a lição que interessa):** a 0.6.0 **documentou o contrato e esqueceu de
+endurecer o parser**. Escrever a spec não impede o consumidor de aceitar lixo. Cenários provados
+pelo revisor Claude rodando o script contra boards sintéticos:
+- seção "Processo" com `- [x] revisor aprovou` (estrutura que o próprio CLAUDE.md global descreve)
+  contava como card feito: board de 3 cards virava `📋 20% (1/5)`;
+- `## 📦 Arquivo` em vez de `Arquivado` (variante natural em PT) fazia arquivados voltarem à conta;
+- card sem crases no ID vazava o marcador cru para dentro da statusline.
+
+E o mais importante: **o smoke test da 0.6.0 aprovava os quatro casos**, porque só reprovava saída
+vazia.
+
+**Correção:** o `kanban-status.sh` passou a casar `` /^- \[[ >!~?x]\] `[^`]+`/ `` — estrito. Linha
+que *parece* card e não casa vira `⚠N` na saída. **A falha deixou de ser silenciosa**, que era o
+defeito de fundo. O smoke test agora exige três sinais, e o terceiro é comparar o denominador com a
+contagem manual de cards — "saída não-vazia" não prova nada.
+
+**Outros aplicados:** `_stack.md` só nascia quando havia instalação, então quem **recusava** tudo
+ficava sem a seção "Dispensadas" — justamente o caso em que repropor mais irrita · a pergunta 2 do
+gate soldava "instalar software" com "quais revisores", e quem já tinha `codex` e recusava a stack
+perdia o painel que já possuía (pior: sem `_elenco.md` o Codex é ativo por padrão, então **ter** o
+arquivo deixava o dono pior do que não ter) · o `init` permitia índice fora de `memory/`, mas
+`orq-planner` e `wiki-lint` exigem `memory/MEMORY.md` no caminho fixo — resolvido com ponteiro ·
+`[~]` significava "implementando" no schema e READY/DEV_REVIEW na skill · `--reinstalar` não
+detectava `.claude/agents/orq-*.md` legado.
+
+**Autocrítica registrada:** o `MEMORY.md` deste repo ficou dizendo "versão 0.5.0" e "nunca rodou de
+ponta a ponta" enquanto três cards já estavam em VALIDATE. O `checkpoint.md:36` manda atualizar o
+índice — **o produto não seguiu a própria disciplina**, e quem retomasse pela regra "leia o
+MEMORY.md primeiro" reimplementaria o lint.
+
+---
+
 ## [2026-07-27] fix | 10 atritos do primeiro `/orq:init` em projeto de terceiro (T-011, 0.6.0)
 
 **Origem:** outra LLM instalou o Orquestra num repositório real, sem ninguém do projeto por perto, e

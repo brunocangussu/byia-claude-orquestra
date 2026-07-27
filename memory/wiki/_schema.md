@@ -9,22 +9,33 @@ Card, exatamente assim:
 
     - [ ] `T-001` Título curto — nota livre depois do travessão
 
-- o **marcador é o 4º caractere**: `[ ]` backlog · `[>]` planejando · `[!]` esperando o dono ·
-  `[~]` implementando · `[?]` validar · `[x]` feito;
-- o **ID vem entre crases**, imediatamente depois do marcador;
-- o **título vai até o travessão** `—`; o que vem depois é nota livre;
+- o **marcador é o 4º caractere** e só pode ser um destes seis:
+  `[ ]` BACKLOG · `[>]` PLANNING · `[!]` AWAITING_OWNER · `[~]` READY/DEV_REVIEW (aprovado, em
+  implementação) · `[?]` VALIDATE · `[x]` DONE — os mesmos estados da máquina descrita na skill;
+- o **ID vem entre crases**, imediatamente depois do marcador — **é ele que distingue card de item
+  de checklist**;
+- o **título vai até o primeiro travessão** `—`; o que vem depois é nota livre;
 - **nada de negrito ou crase envolvendo o marcador ou o ID** — o parser lê por posição;
-- uma seção cujo título case com `## …Arquivad…` **encerra a contagem** de progresso: tudo abaixo
-  dela é ignorado.
+- **sem indentação**: card começa na coluna 0. Linha indentada é sub-item e não conta;
+- uma seção cujo título case com `## …arquiv…` (Arquivado, Arquivadas, Arquivo) **encerra a
+  contagem**: tudo abaixo dela é ignorado.
 
-⚠️ **Isto não é estilo, é contrato.** `orq/scripts/kanban-status.sh` casa `/^- \[.\]/` e extrai o
-título entre a crase do ID e o travessão. Um card escrito como
-`` - `[!]` **T-001 · Título** `` não casa, e a statusline fica **muda sem erro nenhum** — o board
-parece perfeito e o progresso nunca aparece. Foi assim que quebrou na primeira instalação em
-projeto de terceiro (2026-07-27).
+⚠️ **Isto não é estilo, é contrato.** `orq/scripts/kanban-status.sh` casa
+`` /^- \[[ >!~?x]\] `[^`]+`/ `` — estrito de propósito.
 
-**Como verificar:** `sh orq/scripts/kanban-status.sh .` — saída vazia com cards no board = formato
-errado.
+**Só card usa `- [` na coluna 0.** Se você escrever uma seção de processo com itens soltos
+(`- [x] revisor aprovou`), eles **não** entram na contagem por não terem ID entre crases — mas
+aparecem como `⚠N` na statusline, para o desvio não passar despercebido.
+
+**Como verificar:** `sh <raiz-do-plugin>/scripts/kanban-status.sh .` — e confira **os três sinais**:
+
+| Sinal | Significa |
+|---|---|
+| saída vazia com cards no board | formato errado, nenhum card reconhecido |
+| `⚠N` no fim | N linhas parecem card e não casam o contrato |
+| denominador ≠ nº de cards que você escreveu | alguma linha entrou ou ficou de fora |
+
+O terceiro é o que pega o erro sutil: **saída não-vazia não prova que está certo.**
 
 ## Regras da wiki
 

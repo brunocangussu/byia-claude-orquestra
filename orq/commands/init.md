@@ -84,17 +84,21 @@ Apresente ao dono, curto e escaneável:
 - o que será criado/alterado (com destaque para o que **altera arquivo existente**);
 - backlog inicial que você encontrou.
 
-**Faça as decisões dele em UMA interação, não em três.** Use `AskUserQuestion` com as duas perguntas
+**Faça as decisões dele em UMA interação, não em três.** Use `AskUserQuestion` com as perguntas
 juntas:
 
 1. **Instalar o Orquestra** com esse time e essa memória? (ajustes do time entram aqui)
-2. **Instalar a stack complementar** que falta? — listada à parte, e ele pode recusar inteira sem
-   afetar o resto. **Inclua nessa pergunta se ele quer revisores externos** (Codex/GPT) no painel ou
-   só Claude.
+2. **Revisores no painel** — só Claude, ou Claude + os externos **que já existem nesta máquina**?
+3. **Instalar a stack complementar** que falta? — listada à parte, e ele pode recusar inteira sem
+   afetar o resto.
 
-⚠️ **São duas decisões separadas de propósito.** Instalar arquivos no projeto dele é reversível;
-instalar software na máquina dele não é. Um "pode ir" para a pergunta 1 **não** autoriza a 2 — se ele
-não se pronunciou sobre a stack, siga a FASE 4 **sem ela**.
+⚠️ **A 2 e a 3 são perguntas distintas, nunca a mesma.** Quem já tem o `codex` instalado e não quer
+instalar mais nada responde "não" para a 3 — e isso **não** pode desligar um revisor que ele já
+possui. Soldar as duas grava um `_elenco.md` sem painel num ambiente que tinha painel, e o
+`/orq:revisar` cai silenciosamente para um revisor só.
+
+⚠️ **A 1 não autoriza a 3.** Instalar arquivos no projeto dele é reversível; instalar software na
+máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **sem ela**.
 
 **PARE e espere.** Nada é escrito antes da resposta.
 
@@ -106,9 +110,14 @@ não se pronunciou sobre a stack, siga a FASE 4 **sem ela**.
    `memory/wiki/_schema.md` (o contrato — passo 1b) · as páginas de tópico aprovadas.
 
    **Já existe algo com essa função em OUTRO caminho?** (ex.: `MEMORY.md` na raiz, `NOTES.md`,
-   `docs/estado.md`) → **atualize o que existe e aponte para ele**. Não crie um segundo índice: dois
-   índices concorrentes é exatamente o problema que a wiki existe pra evitar. Registre no
-   `MEMORY.md` onde as coisas realmente moram neste projeto.
+   `docs/estado.md`) → **preserve o conteúdo onde está** e crie `memory/MEMORY.md` como **ponteiro**
+   de poucas linhas para ele ("o índice deste projeto mora em `../MEMORY.md`"), listando o que existe
+   em `memory/`.
+
+   ⚠️ **`memory/MEMORY.md` tem que existir de qualquer jeito** — `orq-planner`, `/orq:wiki-lint` e
+   `/orq:checkpoint` procuram nesse caminho fixo e falham calados se ele não estiver lá. Ponteiro
+   resolve os dois lados: nada é duplicado (dois índices concorrentes é o problema que a wiki existe
+   pra evitar) e os consumidores continuam achando o caminho canônico.
 
 1b. **`memory/wiki/_schema.md` — o contrato da memória.** Crie sempre. É o que o `/orq:checkpoint`
    e o `/orq:wiki-lint` procuram, e é o que impede o board de sair num formato que a statusline não
@@ -121,12 +130,13 @@ não se pronunciou sobre a stack, siga a FASE 4 **sem ela**.
 
        - [ ] `T-001` Título curto — nota livre depois do travessão
 
-   - o marcador é o 4º caractere: `[ ]` backlog · `[>]` planejando · `[!]` esperando o dono ·
-     `[~]` implementando · `[?]` validar · `[x]` feito;
-   - o ID vem **entre crases**, logo depois do marcador;
-   - o título vai até o travessão `—`;
-   - **nada de negrito ou crase envolvendo o marcador ou o ID** — o parser lê por posição;
-   - uma seção cujo título case com `## …Arquivad…` **encerra a contagem** de progresso.
+   - o marcador é o 4º caractere e só pode ser um destes seis: `[ ]` BACKLOG · `[>]` PLANNING ·
+     `[!]` AWAITING_OWNER · `[~]` READY/DEV_REVIEW · `[?]` VALIDATE · `[x]` DONE;
+   - o ID vem **entre crases**, logo depois do marcador — é ele que distingue card de checklist;
+   - o título vai até o primeiro travessão `—`;
+   - **nada de negrito ou crase envolvendo o marcador ou o ID**, e **sem indentação**;
+   - **só card usa `- [` na coluna 0** — item de processo solto não é card;
+   - uma seção cujo título case com `## …arquiv…` **encerra a contagem** de progresso.
 
    ## Regras da wiki
    - o LOG (`fixes-history.md`) é append-only: responde "o que aconteceu naquele dia";
@@ -151,18 +161,30 @@ não se pronunciou sobre a stack, siga a FASE 4 **sem ela**.
 5. **Statusline** (opcional, perguntar): apontar o `statusLine` do settings para o
    `kanban-status.sh`. Se já houver statusline customizada, **não sobrescreva** — mostre a linha a
    acrescentar.
-6. **Stack complementar** — só o que ele aprovou explicitamente, seguindo as regras do `/orq:stack`
-   (instruções lidas no repositório oficial e mostradas a ele antes de rodar, nada com chave sem ele
-   fornecer, e **plugin do Claude Code você não instala — entrega o comando pra ele colar**).
-   Grave `memory/wiki/_stack.md` com o que ficou ativo e **o que ele dispensou**.
+6. **Stack complementar.** Instale **só o que ele aprovou explicitamente**, seguindo as regras do
+   `/orq:stack` (instruções lidas no repositório oficial e mostradas a ele antes de rodar, nada com
+   chave sem ele fornecer, e **plugin do Claude Code você não instala — entrega o comando pra ele
+   colar**).
+
+   ⚠️ **Grave `memory/wiki/_stack.md` SEMPRE — inclusive quando ele recusa tudo.** Recusar é
+   informação tão valiosa quanto aceitar: é ela que vai na seção **Dispensadas** e impede o
+   `--reinstalar` de repropor amanhã o que ele acabou de negar. Um `_stack.md` que só nasce quando
+   há instalação deixa justamente o caso "não quero nada" sem registro — e esse é o caso em que
+   repropor mais irrita.
 
 ## FASE 5 — Verificar e confirmar
 
 **Não basta dizer o que fez — prove que funciona.** Rode o smoke test e mostre o resultado:
 
 1. **O board é legível pela statusline?**
-   `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` → **saída vazia é FALHA**, quase sempre por
-   formato de card fora do contrato do `_schema.md`. Corrija e rode de novo antes de seguir.
+   `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` — e confira **os três sinais**, porque
+   saída não-vazia **não** prova que está certo:
+   - saída **vazia** com cards no board → FALHA: nenhum card foi reconhecido;
+   - **`⚠N`** no fim → N linhas parecem card e não casam o contrato;
+   - **denominador ≠ número de cards que você escreveu** → alguma linha entrou ou ficou de fora.
+     **Conte os cards à mão e compare.** É esse terceiro sinal que pega o erro sutil.
+
+   Qualquer um dos três → corrija o board pelo `_schema.md` e rode de novo antes de seguir.
 2. **O `CLAUDE.md` sobreviveu?** As seções que existiam antes continuam lá, e o bloco
    `orquestra:start`/`orquestra:end` está fechado corretamente.
 3. **Os arquivos de memória existem** e o `MEMORY.md` aponta para o que realmente foi criado
@@ -187,6 +209,9 @@ conseguiu corrigir, **diga isso** em vez de declarar sucesso.
   está instalado e propõe **atualizações** — time que não faz mais sentido, backlog desatualizado,
   ferramenta nova disponível. Continua pedindo ok, continua sem sobrescrever conteúdo que o dono
   escreveu, e continua respeitando a seção "Dispensadas".
+  **Verifique também o legado:** instalação anterior à 0.6.0 pode ter deixado `.claude/agents/orq-*.md`
+  no projeto, colidindo com os agentes do plugin. Achou? **Relate e proponha renomear ou remover** —
+  não decida sozinho, mas não deixe passar calado: a colisão é silenciosa e de resolução indefinida.
 - **Nunca** `git commit`/`push`. Nunca tocar em código de produção.
 - **Nunca** inventar estado: se não sabe se algo funciona, põe em VALIDATE, não em DONE.
 - Projeto pequeno merece estrutura pequena — `MEMORY.md` + `fixes-history.md` + board já bastam.

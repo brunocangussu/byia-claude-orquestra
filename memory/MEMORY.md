@@ -4,16 +4,23 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.5.0 · **board instalado em** 2026-07-26.
+**Versão:** 0.6.1 · **board instalado em** 2026-07-26.
 
 ## Onde paramos
 
-O plugin está publicado e funcional, mas **nunca rodou de ponta a ponta num projeto real** — este
-board é o primeiro. As 9 "regras invioláveis" são texto de prompt: não há um único hook. O próximo
-passo acordado é o par T-008 (lint) + T-001 (hooks de segurança), com o T-003 servindo de piloto do
-fluxo. Ver `wiki/KANBAN.md`.
+O `/orq:init` **já rodou em projeto de terceiro** (2026-07-27, outra LLM, sem ninguém daqui por
+perto) e voltou com 10 atritos — 4 bugs de contrato reais. Isso fechou o `T-003` e gerou o `T-011`.
+O painel de revisores **funciona desde a 0.5.1** e já se pagou duas vezes: achou tanto a brecha de
+instalação por slash command quanto o parser permissivo do board.
 
-`T-009` (stack complementar) está em **VALIDATE** aguardando teste prático numa sessão nova.
+**O que ainda não foi exercitado:** `/orq:plan-next` e `/orq:implement-next` nunca foram invocados de
+verdade — todo o trabalho até aqui foi feito pelo Manager na mão (`T-012`). E as 9 "regras
+invioláveis" continuam sendo texto de prompt: não há um único hook (`T-001`, `T-002`).
+
+**Aberto e sem resposta:** como coordenar checkpoint entre **várias janelas** no mesmo projeto
+(`T-013`) — hoje o modelo pressupõe um Manager só, e N janelas se sobrescrevem em silêncio.
+
+Ver `wiki/KANBAN.md` para o estado exato de cada card.
 
 ## Páginas
 
