@@ -331,9 +331,9 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.5.2` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
-· painel de revisores (Claude + Codex, **os dois entregando**) · elenco configurável de LLM por papel
-· **stack complementar auto-detectada**.
+`0.6.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+· painel de revisores (Claude + Codex) · elenco configurável de LLM por papel · stack complementar
+auto-detectada · **contrato de formato (`_schema.md`) + smoke test na instalação**.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

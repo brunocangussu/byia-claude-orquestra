@@ -32,6 +32,24 @@ silenciosamente a escalação escolhida pro projeto — e ninguém percebe, porq
 O Manager é a sessão principal, definida pelo `/model`. Tentar trocá-lo via `/orq:elenco` não faz
 sentido e confunde — não é um spawn.
 
+### Board fora do formato = statusline muda, sem erro nenhum
+
+`kanban-status.sh` casa `/^- \[.\]/` e lê o título **por posição** (entre a crase do ID e o travessão).
+Um card escrito como `` - `[!]` **T-001 · Título** `` não casa — e o script **sai em silêncio**, sem
+mensagem, sem código de erro. O board parece perfeito e o progresso simplesmente nunca aparece.
+
+Aconteceu na primeira instalação em projeto de terceiro (2026-07-27): a LLM escreveu o board com o
+marcador dentro de crases e só descobriu porque testou por conta própria — o `/orq:init` não mandava
+testar. A causa é estrutural: **produtor e consumidor não compartilhavam especificação.**
+→ O contrato agora vive em `memory/wiki/_schema.md`, o `init` cria esse arquivo e a FASE 5 exige
+smoke test com saída não-vazia.
+
+### Nome de agente do projeto nunca deve colidir com o do plugin
+
+Os cinco `orq-*` vêm do plugin. Criar `.claude/agents/orq-planner.md` no projeto tem resolução
+**indefinida** — pode sobrescrever, pode duplicar na lista, pode variar. Papel adicional usa nome
+próprio (`dados`, `infra`, `frontend`).
+
 ### `codex exec` trava esperando stdin — sempre feche com `< /dev/null`
 
 **Causa raiz (diagnosticada em 2026-07-26, card `T-010`).** Sem TTY — que é o caso dentro do Bash tool

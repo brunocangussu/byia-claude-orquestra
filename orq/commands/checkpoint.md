@@ -8,8 +8,14 @@ registre o conhecimento FORA da janela, pra ela poder ser reiniciada sem perder 
 Contexto = RAM (descartável); memória em disco = HD (durável).
 
 ## 1. Descobrir a estrutura
-Procure nesta ordem: `memory/wiki/_schema.md` (regras da wiki) · `memory/MEMORY.md` (índice) ·
+Procure nesta ordem: `memory/wiki/_schema.md` (regras da wiki e **formato do board** — **se existir**;
+instalações anteriores à 0.6.0 não têm, e a ausência dele não é erro) · `memory/MEMORY.md` (índice) ·
 `memory/fixes-history.md` (log) · `memory/wiki/threads/` (trabalho em curso) · `docs/plano_*.md`.
+
+**Vai mexer no board?** Siga o formato do `_schema.md`. Sem ele, o contrato é este — o parser lê por
+posição, então marcador ou ID dentro de negrito/crase **quebra silenciosamente**:
+
+    - [ ] `T-001` Título curto — nota livre depois do travessão
 **Se o projeto NÃO tem wiki**, crie o mínimo: `memory/MEMORY.md` (índice) + `memory/fixes-history.md`
 (log) e siga — não precisa da estrutura completa num projeto pequeno.
 

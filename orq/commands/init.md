@@ -13,8 +13,13 @@ mesmo time que um monorepo com backend, CRM e workflows.
 
 ## FASE 1 — Investigar (paralelo, read-only)
 
-Dispare agentes `orq-scout` **em paralelo** (um por frente) e, enquanto isso, olhe você mesmo a raiz.
-Não leia arquivos inteiros: use busca semântica e amostragem.
+**Antes de disparar qualquer scout: use o que você já sabe.** Se você trabalhou neste projeto nesta
+sessão, você já tem o mapa — **não gaste subagente pra confirmar o que já leu**. Liste o que já sabe,
+identifique só as **lacunas**, e dispare scout apenas para elas. Num projeto pequeno que você acabou
+de ler inteiro, o número certo de scouts é **zero**.
+
+Para o que faltar, dispare `orq-scout` **em paralelo** (um por frente) e, enquanto isso, olhe você
+mesmo a raiz. Não leia arquivos inteiros: use busca semântica e amostragem.
 
 Levante:
 
@@ -26,6 +31,7 @@ Levante:
    de teste, o que **quebra o deploy** (regras de CI), estilo de commit no `git log` recente.
 4. **Memória e docs que já existem** — `memory/`, `docs/`, `NOTES.md`, `TODO.md`, `ROADMAP.md`,
    snapshots, planos. **Tudo isso é matéria-prima** — a wiki nasce com a verdade que já existe.
+   Anote **em que caminho** cada coisa está: um índice já existente pode não estar onde você espera.
 5. **Trabalho em aberto** — TODO/FIXME no código, issues, itens não concluídos nos docs, testes
    quebrados. Vira o backlog inicial (com IDs `T-NNN`).
 6. **Ferramental disponível** (checar de verdade, não presumir):
@@ -37,19 +43,23 @@ Levante:
 
 ## FASE 2 — Decidir (o julgamento)
 
-**Time.** Comece pelo núcleo — Planner · Implementer · Reviewer · Docs — e só adicione papel com
-justificativa concreta *deste* projeto (ex.: "tem 90 migrations e RLS → vale um agente de dados";
-"tem UI e mockups → vale um de frontend"). **Menos agentes bem definidos > muitos genéricos.**
-Se o projeto já tem agentes bons, **reaproveite**: mapeie-os aos papéis em vez de duplicar.
+**Time.** O núcleo — Planner · Implementer · Reviewer · Docs · Scout — **já vem pronto no plugin**
+(`orq-planner`, `orq-implementer`, `orq-reviewer`, `orq-docs`, `orq-scout`). Você **não recria** esses
+cinco: eles existem, e o que muda por projeto é só o **modelo**, via `_elenco.md`.
 
-Para cada papel decida:
+Agente local em `.claude/agents/` só para papel **adicional** que este projeto justifique — e com
+**nome próprio, nunca `orq-*`** (ex.: `dados`, `infra`, `frontend`), para não colidir com os do
+plugin. Justifique com fato do projeto: *"tem 90 migrations e RLS → vale um agente de dados"*.
+**Menos agentes bem definidos > muitos genéricos.** Se o projeto já tem agentes bons, **reaproveite**:
+mapeie-os aos papéis em vez de duplicar.
+
+Para cada papel adicional decida:
 - `model` — trabalho difícil (plano, review) pede modelo forte; tarefa mecânica, um menor.
-- `tools` — **mínimo necessário**. Reviewer é **read-only** (sem Edit/Write). Só quem implementa escreve.
+- `tools` — **mínimo necessário**. Quem revisa é **read-only** (sem Edit/Write). Só quem implementa escreve.
 - quando é chamado e o que entrega.
 
 **Proponha o ELENCO** (`memory/wiki/_elenco.md`) — qual LLM toca cada papel. Sugira uma escalação e
-deixe claro que ele pode mudar depois com `/orq:elenco planner fable`. Pergunte especificamente se
-ele quer **revisores externos** (Codex/GPT) no painel ou **só Claude**.
+deixe claro que ele pode mudar depois com `/orq:elenco planner fable`.
 
 **Estratégia de leitura** (o que economiza contexto neste projeto):
 - Repo grande → busca semântica primeiro; indexar se ainda não estiver.
@@ -62,7 +72,6 @@ claro). Uma linha por ferramenta: o que resolve · ganho aqui · custo · reposi
 ⚠️ **Antes de propor qualquer coisa, leia a seção "Dispensadas" de `memory/wiki/_stack.md`** (se
 existir) e **corte o que ele já recusou**. Vale principalmente no `--reinstalar`: repropor o que o
 dono dispensou é o jeito mais rápido de ele desligar isto.
-**Nada é instalado sem "pode instalar" explícito** — e isso é decisão separada da aprovação do time.
 
 **Páginas de wiki iniciais:** 1 a 3 dos subsistemas mais quentes. Não faça backfill especulativo —
 a wiki cresce com o uso.
@@ -73,26 +82,65 @@ Apresente ao dono, curto e escaneável:
 - o que você entendeu do projeto (2–3 linhas — ele corrige se você errou);
 - o **time proposto** (papel · modelo · por que existe aqui);
 - o que será criado/alterado (com destaque para o que **altera arquivo existente**);
-- backlog inicial que você encontrou;
-- a **stack complementar** que falta e vale a pena aqui — como escolha à parte, que ele pode recusar
-  inteira sem afetar o resto da instalação.
+- backlog inicial que você encontrou.
 
-**PARE e espere aprovação.** Se ele ajustar o time, incorpore. Nada é escrito antes do "pode ir".
+**Faça as decisões dele em UMA interação, não em três.** Use `AskUserQuestion` com as duas perguntas
+juntas:
 
-⚠️ **O "pode ir" cobre a instalação do Orquestra, NÃO a stack complementar.** São duas decisões
-separadas: instalar arquivos no projeto dele é reversível; instalar software na máquina dele não é.
-Se ele aprovou sem se pronunciar sobre a stack, **pergunte de novo, especificamente** — e siga com a
-FASE 4 sem ela se ele não responder ou disser não.
+1. **Instalar o Orquestra** com esse time e essa memória? (ajustes do time entram aqui)
+2. **Instalar a stack complementar** que falta? — listada à parte, e ele pode recusar inteira sem
+   afetar o resto. **Inclua nessa pergunta se ele quer revisores externos** (Codex/GPT) no painel ou
+   só Claude.
+
+⚠️ **São duas decisões separadas de propósito.** Instalar arquivos no projeto dele é reversível;
+instalar software na máquina dele não é. Um "pode ir" para a pergunta 1 **não** autoriza a 2 — se ele
+não se pronunciou sobre a stack, siga a FASE 4 **sem ela**.
+
+**PARE e espere.** Nada é escrito antes da resposta.
 
 ## FASE 4 — Instalar
 
-1. **Memória** (só o que faltar — nunca sobrescrever o que existe):
+1. **Memória** (só o que faltar — **nunca sobrescrever o que existe**):
    `memory/MEMORY.md` (índice) · `memory/fixes-history.md` (log) · `memory/gotchas.md` ·
    `memory/wiki/KANBAN.md` (board, com o backlog real que você achou) · `memory/wiki/threads/` ·
-   as páginas de tópico aprovadas.
-   Se já houver memória, **integre**: aproveite o conteúdo, não recomece.
-2. **Agentes** em `.claude/agents/` — só os aprovados, com `model`/`tools` decididos. Não duplique
-   os que já existem; complemente.
+   `memory/wiki/_schema.md` (o contrato — passo 1b) · as páginas de tópico aprovadas.
+
+   **Já existe algo com essa função em OUTRO caminho?** (ex.: `MEMORY.md` na raiz, `NOTES.md`,
+   `docs/estado.md`) → **atualize o que existe e aponte para ele**. Não crie um segundo índice: dois
+   índices concorrentes é exatamente o problema que a wiki existe pra evitar. Registre no
+   `MEMORY.md` onde as coisas realmente moram neste projeto.
+
+1b. **`memory/wiki/_schema.md` — o contrato da memória.** Crie sempre. É o que o `/orq:checkpoint`
+   e o `/orq:wiki-lint` procuram, e é o que impede o board de sair num formato que a statusline não
+   lê. Deve conter, no mínimo, **o formato exato da linha de card**:
+
+   ```markdown
+   ## Formato do board (contrato — não improvise)
+
+   Card, exatamente assim:
+
+       - [ ] `T-001` Título curto — nota livre depois do travessão
+
+   - o marcador é o 4º caractere: `[ ]` backlog · `[>]` planejando · `[!]` esperando o dono ·
+     `[~]` implementando · `[?]` validar · `[x]` feito;
+   - o ID vem **entre crases**, logo depois do marcador;
+   - o título vai até o travessão `—`;
+   - **nada de negrito ou crase envolvendo o marcador ou o ID** — o parser lê por posição;
+   - uma seção cujo título case com `## …Arquivad…` **encerra a contagem** de progresso.
+
+   ## Regras da wiki
+   - o LOG (`fixes-history.md`) é append-only: responde "o que aconteceu naquele dia";
+   - a PÁGINA de tópico é reescrita: responde "como funciona hoje";
+   - não guardar o derivável (diff, git log, schema): guardar o porquê.
+   ```
+
+   ⚠️ **O formato acima não é estilo, é contrato.** `orq/scripts/kanban-status.sh` casa
+   `/^- \[.\]/` e extrai o título entre a crase do ID e o travessão. Marcador dentro de negrito ou de
+   crase **não casa**, e a statusline fica muda **sem erro nenhum** — bug silencioso, difícil de achar.
+
+2. **Agentes** — os cinco do núcleo vêm do plugin, **não recrie**. Em `.claude/agents/`, só os papéis
+   adicionais aprovados, com nome próprio (nunca `orq-*`) e `model`/`tools` decididos. Não duplique o
+   que o projeto já tem; complemente.
 2b. **Elenco** em `memory/wiki/_elenco.md` — a escalação aprovada (papel → modelo) + os revisores
    externos ativos. É esse arquivo que os comandos leem na hora de spawnar.
 3. **`CLAUDE.md`** — adicione (ou atualize) um bloco `<!-- orquestra:start -->…<!-- orquestra:end -->`
@@ -100,30 +148,45 @@ FASE 4 sem ela se ele não responder ou disser não.
    descobriu (build, teste, o que quebra o deploy). **Preserve todo o resto do arquivo.**
 4. **`AGENTS.md`** — se existir, ponteiro equivalente de poucas linhas (o Codex lê esse). Se não
    existir, só crie se o projeto usar Codex.
-5. **Statusline** (opcional, perguntar): garantir `~/.claude/scripts/kanban-status.sh` e apontar o
-   `statusLine` do settings pra ele. Se já houver statusline customizada, **não sobrescreva** —
-   mostre a linha a acrescentar.
+5. **Statusline** (opcional, perguntar): apontar o `statusLine` do settings para o
+   `kanban-status.sh`. Se já houver statusline customizada, **não sobrescreva** — mostre a linha a
+   acrescentar.
 6. **Stack complementar** — só o que ele aprovou explicitamente, seguindo as regras do `/orq:stack`
    (instruções lidas no repositório oficial e mostradas a ele antes de rodar, nada com chave sem ele
-   fornecer, `/reload-plugins` e confirmar que responde).
-   Grave `memory/wiki/_stack.md` com o que ficou ativo e **o que ele dispensou** — sem isso a mesma
-   proposta volta toda sessão.
+   fornecer, e **plugin do Claude Code você não instala — entrega o comando pra ele colar**).
+   Grave `memory/wiki/_stack.md` com o que ficou ativo e **o que ele dispensou**.
 
-## FASE 5 — Confirmar
+## FASE 5 — Verificar e confirmar
 
-Mostre: o que foi criado vs alterado · o board inicial (`/orq:quadro`) · e o ciclo em 3 linhas:
+**Não basta dizer o que fez — prove que funciona.** Rode o smoke test e mostre o resultado:
+
+1. **O board é legível pela statusline?**
+   `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` → **saída vazia é FALHA**, quase sempre por
+   formato de card fora do contrato do `_schema.md`. Corrija e rode de novo antes de seguir.
+2. **O `CLAUDE.md` sobreviveu?** As seções que existiam antes continuam lá, e o bloco
+   `orquestra:start`/`orquestra:end` está fechado corretamente.
+3. **Os arquivos de memória existem** e o `MEMORY.md` aponta para o que realmente foi criado
+   (incluindo índice pré-existente em outro caminho, se for o caso).
+4. **Agentes adicionais** (se criou): contagem confere e nenhum tem nome `orq-*`.
+
+Só então mostre: o que foi criado vs alterado · o board inicial (`/orq:quadro`) · e o ciclo:
 
 > `/orq:plan-next` planeja o próximo card → você aprova → `/orq:implement-next`
 > implementa com review → `/orq:checkpoint` grava → `/clear` limpa a janela.
 
-Registre a instalação no log (`fixes-history.md`).
+Registre a instalação no log (`fixes-history.md`). Se algum item do smoke test falhou e você não
+conseguiu corrigir, **diga isso** em vez de declarar sucesso.
 
 ---
 
 ## Regras
 
 - **Idempotente.** Rodar de novo não destrói nada: detecta o que existe, completa o que falta,
-  relata o que ignorou. Com `--reinstalar`, refaz a análise e propõe atualizações (ainda pedindo ok).
-- **Nunca** `git commit`/`push`. Nunca instalar dependência. Nunca tocar em código de produção.
+  relata o que ignorou.
+- **`--reinstalar`** refaz a **análise** (não os arquivos): reinvestiga as lacunas, compara com o que
+  está instalado e propõe **atualizações** — time que não faz mais sentido, backlog desatualizado,
+  ferramenta nova disponível. Continua pedindo ok, continua sem sobrescrever conteúdo que o dono
+  escreveu, e continua respeitando a seção "Dispensadas".
+- **Nunca** `git commit`/`push`. Nunca tocar em código de produção.
 - **Nunca** inventar estado: se não sabe se algo funciona, põe em VALIDATE, não em DONE.
 - Projeto pequeno merece estrutura pequena — `MEMORY.md` + `fixes-history.md` + board já bastam.

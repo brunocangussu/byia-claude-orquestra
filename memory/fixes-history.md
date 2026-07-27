@@ -99,6 +99,54 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-27] fix | 10 atritos do primeiro `/orq:init` em projeto de terceiro (T-011, 0.6.0)
+
+**Origem:** outra LLM instalou o Orquestra num repositório real, sem ninguém do projeto por perto, e
+devolveu relatório. É o `T-003` cumprido — e melhor do que o card pedia, porque foi em território que
+ninguém aqui conhecia.
+
+**4 bugs de contrato, todos confirmados no código:**
+
+1. **Board fora do formato deixa a statusline muda, sem erro.** O `/orq:init` mandava "criar o
+   KANBAN.md com o backlog real" e deixava o formato por conta do modelo; o `kanban-status.sh` casa
+   `/^- \[.\]/` e lê por posição. A LLM escreveu o marcador dentro de crases, a saída veio vazia, e
+   ela **só descobriu porque testou por conta própria**. **Causa raiz: produtor e consumidor não
+   compartilhavam especificação.**
+2. **`checkpoint.md:11` e `wiki-lint.md:6` liam `memory/wiki/_schema.md`, que o `init` nunca criava.**
+   Todo checkpoint batia em arquivo ausente.
+3. **Nenhuma regra sobre colisão de nome de agente.** O `init` mandava criar agentes em
+   `.claude/agents/` e "não duplicar os que já existem" — mas os que já existem são os cinco `orq-*`
+   do próprio plugin. A LLM criou com os mesmos nomes apostando que projeto vence plugin, sem poder
+   validar. Resolução é indefinida.
+4. **A FASE 5 mandava mostrar, não verificar.** Nada conferia se o board era legível, se o
+   `CLAUDE.md` sobreviveu, se os agentes carregam.
+
+**Correção estrutural — o `_schema.md` virou o contrato compartilhado.** Em vez de repetir o formato
+em cada lugar, o `init` agora **cria** o arquivo, e `checkpoint` e `wiki-lint` **leem** dele. A FASE 5
+ganhou smoke test: `kanban-status.sh` com **saída vazia é falha**, e o comando tem que corrigir antes
+de declarar sucesso.
+
+**6 lacunas de especificação, também aplicadas:** índice pré-existente em outro caminho (o projeto
+tinha `MEMORY.md` na raiz — seguir ao pé da letra criaria dois índices concorrentes, exatamente o que
+a wiki existe pra evitar) · custo da FASE 1 quando já se conhece o projeto (a LLM gastou 3 scouts num
+repo que tinha acabado de ler; agora o comando manda usar o que já sabe e só cobrir lacunas — "num
+projeto pequeno que você acabou de ler, o número certo de scouts é zero") · idempotência falava de
+arquivos mas não de trabalho já feito na sessão · `--reinstalar` citado nas Regras e nunca
+especificado · as decisões do gate espalhadas por três lugares, agora consolidadas num
+`AskUserQuestion` de duas perguntas.
+
+**Não é bug do plugin:** o cache com `orquestra/orquestra/0.1.0` ao lado de `orquestra/orq/0.x` é
+resíduo da renomeação da 0.2.0 — todos os plugins da máquina guardam várias versões em cache.
+
+**O que o piloto confirmou que está certo (não mexer):** a frase *"este comando se ADAPTA ao
+projeto"* logo no topo — segundo o relatório, sem ela teriam nascido 6 agentes genéricos e uma wiki
+de placeholders · *"menos agentes bem definidos > muitos genéricos"* · a separação entre aprovar o
+Orquestra e aprovar a stack · o `_stack.md` com "Dispensadas", chamado de "melhor ideia do plugin
+inteiro" · a distinção log-append × página-reescrita · scouts com escopo fechado, um dos quais
+corrigiu uma premissa errada de quem os despachou.
+
+---
+
 ## [2026-07-26] feat | lint de coerência interna (T-008)
 
 `orq/scripts/lint-coerencia.py`. Confere que todo `/orq:x`, `` `orq-agente` ``, `` skill `nome` `` e
