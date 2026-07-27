@@ -99,6 +99,42 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-27] feat | protocolo de várias janelas (T-013, 0.7.0)
+
+**Pergunta do dono:** ele trabalha com N janelas Claude abertas no mesmo projeto, uma por frente —
+está resolvendo A, lembra de B, abre janela pra B sem largar A. Como o checkpoint não se sobrescreve?
+
+**Não se sobrescrevia: perdia mesmo, em silêncio.** O modelo pressupõe **um** Manager. Com N janelas:
+`KANBAN.md` e páginas de tópico são reescritas (last-write-wins → movimento de card some), o log é
+append por ler-modificar-escrever (duas janelas simultâneas perdem uma entrada), e nada registra quem
+escreveu. Mesma classe do bug do parser: **falha sem sinal**.
+
+**O diagnóstico que mudou a solução:** a concorrência não é o problema — **a reescrita é**. Duas
+janelas alterando *linhas diferentes*, cada uma relendo antes, praticamente não colidem. O que apaga
+trabalho é reescrever o arquivo inteiro a partir de uma cópia velha do começo da sessão.
+
+**Protocolo (uma janela = uma frente):**
+1. releia antes de escrever — sempre, mesmo com o arquivo no contexto;
+2. edite só as **linhas dos seus cards**, nunca o board inteiro;
+3. card em curso leva `@frente` no fim da nota (depois do travessão, então não afeta o parser);
+4. trabalho em curso mora em `threads/<frente>.md` — dono único, livre de conflito por construção.
+   Isso reduz o problema de 5 arquivos disputados para **1**: o board.
+
+**O ganho maior não é a trava.** O dono mantinha janela aberta *como memória de pendência* — "não
+consigo decidir agora, então deixo a janela viva". Isso é contexto fazendo o papel do board. Agora o
+`checkpoint` termina dizendo que **é seguro fechar a janela** quando a pendência virou card `[!]` com
+a pergunta exata + "RETOMAR AQUI" na thread. E a instrução é explícita: **se você não consegue
+afirmar isso com confiança, o handoff está fraco — melhore antes de fechar.**
+
+**Recusado:** lock global (mata o paralelismo que motiva as N janelas) e merge por git (markdown de
+prosa conflita mal, e ele não commita a cada checkpoint).
+
+**Escrito em quatro lugares** porque cada um é lido num momento diferente: `_schema.md` (o contrato),
+`checkpoint.md` (passo 2b, na hora de gravar), `SKILL.md` (a disciplina + gatilho natural para "vou
+abrir outra janela") e o template que o `init` gera nos projetos novos.
+
+---
+
 ## [2026-07-27] fix | painel REPROVOU a 0.6.0 — parser do board endurecido (0.6.1)
 
 **Primeiro painel completo do projeto** (Claude + Codex, os dois entregando). Deu 10 achados e uma

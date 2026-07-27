@@ -142,7 +142,19 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    - o LOG (`fixes-history.md`) é append-only: responde "o que aconteceu naquele dia";
    - a PÁGINA de tópico é reescrita: responde "como funciona hoje";
    - não guardar o derivável (diff, git log, schema): guardar o porquê.
+
+   ## Trabalho em várias janelas
+   Uma janela = uma FRENTE; nunca duas janelas na mesma frente.
+   1. releia antes de escrever — o disco pode ter mudado;
+   2. edite só as linhas dos seus cards, nunca reescreva o board inteiro;
+   3. card em curso leva `@frente` no fim da nota;
+   4. trabalho em curso mora em `threads/<frente>.md` (dono único, sem conflito).
+   Pendência de decisão do dono → card `[!]` com a pergunta exata + "RETOMAR AQUI" na thread.
+   Aí a janela **pode fechar**: manter janela viva só pra não esquecer é usar contexto como memória.
    ```
+
+   Se o dono trabalha em uma janela só, o bloco "várias janelas" não atrapalha — ele só entra em
+   ação quando houver mais de uma frente.
 
    ⚠️ **O formato acima não é estilo, é contrato.** `orq/scripts/kanban-status.sh` casa
    `/^- \[.\]/` e extrai o título entre a crase do ID e o travessão. Marcador dentro de negrito ou de

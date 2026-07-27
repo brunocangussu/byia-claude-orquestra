@@ -23,9 +23,24 @@ posição, então marcador ou ID dentro de negrito/crase **quebra silenciosament
 O que foi decidido/implementado/corrigido/testado e qual o **PRÓXIMO passo**. Condensado, "o quê +
 por quê" não-derivável. **Não** cole diffs nem listas de arquivos (o git já tem).
 
+## 2b. RELEIA antes de escrever (outras janelas podem ter mexido)
+
+O dono trabalha com **várias janelas abertas no mesmo projeto**, cada uma numa frente. O arquivo em
+disco pode ter mudado desde que você o leu.
+
+- **Releia `KANBAN.md`, o log e as páginas que você vai tocar — agora**, mesmo que já estejam no seu
+  contexto. A cópia que você tem pode estar velha.
+- **Altere apenas as linhas que são suas.** Nunca reescreva o `KANBAN.md` inteiro a partir da versão
+  que você leu no começo da sessão: é isso que apaga o trabalho das outras janelas.
+- **Mudou algo que você não fez?** Outra janela trabalhou. **Não sobrescreva** — incorpore e siga.
+  Se não der para conciliar, registre no card e leve ao dono.
+
+O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁRIAS JANELAS".
+
 ## 3. Ingerir na wiki (a parte que importa — não pule)
 - **LOG** (`fixes-history.md`): append no TOPO, formato greppável
   `## [AAAA-MM-DD] <tipo> | <título>` (tipos: `feat` `fix` `plan` `investig` `decisão` `incidente` `processo`).
+  Havendo mais de uma frente ativa, **carimbe a frente** no título: `| @auth · rotação de token`.
 - **PÁGINAS DE TÓPICO** (`memory/wiki/*.md`): **atualize as afetadas** — reescreva pra refletir o
   estado ATUAL; se o trabalho contradiz o que a página afirmava, **corrija a página**. Se o assunto
   ainda não tem página e é recorrente, **crie**.
@@ -44,6 +59,11 @@ gotchas). Se falhar ou não existir, siga sem erro e avise que pulou.
 ## 5. Confirmar (3–6 linhas)
 O que foi gravado e ONDE + a **frase de retomada** ("na próxima janela: leia `memory/MEMORY.md` →
 thread X"). Termine avisando que **agora é seguro dar `/clear`**.
+
+**Sobrou pendência esperando decisão dele?** Então diga também que **é seguro FECHAR esta janela** —
+o card `[!]` guarda a pergunta e a thread guarda o estado. Manter janela aberta só para "não
+esquecer" é usar contexto como memória, que é justamente o que este checkpoint acabou de eliminar.
+Se você não consegue afirmar isso com confiança, **o handoff está fraco** — melhore antes de fechar.
 
 ## Regras
 - **NÃO** faça `git commit`/`push` sem o usuário pedir.

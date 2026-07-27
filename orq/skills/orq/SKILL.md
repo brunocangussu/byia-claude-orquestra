@@ -30,6 +30,7 @@ mecanismo interno — ele não precisa saber que existem.
 | "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória** (`/orq:lembrar`) + cruza com a wiki |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
+| "vou abrir outra janela pra isso" · "deixa essa parte pra depois" · "essa janela é pra X" | **Registre a frente**: nomeie a thread, marque os cards em curso com `@frente`, e diga em uma linha o que fica onde |
 | "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
 | "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |
 | Início de sessão num projeto **com** `memory/` | **Leia `memory/MEMORY.md`** e diga em 2 linhas onde paramos. Sem despejar arquivo |
@@ -136,6 +137,28 @@ Para não interromper o dono a cada passo — desde que registradas no board:
 
 **Sempre pergunte ao dono:** aparência/UX, mudança de rumo do produto, schema, segurança,
 dependência nova, deploy, qualquer coisa irreversível.
+
+## Várias janelas no mesmo projeto
+
+O dono trabalha com **N janelas abertas**, uma por frente: está resolvendo A, lembra de B, abre
+janela pra B sem largar A. O modelo pressupõe **um** Manager, então sem disciplina as janelas se
+sobrescrevem **em silêncio**.
+
+**Uma janela = uma frente.** Nunca duas janelas na mesma frente.
+
+1. **Releia antes de escrever.** Sempre — o disco pode ter mudado desde que você leu.
+2. **Edite a linha, nunca o arquivo.** Reescrever o `KANBAN.md` inteiro a partir de uma cópia velha
+   é o que apaga o trabalho das outras janelas. A concorrência não é o problema; a reescrita é.
+3. **Card em curso leva `@frente`** no fim da nota. Não pegue card marcado com frente alheia.
+4. **Trabalho em curso mora na thread da frente** (`threads/<frente>.md`) — arquivo de dono único,
+   livre de conflito por construção. Só o board é disputado.
+
+**A pendência não precisa de janela aberta.** Se algo depende de decisão dele, mova o card para
+`[!]` **com a pergunta exata escrita**, grave o "RETOMAR AQUI" na thread e **diga que pode fechar a
+janela**. Janela viva só para "não esquecer" é contexto usado como memória — o board existe pra
+substituir isso. Se você não consegue garantir a retomada, o handoff está fraco: melhore-o.
+
+Protocolo completo: `memory/wiki/_schema.md`.
 
 ## Memória (a wiki)
 
