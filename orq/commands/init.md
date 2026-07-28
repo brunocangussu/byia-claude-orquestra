@@ -175,8 +175,8 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    acrescentar.
 6. **Stack complementar.** Instale **só o que ele aprovou explicitamente**, seguindo as regras do
    `/orq:stack` (instruções lidas no repositório oficial e mostradas a ele antes de rodar, nada com
-   chave sem ele fornecer, e **plugin do Claude Code você não instala — entrega o comando pra ele
-   colar**).
+   chave sem ele fornecer; plugin do Claude Code entra pela **CLI** — `claude plugin marketplace add`
+   + `claude plugin install <plugin>@<marketplace>` —, nunca pelo slash command, que você não invoca).
 
    ⚠️ **Grave `memory/wiki/_stack.md` SEMPRE — inclusive quando ele recusa tudo.** Recusar é
    informação tão valiosa quanto aceitar: é ela que vai na seção **Dispensadas** e impede o

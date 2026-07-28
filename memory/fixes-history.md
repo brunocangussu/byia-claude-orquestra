@@ -99,6 +99,28 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-27] fix | a CLI `claude plugin` TEM install/update — afirmação falsa corrigida (0.7.1)
+
+**Erro meu, de método.** Rodei `claude plugin --help | head -20`, vi a lista alfabética terminar em
+`help` e concluí que a CLI **não tinha** `install` nem `marketplace add`. Escrevi isso como fato no
+`/orq:stack` e no `init`, mandando "entregar o comando pro dono colar". A lista continuava logo
+abaixo do corte: `install`, `list`, `marketplace`, `prune`, `tag`, `uninstall`, `update`, `validate`.
+
+**Agravante:** essa conclusão nasceu de um achado do painel (o revisor tinha razão sobre o
+`/plugin` ser comando interno do cliente), e eu "confirmei" com uma verificação truncada. Achado
+correto + verificação ruim = instrução errada com aparência de bem apurada.
+→ **Nunca concluir ausência a partir de saída passada por `head`.** Ausência se verifica no comando
+específico: `claude plugin update --help`.
+
+**Descoberta maior no mesmo caminho:** o marketplace aponta para o **diretório** deste repo, o que dá
+a impressão de que editar já vale. **Não vale** — o plugin em uso é uma **cópia em cache**. A máquina
+do dono estava rodando a **0.4.0 em todos os outros projetos** enquanto o repo já estava na 0.7.0:
+sete releases de diferença, sem sinal nenhum. Todo teste comportamental feito sem `marketplace
+update` + `plugin update` + restart estava testando a versão errada. Documentado em
+`wiki/distribuicao.md` e em `gotchas.md`.
+
+---
+
 ## [2026-07-27] feat | protocolo de várias janelas (T-013, 0.7.0)
 
 **Pergunta do dono:** ele trabalha com N janelas Claude abertas no mesmo projeto, uma por frente —

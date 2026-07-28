@@ -32,6 +32,31 @@ silenciosamente a escalação escolhida pro projeto — e ninguém percebe, porq
 O Manager é a sessão principal, definida pelo `/model`. Tentar trocá-lo via `/orq:elenco` não faz
 sentido e confunde — não é um spawn.
 
+### Marketplace local ≠ plugin atualizado — editar o repo NÃO basta
+
+O marketplace `orquestra` aponta para o **diretório** deste repo, o que dá a impressão de que editar
+um arquivo já vale na hora. **Não vale.** O plugin instalado é uma **cópia em cache**
+(`~/.claude/plugins/cache/orquestra/orq/<versão>/`), e ela só muda com:
+
+```bash
+claude plugin marketplace update orquestra
+claude plugin update orq@orquestra          # exige reiniciar a sessão
+claude plugin list                          # confirma versão e escopo
+```
+
+Foi assim que a máquina do dono ficou usando a **0.4.0 em todos os outros projetos** enquanto o repo
+já estava na 0.7.0 — sete releases de diferença, sem nenhum sinal. Testar comportamento sem atualizar
+testa a versão errada.
+
+### `claude plugin` TEM install/update/marketplace — não conclua por `--help | head`
+
+Em 2026-07-27 eu rodei `claude plugin --help | head -20`, vi a lista alfabética parar em `help` e
+concluí que a CLI **não tinha** `install` nem `marketplace add`. Escrevi isso como fato no
+`/orq:stack` e no `init`, mandando "entregar o comando pro dono colar". **Era falso** — a lista
+continuava em `install`, `list`, `marketplace`, `prune`, `tag`, `uninstall`, `update`, `validate`.
+→ Nunca conclua ausência a partir de saída truncada. `head` corta; a ausência precisa ser verificada
+no comando específico (`claude plugin update --help`).
+
 ### Board fora do formato = statusline muda, sem erro nenhum
 
 `kanban-status.sh` casa `/^- \[.\]/` e lê o título **por posição** (entre a crase do ID e o travessão).

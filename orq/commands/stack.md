@@ -57,16 +57,23 @@ Para cada ferramenta aprovada:
 2. **Confira que é o repo oficial, não um fork.** Vários destes têm forks populares de nome parecido.
 3. **Mostre ao dono o que você vai rodar** e de onde tirou. Ele aprovou a ferramenta, não um comando
    que ele não viu.
-4. **Instalação por slash command? Você NÃO consegue executar — entregue a ele.** Plugins do Claude
-   Code se instalam com `/plugin marketplace add …` e `/plugin install …`, que são comandos internos
-   do cliente: você não os invoca, e a CLI `claude plugin` **não tem** `install` nem `marketplace add`
-   (só `details`, `enable`, `disable`, `eval`). Escreva o comando pronto pra ele colar e diga que
-   essa parte é dele.
+4. **Plugin do Claude Code: use a CLI, não o slash command.** `/plugin …` é comando interno do
+   cliente e você não o invoca — mas **a CLI resolve**, e é ela que você usa:
+
+   ```bash
+   claude plugin marketplace add <fonte>          # ex.: mksglu/context-mode
+   claude plugin install <plugin>@<marketplace>   # ex.: context-mode@context-mode
+   claude plugin list                             # confirma versão e escopo
+   ```
+
+   Instale no escopo **de usuário** salvo se ele pedir outra coisa — é o que faz a ferramenta valer
+   em todos os projetos dele. Ao terminar, avise que **é preciso reiniciar a sessão** para aplicar.
 
    ⚠️ **Nunca improvise um equivalente.** Nada de `git clone` para dentro de `~/.claude/plugins/`,
    nada de editar `config.json`, `installed_plugins.json` ou `known_marketplaces.json` na mão. Isso é
    mutação da máquina dele por fora de todo gate, e quebra silenciosamente na próxima atualização.
-5. É executável por você (Homebrew, MCP por arquivo de config, binário solto)? Execute.
+5. Outras formas (Homebrew, MCP por arquivo de config, binário solto)? Execute igual: comando à
+   vista, aprovado antes.
 
 **O que o "pode instalar" dele cobre:** a ferramenta que ele nomeou, instalada do jeito que o repo
 oficial manda. Mostrar o comando no passo 3 é transparência, não um segundo gate — **você não precisa

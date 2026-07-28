@@ -20,13 +20,23 @@ Um papel → o **agent**.
 ## Ciclo de edição
 
 ```bash
-claude plugin validate ./orq --strict     # tem que passar
-/plugin marketplace update orquestra
-/reload-plugins                            # ou: claude plugin update orq@orquestra
+claude plugin validate ./orq --strict          # manifesto
+python3 orq/scripts/lint-coerencia.py .        # coerência
+claude plugin marketplace update orquestra     # relê o marketplace local
+claude plugin update orq@orquestra             # copia para o cache — exige reiniciar
+claude plugin list                             # confirma versão e escopo
 ```
 
-O marketplace do dono aponta pro **caminho local deste repo**, então uma edição vale na hora — mas a
-sessão em curso pode ter os prompts em cache até o `/reload-plugins`.
+⚠️ **O marketplace aponta pro diretório deste repo, mas isso NÃO significa que editar já vale.**
+O plugin em uso é uma **cópia em cache** (`~/.claude/plugins/cache/orquestra/orq/<versão>/`). Sem os
+dois comandos de update, a máquina continua rodando a versão antiga — foi assim que ficou presa na
+0.4.0 por sete releases, sem nenhum sinal.
+
+**Consequência prática:** o teste comportamental só é válido **depois** do update e do restart. Antes
+disso você está testando a versão anterior e concluindo coisas erradas sobre a atual.
+
+A CLI `claude plugin` tem `install`, `update`, `marketplace`, `list`, `uninstall`, `validate` e
+`tag` — dá para operar tudo sem os slash commands do cliente.
 
 ## As duas verificações
 
