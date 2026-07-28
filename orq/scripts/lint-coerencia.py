@@ -95,6 +95,23 @@ def main() -> int:
                         (rel, num, f"${{CLAUDE_PLUGIN_ROOT}}/{ref} {motivo}")
                     )
 
+    # A versão vive em 3 lugares e eles divergem calados: o manifesto é a fonte,
+    # o README anuncia e o MEMORY.md orienta quem retoma. Já desatualizou duas
+    # vezes — quem lê o índice primeiro parte de premissa velha.
+    import json
+
+    manifesto = plugin / ".claude-plugin" / "plugin.json"
+    versao = json.loads(manifesto.read_text(encoding="utf-8")).get("version")
+    for arq, rotulo in ((raiz / "README.md", "README"), (raiz / "memory" / "MEMORY.md", "MEMORY.md")):
+        if not arq.exists():
+            continue
+        txt = arq.read_text(encoding="utf-8")
+        if re.search(r"\b\d+\.\d+\.\d+\b", txt) and versao not in txt:
+            achadas = sorted(set(re.findall(r"\b\d+\.\d+\.\d+\b", txt)))[:3]
+            problemas.append(
+                (arq.relative_to(raiz), 0, f"{rotulo} não cita a versão atual {versao} (achei {achadas})")
+            )
+
     if problemas:
         print(f"✗ {len(problemas)} referência(s) quebrada(s):\n")
         for rel, num, msg in problemas:

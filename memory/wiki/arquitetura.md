@@ -63,8 +63,42 @@ não representa os gates.
 8. **Nada de `bypassPermissions`** — nem de dia, nem de noite.
 9. **Commit não é critério de pronto** — card fecha em VALIDATE; o dono confirma usando o produto.
 
-⚠️ **Estado atual do enforcement: nenhum.** As nove regras acima são texto de prompt, não ACL. Não há
-um único hook declarado no plugin. É o que os cards `T-001` e `T-002` atacam.
+⚠️ **Enforcement: quase nenhum.** As nove regras são texto de prompt, não ACL — o plugin não declara
+um único hook (`T-001`, `T-002`). O que existe de verificação **determinística** hoje:
+
+| Verificação | Pega |
+|---|---|
+| `claude plugin validate --strict` | manifesto malformado |
+| `orq/scripts/lint-coerencia.py` | comando/agente/skill/arquivo citado que não existe · versão divergindo entre manifesto, README e `MEMORY.md` |
+| `orq/scripts/kanban-status.sh` | card fora do contrato do board (sinaliza `⚠N`) |
+| `/orq:stack --verificar` | plugin desatualizado, escopo errado, revisor mudo, board ilegível |
+
+Nenhuma delas **impede** nada — todas só relatam. Bloquear de verdade continua sendo o `T-001`.
+
+## Roteamento automático (o dono não digita comando)
+
+**Todo pedido de mudança entra pelo ciclo.** *"quero X"*, *"vamos acrescentar Y"*, *"tem um problema
+em Z"* não são pedidos de código — são pedidos de **plano**. A escala dimensiona pelo risco: trivial
+vai direto; pequeno leva revisor interno; normal roda o ciclo completo; alto risco ganha gate extra.
+Na dúvida, sobe um nível.
+
+**O modo de falha é conhecido e nomeado:** o pedido chega em linguagem natural, parece pequeno, e o
+Manager começa a editar — sem plano, sem gate, com o painel entrando só depois, revisando o que já
+está pronto. Aconteceu em toda a sessão de 26-28/jul, incluindo features inteiras, porque a
+`description` da skill tinha **0% de cobertura** sobre a fala real do dono.
+
+## Trabalho em várias janelas
+
+O dono abre uma janela por frente. Como o desenho pressupõe **um** Manager, N janelas se
+sobrescreviam em silêncio. O protocolo (em `_schema.md`): uma janela = uma frente · releia antes de
+escrever · **edite a linha, nunca o arquivo** · card em curso leva `@frente`.
+
+**O diagnóstico que definiu a solução:** a concorrência não é o problema — **a reescrita é**. Duas
+janelas alterando linhas diferentes, cada uma relendo antes, praticamente não colidem. Por isso não
+há lock: lock mataria o paralelismo que motiva as N janelas.
+
+E o ganho maior não é a trava: **pendência de decisão vira card `[!]` e a janela pode fechar.** Antes
+ela ficava viva só como memória de pendência.
 
 ## O que foi deliberadamente recusado
 

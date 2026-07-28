@@ -99,6 +99,28 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-28] feat | problemas conhecidos documentados e diagnosticáveis (T-015, 0.10.0)
+
+**Pedido do dono:** *"acrescentar essas possibilidades para quem instalar já conseguir funcionar sem
+grandes problemas, com esses possíveis bugs já documentados"*. Os atritos que custaram tempo aqui vão
+custar tempo de quem instalar — em vez de cada um redescobrir, viram documentação **e** verificação.
+
+**README ganhou "Problemas conhecidos"** com sete itens, e o que amarra a seção é o padrão comum:
+**a falha é silenciosa** — nada dá erro, a coisa só não acontece. Plugin desatualizado · escopo
+`project` vs `user` · revisor fora do PATH · trava por falta de `< /dev/null` · statusline muda por
+card fora do formato · implementar sem planejar · concluir ausência de `--help | head`.
+
+**Mais importante que documentar:** `/orq:stack --verificar` virou **diagnóstico de ambiente**. Seis
+checagens com sintoma e comando de correção. Doc que ninguém lê vira comando que roda — e ganhou
+gatilho natural (*"não está funcionando"*, *"o revisor sumiu"*, *"não conecta"*).
+
+**A regra de método que ficou escrita:** nunca concluir "ausente" a partir de verificação de fonte
+única. Me pegou **duas vezes em dois dias** — `claude plugin --help | head` cortando lista alfabética,
+e `which kimi` respondendo sobre o PATH da sessão em vez do disco. Nos dois casos a conclusão errada
+ia levar a ação real (escrever instrução falsa; instalar pacote desnecessário).
+
+---
+
 ## [2026-07-28] fix | "Kimi não instalado" era falso — PATH, não ausência (0.9.1)
 
 **Sintoma:** outra sessão reportou `Codex ✅ · Kimi ❌`, concluiu "o binário não existe nesta máquina"

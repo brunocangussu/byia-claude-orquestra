@@ -4,21 +4,30 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.6.1 · **board instalado em** 2026-07-26.
+**Versão:** 0.10.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-28.
 
 ## Onde paramos
 
-O `/orq:init` **já rodou em projeto de terceiro** (2026-07-27, outra LLM, sem ninguém daqui por
-perto) e voltou com 10 atritos — 4 bugs de contrato reais. Isso fechou o `T-003` e gerou o `T-011`.
-O painel de revisores **funciona desde a 0.5.1** e já se pagou duas vezes: achou tanto a brecha de
-instalação por slash command quanto o parser permissivo do board.
+**O que já foi provado em uso real:**
+- O `/orq:init` rodou em **projeto de terceiro** (outra LLM, sem ninguém daqui) e voltou com 10
+  atritos — 4 bugs de contrato. Fechou o `T-003`, gerou o `T-011`.
+- O **painel de três revisores** (Claude · Codex · Kimi) funciona e já se pagou três vezes: achou a
+  brecha de instalação por slash command, o parser permissivo do board, e — na mesma rodada — Codex e
+  Kimi acharam bugs **diferentes** no mesmo arquivo.
+- O ciclo de release está fechado: `validate` → `lint` → `marketplace update` → `plugin update`.
 
-**O que ainda não foi exercitado:** `/orq:plan-next` e `/orq:implement-next` nunca foram invocados de
-verdade — todo o trabalho até aqui foi feito pelo Manager na mão (`T-012`). E as 9 "regras
-invioláveis" continuam sendo texto de prompt: não há um único hook (`T-001`, `T-002`).
+**O buraco maior, e ele é de método, não de código:** a interface natural tinha **0% de cobertura**
+sobre a fala real do dono. Por isso a skill `orq` nunca foi invocada em toda a sessão de 26-28/jul, os
+Loops A e B nunca rodaram, e **tudo foi implementado direto, sem plano e sem gate** — inclusive
+features inteiras. Corrigido na 0.9.0 (cobertura 0→100% + seção "Roteamento automático"), **mas a
+correção ainda não foi exercitada numa sessão real**.
 
-**Aberto e sem resposta:** como coordenar checkpoint entre **várias janelas** no mesmo projeto
-(`T-013`) — hoje o modelo pressupõe um Manager só, e N janelas se sobrescrevem em silêncio.
+**O que continua sem teste:** `/orq:plan-next` e `/orq:implement-next` nunca foram invocados de
+verdade (`T-012`). As 9 regras invioláveis seguem sendo texto de prompt — nenhum hook (`T-001`,
+`T-002`).
+
+⚠️ **9 cards em VALIDATE esperando o dono usar o produto.** Card fecha quando ele confirma, não
+quando o commit passa — a pilha crescer tanto é sinal de que a validação não está acontecendo.
 
 Ver `wiki/KANBAN.md` para o estado exato de cada card.
 
@@ -34,7 +43,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/_stack.md`](wiki/_stack.md) | Ferramentas ativas aqui + **o que o dono dispensou** (não repropor) |
 | [`fixes-history.md`](fixes-history.md) | **Log** cronológico, append-only — "o que aconteceu naquele dia" |
 | [`gotchas.md`](gotchas.md) | Armadilhas que já custaram tempo |
-| `wiki/threads/` | Trabalho em curso, com "RETOMAR AQUI" (vazio por ora) |
+| [`wiki/threads/desenvolvimento-do-plugin.md`](wiki/threads/desenvolvimento-do-plugin.md) | **Thread ativa** — fases, decisões a não re-litigar e **⏭️ RETOMAR AQUI** |
 
 ## A distinção que faz isto funcionar
 
