@@ -331,12 +331,79 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.9.1` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.10.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.
+
+## Problemas conhecidos (leia se algo "não funciona")
+
+Todos estes já custaram tempo de verdade. O padrão comum: **a falha é silenciosa** — nada dá erro,
+a coisa só não acontece.
+
+### O plugin não reflete o que eu editei
+
+Editar o repositório **não** atualiza o plugin em uso, mesmo com o marketplace apontando para um
+diretório local: o que roda é uma cópia em `~/.claude/plugins/cache/`. Feche o ciclo:
+
+```bash
+claude plugin marketplace update <marketplace>
+claude plugin update <plugin>@<marketplace>
+claude plugin list          # confirme versão E escopo
+```
+
+Depois `/reload-plugins` (basta para comandos, agentes e skills). **Reiniciar a sessão** só é
+necessário se o plugin declarar hooks ou MCP server — ou se o **PATH** mudou, que `/reload-plugins`
+não recarrega. Um plugin em **escopo `project`** não vale nos outros projetos: reinstale com escopo
+de usuário.
+
+### Um revisor sumiu do painel sem avisar
+
+Quase sempre é o binário fora do PATH, não ausência. `which` responde sobre o PATH **daquela
+sessão** — instaladores costumam escrever no `.zshrc`, o que só alcança shell aberto depois. Detecte
+com fallback:
+
+```bash
+KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
+```
+
+O `/orq:revisar` avisa quando o painel fica parcial. Se ele entregar parecer de um revisor **sem**
+dizer que faltou alguém, é bug — reporte.
+
+### O revisor externo trava e nunca responde
+
+Falta `< /dev/null`. Sem TTY, tanto `codex exec` quanto `kimi -p` **bloqueiam lendo stdin** e travam
+até o timeout — mesmo com o prompt passado como argumento. Com o stdin fechado, respondem em
+segundos.
+
+### A statusline está muda / o progresso não aparece
+
+Card fora do formato do board. O parser lê **por posição** e é estrito de propósito:
+
+```
+- [ ] `T-001` Título curto — nota livre
+```
+
+Marcador ou ID dentro de negrito/crase não casa. Rode
+`sh <plugin>/scripts/kanban-status.sh .` e confira **três sinais**: saída vazia · `⚠N` no fim ·
+denominador diferente do número de cards que você escreveu. **Saída não-vazia não prova que está
+certo.** O contrato completo fica em `memory/wiki/_schema.md`.
+
+### Ele implementa direto em vez de planejar
+
+O ciclo dispara por reconhecimento de intenção. Se um pedido seu não for reconhecido como pedido de
+mudança, ele vai direto ao código — sem plano e sem gate. Diga *"planeja isso primeiro"* e, se
+repetir, o gatilho está faltando: vale abrir issue com a frase exata que você usou.
+
+### Não confie em `--help | head` para concluir que algo não existe
+
+Listas de comando são alfabéticas e `head` corta no meio. Verifique o comando específico
+(`claude plugin update --help`) antes de afirmar ausência — especialmente se a conclusão levar a
+desligar uma capacidade ou instalar algo.
+
+---
 
 ## Licença
 

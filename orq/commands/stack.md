@@ -1,5 +1,5 @@
 ---
-description: Verifica quais ferramentas de contexto e memória estão faltando nesta máquina, explica o ganho de cada uma e instala as que você aprovar
+description: Diagnostica o ambiente (plugin desatualizado, revisor mudo, board ilegível) e verifica quais ferramentas de contexto e memória faltam, instalando as que você aprovar
 argument-hint: "[--verificar para só diagnosticar, sem propor instalação]"
 ---
 
@@ -19,7 +19,30 @@ presuma: comando no PATH, marketplace registrado, MCP configurado e **respondend
 Registre três grupos: **presente** · **ausente** · **presente mas quebrado** (instalado e não
 responde — isso é pior que ausente, porque o dono acha que tem).
 
-Se `$ARGUMENTS` tiver `--verificar`, mostre o diagnóstico e **pare aqui**.
+⚠️ **Nunca conclua "ausente" a partir de uma verificação de fonte única.** `which` responde sobre o
+PATH *daquela sessão*, e instaladores costumam escrever no `.zshrc` — que não alcança shell já
+aberto. Antes de dizer que falta, cheque o caminho de instalação conhecido:
+
+```bash
+FERR=$(command -v <ferramenta> || echo "$HOME/<caminho-conhecido>")
+[ -x "$FERR" ] && "$FERR" --version
+```
+
+Idem para `--help | head`: a lista é alfabética e o `head` corta. Verifique o subcomando específico.
+
+### Checagens de ambiente (rode junto, são as que mais mordem)
+
+| Checagem | Como | Sintoma se falhar |
+|---|---|---|
+| Plugin desatualizado | `claude plugin list` — versão bate com o repo? | comportamento antigo, "minha edição não valeu" |
+| Escopo do plugin | mesma saída — `user` ou `project`? | funciona num projeto e some no outro |
+| Revisor externo responde | rodar prompt trivial **com `< /dev/null`** | painel vira um revisor a menos, calado |
+| Board legível | `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` | statusline muda, progresso nunca aparece |
+| Contrato da memória | `memory/wiki/_schema.md` existe? | `/orq:checkpoint` e `/orq:wiki-lint` procuram e não acham |
+| Agente colidindo | `.claude/agents/orq-*.md` existe no projeto? | colisão de nome com o plugin, resolução indefinida |
+
+Com `--verificar`: mostre o diagnóstico dos dois blocos e **pare aqui** — não proponha instalação.
+Para cada problema, diga **o comando que corrige**, não só que está errado.
 
 ## 2. Filtrar pelo que faz sentido AQUI
 

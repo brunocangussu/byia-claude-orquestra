@@ -71,6 +71,7 @@ mecanismo interno — ele não precisa saber que existem.
 | "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória** (`/orq:lembrar`) + cruza com a wiki |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
+| "não está funcionando" · "o revisor sumiu" · "não conecta com X" · "parece que não pegou" | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado, escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
 | "vou abrir outra janela pra isso" · "deixa essa parte pra depois" · "essa janela é pra X" | **Registre a frente**: nomeie a thread, marque os cards em curso com `@frente`, e diga em uma linha o que fica onde |
 | "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
 | "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |
