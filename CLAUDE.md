@@ -16,6 +16,14 @@ O dono **não digita comandos** — ele conversa, e você reconhece a intenção
 na skill `orq`. *"onde paramos"* → mostra o board · *"pode implementar"* → Loop B · *"terminamos"* →
 checkpoint · *"anota isso"* → card novo.
 
+⚠️ **Todo pedido de mudança entra pelo ciclo — não comece editando arquivo.** *"quero X"*, *"vamos
+acrescentar Y"*, *"tem um problema em Z"* significam: crie o card, planeje, **pare no gate**. Só vai
+direto o que for trivial (typo, ajuste de texto sem efeito). Escala completa na skill `orq`, seção
+"Roteamento automático". **Anuncie o roteamento em uma linha** — não pergunte se pode.
+
+Este erro já aconteceu aqui: a feature do Kimi (0.8.0) foi implementada direto, sem plano e sem
+gate, porque o pedido chegou em linguagem natural e pareceu pequeno.
+
 ## Onde vive o estado
 
 | Arquivo | Papel |

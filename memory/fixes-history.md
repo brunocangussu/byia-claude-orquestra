@@ -99,6 +99,39 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-28] fix | a interface natural não funcionava — 0% de cobertura (0.9.0)
+
+**Observação do dono:** *"a ideia do projeto é que isso seja automático… não é pra eu ficar digitando
+comando"*. Ele estava certo, e a prova é esta sessão inteira.
+
+**Medi.** Peguei 10 frases que ele realmente usou e testei contra os 25 gatilhos declarados na
+`description` da skill: **0 de 10**. Nenhuma casou. Consequência prática: **a skill `orq` não foi
+invocada uma única vez** nesta sessão, os Loops A e B nunca rodaram, e tudo — inclusive a feature do
+Kimi, que é uma feature inteira — foi implementado direto, sem plano, sem gate, com o painel entrando
+só depois, revisando o que já estava pronto.
+
+**Causa raiz:** os gatilhos foram escritos imaginando como o dono falaria (*"vamos planejar isso"*,
+*"pode implementar"*), não observando como ele fala (*"queria acrescentar"*, *"siga com suas
+recomendações"*, *"vale a pena configurar"*). E faltava o padrão mais comum de todos: **o pedido de
+mudança**, que é a maioria do que ele diz e não estava coberto por nenhum gatilho.
+
+**Duas correções, e a segunda é a que importa:**
+1. `description` reescrita a partir da fala real. Cobertura medida: **0% → 100%** nas mesmas frases.
+2. **Seção "ROTEAMENTO AUTOMÁTICO" no topo da skill** — porque cobertura de gatilho só faz a skill
+   carregar; não diz o que fazer. Agora diz: *todo pedido de mudança entra pelo ciclo, não comece
+   editando arquivo*, com **escala por risco** (trivial → direto · pequeno → revisor interno ·
+   normal → ciclo completo · alto risco → gate extra) e a regra **"na dúvida, suba um nível"**.
+
+**A instrução que faltava, em uma frase:** *anuncie o roteamento, não pergunte*. Nada de "quer que eu
+rode o `/orq:plan-next`?" — o dono não precisa saber que o comando existe. Uma linha dizendo o que
+vai acontecer e qual elenco toca cada papel.
+
+**O erro nomeado no `CLAUDE.md` do projeto** para não se repetir: a feature do Kimi (0.8.0) foi
+implementada direto porque o pedido chegou em linguagem natural e pareceu pequeno. É o modo de falha
+típico — não é preguiça, é o pedido não se parecer com um comando.
+
+---
+
 ## [2026-07-28] feat | Kimi como terceiro revisor do painel (T-007, 0.8.0)
 
 **Pedido do dono**, com um prompt vindo de outra sessão que propunha comandos globais

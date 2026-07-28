@@ -1,18 +1,57 @@
 ---
 name: orq
 description: >
-  A disciplina do Orquestra — board, time de agentes, memória-wiki e gates. Use SEMPRE que o
-  usuário falar naturalmente sobre o andamento do trabalho, sem precisar de comando. Gatilhos:
-  "o que estamos fazendo", "onde paramos", "o que falta", "cadê o board", "quais as pendências";
-  "vamos planejar isso", "próxima tarefa", "pode implementar", "manda ver", "toca essa";
-  "terminamos", "acabou essa parte", "vamos limpar o contexto", "pode reiniciar", "salva aí";
-  "anota isso", "guarda essa decisão", "cria uma tarefa pra isso", "isso vira card";
-  "vou dormir", "adianta o que der", "trabalha nisso enquanto isso"; e ao RETOMAR um projeto
-  ("bom dia", "voltei", "continuando"). Também para coordenar planejar/implementar/revisar/fechar
-  card, ou quando precisar lembrar como o fluxo funciona.
+  A disciplina do Orquestra — board, time de agentes, memória-wiki e gates. Num projeto com
+  `memory/wiki/KANBAN.md`, use em QUALQUER conversa de trabalho, mesmo sem comando e mesmo que a
+  frase não esteja listada aqui. O gatilho principal é o PEDIDO DE MUDANÇA em qualquer forma:
+  "quero/queria X", "vamos fazer/criar/acrescentar/mudar X", "seria bom/interessante se", "dá pra",
+  "precisa de", "vale a pena", "sugerir", "tem um problema em Y", "isso está errado", "não
+  funciona", "melhorar", "ajustar", "implementar", "corrigir", "refatorar" — tudo isso entra pelo
+  CICLO (plano → seu ok → implementação → revisão), nunca em código direto. Também: prosseguir
+  ("pode começar", "siga", "seguir", "podemos seguir", "manda ver", "aprovado", "pode ir",
+  "perfeito", "certo", "vamos seguir", "toca essa"); estado do
+  trabalho ("onde paramos", "o que falta", "cadê o board", "quais as pendências", "o que estamos
+  fazendo"); fechar bloco ("terminamos", "acabou essa parte", "salva aí", "pode limpar", "vamos
+  limpar o contexto"); registrar ("anota isso", "não esquece", "isso vira card", "guarda essa
+  decisão"); revisar ("revisa isso", "o que você acha", "manda revisar"); elenco ("quem tá
+  revisando", "troca o modelo", "tira o GPT"); memória ("lembra quando", "o que decidimos sobre");
+  ferramentas ("tá lento", "o que falta instalar"); noturno ("vou dormir", "adianta o que der");
+  e ao RETOMAR ("bom dia", "voltei", "continuando").
 ---
 
 # Orquestra — a disciplina
+
+## 🔴 ROTEAMENTO AUTOMÁTICO — leia antes de tudo
+
+**Todo pedido de mudança entra pelo ciclo. Não implemente direto.**
+
+Quando o dono pede qualquer coisa que mexe no produto — *"quero X"*, *"vamos acrescentar Y"*,
+*"tem um problema em Z"*, *"isso está errado"* — a resposta **não** é começar a editar arquivo. É
+rotear pelo fluxo e **anunciar em uma linha** o que você vai fazer.
+
+**Escala de resposta** — dimensione pelo risco, não pelo tamanho do texto do pedido:
+
+| Nível | O que é | O que roda |
+|---|---|---|
+| **Trivial** | typo, renomear variável local, ajuste de texto sem efeito | faça direto, sem cerimônia |
+| **Pequeno** | 1 arquivo, sem decisão de desenho, reversível | implemente + **revisor interno** |
+| **Normal** | feature, correção com causa raiz, mexe em contrato entre partes | **ciclo completo**: plano → gate do dono → implementação → painel → docs → VALIDATE |
+| **Alto risco** | schema, segurança, dependência nova, dado de terceiro, irreversível | ciclo completo **+ gate extra antes de tocar** |
+
+**Na dúvida, suba um nível.** O custo de planejar demais é minutos; o de implementar a coisa errada
+é a implementação inteira mais o retrabalho.
+
+**Anuncie, não pergunte.** Uma linha antes de começar, dizendo o roteamento e o elenco:
+
+> *"Isso é normal: vou planejar primeiro (planner em Opus), te mostro o plano pra aprovar, e depois
+> implemento com painel de revisão (Codex + Kimi)."*
+
+Nada de *"quer que eu rode o `/orq:plan-next`?"* — ele não precisa saber que o comando existe.
+Pergunte só quando a decisão for **dele**: rumo do produto, aparência, algo irreversível.
+
+⚠️ **O erro mais comum é este:** o pedido chega em linguagem natural, parece pequeno, e você começa a
+editar. Aí não houve plano, não houve gate, e o painel só entra depois — revisando o que já está
+pronto, quando a decisão errada já custou. **Roteie primeiro.**
 
 ## ⚡ Interface NATURAL — o dono não digita comando
 
@@ -21,8 +60,10 @@ mecanismo interno — ele não precisa saber que existem.
 
 | Ele diz algo como… | Você faz |
 |---|---|
-| "onde paramos?" · "o que falta?" · "cadê o board?" · "quais as pendências?" | **Mostra o quadro** (`/orq:quadro`): esperando-ele primeiro, depois em curso e a validar |
-| "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board. **Depois** avise que é seguro dar `/clear` |
+| **"quero X" · "queria acrescentar Y" · "vamos fazer/criar/mudar Z" · "seria bom se" · "dá pra" · "tem um problema em W" · "isso está errado" · "não funciona" · "precisa melhorar"** | **ROTEIA PELO CICLO** — é o caso mais comum e o mais fácil de errar. Cria o card, planeja, **para no gate**. Só implementa direto se for trivial pela escala acima |
+| "pode começar" · "siga" · "siga com suas recomendações" · "pode ir" · "aprovado" · "manda ver" · "vamos seguir" · "perfeito, segue" | **AVANÇA** o que está no gate — se havia plano aguardando, é aprovação: vá para a implementação. Se não havia, o "siga" se aplica ao que você acabou de propor |
+| "onde paramos?" · "o que falta?" · "cadê o board?" · "quais as pendências?" · "o que estamos fazendo?" | **Mostra o quadro** (`/orq:quadro`): esperando-ele primeiro, depois em curso e a validar |
+| "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" · "pode limpar" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board. **Depois** avise que é seguro dar `/clear` — e que dá pra **fechar a janela** se a pendência ficou registrada |
 | "vamos planejar X" · "próxima tarefa" · "o que vem agora?" | **Loop A** (`/orq:plan-next`) — e **pare** no gate pra ele aprovar |
 | "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
