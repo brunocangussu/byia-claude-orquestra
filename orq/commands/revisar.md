@@ -69,15 +69,18 @@ codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
-**Se o Kimi estiver ATIVO no elenco:** rode a CLI direto, com o caminho **completo** do binário:
+**Se o Kimi estiver ATIVO no elenco:** rode a CLI direto, resolvendo o binário com fallback:
 
 ```bash
-~/.kimi-code/bin/kimi -p "<briefing>" --output-format text < /dev/null
+KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
+"$KIMI" -p "<briefing>" --output-format text < /dev/null
 ```
 
-> ⚠️ **O `kimi` normalmente NÃO está no PATH** (fica em `~/.kimi-code/bin/`). Chamar `kimi` solto dá
-> "command not found" e o painel silenciosamente vira um revisor a menos. Use o caminho completo, ou
-> confirme com `which kimi` antes.
+> ⚠️ **O instalador do Kimi põe o binário em `~/.kimi-code/bin/` e adiciona ao `.zshrc`** — o que só
+> vale em shell aberto **depois** da instalação. Uma sessão já em curso não enxerga, `which kimi`
+> falha, e o painel vira silenciosamente um revisor a menos **enquanto o binário está lá, funcionando**.
+> Por isso o fallback acima. (Uma sessão irmã concluiu "Kimi não instalado" exatamente assim, e ainda
+> foi procurar no npm — onde ele nunca esteve: a distribuição é por `code.kimi.com`, não por pacote.)
 >
 > ⚠️ **Ele não tem flag de sandbox** como o `-s read-only` do Codex. **Não** passe `-y`/`--yolo` nem
 > `--auto`: sem elas, em modo `-p`, ele não aplica mudança. Reforce no prompt: *"não edite arquivo

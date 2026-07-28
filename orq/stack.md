@@ -155,12 +155,17 @@ deixa de exigir unanimidade e vira maioria.
 
 ### `kimi` — Kimi K3 (Moonshot) no painel
 
-📦 [`MoonshotAI/kimi-code`](https://github.com/MoonshotAI/kimi-code) · CLI · doc em
-`https://moonshotai.github.io/kimi-code/`
+📦 Instalador oficial em `https://code.kimi.com/` · doc em `https://moonshotai.github.io/kimi-code/`
 
-**Detectar:** `kimi` no PATH **ou** `~/.kimi-code/bin/kimi` — o instalador **não** costuma colocar no
-PATH, então checar só o PATH dá falso negativo. Confirme com
-`~/.kimi-code/bin/kimi -p "responda OK" --output-format text < /dev/null`.
+⚠️ **Não procure no npm.** O Kimi Code **não é distribuído por pacote** — os `kimi`, `kimi-cli` e
+`kimi-code` que existem lá são homônimos sem relação (uma lib de animação de 2016, uma ferramenta de
+front-end e um wrapper de terceiro). Instalar qualquer um deles no papel de **revisor**, que lê todo
+o código que recebe, seria risco de cadeia de suprimento real. O instalador oficial baixa de
+`code.kimi.com` **com verificação de checksum**.
+
+**Detectar:** `kimi` no PATH **ou** `~/.kimi-code/bin/kimi`. Checar só o PATH **dá falso negativo**:
+o instalador escreve no `.zshrc`, o que não alcança sessão já aberta. Confirme executando:
+`KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi"); "$KIMI" -p "responda OK" --output-format text < /dev/null`
 
 **Chamada:** `-p` é o modo não-interativo; `--output-format` aceita `text` e `stream-json`.
 

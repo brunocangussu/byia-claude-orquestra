@@ -23,7 +23,7 @@ Valores aceitos: `opus` · `sonnet` · `haiku` · `fable` · `inherit` · ou um 
 | Revisor | Estado | Config |
 |---|---|---|
 | codex | **ativo** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=xhigh -s read-only "<briefing>" < /dev/null` · CLI em `/usr/local/bin/codex` |
-| kimi | **ativo** | `~/.kimi-code/bin/kimi -p "<briefing>" --output-format text < /dev/null` · v0.29.2, OAuth · **caminho completo obrigatório: não está no PATH** |
+| kimi | **ativo** | `KIMI=$(command -v kimi \|\| echo "$HOME/.kimi-code/bin/kimi")` então `"$KIMI" -p "<briefing>" --output-format text < /dev/null` · v0.29.2, OAuth · symlink em `~/.local/bin/kimi` criado em 2026-07-28 |
 
 **Os dois exigem `< /dev/null`** — sem TTY eles bloqueiam lendo stdin e travam até o timeout.
 **Nenhum dos dois recebe dado sensível** (ver a regra em `/orq:revisar`, passo 1b).

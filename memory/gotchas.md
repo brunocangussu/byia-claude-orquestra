@@ -32,14 +32,22 @@ silenciosamente a escalação escolhida pro projeto — e ninguém percebe, porq
 O Manager é a sessão principal, definida pelo `/model`. Tentar trocá-lo via `/orq:elenco` não faz
 sentido e confunde — não é um spawn.
 
-### O `kimi` não fica no PATH — use o caminho completo
+### `which kimi` falhar NÃO significa que o Kimi não está instalado
 
-O instalador do Kimi Code CLI põe o binário em `~/.kimi-code/bin/kimi` e **não** o adiciona ao PATH.
-`which kimi` → nada. O agente global `~/.claude/agents/kimi-revisor.md` chamava `kimi` solto e, como
-ele próprio manda "se o binário não existir, pare", **nunca revisou nada** — falha silenciosa que
-parecia obediência à regra.
-→ No painel, sempre `~/.kimi-code/bin/kimi -p "<briefing>" --output-format text < /dev/null`.
-Igual ao Codex, o `< /dev/null` é obrigatório (sem TTY, bloqueia lendo stdin).
+O instalador põe o binário em `~/.kimi-code/bin/kimi` e adiciona o diretório ao **`.zshrc`** — o que
+só alcança shell aberto **depois**. Sessão já em curso não enxerga: `which kimi` falha **enquanto o
+binário está lá, funcionando**.
+
+Isso já produziu dois erros em cascata (2026-07-28): o agente global `kimi-revisor` parava dizendo
+"não instalado" (comportamento correto, diagnóstico errado), e uma sessão irmã concluiu o mesmo e foi
+procurar o pacote **no npm** — onde ele nunca esteve. Os `kimi`, `kimi-cli` e `kimi-code` do npm são
+homônimos sem relação; instalar um deles no papel de revisor seria risco de supply chain de verdade.
+A distribuição oficial é `code.kimi.com`, binário com checksum.
+
+→ **Detecte com fallback, nunca só pelo PATH:**
+`KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")`
+→ Nesta máquina há symlink em `~/.local/bin/kimi` (diretório já no PATH), então `kimi` solto resolve.
+→ Igual ao Codex, o `< /dev/null` é obrigatório (sem TTY, bloqueia lendo stdin).
 
 ### O plugin do Codex não é invocável pelo modelo — só pelo dono
 

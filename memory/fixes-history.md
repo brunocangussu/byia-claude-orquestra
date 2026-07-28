@@ -99,6 +99,32 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-28] fix | "Kimi não instalado" era falso — PATH, não ausência (0.9.1)
+
+**Sintoma:** outra sessão reportou `Codex ✅ · Kimi ❌`, concluiu "o binário não existe nesta máquina"
+e — corretamente, dado o diagnóstico — **recusou instalar** por risco de cadeia de suprimento, já que
+os pacotes `kimi` no npm são homônimos sem relação.
+
+**O diagnóstico estava errado.** O binário existe (`~/.kimi-code/bin/kimi`, 160 MB, instalado às
+13:33 do mesmo dia) e **funciona**: rodei e respondeu. A causa é que o instalador adiciona o
+diretório ao `.zshrc`, o que **não alcança sessão já aberta** — o PATH foi capturado antes.
+`which kimi` falha enquanto o binário está lá, operante.
+
+**A recusa por supply chain era certa em tese e desnecessária no fato.** O `kimi-install.log` mostra
+download de `https://code.kimi.com/kimi-code/binaries/0.29.2/` **com verificação de checksum** —
+domínio oficial da Moonshot. O Kimi Code **não é distribuído por npm**, então procurar lá só podia
+achar homônimo. Registrado no `stack.md` para ninguém repetir a busca.
+
+**Correção:** symlink `~/.local/bin/kimi` → `~/.kimi-code/bin/kimi` (o diretório já está no PATH), o
+que conserta **todos** os consumidores de uma vez — o agente global `kimi-revisor` voltou a funcionar
+sem edição. E o Orquestra passou a resolver o binário com fallback
+(`command -v kimi || $HOME/.kimi-code/bin/kimi`), para não depender do symlink em outra máquina.
+
+**A lição repete a de ontem** (`claude plugin --help | head`): **ausência não se conclui de uma
+verificação que só olha um lugar.** `which` responde sobre o PATH daquela sessão, não sobre o disco.
+
+---
+
 ## [2026-07-28] fix | a interface natural não funcionava — 0% de cobertura (0.9.0)
 
 **Observação do dono:** *"a ideia do projeto é que isso seja automático… não é pra eu ficar digitando
