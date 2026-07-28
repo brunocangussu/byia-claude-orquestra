@@ -31,7 +31,7 @@ O plugin foi feito pra ser usado **conversando**. Você fala; o Claude reconhece
 | *"vamos planejar isso"* | planeja e **para** pra você aprovar |
 | *"pode implementar"* · *"manda ver"* | implementa + revisa + documenta |
 | *"anota isso"* · *"não esquece disso"* | vira card no backlog |
-| *"revisa isso aí"* | painel de revisores (Claude + Codex) |
+| *"revisa isso aí"* | painel de revisores (Claude + Codex + Kimi) |
 | *"lembra o que decidimos sobre X?"* | busca na memória de longo prazo |
 | *"vou dormir, adianta o que der"* | modo noturno |
 | *"bom dia"* | relatório do que rodou à noite |
@@ -84,7 +84,7 @@ exatamente isso. Elas não são requisito; são o que separa "funciona" de "rend
 | **Economia de contexto** | [`context-mode`](https://github.com/mksglu/context-mode) · [`rtk`](https://github.com/rtk-ai/rtk) | um `npm test` de 4.000 linhas entra como as 12 que interessam |
 | **Memória entre sessões** | [`claude-mem`](https://github.com/thedotmack/claude-mem) · [Supermemory](https://github.com/supermemoryai/supermemory) | é o que torna `checkpoint` + `/clear` seguro em vez de `/compact` encadeado |
 | **Entender o código** | [`codebase-memory`](https://github.com/DeusData/codebase-memory-mcp) · [Serena](https://github.com/oraios/serena) | só valem em repo grande — ver a comparação abaixo |
-| **Revisão independente** | [`codex`](https://github.com/openai/codex-plugin-cc) | segundo modelo no painel; modelos diferentes erram diferente |
+| **Revisão independente** | [`codex`](https://github.com/openai/codex) · [`kimi`](https://github.com/MoonshotAI/kimi-code) | fornecedores diferentes erram de forma menos correlacionada |
 
 **Serena e codebase-memory são redundantes?** Não, mas se sobrepõem: os dois acham símbolo por nome, e
 a semelhança acaba aí. Serena é **LSP + edição** ("me dê o corpo disto e edite com precisão");
@@ -331,8 +331,8 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.7.1` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
-· painel de revisores (Claude + Codex) · elenco configurável de LLM por papel · stack complementar
+`0.8.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+· painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·

@@ -13,6 +13,7 @@ Uso:
 Saída: 0 se coerente, 1 se achou referência quebrada.
 """
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -25,9 +26,18 @@ DIRS_IGNORADOS = {"memory", ".git", "node_modules"}
 
 PADROES = [
     # (regex, nome do universo, mensagem)
-    (re.compile(r"/orq:([a-z-]+)"), "comandos", "comando /orq:{} não existe"),
-    (re.compile(r"`(orq-[a-z]+)`"), "agentes", "agente {} não existe"),
-    (re.compile(r"skill `([a-z][a-z-]*)`"), "skills", "skill `{}` não existe"),
+    # Capturam o identificador INTEIRO (incl. dígitos e _), senão `/orq:revisar2`
+    # casaria só "revisar" e passaria como válido — deixando a referência quebrada
+    # invisível, que é justamente o que este lint existe para impedir.
+    (re.compile(r"/orq:([A-Za-z0-9_-]+)"), "comandos", "comando /orq:{} não existe"),
+    # Sem exigir crases: `orq-inexistente` solto no texto também é referência.
+    (re.compile(r"\b(orq-[A-Za-z0-9_-]+)"), "agentes", "agente {} não existe"),
+    # Crases OBRIGATÓRIAS aqui — ao contrário do padrão de agente acima.
+    # Testado: sem elas, "a skill e o comando" / "skill ou agente" viram falso
+    # positivo, porque "skill" é palavra comum na prosa em português. O prefixo
+    # `orq-` não tem esse problema: não aparece em texto corrido.
+    # Assimetria proposital: falso positivo é o que faz um lint ser desligado.
+    (re.compile(r"skill `([A-Za-z0-9][A-Za-z0-9_-]*)`"), "skills", "skill `{}` não existe"),
 ]
 
 
@@ -62,15 +72,27 @@ def main() -> int:
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):
             continue
         rel = arq.relative_to(raiz)
-        for num, linha in enumerate(arq.read_text().splitlines(), 1):
+        for num, linha in enumerate(arq.read_text(encoding="utf-8").splitlines(), 1):
             for regex, universo, msg in PADROES:
                 for m in regex.finditer(linha):
                     if m.group(1) not in conhecidos[universo]:
                         problemas.append((rel, num, msg.format(m.group(1))))
             for m in re.finditer(r"\$\{CLAUDE_PLUGIN_ROOT\}/([\w./-]+)", linha):
-                if not (plugin / m.group(1)).exists():
+                # rstrip('.'): a referência costuma terminar frase ("…/stack.md.")
+                # e o ponto final não faz parte do caminho.
+                ref = m.group(1).rstrip(".")
+                alvo = (plugin / ref).resolve()
+                # is_file(): diretório não conta como arquivo referenciado.
+                # commonpath: `../` não pode validar arquivo fora do plugin.
+                # (commonpath em vez de is_relative_to — este exige Python ≥ 3.9.)
+                raiz_plugin = plugin.resolve()
+                dentro = (
+                    os.path.commonpath([str(alvo), str(raiz_plugin)]) == str(raiz_plugin)
+                )
+                if not dentro or not alvo.is_file():
+                    motivo = "escapa do plugin" if not dentro else "não existe"
                     problemas.append(
-                        (rel, num, f"${{CLAUDE_PLUGIN_ROOT}}/{m.group(1)} não existe")
+                        (rel, num, f"${{CLAUDE_PLUGIN_ROOT}}/{ref} {motivo}")
                     )
 
     if problemas:

@@ -99,6 +99,46 @@ O `T-009` segue em VALIDATE, e agora a validação prática do dono é o único 
 
 ---
 
+## [2026-07-28] feat | Kimi como terceiro revisor do painel (T-007, 0.8.0)
+
+**Pedido do dono**, com um prompt vindo de outra sessão que propunha comandos globais
+(`kimi-review`, `kimi-adversarial`, `dupla-revisao` em `~/.claude/commands/`). **Recusado com
+argumento e ele concordou:** isso criaria um segundo sistema de revisão paralelo ao `/orq:revisar`,
+que já tem reconciliação — mais forte que a "tabela comparativa" proposta. O Kimi entrou **dentro do
+Orquestra**, fechando o `T-007`.
+
+**Auditoria (Fase 1) revelou dois bugs silenciosos:**
+1. O `kimi` **não está no PATH** (fica em `~/.kimi-code/bin/`). O agente global `kimi-revisor`
+   chamava `kimi` solto e, como ele mesmo manda "se não existir, pare", **nunca revisou nada** —
+   parecia obediência à regra, era falha muda.
+2. O plugin do Codex **não é invocável pelo modelo**: `codex:codex-rescue` não aparece como agent
+   type e `/codex:review` tem `disable-model-invocation: true`. A regra global do dono ("use sempre
+   o subagente, nunca o binário") **só é executável quando ele digita o comando** — de dentro de um
+   turno, a CLI é o único caminho. Testado: o spawn falha com "Agent type not found".
+
+**Do prompt do dono, adotados:** o **formato único** (`BLOQUEADORES / RISCOS / VEREDITO`), que o
+Orquestra não tinha e sem o qual a comparação entre pareceres é frouxa; e a **regra LGPD** — nenhum
+dado de paciente, PII ou credencial vai para revisor externo, com instrução de **parar e avisar** em
+vez de higienizar sozinho.
+
+**O painel provou o valor na mesma sessão.** Codex e Kimi revisaram o `lint-coerencia.py` e acharam
+coisas **diferentes**: o Codex, três bloqueadores estruturais (regex aceitando `/orq:revisar2` como
+válido, agente só verificado entre crases, caminho não confinado ao plugin); o Kimi, o
+`read_text()` sem `encoding="utf-8"` — que **quebraria o lint em CI com locale C**, e a doc é toda
+em pt-BR com acento. Nenhum dos dois viu o achado do outro.
+
+**E o painel ensinou a não aplicar achado cru.** O Kimi apontou (corretamente) que skill exigia
+crases e agente não. Apliquei a correção → **três falsos positivos na hora**, porque "skill" é
+palavra comum em prosa portuguesa ("a skill **e** o comando"). A assimetria era proposital; o
+revisor não tinha como saber. **Diagnóstico certo, correção errada** — revertido com o motivo no
+código. Falso positivo é o que faz lint ser desligado.
+
+**Bônus embaraçoso:** ao aplicar a correção de contenção de caminho, criei `raiz = plugin.resolve()`
+dentro do loop e **sombrei a variável `raiz` externa**, quebrando o lint inteiro. Só apareceu porque
+rodei o teste. Nenhum revisor pegaria — não existia quando eles revisaram.
+
+---
+
 ## [2026-07-27] fix | a CLI `claude plugin` TEM install/update — afirmação falsa corrigida (0.7.1)
 
 **Erro meu, de método.** Rodei `claude plugin --help | head -20`, vi a lista alfabética terminar em

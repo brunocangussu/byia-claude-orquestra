@@ -149,6 +149,28 @@ mais o tempo de indexação. Existem **forks populares** — confira que é o re
 
 ## Camada 4 — Revisão independente
 
+Modelos diferentes erram diferente — e **fornecedores** diferentes erram de forma menos
+correlacionada que duas instâncias do mesmo modelo. Com dois externos ativos, "confirmado por 2+"
+deixa de exigir unanimidade e vira maioria.
+
+### `kimi` — Kimi K3 (Moonshot) no painel
+
+📦 [`MoonshotAI/kimi-code`](https://github.com/MoonshotAI/kimi-code) · CLI · doc em
+`https://moonshotai.github.io/kimi-code/`
+
+**Detectar:** `kimi` no PATH **ou** `~/.kimi-code/bin/kimi` — o instalador **não** costuma colocar no
+PATH, então checar só o PATH dá falso negativo. Confirme com
+`~/.kimi-code/bin/kimi -p "responda OK" --output-format text < /dev/null`.
+
+**Chamada:** `-p` é o modo não-interativo; `--output-format` aceita `text` e `stream-json`.
+
+⚠️ **Sem flag de sandbox.** Diferente do Codex (`-s read-only`), o Kimi não tem modo somente-leitura.
+**Não** passe `-y`/`--yolo` nem `--auto` — sem elas, em `-p`, ele não aplica mudança. Reforce no
+prompt que é para relatar, não editar. Garantia dura: worktree descartável.
+
+**Custo:** conta Moonshot (OAuth via `kimi login`). **Transferência internacional de dados** — vale a
+mesma regra do Codex: nada de PII, prontuário ou credencial.
+
 ### `codex` — GPT no painel de revisores
 
 📦 [`openai/codex`](https://github.com/openai/codex) · **a CLI** (pacote npm `@openai/codex`)

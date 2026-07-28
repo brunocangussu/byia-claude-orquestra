@@ -1,5 +1,5 @@
 ---
-description: Painel de revisores independentes (Claude + Codex, e outros que estiverem configurados) sobre a mudança atual, com os achados reconciliados num parecer só
+description: Painel de revisores independentes (Claude + Codex + Kimi, e outros configurados) sobre a mudança atual, com os achados reconciliados num parecer só
 argument-hint: "[T-NNN | caminho | 'o que revisar'] [--rapido para só um revisor]"
 ---
 
@@ -18,6 +18,30 @@ vale investigar).
 Monte o **briefing** uma vez (será o mesmo pra todos): o que mudou, por quê, o critério de aceite,
 o que está **fora** de escopo, e as convenções do projeto. Sem briefing igual, os pareceres não são
 comparáveis.
+
+**Exija o MESMO formato de saída de todos** — sem isso a reconciliação vira leitura de prosa solta:
+
+```
+## BLOQUEADORES
+- [arquivo:linha] problema — por que quebra — correção mínima   (ou "nenhum")
+## RISCOS
+- [arquivo:linha] risco — em que cenário aparece                 (ou "nenhum")
+## VEREDITO
+APROVADO | APROVADO_COM_RESSALVAS | REPROVADO
+```
+
+## 1b. ⛔ Antes de mandar QUALQUER coisa para fora
+
+Revisor externo é **transferência de dados para terceiro** (OpenAI, Moonshot). Antes de montar o
+briefing, **inspecione o que vai nele**:
+
+**Nunca envie:** dado de paciente ou pessoal (PII), prontuário, credencial, token, chave, `.env`,
+dump de banco com linhas reais.
+**Pode enviar:** código, schema, arquitetura, infra, mensagem de erro sem payload.
+
+Achou dado sensível no diff? **PARE e avise o dono** — não tente higienizar sozinho e seguir. O
+revisor interno (`orq-reviewer`) roda no mesmo ambiente e **não** tem essa restrição: em mudança que
+toca dado sensível, use `--rapido` e diga por quê.
 
 ## 2. Disparar os revisores EM PARALELO
 
@@ -45,9 +69,26 @@ codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
-**Revisores extras** marcados como **ativo** na seção "Revisores externos" do `_elenco.md`: dispare
-também, do jeito registrado ali. Slot previsto p/ **Kimi K2** — hoje não instalado; quando houver
-CLI ou MCP, basta registrar e ativar.
+**Se o Kimi estiver ATIVO no elenco:** rode a CLI direto, com o caminho **completo** do binário:
+
+```bash
+~/.kimi-code/bin/kimi -p "<briefing>" --output-format text < /dev/null
+```
+
+> ⚠️ **O `kimi` normalmente NÃO está no PATH** (fica em `~/.kimi-code/bin/`). Chamar `kimi` solto dá
+> "command not found" e o painel silenciosamente vira um revisor a menos. Use o caminho completo, ou
+> confirme com `which kimi` antes.
+>
+> ⚠️ **Ele não tem flag de sandbox** como o `-s read-only` do Codex. **Não** passe `-y`/`--yolo` nem
+> `--auto`: sem elas, em modo `-p`, ele não aplica mudança. Reforce no prompt: *"não edite arquivo
+> nenhum, apenas relate"*. Se precisar de garantia dura, rode-o num worktree descartável.
+
+**Outros revisores** marcados como **ativo** na seção "Revisores externos" do `_elenco.md`: dispare
+do jeito registrado ali.
+
+**Revisor ativo no elenco que falhar** (binário ausente, timeout, saída vazia) → **diga ao dono que
+o painel foi parcial**, nomeando quem faltou. Nunca apresente parecer de um revisor como se fosse a
+interseção de vários: o valor do painel está em distinguir confirmado-por-dois de achado-por-um.
 
 Com `--rapido`: só o revisor interno.
 

@@ -32,6 +32,31 @@ silenciosamente a escalação escolhida pro projeto — e ninguém percebe, porq
 O Manager é a sessão principal, definida pelo `/model`. Tentar trocá-lo via `/orq:elenco` não faz
 sentido e confunde — não é um spawn.
 
+### O `kimi` não fica no PATH — use o caminho completo
+
+O instalador do Kimi Code CLI põe o binário em `~/.kimi-code/bin/kimi` e **não** o adiciona ao PATH.
+`which kimi` → nada. O agente global `~/.claude/agents/kimi-revisor.md` chamava `kimi` solto e, como
+ele próprio manda "se o binário não existir, pare", **nunca revisou nada** — falha silenciosa que
+parecia obediência à regra.
+→ No painel, sempre `~/.kimi-code/bin/kimi -p "<briefing>" --output-format text < /dev/null`.
+Igual ao Codex, o `< /dev/null` é obrigatório (sem TTY, bloqueia lendo stdin).
+
+### O plugin do Codex não é invocável pelo modelo — só pelo dono
+
+`codex:codex-rescue` **não aparece** como agent type disponível, e `/codex:review` tem
+`disable-model-invocation: true`. Ou seja, a regra "use sempre o subagente, nunca o binário" só é
+executável quando **o dono digita** o comando; de dentro de um turno do Claude, o único caminho é a
+CLI (`codex exec … < /dev/null`). Verificado empiricamente em 2026-07-28.
+
+### Achado de revisor externo não se aplica cru — reconcilie
+
+O Kimi apontou (corretamente) que o lint exigia crases para skill e não para agente. Apliquei a
+"correção" tornando as crases opcionais → **três falsos positivos na hora**, porque "skill" é palavra
+comum em prosa portuguesa ("a skill **e** o comando", "skill **ou** agente"). O prefixo `orq-` não
+tem esse problema: não aparece em texto corrido.
+→ A assimetria era **proposital** e o revisor não tinha como saber. Diagnóstico certo, correção
+errada. Sempre teste a correção antes de aceitar — e falso positivo é o que faz lint ser desligado.
+
 ### Marketplace local ≠ plugin atualizado — editar o repo NÃO basta
 
 O marketplace `orquestra` aponta para o **diretório** deste repo, o que dá a impressão de que editar

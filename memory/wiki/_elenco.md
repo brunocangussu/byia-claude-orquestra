@@ -22,8 +22,14 @@ Valores aceitos: `opus` · `sonnet` · `haiku` · `fable` · `inherit` · ou um 
 
 | Revisor | Estado | Config |
 |---|---|---|
-| codex | **ativo** | `--model gpt-5.6-sol --effort xhigh` (read-only) · CLI em `/usr/local/bin/codex` |
-| kimi-k2 | inativo | sem CLI e sem MCP nesta máquina — ver card `T-007` |
+| codex | **ativo** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=xhigh -s read-only "<briefing>" < /dev/null` · CLI em `/usr/local/bin/codex` |
+| kimi | **ativo** | `~/.kimi-code/bin/kimi -p "<briefing>" --output-format text < /dev/null` · v0.29.2, OAuth · **caminho completo obrigatório: não está no PATH** |
+
+**Os dois exigem `< /dev/null`** — sem TTY eles bloqueiam lendo stdin e travam até o timeout.
+**Nenhum dos dois recebe dado sensível** (ver a regra em `/orq:revisar`, passo 1b).
+
+O Kimi **não tem flag de sandbox**. Não passar `-y`/`--yolo` nem `--auto`; reforçar "não edite
+arquivo" no prompt. Garantia dura só em worktree descartável.
 
 ## Por que o painel importa neste projeto
 
@@ -31,6 +37,11 @@ O produto aqui são **instruções**, não código. Onde dois modelos divergem s
 significa, **a divergência é o achado** — é sinal de ambiguidade real no texto, que um leitor futuro
 também vai encontrar. O Codex tem contexto adicional: foi ele quem auditou a arquitetura original e
 produziu o parecer que virou o roadmap.
+
+Com **três** revisores (Claude · Codex · Kimi) a reconciliação fica mais forte: "confirmado por 2+"
+deixa de ser unanimidade e vira **maioria**, o que separa melhor o achado sólido do palpite de um
+modelo só. Três fornecedores distintos (Anthropic · OpenAI · Moonshot) erram de formas menos
+correlacionadas que duas instâncias do mesmo.
 
 Em card pequeno e de baixo risco, `--rapido` (só o revisor interno). Painel em mudança trivial é
 desperdício.
