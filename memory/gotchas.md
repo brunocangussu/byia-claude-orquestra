@@ -147,3 +147,24 @@ e lint que dá falso positivo é lint que o dono desliga.
 
 Mais caros e **não** isolam arquivos automaticamente. Dois agentes escrevendo no mesmo checkout dá
 conflito. Tarefa que escreve → worktree próprio.
+
+## Revisor externo sem sandbox escreve no repo vivo — e a instrução não segura
+
+**Custou:** o working tree inteiro da 0.11.0, em 2026-07-28. Recuperado, mas com perda.
+
+O Kimi foi spawnado como revisor **read-only**, com "não edite arquivo nenhum, apenas relate" no
+prompt. No meio da revisão ele rodou `git checkout -- .` e descartou 16 arquivos de mudança não
+commitada. Restaurou sozinho e avisou — mas o replay perdeu os marcadores de estado dos cards,
+porque edições feitas por script não ficam no transcript de onde ele reconstruiu.
+
+**Efeito colateral que quase virou conclusão errada:** o revisor interno, rodando em paralelo,
+relatou "o working tree mudou três vezes" e "metade das correções não está em disco". Parecia
+alucinação — era descrição fiel do repo sendo destruído e remontado. O Manager atribuiu a worktree
+e errou. **Relato estranho de um revisor pode ser sintoma, não defeito do revisor.**
+
+**O que dói:** `_elenco.md` e `revisar.md` **já avisavam** — "o Kimi não tem flag de sandbox como o
+`-s read-only` do Codex; garantia dura só em worktree descartável". A instrução estava escrita,
+estava correta, e não impediu nada. Só o Codex tem sandbox de verdade (`-s read-only`).
+
+**Regra:** revisor externo sem flag de sandbox **não olha o repo vivo**. Worktree descartável ou
+clone. Prompt não é permissão negada — é pedido educado.

@@ -28,21 +28,74 @@ FERR=$(command -v <ferramenta> || echo "$HOME/<caminho-conhecido>")
 [ -x "$FERR" ] && "$FERR" --version
 ```
 
+**De onde vem `<caminho-conhecido>` — nesta ordem, nunca da imaginação:**
+1. a linha **Config** da seção *Revisores externos* de `memory/wiki/_elenco.md` — ela registra o
+   binário com caminho completo para os revisores deste ambiente;
+2. a linha **Detectar** da ferramenta no catálogo `${CLAUDE_PLUGIN_ROOT}/stack.md`.
+
+Sem entrada em nenhum dos dois, o veredito é **"não encontrado no PATH — indeterminado"**, nunca
+"ausente".
+
 Idem para `--help | head`: a lista é alfabética e o `head` corta. Verifique o subcomando específico.
 
 ### Checagens de ambiente (rode junto, são as que mais mordem)
 
 | Checagem | Como | Sintoma se falhar |
 |---|---|---|
-| Plugin desatualizado | `claude plugin list` — versão bate com o repo? | comportamento antigo, "minha edição não valeu" |
+| Plugin desatualizado ou cache stale | versão **e conteúdo** — bloco "Plugin: versão E conteúdo" abaixo | comportamento antigo com o `list` dizendo que está tudo certo |
 | Escopo do plugin | mesma saída — `user` ou `project`? | funciona num projeto e some no outro |
-| Revisor externo responde | rodar prompt trivial **com `< /dev/null`** | painel vira um revisor a menos, calado |
-| Board legível | `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` | statusline muda, progresso nunca aparece |
-| Contrato da memória | `memory/wiki/_schema.md` existe? | `/orq:checkpoint` e `/orq:wiki-lint` procuram e não acham |
-| Agente colidindo | `.claude/agents/orq-*.md` existe no projeto? | colisão de nome com o plugin, resolução indefinida |
+| Revisor externo presente | só os **ativos** em `memory/wiki/_elenco.md`: resolver o binário (PATH → caminho conhecido) e rodar `--version` — **sem chamada de modelo** | painel vira um revisor a menos, calado |
+| Board legível | rodar o script **e conferir os três sinais** — bloco "Board: os três sinais" abaixo | statusline muda **ou** progresso errado sem `⚠` |
+| Contrato da memória | há `memory/` **e** falta `memory/wiki/_schema.md`? | instalação pré-0.6.0: `checkpoint` e `wiki-lint` degradam para o contrato inline — **informativo, não defeito** |
+| Agente colidindo | `ls .claude/agents/orq-*.md ~/.claude/agents/orq-*.md 2>/dev/null` — projeto **e** usuário | colisão de nome com o plugin, resolução indefinida |
 
 Com `--verificar`: mostre o diagnóstico dos dois blocos e **pare aqui** — não proponha instalação.
-Para cada problema, diga **o comando que corrige**, não só que está errado.
+Para cada problema, diga **o comando que corrige**, não só que está errado — com duas exceções:
+item **informativo** (como o `_schema.md` ausente numa instalação antiga) não pede correção; e
+nunca proponha comando que **crie `memory/`** num projeto sem Orquestra — aí não há defeito nenhum,
+e a única oferta possível é o `/orq:init` (o passo 5 proíbe criar a árvore por fora dele).
+
+### Plugin: versão E conteúdo (nunca conclua de fonte única)
+
+O cache (`~/.claude/plugins/cache/<marketplace>/<plugin>/<versão>/`) é **indexado por versão**:
+versão igual NÃO implica conteúdo igual — quem editou a fonte sem bumpar deixou o cache stale, e o
+`claude plugin list` continua dizendo que está tudo certo.
+
+1. `claude plugin list` — anote versão e escopo. (Este comando **não** mostra a origem.)
+2. `claude plugin marketplace list` — é ele que traz a `Source` do marketplace.
+3. Decida por este critério, sem exceção:
+   - versão do `list` ≠ versão do manifesto na fonte → **desatualizado**: corrige com
+     `claude plugin marketplace update <mkt>` + `claude plugin update <plugin>@<mkt>` + reiniciar
+     a sessão;
+   - `Source: Directory (<dir>)` → compare o conteúdo:
+     `diff -rq ~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/ <dir>/<subdir-do-plugin>/`.
+     Diff **não-vazio com versão igual** → **cache stale por edição sem bump**: corrige com bump
+     da versão na fonte + os dois updates + reiniciar. Com diff não-vazio, "atualizado ✓" é
+     conclusão **proibida**;
+   - `Source` remota (Git/GitHub) → não há fonte local para comparar: reporte
+     **"versão confere; conteúdo não verificável daqui — indeterminado"**, nunca "✓".
+
+### Board: os três sinais (saída não-vazia não prova nada)
+
+`sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` e então os três, na ordem:
+
+1. saída **vazia** com cards escritos no board → nenhum card reconhecido;
+2. **`⚠N`** no fim → N linhas parecem card e não casam o contrato;
+3. **denominador ≠ contagem manual** → abra `memory/wiki/KANBAN.md`, conte as linhas que o dono
+   escreveu como card (acima da seção `## …Arquivad…`) e compare com o total do script.
+
+Só reporte "board legível ✓" com os **três** limpos. O terceiro é o que pega o caso real: card
+com formatação exótica pode sumir da contagem sem gerar `⚠` — denominador certo é a única prova.
+Os três sinais são o contrato de `memory/wiki/_schema.md`; divergiu de lá, quem manda é o `_schema.md`.
+
+### Revisor externo: quem testar, e até onde
+
+Leia `memory/wiki/_elenco.md` primeiro: **só se testa revisor marcado `ativo`** — dispensado é
+dispensado, e revisor que nem consta não é achado. No diagnóstico geral, binário presente +
+`--version` respondendo é reportado como **"presente (não exercitado)"** — não afirme que ele
+responde a prompt sem ter testado. A **sonda viva** (prompt trivial `"responda OK"`, sempre com
+`< /dev/null`, timeout de ~60s) é **chamada paga a serviço de terceiro**: rode-a apenas quando o
+sintoma relatado for revisor mudo, ou quando o dono pedir.
 
 ## 2. Filtrar pelo que faz sentido AQUI
 

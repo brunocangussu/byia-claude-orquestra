@@ -104,6 +104,6 @@ não na sua memória.
 ## Nomes de agente
 
 Os cinco papéis do núcleo (`orq-planner`, `orq-implementer`, `orq-reviewer`, `orq-docs`, `orq-scout`)
-vêm **do plugin**. Agente local em `.claude/agents/` nunca deve usar o prefixo `orq-` — colisão de
-nome entre plugin e projeto tem resolução indefinida. Papel adicional usa nome próprio (`dados`,
-`infra`, `frontend`).
+vêm **do plugin**. Agente local — em `.claude/agents/` do projeto **ou** em `~/.claude/agents/`
+(escopo usuário) — nunca deve usar o prefixo `orq-` — colisão de nome entre plugin e projeto tem
+resolução indefinida. Papel adicional usa nome próprio (`dados`, `infra`, `frontend`).

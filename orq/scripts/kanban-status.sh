@@ -37,9 +37,18 @@ awk '
   }
 
   # PARECE card mas não casa o contrato (marcador inválido, ID sem crases,
-  # indentado, negrito em volta do marcador...). Conta como suspeita para a
-  # falha aparecer em vez de sumir em silêncio.
-  /^[[:space:]]*[-*] *\[/ { suspeitas++ }
+  # indentado, negrito/itálico/crase envolvendo o traço ou o marcador...).
+  # Conta como suspeita para a falha aparecer em vez de sumir em silêncio.
+  # [*_`]* opcional nos dois pontos: pega "**- [ ]", "- **[ ]" e "`- [ ]`" —
+  # os casos reais que produziam contagem errada SEM nenhum ⚠ (T-015).
+  # [-*+] cobre os três bullets do CommonMark: "+ [ ] `T-001`" sumia inteiro.
+  # O ESPAÇO OBRIGATÓRIO depois do bullet é o que separa card de prosa: sem
+  # ele, "**[Contrato](x)** — leia antes" vira suspeita e o board conforme
+  # acende ⚠ para sempre. Alarme crônico é alarme ignorado — a doença que
+  # este contador existe para curar.
+  # ~ no grupo: "~~- [ ]~~ `T-300`" (tachado GFM) sumia da contagem sem ⚠ —
+  # é como se cancela um card em vez de arquivá-lo.
+  /^[[:space:]]*[*_`~]*[-*+][[:space:]]+[*_`~]*\[/ { suspeitas++ }
 
   END {
     if (total == 0 && suspeitas == 0) exit 0

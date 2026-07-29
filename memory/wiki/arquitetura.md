@@ -69,11 +69,22 @@ um único hook (`T-001`, `T-002`). O que existe de verificação **determinísti
 | Verificação | Pega |
 |---|---|
 | `claude plugin validate --strict` | manifesto malformado |
-| `orq/scripts/lint-coerencia.py` | comando/agente/skill/arquivo citado que não existe · versão divergindo entre manifesto, README e `MEMORY.md` |
-| `orq/scripts/kanban-status.sh` | card fora do contrato do board (sinaliza `⚠N`) |
-| `/orq:stack --verificar` | plugin desatualizado, escopo errado, revisor mudo, board ilegível |
+| `orq/scripts/lint-coerencia.py` | comando/agente/skill/arquivo citado que não existe · versão divergindo entre os **quatro** lugares (manifesto, README, `MEMORY.md`, `marketplace.json`) · **edição sem bump com o cache já publicado** |
+| `orq/scripts/kanban-status.sh` | card fora do contrato do board (sinaliza `⚠N`) — cobre negrito, itálico, crase e tachado em volta do marcador, e os três bullets do CommonMark |
+| `/orq:stack --verificar` | plugin desatualizado **ou cache stale** (versão *e* conteúdo), escopo errado, revisor ausente, board ilegível (três sinais) |
 
 Nenhuma delas **impede** nada — todas só relatam. Bloquear de verdade continua sendo o `T-001`.
+
+**O cache é indexado por versão.** `~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/` — editar `orq/`
+sem bumpar **não muda o que roda**, e o `claude plugin list` continua dizendo que está tudo certo.
+Aconteceu no `5b75296` e invalidou retroativamente todo teste comportamental feito depois. Por isso
+o guarda no lint e o `diff -rq` como fecho do ciclo de release: **versão igual não prova conteúdo
+igual**. Comparar versão é fonte única, e fonte única foi o padrão de erro mais caro deste projeto.
+
+**Só o Codex tem sandbox.** `codex exec -s read-only` é garantia; o Kimi **não tem flag equivalente**
+e o prompt "não edite nada" é pedido, não ACL — ele rodou `git checkout -- .` numa revisão read-only
+e destruiu o working tree (2026-07-28). Revisor sem sandbox precisa de **worktree descartável**, não
+de instrução (`T-019`). É a mesma lição do `T-001`, cobrada no próprio repo.
 
 ## Roteamento automático (o dono não digita comando)
 

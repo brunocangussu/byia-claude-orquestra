@@ -51,8 +51,10 @@ claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruções
 ```
 
-...seguidos de **teste comportamental**: `/plugin marketplace update orquestra` + `/reload-plugins`,
-e então conversar em português natural para ver se a intenção é reconhecida sem comando digitado.
+...seguidos de **teste comportamental** — que só vale depois do release completo:
+`claude plugin marketplace update orquestra` + `claude plugin update orq@orquestra` + **reiniciar a
+sessão** + `diff -rq ~/.claude/plugins/cache/orquestra/orq/<versão>/ ./orq/` voltando **vazio**.
+Só então conversar em português natural para ver se a intenção é reconhecida sem comando digitado.
 
 ⚠️ **`validate` sozinho não prova correção.** Ele checa o manifesto e passa com instruções que mandam
 rodar comando inexistente — foi assim que `/orquestra:*` sobreviveu a três releases depois da
@@ -61,7 +63,10 @@ citados têm que existir. Ele **ignora `memory/` de propósito** — o log é ap
 extintos ao descrever bugs passados.
 
 - **Commit:** `feat(0.X.0): descrição em minúscula, sem acento no assunto` — travessão pro subtítulo.
-- **Versão:** `orq/.claude-plugin/plugin.json` **e** a seção Status do README andam juntos.
+- **Versão:** mexeu em `orq/` → o mesmo commit bumpa `orq/.claude-plugin/plugin.json`, a seção
+  Status do README, o `memory/MEMORY.md` **e** o `.claude-plugin/marketplace.json` (são quatro). O
+  cache é indexado por versão: **editar sem bump não muda o que roda** e nada acusa — o lint tem um
+  guarda pra isso.
 - **Nunca** `git push`, publicar ou bumpar versão sem o ok do dono.
 
 ## O produto aqui são instruções, não código

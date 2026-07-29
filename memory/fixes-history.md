@@ -423,3 +423,44 @@ sobrepõem em ~20% — os dois acham símbolo por nome. Serena é LSP + **ediç�
 grafo de **relações**. No Orquestra a sinergia é por papel: planner/reviewer ↔ grafo, implementer ↔
 LSP. Escolhendo um só: gargalo em *entender* → codebase-memory; em *editar* → Serena. Menos de ~50
 arquivos → nenhum dos dois.
+
+## [2026-07-29] feat+fix | 0.11.0 — o ciclo completo rodou e reprovou a 0.10.0
+
+**O que motivou:** validar os cards empilhados em VALIDATE. O painel de três revisores foi rodado
+sobre o commit da 0.10.0 (`40dbc59`) e **os três reprovaram**.
+
+**Por que a 0.10.0 falhou:** ela prometia "atritos de ambiente diagnosticáveis" e o diagnóstico
+errava no primeiro item. A checagem de "plugin desatualizado" comparava **versão**, mas o cache é
+indexado por versão — então versão igual não prova conteúdo igual. Estava dando all-clear com o cache
+divergente de verdade: o `5b75296` mudou o `lint-coerencia.py` sem bump e o cache ficou parado.
+
+**O ciclo, na ordem em que aconteceu** (primeira vez completo):
+Fable planejou 16 passos → Codex e Kimi revisaram **o plano** (os dois estouraram timeout; os
+parciais renderam 3 achados reais) → dono aprovou 6 decisões → Sonnet implementou → painel revisou
+o diff → 7 achados voltaram como correção.
+
+**Achados do painel que viraram correção:**
+- falso positivo da regex do board em **prosa real do repo** (linha copiada de `arquitetura.md:47`
+  acendia `⚠` num board conforme) — alarme crônico é alarme ignorado, a doença que o contador cura;
+- `+ [ ]` e `~~- [ ]~~` (bullet CommonMark e tachado GFM) sumiam da contagem **sem `⚠`**;
+- `.orphaned_at` — a CLI escreve no cache (8 no `orq`), e sem ignorá-lo o guarda acusa edição-sem-bump
+  falsa ao fazer checkout de tag antiga;
+- `init.md` e `checkpoint.md` prometiam "statusline muda **sem erro nenhum**" — falso depois da
+  correção do script, **no mesmo commit**;
+- `stack.md` atribuía "restart required" ao `install --help`, que não menciona restart (só o `update`).
+
+**Por que a versão vive em quatro lugares e não três:** o `.claude-plugin/marketplace.json` declara
+a versão do plugin no catálogo e estava em `0.4.0` — sete releases atrás, sem ninguém notar, porque
+o lint só conferia README e MEMORY.md.
+
+**Incidente:** o Kimi rodou `git checkout -- .` numa tarefa **read-only** e destruiu o working tree.
+Restaurou sozinho e avisou, mas perdeu os marcadores dos cards (edições por script não ficam no
+transcript de onde ele reconstruiu). Efeito colateral: o revisor interno, em paralelo, relatou
+"metade das correções não está em disco" — parecia alucinação, era descrição fiel. O Manager atribuiu
+a worktree e errou. Virou `T-019` + gotcha.
+
+**Consequência de método:** o `_elenco.md` já exigia worktree descartável para revisor sem sandbox.
+A instrução existia, estava correta, e não impediu nada — o argumento do `T-001` (hooks) provado
+contra o próprio repo.
+
+**Fechados:** `T-003`, `T-008`, `T-011`, `T-012`. **Nasceram:** `T-019`, `T-020`, `T-021`.

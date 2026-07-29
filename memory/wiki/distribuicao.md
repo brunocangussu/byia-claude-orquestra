@@ -25,12 +25,18 @@ python3 orq/scripts/lint-coerencia.py .        # coerência
 claude plugin marketplace update orquestra     # relê o marketplace local
 claude plugin update orq@orquestra             # copia para o cache — exige reiniciar
 claude plugin list                             # confirma versão e escopo
+V=$(python3 -c "import json;print(json.load(open('orq/.claude-plugin/plugin.json'))['version'])")
+diff -rq ~/.claude/plugins/cache/orquestra/orq/$V/ ./orq/   # TEM que voltar vazio
 ```
 
 ⚠️ **O marketplace aponta pro diretório deste repo, mas isso NÃO significa que editar já vale.**
 O plugin em uso é uma **cópia em cache** (`~/.claude/plugins/cache/orquestra/orq/<versão>/`). Sem os
 dois comandos de update, a máquina continua rodando a versão antiga — foi assim que ficou presa na
 0.4.0 por sete releases, sem nenhum sinal.
+
+**Versão igual não prova conteúdo igual.** O cache é indexado por versão: editar sem bump não muda
+o que roda e o `list` segue dizendo que está tudo certo (aconteceu no `5b75296`). O `diff` é o fecho
+do ciclo — não-vazio depois do update = o release não aconteceu; bumpa e repete.
 
 **Consequência prática:** o teste comportamental só é válido **depois** do update e do restart. Antes
 disso você está testando a versão anterior e concluindo coisas erradas sobre a atual.

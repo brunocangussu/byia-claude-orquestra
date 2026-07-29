@@ -163,9 +163,11 @@ front-end e um wrapper de terceiro). Instalar qualquer um deles no papel de **re
 o código que recebe, seria risco de cadeia de suprimento real. O instalador oficial baixa de
 `code.kimi.com` **com verificação de checksum**.
 
-**Detectar:** `kimi` no PATH **ou** `~/.kimi-code/bin/kimi`. Checar só o PATH **dá falso negativo**:
-o instalador escreve no `.zshrc`, o que não alcança sessão já aberta. Confirme executando:
-`KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi"); "$KIMI" -p "responda OK" --output-format text < /dev/null`
+**Detectar:** `kimi` no PATH **ou** `~/.kimi-code/bin/kimi` —
+`KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")` — e `"$KIMI" --version` respondendo.
+Checar só o PATH **dá falso negativo**: o instalador escreve no `.zshrc`, o que não alcança sessão já
+aberta. A sonda viva (`"$KIMI" -p "responda OK" --output-format text < /dev/null`) é **chamada
+paga**: use-a só quando o sintoma for revisor mudo.
 
 **Chamada:** `-p` é o modo não-interativo; `--output-format` aceita `text` e `stream-json`.
 
@@ -189,9 +191,15 @@ Claude — funciona, você perde a diversidade.
 outro fluxo. Instalar um não instala o outro — não confunda os dois na hora de detectar.
 
 **Ativar depois de instalar:** marcar `ativo` na seção *Revisores externos* de
-`memory/wiki/_elenco.md`. **Detectar:** `codex` no PATH **e** responder a um teste trivial
-(`codex exec -s read-only "responda OK" < /dev/null`) — sem o `< /dev/null` ele trava esperando stdin
-e você concluiria "quebrado" por engano. **Custo:** conta OpenAI, cobrança à parte.
+`memory/wiki/_elenco.md`.
+
+**Detectar:** `codex` no PATH, com fallback para o bin global do npm —
+`CODEX=$(command -v codex || echo "$(npm prefix -g 2>/dev/null)/bin/codex")` — e `"$CODEX" --version`
+respondendo. A sonda viva (`"$CODEX" exec -s read-only "responda OK" < /dev/null`) é **chamada
+paga**: use-a só quando o sintoma for revisor mudo — e nunca sem o `< /dev/null`, senão ela trava
+esperando stdin e você concluiria "quebrado" por engano.
+
+**Custo:** conta OpenAI, cobrança à parte.
 
 ---
 
@@ -207,5 +215,8 @@ arquivos é "mínimo + Supermemory", **não** arrasta a camada 3.
 | **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | `codex` no painel |
 | **Multi-projeto** | Supermemory |
 
-Depois de instalar qualquer plugin ou MCP: **`/reload-plugins`** e confirmar que a ferramenta
-**responde** antes de dizer ao dono que está pronta. Instalado ≠ funcionando.
+Depois de instalar: plugin instalado pela **CLI** exige **reiniciar a sessão** — o `claude plugin
+update --help` diz "(restart required to apply)"; o `install --help` não menciona restart, então
+aqui a exigência é conservadora, não citação. Instalação por slash command dentro do cliente, peça
+o `/reload-plugins` ao dono. Em qualquer caso, confirme que a ferramenta **responde** antes de dizer que está pronta.
+Instalado ≠ funcionando.

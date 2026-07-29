@@ -14,9 +14,11 @@
 - ✅ Protocolo de várias janelas
 - ✅ Roteamento automático (cobertura de gatilho 0% → 100%)
 - ✅ Problemas conhecidos documentados e diagnosticáveis
+- ✅ **Ciclo completo rodado pela primeira vez** (0.11.0): Fable → gate → Sonnet → painel de 3
 - ⬜ Hooks de segurança (`T-001`) — o único enforcement que bloqueia de verdade
-- ⬜ Piloto dos loops A e B (`T-012`) — nunca invocados de verdade
-- ⬜ **9 cards em VALIDATE** aguardando o dono usar o produto
+- ⬜ Worktree obrigatório para revisor sem sandbox (`T-019`) — o Kimi destruiu o working tree
+- ⬜ Perfis de elenco e motor alternativo (`T-020`, `T-021`) — pedido do dono em 29/jul
+- ⬜ **8 cards em VALIDATE** — só testáveis depois do release da 0.11.0 + restart
 
 ## Decisões que não devem ser re-litigadas
 
@@ -44,21 +46,35 @@ instalar pacote desnecessário). Nos dois casos a conclusão errada ia gerar aç
 **E o irmão dele:** documentar o contrato sem endurecer o parser. A 0.6.0 escreveu a spec do board e
 deixou o consumidor aceitando lixo; o painel reprovou.
 
+## Decisões do dono em 2026-07-29 (não re-litigar)
+
+- **Elenco padrão:** planner `fable`, implementer `sonnet`, reviewer `opus`. Ele quer poder trocar
+  por perfil quando o crédito Claude estiver curto — virou `T-020`, não improvisar antes do plano.
+- **Fechou** `T-003`, `T-008`, `T-011` (estruturais, já exercitados) e `T-012` (o ciclo rodou).
+- **Manteve em VALIDATE** os comportamentais — eles só valem depois do release + restart.
+- **Release da 0.11.0 autorizado**, incluindo o bump nos quatro lugares.
+
 ## ⏭️ RETOMAR AQUI
 
-O trabalho de **código** está em ponto estável: tudo publicado, plugin global em 0.10.0, as três
-verificações passando.
+**Estado:** 0.11.0 pronta no working tree — 16 arquivos, +211/−44, **não commitada**. As três
+verificações passam. Board em 20% (4/20), 8 em VALIDATE.
 
-O gargalo agora **não é técnico, é de validação**: 9 cards esperando o dono usar o produto. A pilha
-crescer tanto é sinal de que a validação não está acontecendo — e o desenho diz que card fecha quando
-ele confirma, não quando o commit passa.
+**O release estava sendo feito quando esta thread foi gravada.** Se a sessão morreu no meio, confira
+em que ponto parou:
 
-**Próxima ação concreta, em ordem:**
-1. Pedir ao dono que valide 1 ou 2 cards de verdade (o `T-015` é o mais rápido: dizer *"parece que
-   não conectou"* num projeto e ver se roda o diagnóstico).
-2. `T-012` — exercitar `/orq:plan-next` e `/orq:implement-next` numa tarefa real, sem atalho. É o
-   último contrato entre partes que ninguém testou.
-3. `T-001` — hooks de segurança, o único enforcement que de fato bloqueia.
+```bash
+git log --oneline -1                                    # o commit da 0.11.0 saiu?
+claude plugin list | grep -A2 orq                       # instalou 0.11.0?
+diff -rq ~/.claude/plugins/cache/orquestra/orq/0.11.0/ ./orq/   # TEM que voltar vazio
+```
 
-**Não começar código novo antes do item 1.** Empilhar mais entrega sobre 9 validações pendentes é
-exatamente o que o board existe para impedir.
+**Depois do release e do restart, em ordem:**
+1. **Testar os 5 cards comportamentais** em VALIDATE (`T-015`, `T-016`, `T-014`, `T-009`, `T-007`) —
+   cada um tem o "Como validar" específico na nota. São frases curtas, minutos.
+2. **`T-019`** — worktree obrigatório para revisor sem sandbox. **Fazer antes de rodar o painel de
+   novo**: rodar Kimi no repo vivo sabendo que ele destrói é repetir o incidente de propósito.
+3. **`T-020` / `T-021`** — perfis de elenco e motor alternativo. Entram pelo ciclo, com gate.
+4. **`T-001`** — hooks. O `T-019` acabou de provar o argumento.
+
+⚠️ **Não rode o painel de revisores no repo vivo antes do `T-019`.** Só o Codex tem sandbox
+(`-s read-only`); o Kimi não tem nenhum.

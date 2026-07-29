@@ -112,6 +112,65 @@ def main() -> int:
                 (arq.relative_to(raiz), 0, f"{rotulo} não cita a versão atual {versao} (achei {achadas})")
             )
 
+    # O marketplace.json declara a versão do plugin no catálogo e ficou em
+    # 0.4.0 por sete releases sem ninguém notar — é o quarto lugar onde a
+    # versão vive, e o único que o lint não olhava.
+    mkt = raiz / ".claude-plugin" / "marketplace.json"
+    if mkt.exists():
+        for entrada in json.loads(mkt.read_text(encoding="utf-8")).get("plugins", []):
+            if entrada.get("name") == "orq" and entrada.get("version") != versao:
+                problemas.append(
+                    (
+                        mkt.relative_to(raiz),
+                        0,
+                        f"marketplace.json declara {entrada.get('version')}, "
+                        f"manifesto diz {versao}",
+                    )
+                )
+
+    # ── Cache stale por edição sem bump ─────────────────────────────────────
+    # O cache do plugin é indexado por versão (~/.claude/plugins/cache/
+    # orquestra/orq/<versão>/): editar orq/ sem bumpar NÃO muda o que roda e
+    # nenhum comando acusa — `claude plugin list` segue dizendo que está tudo
+    # certo (aconteceu no 5b75296). Se a versão do manifesto JÁ existe no
+    # cache desta máquina com conteúdo diferente do repo, o dono está editando
+    # uma versão já publicada: o release seguinte não acontece sem bump.
+    # Onde o cache não existe (CI, máquina de terceiro), silencia de propósito.
+    # Comparação por BYTES: a cópia do cache tem mtime diferente e um
+    # filecmp raso acusaria divergência falsa em release limpo.
+    cache = Path.home() / ".claude" / "plugins" / "cache" / "orquestra" / "orq" / versao
+    if cache.is_dir():
+        # .orphaned_at é escrito pela CLI no cache quando uma versão deixa de
+        # ser a instalada — existe em 8 diretórios de cache do orq nesta
+        # máquina. Sem ignorá-lo, fazer checkout de uma tag antiga para
+        # investigar um bug acusa "edição sem bump" que nunca houve.
+        IGNORAR = {".DS_Store", ".orphaned_at"}
+
+        def _arquivos(base: Path):
+            return {
+                p.relative_to(base)
+                for p in base.rglob("*")
+                if p.is_file() and p.name not in IGNORAR
+            }
+
+        no_cache, no_repo = _arquivos(cache), _arquivos(plugin)
+        divergentes = sorted(str(p) for p in no_cache ^ no_repo) or sorted(
+            str(p)
+            for p in no_cache & no_repo
+            if (cache / p).read_bytes() != (plugin / p).read_bytes()
+        )
+        if divergentes:
+            problemas.append(
+                (
+                    Path("orq"),
+                    0,
+                    f"versão {versao} já existe no cache com conteúdo diferente "
+                    f"(ex.: {divergentes[0]}) — o que roda não é o que você "
+                    f"editou. Antes do release: bumpe a versão; se já bumpou e "
+                    f"instalou para testar, repita o `plugin update`",
+                )
+            )
+
     if problemas:
         print(f"✗ {len(problemas)} referência(s) quebrada(s):\n")
         for rel, num, msg in problemas:

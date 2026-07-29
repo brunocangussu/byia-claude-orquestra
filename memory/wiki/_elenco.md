@@ -9,8 +9,8 @@
 | Papel | Modelo | Por quê |
 |---|---|---|
 | `manager` | *sessão principal* | definido pelo `/model` — **não é spawn, não se configura aqui** |
-| `planner` | `opus` | achar causa raiz e desenhar solução é o trabalho mais difícil |
-| `implementer` | `inherit` | acompanha o modelo da sessão |
+| `planner` | `fable` | achar causa raiz e desenhar solução é o trabalho mais difícil — **escolha do dono em 2026-07-28** |
+| `implementer` | `sonnet` | executar plano já aprovado é trabalho dirigido — **escolha do dono em 2026-07-28** |
 | `reviewer` | `opus` | revisão adversarial exige raciocínio forte |
 | `docs` | `sonnet` | escrita objetiva sobre código já pronto |
 | `scout` | `sonnet` | leitura ampla e barata |

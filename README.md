@@ -49,7 +49,7 @@ Os comandos `/orq:*` existem como mecanismo. Use se quiser, mas não precisa.
 
 # 2. instalar (escopo de usuário = vale em todos os projetos)
 /plugin install orq@orquestra
-/reload-plugins
+/reload-plugins    # se um comando não aparecer, reinicie a sessão
 
 # 3. montar no projeto (uma vez por projeto)
 /orq:init
@@ -310,7 +310,8 @@ cd byia-claude-orquestra
 
 Ao editar, as duas verificações — `claude plugin validate ./orq --strict` (manifesto) e
 `python3 orq/scripts/lint-coerencia.py .` (coerência: todo comando/agente/skill citado existe?) —
-depois `/plugin marketplace update orquestra` + `/reload-plugins`.
+depois `/plugin marketplace update orquestra` + `/plugin update orq@orquestra` + reiniciar a sessão
+(`/reload-plugins` sozinho não garante cache atualizado — ver "Problemas conhecidos" abaixo).
 
 **Estrutura:**
 ```
@@ -331,7 +332,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.10.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.11.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**.
 
@@ -352,12 +353,19 @@ diretório local: o que roda é uma cópia em `~/.claude/plugins/cache/`. Feche 
 claude plugin marketplace update <marketplace>
 claude plugin update <plugin>@<marketplace>
 claude plugin list          # confirme versão E escopo
+diff -rq ~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/ <dir-fonte-do-plugin>/   # TEM que voltar vazio
 ```
 
-Depois `/reload-plugins` (basta para comandos, agentes e skills). **Reiniciar a sessão** só é
-necessário se o plugin declarar hooks ou MCP server — ou se o **PATH** mudou, que `/reload-plugins`
-não recarrega. Um plugin em **escopo `project`** não vale nos outros projetos: reinstale com escopo
-de usuário.
+`claude plugin list` compara **versão**, e o cache é indexado por versão: **versão igual não prova
+conteúdo igual** — quem edita sem bumpar deixa o cache stale com o `list` dizendo que está tudo
+certo. Com marketplace local (`Source: Directory`, visível em `claude plugin marketplace list`), o
+`diff` fecha esse buraco: não-vazio = bump e repita o ciclo.
+
+Depois **reinicie a sessão** — o próprio `claude plugin update --help` avisa: "(restart required to
+apply)". `/reload-plugins` recarrega plugin de desenvolvimento (`--plugin-dir`), mas **não está
+comprovado** que aplique um update de cache numa sessão aberta; na dúvida, teste comportamental só
+vale após restart. Um plugin em **escopo `project`** não vale nos outros projetos: reinstale com
+escopo de usuário.
 
 ### Um revisor sumiu do painel sem avisar
 
@@ -386,7 +394,9 @@ Card fora do formato do board. O parser lê **por posição** e é estrito de pr
 - [ ] `T-001` Título curto — nota livre
 ```
 
-Marcador ou ID dentro de negrito/crase não casa. Rode
+O ID **precisa** das crases — são elas que distinguem card de item de checklist. O que quebra é
+**envolver**: negrito/itálico em volta do marcador (`**- [ ]**`) ou negrito/crase por fora do ID
+já com crases. Rode
 `sh <plugin>/scripts/kanban-status.sh .` e confira **três sinais**: saída vazia · `⚠N` no fim ·
 denominador diferente do número de cards que você escreveu. **Saída não-vazia não prova que está
 certo.** O contrato completo fica em `memory/wiki/_schema.md`.

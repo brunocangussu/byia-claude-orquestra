@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.10.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-28.
+**Versão:** 0.11.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-28.
 
 ## Onde paramos
 
@@ -16,18 +16,27 @@
   Kimi acharam bugs **diferentes** no mesmo arquivo.
 - O ciclo de release está fechado: `validate` → `lint` → `marketplace update` → `plugin update`.
 
-**O buraco maior, e ele é de método, não de código:** a interface natural tinha **0% de cobertura**
-sobre a fala real do dono. Por isso a skill `orq` nunca foi invocada em toda a sessão de 26-28/jul, os
-Loops A e B nunca rodaram, e **tudo foi implementado direto, sem plano e sem gate** — inclusive
-features inteiras. Corrigido na 0.9.0 (cobertura 0→100% + seção "Roteamento automático"), **mas a
-correção ainda não foi exercitada numa sessão real**.
+- **O ciclo inteiro rodou pela primeira vez** (0.11.0, 29/jul): Fable planejou 16 passos → dono
+  aprovou no gate → Sonnet implementou → Claude+Codex+Kimi revisaram → 7 achados voltaram como
+  correção. **Achou defeito que `validate` e `lint` não pegam.** Fechou o `T-012`.
 
-**O que continua sem teste:** `/orq:plan-next` e `/orq:implement-next` nunca foram invocados de
-verdade (`T-012`). As 9 regras invioláveis seguem sendo texto de prompt — nenhum hook (`T-001`,
+**O que o ciclo revelou, e é o achado mais consequente até aqui:** o cache do plugin é indexado por
+**versão**. Editar sem bumpar não muda o que roda, e `claude plugin list` segue dizendo que está tudo
+certo. Aconteceu no `5b75296` e **invalidou retroativamente** todo teste comportamental feito depois.
+Agora há guarda no lint. A versão vive em **quatro** lugares — o `marketplace.json` estava em `0.4.0`,
+sete releases atrás.
+
+**A lição de método:** instrução não é enforcement. O `_elenco.md` **já dizia** que o Kimi não tem
+sandbox e exigia worktree descartável; o Kimi rodou `git checkout -- .` numa revisão read-only e
+destruiu o working tree (`T-019`). É o argumento do `T-001` provado contra o próprio repo.
+
+**O que continua sem teste:** os comandos `/orq:plan-next` e `/orq:implement-next` literais (o fluxo
+foi provado, os comandos não). As 9 regras invioláveis seguem sendo texto — nenhum hook (`T-001`,
 `T-002`).
 
-⚠️ **9 cards em VALIDATE esperando o dono usar o produto.** Card fecha quando ele confirma, não
-quando o commit passa — a pilha crescer tanto é sinal de que a validação não está acontecendo.
+⚠️ **8 cards em VALIDATE.** Card fecha quando o dono confirma, não quando o commit passa. Os
+comportamentais só são testáveis **depois do release e do restart** — antes disso testam a versão
+anterior, pelo motivo acima.
 
 Ver `wiki/KANBAN.md` para o estado exato de cada card.
 

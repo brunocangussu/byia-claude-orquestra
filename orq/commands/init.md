@@ -157,8 +157,10 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    ação quando houver mais de uma frente.
 
    ⚠️ **O formato acima não é estilo, é contrato.** `orq/scripts/kanban-status.sh` casa
-   `/^- \[.\]/` e extrai o título entre a crase do ID e o travessão. Marcador dentro de negrito ou de
-   crase **não casa**, e a statusline fica muda **sem erro nenhum** — bug silencioso, difícil de achar.
+   `` /^- \[[ >!~?x]\] `[^`]+`/ `` — marcador estrito **e** ID entre crases — e extrai o título entre
+   a crase do ID e o travessão. Negrito ou crase **envolvendo** o marcador ou o ID não casa: a linha
+   sai da contagem e aparece como `⚠N` no fim. O `⚠` é o aviso — **o número que engana é o
+   denominador**, que encolhe sem alarde. Por isso o smoke test compara a contagem manual.
 
 2. **Agentes** — os cinco do núcleo vêm do plugin, **não recrie**. Em `.claude/agents/`, só os papéis
    adicionais aprovados, com nome próprio (nunca `orq-*`) e `model`/`tools` decididos. Não duplique o
@@ -222,8 +224,10 @@ conseguiu corrigir, **diga isso** em vez de declarar sucesso.
   ferramenta nova disponível. Continua pedindo ok, continua sem sobrescrever conteúdo que o dono
   escreveu, e continua respeitando a seção "Dispensadas".
   **Verifique também o legado:** instalação anterior à 0.6.0 pode ter deixado `.claude/agents/orq-*.md`
-  no projeto, colidindo com os agentes do plugin. Achou? **Relate e proponha renomear ou remover** —
-  não decida sozinho, mas não deixe passar calado: a colisão é silenciosa e de resolução indefinida.
+  no projeto, colidindo com os agentes do plugin. Cheque também `~/.claude/agents/orq-*.md` —
+  colisão em escopo usuário atinge **todos** os projetos e não aparece no repo. Achou? **Relate e
+  proponha renomear ou remover** — não decida sozinho, mas não deixe passar calado: a colisão é
+  silenciosa e de resolução indefinida.
 - **Nunca** `git commit`/`push`. Nunca tocar em código de produção.
 - **Nunca** inventar estado: se não sabe se algo funciona, põe em VALIDATE, não em DONE.
 - Projeto pequeno merece estrutura pequena — `MEMORY.md` + `fixes-history.md` + board já bastam.

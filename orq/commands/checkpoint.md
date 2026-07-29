@@ -13,7 +13,8 @@ instalações anteriores à 0.6.0 não têm, e a ausência dele não é erro) ·
 `memory/fixes-history.md` (log) · `memory/wiki/threads/` (trabalho em curso) · `docs/plano_*.md`.
 
 **Vai mexer no board?** Siga o formato do `_schema.md`. Sem ele, o contrato é este — o parser lê por
-posição, então marcador ou ID dentro de negrito/crase **quebra silenciosamente**:
+posição: o ID **vem entre crases**, e negrito ou crase **envolvendo** o marcador ou o ID tira a
+linha da contagem (ela reaparece como `⚠N`, mas o denominador encolhe sem alarde):
 
     - [ ] `T-001` Título curto — nota livre depois do travessão
 **Se o projeto NÃO tem wiki**, crie o mínimo: `memory/MEMORY.md` (índice) + `memory/fixes-history.md`
