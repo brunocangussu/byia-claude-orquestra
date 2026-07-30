@@ -56,25 +56,34 @@ deixou o consumidor aceitando lixo; o painel reprovou.
 
 ## ⏭️ RETOMAR AQUI
 
-**Estado:** 0.11.0 pronta no working tree — 16 arquivos, +211/−44, **não commitada**. As três
-verificações passam. Board em 20% (4/20), 8 em VALIDATE.
+**Estado: 0.12.0 publicada, commitada (`7012a0f`) e com push feito.** Plugin instalado em escopo
+`user` — vale em todos os projetos do dono, sem repetir nada em cada repo. `diff -rq` do cache contra
+`./orq/` volta **vazio**. Working tree limpo. Board em **18% (4/22)**, 9 em VALIDATE.
 
-**O release estava sendo feito quando esta thread foi gravada.** Se a sessão morreu no meio, confira
-em que ponto parou:
+Dois releases saíram no mesmo dia: **0.11.0** (diagnóstico de ambiente + parser do board + roteamento
++ guarda de bump) e **0.12.0** (relatório do checkpoint). O ciclo completo rodou nos dois — Fable
+planejou, dono aprovou no gate, Sonnet implementou, review reprovou e as correções entraram.
 
-```bash
-git log --oneline -1                                    # o commit da 0.11.0 saiu?
-claude plugin list | grep -A2 orq                       # instalou 0.11.0?
-diff -rq ~/.claude/plugins/cache/orquestra/orq/0.11.0/ ./orq/   # TEM que voltar vazio
-```
+**A primeira coisa ao voltar são os dois testes que faltam** — só o dono pode rodá-los, porque o
+Manager sabe o que a instrução manda e acertaria de memória:
 
-**Depois do release e do restart, em ordem:**
-1. **Testar os 5 cards comportamentais** em VALIDATE (`T-015`, `T-016`, `T-014`, `T-009`, `T-007`) —
-   cada um tem o "Como validar" específico na nota. São frases curtas, minutos.
-2. **`T-019`** — worktree obrigatório para revisor sem sandbox. **Fazer antes de rodar o painel de
-   novo**: rodar Kimi no repo vivo sabendo que ele destrói é repetir o incidente de propósito.
-3. **`T-020` / `T-021`** — perfis de elenco e motor alternativo. Entram pelo ciclo, com gate.
-4. **`T-001`** — hooks. O `T-019` acabou de provar o argumento.
+| Frase | Esperado |
+|---|---|
+| *"o painel de revisão não está funcionando"* | **cria card e planeja** — queixa sobre o produto |
+| *"o Kimi sumiu do PATH"* | **diagnóstico, sem card** — queixa sobre ferramental |
 
-⚠️ **Não rode o painel de revisores no repo vivo antes do `T-019`.** Só o Codex tem sandbox
-(`-s read-only`); o Kimi não tem nenhum.
+O segundo é o **controle**: se os dois virarem card, ou os dois virarem diagnóstico, o desempate do
+`T-016` ficou frouxo e o card volta.
+
+**Depois, em ordem:**
+1. **Validar os 9 cards em VALIDATE** — cada um tem "Como validar" próprio na nota. O `T-022` é o
+   mais rápido: trabalhar um bloco, dizer *"salva aí"*, e conferir que o relatório cabe em 3–6 linhas
+   com a evidência do parser na linha de verificação.
+2. **`T-019`** — worktree obrigatório para revisor sem sandbox.
+3. **`T-020` / `T-021`** — perfis de elenco e motor alternativo (pedidos do dono em 29/jul). O
+   `T-021` tem teto técnico já escrito no card: subagente do Claude Code não roda modelo de terceiro.
+4. **`T-001`** — hooks. O `T-019` provou o argumento contra o próprio repo.
+
+⚠️ **Não rode o painel de revisores externos no repo vivo antes do `T-019`.** Só o Codex tem sandbox
+(`-s read-only`); o Kimi não tem nenhum e destruiu o working tree em 28/jul. O revisor interno é
+seguro e foi o que auditou a 0.12.0 sozinho.
