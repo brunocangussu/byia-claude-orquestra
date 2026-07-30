@@ -56,13 +56,20 @@ deixou o consumidor aceitando lixo; o painel reprovou.
 
 ## ⏭️ RETOMAR AQUI
 
-**Estado: 0.12.0 publicada, commitada (`7012a0f`) e com push feito.** Plugin instalado em escopo
+**Estado: 0.13.0 publicada, commitada (`e0aed12`) e com push feito.** Plugin instalado em escopo
 `user` — vale em todos os projetos do dono, sem repetir nada em cada repo. `diff -rq` do cache contra
-`./orq/` volta **vazio**. Working tree limpo. Board em **18% (4/22)**, 9 em VALIDATE.
+`./orq/` volta **vazio**. Board em **18% (4/22)**, 9 em VALIDATE.
 
-Dois releases saíram no mesmo dia: **0.11.0** (diagnóstico de ambiente + parser do board + roteamento
-+ guarda de bump) e **0.12.0** (relatório do checkpoint). O ciclo completo rodou nos dois — Fable
-planejou, dono aprovou no gate, Sonnet implementou, review reprovou e as correções entraram.
+**Três releases no mesmo dia:** 0.11.0 (diagnóstico de ambiente + parser do board + roteamento +
+guarda de bump) · 0.12.0 (relatório do checkpoint: audiência e gate) · 0.13.0 (formato do relatório:
+espaçamento). O ciclo completo rodou nos três, e **o review reprovou os três** — foi ele que pegou o
+falso positivo do parser em prosa real, o vazamento de numeração interna para a tela, e a supressão
+da autorização de `/clear` em projeto sem board.
+
+⚠️ **Decisão de aparência sem ver renderizado é chute — custou um release.** O dono pediu relatório
+"curto, 3–6 linhas"; entregue, ele reprovou a leitura (*"embolado"*). A compressão era a causa. Na
+0.13.0 escolheu comparando **mockups com dados reais**. Da próxima vez que a decisão for visual,
+mostre antes de construir.
 
 **A primeira coisa ao voltar são os dois testes que faltam** — só o dono pode rodá-los, porque o
 Manager sabe o que a instrução manda e acertaria de memória:
