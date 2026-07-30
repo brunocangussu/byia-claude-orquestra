@@ -499,3 +499,40 @@ largura provou o valor na estreia — pegou uma linha de 121 caracteres no prime
 o comando nunca mandava tocar nele, então a linha de board do relatório não teria fonte. E o "antes →
 depois" foi abandonado: o número capturado no início do checkpoint já contém o que a sessão moveu, os
 dois lados sairiam iguais. O delta verdadeiro é a **lista de movimentos**; o total é só âncora.
+
+## [2026-07-29] fix | 0.13.0 — o relatório curto era ilegível; espaçamento virou requisito (T-022)
+
+**O que motivou:** o dono usou o formato da 0.12.0 e reprovou — *"achei os textos bem embolados…
+péssima a leitura do resumo"*.
+
+**A causa era a restrição, não a execução.** Ele havia pedido "3–6 linhas"; o desenho respondeu
+comprimindo — "um bloco = uma linha, até 120 caracteres" — e 120 caracteres numa linha só é prosa
+corrida. Otimizou-se para **poucas linhas** quando o requisito real era **leitura rápida**. As duas
+coisas são diferentes e a primeira destrói a segunda.
+
+**Como foi decidido:** três mockups com os dados reais da própria sessão, comparados lado a lado. Ele
+escolheu o mais espaçado — seções com título — revertendo explicitamente a decisão anterior. A primeira
+decisão foi tomada no escuro; a segunda com o resultado à vista. **Decidir aparência sem ver a coisa
+renderizada é chute**, e o custo aqui foi um release.
+
+**O que substitui o teto de linhas:** teto de **densidade**. Bullet de uma linha, nunca parágrafo.
+Precisou de parágrafo? O item não pertence ao relatório — vira card ou já mora na thread.
+
+**O que o review pegou (revisor interno REPROVOU, 4 bloqueadores, 2 que o Manager já tinha achado):**
+- A regra guarda-chuva "seção sem conteúdo não aparece" **suprimiria a seção `✅ Verificação`** num
+  projeto sem board nem thread — e com ela ia embora a linha "Seguro dar `/clear`", que é a promessa
+  central do comando. O dono rodaria o checkpoint num projeto pequeno e não receberia autorização
+  nenhuma. Agora `✅ Verificação` é **sempre presente**, com variante explícita para "nada a verificar".
+- O placeholder `<e fechar a janela, quando o passo 5 permitir>` estava **dentro do template**, então
+  vazaria numeração interna do comando para a tela do dono.
+- Duas referências a "**linha** ⏸️" e "**linha** de board" sobreviveram à troca de linhas para seções —
+  contradição que o lint não pega, porque ele confere nomes de comando/agente/skill/arquivo, não
+  vocabulário de estrutura interna.
+- A variante de falha havia perdido o "**o que corrigir**" e a frase substituta: o dono ficaria com
+  checkpoint reprovado, sem ação seguinte e sem saber se podia limpar.
+- O card `T-022` contradizia a si mesmo — mantinha "continua curto (3–6 linhas)" ao lado do "reprovado".
+  Regra da wiki: **corrigir a afirmação vencida**, não empilhar a nova em cima.
+
+**Padrão que se repetiu de novo:** trocar uma estrutura e não varrer as referências a ela. Foi o mesmo
+erro da 0.10.0 (doc descrevendo comportamento que o script não tinha mais) e da 0.12.0 (init e checkpoint
+prometendo silêncio depois de o parser passar a avisar). Três releases, três vezes.

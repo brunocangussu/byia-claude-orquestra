@@ -33,7 +33,7 @@ disco pode ter mudado desde que você o leu.
 - **Releia `KANBAN.md`, o log e as páginas que você vai tocar — agora**, mesmo que já estejam no seu
   contexto. A cópia que você tem pode estar velha.
 - **Ao reler o board, rode** `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` **e guarde a
-  saída**: é a âncora da linha de board do relatório final (passo 6). **Não** a chame de "antes" —
+  saída**: é a âncora da seção `📋 Board` do relatório final (passo 6). **Não** a chame de "antes" —
   ela já contém o que esta sessão moveu antes do checkpoint.
 - **Altere apenas as linhas que são suas.** Nunca reescreva o `KANBAN.md` inteiro a partir da versão
   que você leu no começo da sessão: é isso que apaga o trabalho das outras janelas.
@@ -76,7 +76,7 @@ gotchas). Se falhar ou não existir, siga sem erro e avise que pulou.
 
 **Com thread ativa:** ela termina em **⏭️ RETOMAR AQUI**?
 
-**Vai afirmar que dá pra FECHAR a janela?** Então tudo que você põe na linha ⏸️ tem que sobreviver
+**Vai afirmar que dá pra FECHAR a janela?** Então tudo que você põe na seção ⏸️ tem que sobreviver
 sem ela — em card **`[!]`** com a pergunta escrita (decisão) ou **`[?]`** com o que testar (validação).
 São os dois estados que o `/orq:quadro` mostra como espera dele. Card em `[>]` ou `[~]` cai em
 "🟡 Fazendo", que a próxima janela lê como *trabalho em curso*, não como *aguardando o dono* — a
@@ -87,38 +87,80 @@ pendência desaparece do lugar onde ele olha. Nesse caso, mova o card ou afirme 
 falhando.** Falha que não é sua (outra janela)? Reporte-a no lugar da afirmação. O que o projeto não
 tem (board, thread) não se verifica — e não bloqueia.
 
-## 6. Confirmar (3–6 linhas — a audiência é o DONO, não o próximo assistente)
+## 6. Confirmar — a audiência é o DONO, não o próximo assistente
 
 A instrução de retomada ("leia `memory/MEMORY.md` → thread X") é para a **próxima janela** — e ela
 **nunca lê esta tela**: o que ela lê é o `⏭️ RETOMAR AQUI` e o índice, que você acabou de escrever
 e verificar. Na tela, só o que serve ao dono.
 
-Três regras fazem caber: **um bloco = no máximo 1 linha** (agregue dentro dela) · **linha até ~120
-caracteres** (6 linhas de 300 chars não é relatório curto, é parágrafo com quebras) · **bloco marcado
-`[cond]` não aparece quando não tem conteúdo**. Não couber? Vira card, não vira texto.
+**Seções com título, uma por bloco, nesta ordem.** Duas são **sempre presentes** (`✅ Verificação` e
+o fecho `💡`); as outras aparecem **só quando têm conteúdo** — e `📋 Board` aparece sempre que o
+projeto tiver board, mesmo que a sessão não tenha movido card (o `X%` é a âncora).
 
-    ⏸️ Sua decisão: <card + pergunta exata; TUDO que espera você mora aqui>   [cond]
-    Board: <estado agora> · <o que esta sessão moveu> · nasceram <IDs>        [cond: só com board]
-    Gravado: log + <páginas tocadas> + thread <nome> (⏭️ ✓)                   [cond: só com thread]
-    Não entrou: <deixado de fora · tentado-e-falhou>                          [cond]
-    Verificação <✓ | ⚠>: <parser X/Y = contagem manual · sem ⚠ · thread ⏭️> — <o que é seguro>
-    Ao voltar: nada é seu — a próxima janela lê memory/MEMORY.md sozinha; na dúvida, "onde paramos".
+Escreva **renderizado na tela**, não dentro de cerca de código — o espaçamento é o ponto:
 
-**A linha de verificação carrega a evidência, nunca só o ✓** — sem os números ela é indistinguível de
-um checkpoint que não rodou nada, que é o defeito que este passo existe para matar. Duas formas:
+    ### ⏸️ Esperando você                                        [só se houver]
 
-- passou → `Verificação ✓: parser 4/22 = contagem manual · sem ⚠ · thread ⏭️ — seguro dar /clear`
-  (e `+ fechar a janela` **só** se a pendência estiver em card `[!]`, conforme o passo 5);
-- falhou → `Verificação ⚠: <qual sinal> — gravado, mas NÃO afirmo seguro; <o que corrigir>`.
+    - <card + a pergunta exata — TUDO que depende dele mora aqui>
 
-**Estado do board, não delta calculado.** O número do passo 2b já inclui o que a sessão moveu antes do
-checkpoint, então "antes → depois" mentiria com os dois lados iguais. O delta verdadeiro é a **lista de
-movimentos** — ela é a informação; o total é só a âncora. Cuidado: a saída do script já começa com
-`📋`, não duplique.
+    ### 📋 Board · <X% (feitos/total)>                           [sempre que houver board]
 
-**Tudo que espera o dono vai na linha ⏸️** — inclusive card aguardando validação. A linha "Não entrou"
-é só para o que **não** depende dele: deixado de fora, tentado-e-falhou. Espalhar pendência em duas
-linhas faz ele agir na primeira e não ver a segunda.
+    - **<T-NNN>** → <para onde foi>
+    - **Nasceram:** <IDs>
+
+    ### 💾 Gravado                                               [só se houver]
+
+    - log · <páginas tocadas> · thread <nome> (⏭️ ok)
+
+    ### ⛔ Não entrou                                            [só se houver]
+
+    - <deixado de fora — e por quê, em meia linha>
+    - <tentado e falhou>
+
+    ### ✅ Verificação                                           [SEMPRE]
+
+    - <parser X/Y = contagem manual · sem ⚠ · thread ⏭️>
+
+    **Seguro dar `/clear`.**
+
+    ---
+
+    💡 Ao voltar, nada é seu — a próxima janela lê `memory/MEMORY.md` sozinha.
+    Se quiser o board: "onde paramos".
+
+**O que faz este formato funcionar — e o que o quebra:**
+
+- **Espaçamento é a informação.** O título e a linha em branco existem para o olho pular direto ao
+  bloco que interessa. Colapsar em prosa corrida devolve o problema que este formato resolveu:
+  relatório denso é relatório que o dono não lê. **Nunca junte seções para "economizar linhas".**
+- **Bullet de uma linha, não parágrafo.** Não há teto de linhas — há teto de **densidade**. Precisou
+  de parágrafo para explicar um item? Ele não pertence ao relatório: vira card, ou já mora na thread.
+- **A seção Verificação nunca desaparece, e carrega a evidência — nunca só o ✓.** Sem os números ela é
+  indistinguível de um checkpoint que não rodou nada, que é o defeito do passo 5. Ela é também a única
+  que autoriza o `/clear`: suprimi-la deixa o dono sem resposta. Projeto sem board nem thread? Ela
+  aparece dizendo o que **não** havia a verificar, e autoriza:
+
+      ### ✅ Verificação
+      - projeto sem board nem thread — nada a verificar
+      **Seguro dar `/clear`.**
+
+- **Falhou um sinal?** Título vira `### ⚠️ Verificação falhou`, diga **qual** sinal e **o que corrigir**,
+  e troque a linha em negrito por esta — nunca a omita, senão o dono fica sem saber onde está:
+
+      ### ⚠️ Verificação falhou
+      - <qual sinal> — <o que corrigir>
+      **Gravado, mas NÃO afirmo que é seguro limpar.**
+
+- **"E fechar a janela" é acréscimo condicional, não parte do template.** Só some à linha
+  `**Seguro dar /clear.**` — virando `**Seguro dar /clear e fechar a janela.**` — quando o gate do
+  passo 5 permitir (pendência em card `[!]` ou `[?]`). **Nunca** escreva a condição na tela: o dono não
+  tem como resolver "quando o passo 5 permitir".
+- **Tudo que espera o dono fica na seção ⏸️** — inclusive card aguardando validação. "Não entrou"
+  é só para o que **não** depende dele. Pendência espalhada em duas seções faz ele agir na primeira e
+  não ver a segunda.
+- **Board é estado, não delta calculado.** O número do passo 2b já inclui o que a sessão moveu antes do
+  checkpoint, então "antes → depois" mentiria com os dois lados iguais. O delta verdadeiro é a **lista
+  de movimentos**; o total é só a âncora. E a saída do script já começa com `📋` — não duplique.
 
 ## Regras
 - **NÃO** faça `git commit`/`push` sem o usuário pedir.
