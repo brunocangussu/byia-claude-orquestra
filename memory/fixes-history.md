@@ -464,3 +464,38 @@ A instrução existia, estava correta, e não impediu nada — o argumento do `T
 contra o próprio repo.
 
 **Fechados:** `T-003`, `T-008`, `T-011`, `T-012`. **Nasceram:** `T-019`, `T-020`, `T-021`.
+
+## [2026-07-29] feat | 0.12.0 — o relatório do checkpoint falava com a pessoa errada (T-022)
+
+**O que motivou:** o dono perguntou se *precisava dizer* o que a mensagem final do checkpoint pedia
+ao voltar. Não precisava. A frase "na próxima janela: leia `memory/MEMORY.md` → thread X" era escrita
+para o **próximo assistente** e entregue **a ele**, que a leu como tarefa.
+
+**Defeito de audiência, e pior que isso — inalcançável:** a próxima janela é contexto novo e **nunca
+lê aquela tela**. A frase não chegava nem ao destinatário declarado. Mover a informação para o disco
+não é preferência de desenho, é a única coisa que funciona.
+
+**O segundo defeito:** o passo afirmava "seguro dar `/clear`" **sem checagem nenhuma**. Virou gate
+executável — três sinais do board, thread terminando em `⏭️ RETOMAR AQUI` — com critério de decisão
+explícito: falhou, não afirme.
+
+**O que o review pegou (revisor interno REPROVOU, 3 bloqueadores, todos verificados):**
+- A linha `Verificação ✓` era **boilerplate sem slot de evidência**: indistinguível de um checkpoint
+  que não rodou nada. Agora carrega os números e tem variante de falha (`Verificação ⚠`).
+- O primeiro sinal virou "saída não-vazia", perdendo o qualificador **"havendo cards escritos"** que
+  as outras quatro fontes têm. Board legitimamente vazio sai vazio com exit 0 — o gate acusaria
+  não-defeito, a mesma classe do achado que reprovou a 0.10.0.
+- "Seguro fechar a janela" não verificava nada. **Exibit da própria sessão:** o `T-022` estava em
+  `[>]`, e o `/orq:quadro` só mostra `[!]` em "Esperando você" e `[?]` em "Validar" — `[>]` cai em
+  "Fazendo". A pendência desapareceria do lugar onde o dono olha, logo depois de o comando garantir
+  que fechar era seguro.
+
+**Por que o relatório é curto por desenho:** o dono escolheu manter 3–6 linhas. O ganho vem de
+escolher o que entra, não de escrever mais. Três regras sustentam: um bloco = uma linha (agregue
+dentro dela) · até ~120 caracteres por linha · condicional sem conteúdo não aparece. O orçamento de
+largura provou o valor na estreia — pegou uma linha de 121 caracteres no primeiro relatório real.
+
+**Também:** o passo 3 ganhou bullet **BOARD** — a skill prometia que o checkpoint "grava … board" e
+o comando nunca mandava tocar nele, então a linha de board do relatório não teria fonte. E o "antes →
+depois" foi abandonado: o número capturado no início do checkpoint já contém o que a sessão moveu, os
+dois lados sairiam iguais. O delta verdadeiro é a **lista de movimentos**; o total é só âncora.
