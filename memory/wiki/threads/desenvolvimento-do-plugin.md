@@ -1,7 +1,7 @@
 # Thread — desenvolvimento do próprio plugin
 
 **Frente:** o Orquestra desenvolvendo o Orquestra (dogfooding).
-**Aberta em** 2026-07-26 · **último checkpoint** 2026-07-28 · **versão** 0.10.0.
+**Aberta em** 2026-07-26 · **último checkpoint** 2026-07-29 · **versão** 0.13.0.
 
 ## Fases
 
@@ -18,7 +18,8 @@
 - ⬜ Hooks de segurança (`T-001`) — o único enforcement que bloqueia de verdade
 - ⬜ Worktree obrigatório para revisor sem sandbox (`T-019`) — o Kimi destruiu o working tree
 - ⬜ Perfis de elenco e motor alternativo (`T-020`, `T-021`) — pedido do dono em 29/jul
-- ⬜ **8 cards em VALIDATE** — só testáveis depois do release da 0.11.0 + restart
+- ✅ Relatório do checkpoint: audiência corrigida (0.12.0) e formato legível (0.13.0)
+- ⬜ **9 cards em VALIDATE** — a 0.13.0 já está instalada, então agora são testáveis
 
 ## Decisões que não devem ser re-litigadas
 
@@ -32,9 +33,11 @@
 - **Crases obrigatórias para skill no lint, opcionais para agente.** Assimetria proposital: "skill" é
   palavra comum em prosa portuguesa; `orq-` não aparece em texto corrido. Um revisor externo sugeriu
   uniformizar e a "correção" gerou 3 falsos positivos na hora.
-- **CLI do Codex em vez do plugin.** O plugin não é invocável pelo modelo (`codex:codex-rescue` não
-  existe como agent type; `/codex:review` tem `disable-model-invocation`). Contraria a regra global
-  do dono, que só é executável quando **ele** digita o comando.
+- **CLI do Codex em vez do plugin.** Decidido porque o plugin não parecia invocável pelo modelo.
+  ⚠️ **A premissa envelheceu:** `codex:codex-rescue` **aparece** como agent type nas sessões de
+  29/jul, e a regra global do dono manda usar o subagente justamente para não perder rastreamento de
+  job. A CLI funciona e é o que o `/orq:revisar` usa hoje — mas a justificativa registrada não vale
+  mais. Reavaliar antes de citar esta decisão como definitiva.
 
 ## Padrão de erro que se repetiu — vigiar
 
@@ -84,8 +87,9 @@ O segundo é o **controle**: se os dois virarem card, ou os dois virarem diagnó
 
 **Depois, em ordem:**
 1. **Validar os 9 cards em VALIDATE** — cada um tem "Como validar" próprio na nota. O `T-022` é o
-   mais rápido: trabalhar um bloco, dizer *"salva aí"*, e conferir que o relatório cabe em 3–6 linhas
-   com a evidência do parser na linha de verificação.
+   mais rápido: trabalhar um bloco, dizer *"salva aí"*, e conferir que o relatório vem em **seções
+   com título e espaçamento** (não em linhas comprimidas — isso foi reprovado), com a evidência do
+   parser na seção `✅ Verificação`.
 2. **`T-019`** — worktree obrigatório para revisor sem sandbox.
 3. **`T-020` / `T-021`** — perfis de elenco e motor alternativo (pedidos do dono em 29/jul). O
    `T-021` tem teto técnico já escrito no card: subagente do Claude Code não roda modelo de terceiro.
