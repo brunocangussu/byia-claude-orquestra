@@ -50,6 +50,13 @@ disciplina noturna é promessa, não garantia. **Fica em planejamento.**
 - **22:40** — `T-023` entrou em planejamento (planner `fable`, briefing com o aviso de modo noturno
   e proibição de rodar `plugin update`/`reload-plugins`, que mutariam o ambiente do dono).
 
+- **22:47** — `T-023` voltou. Causa raiz **diferente da que o card supunha**: a doc sempre
+  codificou regra binária em vez de evidência por componente — virar a regra de novo seria a
+  terceira repetição do defeito. Achou **7 lugares + 2 homônimos**, não 5, e identificou dois que
+  **não devem ser tocados**. Card → `[!]` com 5 decisões.
+- **22:49** — `T-020` (perfis de elenco) entrou em planejamento — **último da fila** (`cards_max: 3`).
+- **em curso** — auditoria read-only da wiki (scout `sonnet`), só aponta, não corrige.
+
 ## ⏭️ RETOMAR AQUI
 
 Modo noturno em andamento. Ao acordar, o dono lê o **relatório final** no fim deste arquivo (ainda
