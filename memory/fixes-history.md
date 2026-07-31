@@ -536,3 +536,44 @@ Precisou de parágrafo? O item não pertence ao relatório — vira card ou já 
 **Padrão que se repetiu de novo:** trocar uma estrutura e não varrer as referências a ela. Foi o mesmo
 erro da 0.10.0 (doc descrevendo comportamento que o script não tinha mais) e da 0.12.0 (init e checkpoint
 prometendo silêncio depois de o parser passar a avisar). Três releases, três vezes.
+
+---
+
+## [2026-07-30] chore | modo noturno: 3 cards planejados, 4 contradições da wiki corrigidas
+
+**Contexto:** o dono autorizou o protocolo noturno antes de dormir. Run `noturno-2026-07-30-2228`,
+teto de 3 cards e 4 h, **planejamento apenas** — a v1 não implementa, e essa restrição não é dele
+para dispensar sem saber o que dispensa: o `T-006` está bloqueado pelo `T-001`, que é justamente o
+hook que impediria `push`/deploy/migration. Sem o hook, disciplina noturna é promessa, não garantia.
+
+**Planejado e estacionado em `[!]`:** `T-026` (host alternativo) · `T-023` (reload vs restart) ·
+`T-020` (perfis de elenco). Nenhum foi implementado; cada um tem a pergunta exata na nota do card.
+
+**Dois planos corrigiram a premissa do próprio card — e essa é a lição da noite:**
+
+1. O `T-026` supunha "o plugin não roda fora do Claude Code, ponto". Investigando os CLIs reais em
+   modo leitura: o **Kimi 0.29.2** lê `AGENTS.md`, carrega `SKILL.md` com auto-invocação por
+   description, aceita agents no formato do Claude Code e tem hooks `PreToolUse` **bloqueáveis**
+   (exit 2 nega); o **Codex 0.145** já consome marketplace em formato Claude. Isso **derrubou a
+   premissa escrita no `T-019`** ("o hook não alcança o Kimi") — a opção (c) daquele card voltou.
+2. O `T-020` foi ao transcript e achou o pedido verbatim: o dono disse **"faço só com o Opus"**, não
+   "menos Fable" como a nota do card parafraseava. A composição do perfil estava atestada na fala
+   dele desde 29/jul — bastava ir olhar.
+
+**Auditoria da wiki (read-only, 14 arquivos) — 4 contradições ativas.** A pior: `distribuicao.md`,
+que é a página "como fazer release hoje", ainda dizia que a versão vive em **dois** lugares. São
+quatro. Seguir aquela página ao pé da letra **reproduzia o bug que gerou o `T-017`** — o
+`marketplace.json` parado em `0.4.0` por sete releases. Também: `MEMORY.md` dizia 8 cards em VALIDATE
+quando são 9, e a causa era real — o `T-022` tinha marcador `[?]` mas estava fisicamente sob o
+cabeçalho *Backlog*, então quem contou contou por seção visual, não por marcador. É exatamente o
+desvio que o `_schema.md` manda vigiar, acontecendo dentro da wiki que descreve a regra.
+
+**Padrão que se repetiu (quarta vez):** a informação muda num lugar e não é varrida nos outros. Desta
+vez o defeito estava na própria memória, não no produto — o que é pior, porque a wiki é o que resta
+quando a janela morre. As páginas foram corrigidas; o log (aqui) preserva o histórico.
+
+**Não corrigido de propósito → `T-027`:** a regra global do dono proíbe invocar o binário `codex` por
+Bash de dentro do Claude Code; `_elenco.md` e `revisar.md` instruem exatamente isso. A justificativa
+registrada no `gotchas.md` venceu (o `codex:codex-rescue` aparece como agent type desde 29/jul), mas
+a escolha pode continuar certa — foi o `T-010` que provou a CLI direta funcionando, e o painel
+depende dela hoje. Decidir é do dono; o `gotchas.md` recebeu o aviso de premissa vencida.

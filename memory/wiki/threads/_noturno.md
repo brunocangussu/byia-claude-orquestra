@@ -57,7 +57,72 @@ disciplina noturna é promessa, não garantia. **Fica em planejamento.**
 - **22:49** — `T-020` (perfis de elenco) entrou em planejamento — **último da fila** (`cards_max: 3`).
 - **em curso** — auditoria read-only da wiki (scout `sonnet`), só aponta, não corrige.
 
+- **23:05** — auditoria da wiki voltou: **4 contradições vermelhas**. Três eram fato vencido e foram
+  corrigidas na hora (é manutenção de wiki, não implementação); a quarta virou o card `T-027` porque
+  é decisão do dono. Detalhe no relatório abaixo.
+- **23:12** — `T-020` voltou e **corrigiu a paráfrase do próprio card** indo ao transcript: o dono
+  disse *"faço só com o Opus"*, não *"menos Fable"*. Card → `[!]` com 6 decisões.
+- **23:15** — fila esgotada (`cards_max: 3`). **Modo encerrado por teto de cards**, ~47 min de uso,
+  bem dentro das 4 h. Manifesto marcado como **expirado**.
+
+## 📋 Relatório final — `noturno-2026-07-30-2228`
+
+**Encerrado às 23:15 por atingir `cards_max`.** Nenhuma linha de `orq/` foi tocada, nenhum push,
+nenhuma instalação, nenhuma decisão tomada no lugar do dono.
+
+### Planejado (3 cards, todos estacionados em `[!]` com a pergunta exata escrita)
+
+| Card | O que o plano descobriu |
+|---|---|
+| `T-026` | A premissa do card caiu: o **Kimi 0.29.2** lê `AGENTS.md`, carrega `SKILL.md` com auto-invocação, aceita agents no formato Claude Code e tem hooks `PreToolUse` **bloqueáveis**; o **Codex 0.145** já consome marketplace em formato Claude. Recomenda "Orquestra portátil" e **recusa** port por host. 6 decisões |
+| `T-023` | Causa raiz diferente da suposta: a doc sempre codificou **regra binária** em vez de **evidência por componente** — virar a regra de novo seria a terceira repetição. São **7 lugares + 2 homônimos**, não 5, e dois deles **não devem ser tocados**. 5 decisões |
+| `T-020` | A paráfrase do card envelheceu: no transcript o dono disse **"faço só com o Opus"**, não "menos Fable". Perfil `economia` muda **garantia**, não só custo. 6 decisões |
+
+### Achado que passou de um card para outro
+
+O `T-026` derrubou a premissa escrita no `T-019` (*"o Kimi roda fora do Claude Code, então o hook
+não o alcança"*): ele **tem** hooks próprios, com `PreToolUse` bloqueável. A opção (c) daquele card
+voltou à mesa. Falta verificar se o hook do Kimi vale **por projeto** — a doc só mostra escopo de
+usuário.
+
+### Auditoria da wiki (read-only, 14 arquivos)
+
+Corrigido, por ser fato vencido e não decisão:
+
+1. **`distribuicao.md` dizia que a versão vive em DOIS lugares — são quatro.** Essa página é o "como
+   fazer release hoje": segui-la ao pé da letra **reproduzia o bug que gerou o `T-017`**.
+2. **`MEMORY.md` dizia 8 cards em VALIDATE — são 9.** A causa era real: o `T-022` tinha marcador
+   `[?]` mas estava fisicamente sob o cabeçalho *Backlog*, e quem contou contou por seção visual.
+   Card movido para a seção certa.
+3. **A thread principal mandava rodar dois testes de roteamento que já passaram** e citava board em
+   `18% (4/22)`.
+4. **`threads/README.md` dizia "nenhuma thread ativa"** com quatro threads existindo, e o índice
+   `MEMORY.md` não apontava para três delas.
+
+**Não corrigido de propósito → virou `T-027`:** a regra global do dono proíbe invocar o binário
+`codex` por Bash; o projeto instrui exatamente isso em dois lugares vivos. A justificativa registrada
+venceu (o `codex:codex-rescue` aparece como agent type desde 29/jul), mas a escolha pode continuar
+certa — foi o `T-010` que provou a CLI direta funcionando. É decisão dele.
+
+### Pulado de propósito (exige o dono acordado)
+
+`T-001` · `T-002` · `T-005` · `T-019` (segurança/hooks) · `T-006` (bloqueado pelo `T-001`) ·
+`T-021` (sobrepõe o `T-026`, que estava sendo planejado) · `T-004` (desenho depende do `T-025`) ·
+`T-024` (precisa que o dono confirme se o painel falhou de verdade ou se foi só a frase de teste).
+
+### Verificação ao encerrar
+
+- `claude plugin validate ./orq --strict` → passou · `lint-coerencia.py` → 18 nomes, exit 0
+- `diff -rq` cache × repo → **vazio** · board: `15% (4/26)`, parser = contagem manual = 26, sem `⚠`
+- 4 cards em `[!]`, 0 em `[>]` — nada ficou pendurado em planejamento
+- Commits locais: `daf1e59` · `664e308` · `9e264cd` · o de fechamento. **Sem push.**
+
 ## ⏭️ RETOMAR AQUI
 
-Modo noturno em andamento. Ao acordar, o dono lê o **relatório final** no fim deste arquivo (ainda
-não escrito) ou pede o `/orq:acordar`. Nada foi implementado; nenhum commit tocou `orq/`.
+**Modo noturno encerrado — manifesto expirado.** Não abra outro run a partir deste arquivo.
+
+Ao acordar, o dono tem **4 cards em `[!]`** esperando decisão, cada um com a pergunta exata escrita
+na nota e o plano completo em `threads/`. A ordem sugerida pelos próprios planos: **`T-023` (0.14.0)
+→ `T-025` (0.15.0) → `T-020`**, porque os três editam `README.md` e/ou `SKILL.md` e essa ordem evita
+retrabalho. O `T-026` é independente e pode entrar quando ele quiser. O `T-024` fecha sem trabalho
+se ele disser que o painel nunca falhou de verdade.
