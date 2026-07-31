@@ -56,6 +56,15 @@ A distribuição oficial é `code.kimi.com`, binário com checksum.
 executável quando **o dono digita** o comando; de dentro de um turno do Claude, o único caminho é a
 CLI (`codex exec … < /dev/null`). Verificado empiricamente em 2026-07-28.
 
+> ⚠️ **Esta premissa venceu — não a cite como definitiva.** Desde 29/jul/2026 o
+> `codex:codex-rescue` **aparece** na lista de agent types das sessões (reconfirmado em 30/jul).
+> O que ficou desatualizado é só a *justificativa* do parágrafo acima, não necessariamente a
+> escolha: `memory/wiki/_elenco.md` e `orq/commands/revisar.md` continuam instruindo a CLI direta,
+> enquanto a regra global do dono (`~/.claude/CLAUDE.md`) manda **nunca** invocar o binário `codex`
+> por Bash de dentro do Claude Code, para não perder o rastreamento de job. **Isso é decisão dele,
+> não do Manager** — está registrado como card no board (`T-027`). Até ele decidir, o projeto segue
+> como está, cientes de que é uma exceção à regra global, não uma impossibilidade técnica.
+
 ### Achado de revisor externo não se aplica cru — reconcilie
 
 O Kimi apontou (corretamente) que o lint exigia crases para skill e não para agente. Apliquei a

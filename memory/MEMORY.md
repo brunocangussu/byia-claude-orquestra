@@ -34,7 +34,7 @@ destruiu o working tree (`T-019`). É o argumento do `T-001` provado contra o pr
 foi provado, os comandos não). As 9 regras invioláveis seguem sendo texto — nenhum hook (`T-001`,
 `T-002`).
 
-⚠️ **8 cards em VALIDATE.** Card fecha quando o dono confirma, não quando o commit passa. Os
+⚠️ **9 cards em VALIDATE.** Card fecha quando o dono confirma, não quando o commit passa. Os
 comportamentais só são testáveis **depois do release e do restart** — antes disso testam a versão
 anterior, pelo motivo acima.
 
@@ -53,6 +53,10 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`fixes-history.md`](fixes-history.md) | **Log** cronológico, append-only — "o que aconteceu naquele dia" |
 | [`gotchas.md`](gotchas.md) | Armadilhas que já custaram tempo |
 | [`wiki/threads/desenvolvimento-do-plugin.md`](wiki/threads/desenvolvimento-do-plugin.md) | **Thread ativa** — fases, decisões a não re-litigar e **⏭️ RETOMAR AQUI** |
+| [`wiki/threads/T-025-gatilhos.md`](wiki/threads/T-025-gatilhos.md) | Plano pronto **esperando 6 decisões do dono** — cobertura de gatilho medida, descoberta e política de iniciativa |
+| [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | Plano pronto **esperando 6 decisões do dono** — rodar a disciplina fora do Claude Code (matriz de paridade Codex × Kimi) |
+| [`wiki/threads/T-023-reload-vs-restart.md`](wiki/threads/T-023-reload-vs-restart.md) | Plano pronto **esperando 5 decisões do dono** — evidência por componente no lugar de regra binária |
+| [`wiki/threads/_noturno.md`](wiki/threads/_noturno.md) | Manifesto e relatório do **modo noturno** — limites, cards escolhidos, o que foi pulado e por quê |
 
 ## A distinção que faz isto funcionar
 

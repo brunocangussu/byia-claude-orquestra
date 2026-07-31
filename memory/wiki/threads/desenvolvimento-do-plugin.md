@@ -61,7 +61,8 @@ deixou o consumidor aceitando lixo; o painel reprovou.
 
 **Estado: 0.13.0 publicada, commitada (`e0aed12`) e com push feito.** Plugin instalado em escopo
 `user` — vale em todos os projetos do dono, sem repetir nada em cada repo. `diff -rq` do cache contra
-`./orq/` volta **vazio**. Board em **18% (4/22)**, 9 em VALIDATE.
+`./orq/` volta **vazio**. Board em **15% (4/26)**, 9 em VALIDATE (contagem de 2026-07-30, depois dos cards `T-024` a `T-027`;
+o número muda a cada card — confira sempre com `bash orq/scripts/kanban-status.sh`).
 
 **Três releases no mesmo dia:** 0.11.0 (diagnóstico de ambiente + parser do board + roteamento +
 guarda de bump) · 0.12.0 (relatório do checkpoint: audiência e gate) · 0.13.0 (formato do relatório:
@@ -74,16 +75,17 @@ da autorização de `/clear` em projeto sem board.
 0.13.0 escolheu comparando **mockups com dados reais**. Da próxima vez que a decisão for visual,
 mostre antes de construir.
 
-**A primeira coisa ao voltar são os dois testes que faltam** — só o dono pode rodá-los, porque o
-Manager sabe o que a instrução manda e acertaria de memória:
+**✅ Os três testes de roteamento estão cumpridos (2026-07-29/30) — não repita.**
 
-| Frase | Esperado |
-|---|---|
-| *"o painel de revisão não está funcionando"* | **cria card e planeja** — queixa sobre o produto |
-| *"o Kimi sumiu do PATH"* | **diagnóstico, sem card** — queixa sobre ferramental |
+| Frase | Esperado | O que aconteceu |
+|---|---|---|
+| *"queria melhorar o relatório do checkpoint"* | anuncia, cria card, para no gate | passou — virou o `T-022` |
+| *"o painel de revisão não está funcionando"* | **cria card e planeja** — queixa sobre o produto | passou — virou o `T-024` |
+| *"o Kimi sumiu do PATH"* | **diagnóstico, sem card** — queixa sobre ferramental | passou — ambiente ok, nada no board |
 
-O segundo é o **controle**: se os dois virarem card, ou os dois virarem diagnóstico, o desempate do
-`T-016` ficou frouxo e o card volta.
+O terceiro era o **controle**, e os dois lados se comportaram diferente, que era o critério. Viés
+declarado: o Manager conhece a instrução, então quem julga é o dono — `T-014` e `T-016` seguem em
+VALIDATE esperando o "pode fechar" dele.
 
 **Depois, em ordem:**
 1. **Validar os 9 cards em VALIDATE** — cada um tem "Como validar" próprio na nota. O `T-022` é o

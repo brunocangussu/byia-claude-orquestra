@@ -11,7 +11,7 @@ orq/
 ├── commands/                     os /orq:* — um arquivo por passo do fluxo
 ├── agents/                       o time — frontmatter define tools e o model padrão
 ├── skills/orq/SKILL.md           a disciplina: gatilhos naturais + regras invioláveis
-└── scripts/                      kanban-status.sh · sm-search.py
+└── scripts/                      kanban-status.sh · lint-coerencia.py · sm-search.py
 ```
 
 **Onde mexer em quê:** comportamento geral e gatilhos → a **skill**. Um passo do fluxo → o **command**.
@@ -88,7 +88,10 @@ git push origin main      # remote já configurado
 Instalação a partir do GitHub: `/plugin marketplace add brunocangussu/byia-claude-orquestra`.
 
 **Convenção de commit** (do `git log`): `feat(0.X.0): descrição em minúscula, sem acento no assunto`,
-travessão para o subtítulo. A versão vive em `orq/.claude-plugin/plugin.json` e é repetida na seção
-**Status** do README — os dois têm que andar juntos.
+travessão para o subtítulo. A versão vive em **quatro** lugares e os quatro andam juntos no mesmo
+commit: `orq/.claude-plugin/plugin.json` · a seção **Status** do `README.md` · `memory/MEMORY.md` ·
+`.claude-plugin/marketplace.json`. **Esta página já disse "dois" e isso custou caro:** o
+`marketplace.json` ficou declarando `0.4.0` por **sete releases** sem ninguém notar — é a origem do
+card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) hoje confere os quatro.
 
 **Nunca commitar nem publicar sem o ok do dono.**
