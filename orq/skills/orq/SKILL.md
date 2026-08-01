@@ -14,7 +14,9 @@ description: >
   fazendo", "o que preciso decidir"); fechar bloco ("terminamos", "acabou essa parte", "salva aí",
   "pode limpar", "vamos limpar o contexto", "checkpoint"); registrar ("anota isso", "não esquece",
   "isso vira card", "guarda essa decisão"); revisar ("revisa isso", "o que você acha", "manda
-  revisar", "valida isso"); elenco ("quem tá revisando", "troca o modelo", "tira o GPT"); memória
+  revisar", "valida isso"); elenco ("quem tá revisando", "troca o modelo", "tira o GPT", "pouco
+  crédito", "acabando os créditos", "final do ciclo semanal", "modo economia" — só quando o assunto
+  é crédito/custo de LLM); memória
   ("lembra quando", "o que decidimos sobre"); ferramentas ("tá lento", "o que falta instalar");
   descoberta ("quais as possibilidades", "o que dá pra fazer"); noturno ("vou dormir", "adianta o
   que der"); e ao RETOMAR ("bom dia", "voltei", "continuando", "retomemos", "continue de onde
@@ -70,7 +72,7 @@ mecanismo interno — ele não precisa saber que existem.
 | "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
 | "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Painel de revisores** (`/orq:revisar`) — o revisor interno + os externos **ativos no `_elenco.md`**, em paralelo, achados reconciliados |
-| "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel |
+| "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" · "tô com pouco crédito" · "acabando os créditos" · "final do ciclo semanal" · "modo economia" · e qualquer pedido de sair do perfil ou voltar ao time normal | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel; frase de contexto de crédito troca o **time inteiro** pelo perfil nomeado (`perfil economia` / `perfil padrao`), anunciando o que muda, **o que se perde** e **como reverter** — sem depender de uma frase fixa de volta, que ele pede naturalmente quando o crédito voltar |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória** (`/orq:lembrar`) + cruza com a wiki |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" — queixa sobre o **ferramental** (plugin, revisor, statusline, MCP, PATH), nunca sobre o que o produto faz | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado (versão **e** conteúdo), escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
@@ -81,6 +83,13 @@ mecanismo interno — ele não precisa saber que existem.
 | Início de sessão num projeto **com** `memory/` | **Leia `memory/MEMORY.md`** e diga em 2 linhas onde paramos. Sem despejar arquivo |
 | Início num projeto **sem** `memory/` | **Ofereça** o `/orq:init` — não instale sozinho |
 | Checkpoint fecha com rótulo de marco · checkpoint flagra contradição entre página e trabalho | **Rode o `wiki-lint` por iniciativa própria** (N1 — só leitura): relate o achado em uma linha no fim da resposta em curso, **nunca corrija nada, nem trivial**. Ver "Decisões que o Manager toma sozinho" |
+
+⚠️ **"Modo economia" é ambíguo com economia de contexto — desambigue pelo assunto.** Só dispara a
+troca de elenco (perfil) quando a fala é sobre **crédito/custo do LLM** ("final do ciclo semanal",
+"pouco crédito", "acabando os créditos", "modo economia" nesse sentido). Se o assunto é "economia de
+contexto" ou "economia de tokens" — a otimização de janela do stack pessoal do dono, tema recorrente
+fora deste plugin — isso é **checkpoint/limpeza de janela**, não perfil de elenco. Na dúvida, pergunte
+qual dos dois ele quer antes de trocar o time.
 
 ⚠️ **Desempate obrigatório — "X não está funcionando" é ambíguo.** Se X é algo que o **produto**
 faz, isso é pedido de mudança e entra pelo **ciclo** (a primeira linha desta tabela vence): o card

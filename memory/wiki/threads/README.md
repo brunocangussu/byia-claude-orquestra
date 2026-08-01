@@ -9,7 +9,7 @@ Se existe thread ativa, o estado mora NELA — nunca só no chat.
 | [`T-023-reload-vs-restart.md`](T-023-reload-vs-restart.md) | **entregue na 0.14.0** — falta o teste comportamental do dono |
 | [`T-025-gatilhos.md`](T-025-gatilhos.md) | **implementado na 0.15.0**, aprovado no review após 3 rodadas — falta o teste do dono |
 | [`T-026-host-alternativo.md`](T-026-host-alternativo.md) | plano guardado — o dono decidiu deixar no backlog; reconferir a matriz de paridade antes de retomar |
-| [`T-020-perfis-elenco.md`](T-020-perfis-elenco.md) | **aprovado 2026-07-31** — terceiro da fila (0.16.0); composição do perfil vem da fala do dono, ele confirma usando |
+| [`T-020-perfis-elenco.md`](T-020-perfis-elenco.md) | **entregue na 0.16.0** — falta o teste do dono |
 | [`_noturno.md`](_noturno.md) | manifesto **expirado** + relatório do modo noturno de 2026-07-30 — não abrir run novo a partir dele |
 
 ⚠️ Este índice ficou dizendo *"nenhuma thread ativa"* enquanto quatro threads existiam. Ao criar

@@ -374,3 +374,160 @@ seções A–D são o produto — aplicar verbatim, ajustando só o que as decis
 composição da tabela do `economia` depende da 2; a linha da SKILL depende da 3; a nota de `--rapido`
 depende da 4; o B4 depende da 6). Sem resposta, o card vira `[!]` com a pergunta exata: "responda as
 decisões 1–6 da thread T-020-perfis-elenco".
+
+## Handoff do implementer (2026-08-01)
+
+**Feito — passos 1–5 do plano, decisões todas na opção recomendada (1a, 2a, 3a, 4a, 6a; a 5 já
+resolvida pela ordem real de release — T-023 virou 0.14.0, T-025 virou 0.15.0, este é 0.16.0):**
+
+1. `orq/commands/elenco.md`: B1 (frontmatter — `argument-hint` e `description`), B2 (seção nova
+   "Com argumento `perfil <nome>`" com os 5 passos), B3 (aviso de desvio no passo 3 de "ajustar"),
+   B4 (linha "Perfil ativo" + seção "Perfis" no template "Modelo do arquivo"), B5 (bullet em
+   "Orientação"). Texto aplicado verbatim.
+2. `orq/skills/orq/SKILL.md`: C1 (description da skill, bloco elenco) e C2 (linha da tabela).
+   **Não toquei** a seção "Iniciativa própria — três níveis" (0.15.0) nem a tabela reload/restart —
+   fora do escopo e nas proibições.
+3. `README.md`: seção D (duas linhas de exemplo `perfil economia`/`perfil padrao` no bloco `bash` +
+   parágrafo "Perfis" depois de "Ou simplesmente fale…") + bump do Status (`0.16.0` e bullet novo).
+   **Não toquei** a tabela reload/restart nem `orq/stack.md`.
+4. Bump nos 4 lugares: `orq/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`,
+   `README.md` (Status), `memory/MEMORY.md` (só a linha "**Versão:**" — nada mais nessa página, por
+   instrução explícita da tarefa).
+5. `memory/wiki/_elenco.md` reescrito com o texto exato da seção A do plano (perfil ativo `padrao`,
+   tabela ativa, revisores externos, seção "Perfis" com `padrao` e `economia`, "o que se perde"). A
+   tarefa desta rodada **autorizou explicitamente** editar este arquivo (proibições: "não altere
+   `memory/` além do `_elenco.md` previsto no plano e do handoff na thread"), embora o texto do
+   plano acima (passo 7) o tivesse originalmente reservado ao Manager — sigo a instrução mais
+   recente e explícita da tarefa, que é quem me chamou.
+6. Gates rodados: `claude plugin validate ./orq --strict` → `✔ Validation passed`;
+   `python3 orq/scripts/lint-coerencia.py .` → `✓ coerência interna ok — 19 nomes conferidos,
+   memory/ ignorado`.
+
+**Não feito — e por quê:**
+- **Passo 6 do plano (release completo: `marketplace update` + `plugin update` + restart + `diff
+  -rq` do cache + teste comportamental do dono)** — proibido pelas instruções desta tarefa. Fica
+  para o Manager/dono decidir quando rodar.
+- **Passos 8–9 (pós-validação: `_schema.md` com a linha nova sobre `_elenco.md` em várias janelas,
+  `arquitetura.md`, log)** — fora do escopo desta rodada por instrução explícita; ficam anotados
+  aqui para quem rodar o checkpoint depois do release.
+- Critérios de aceite 1–6 da thread **não foram testados** — dependem do release + restart, que não
+  rodei.
+
+**Achei um pequeno desvio meu ao aplicar o B4, registrado por transparência:** o texto do plano diz
+"ganha, depois da tabela de papéis e antes dos revisores externos, a linha **Perfil ativo:**
+`padrao` no topo" — interpretei "no topo" como "logo após a tabela de papéis, no topo do espaço que
+antecede a seção Revisores externos" (não há outro lugar coerente para "topo" ali), e apliquei a
+linha isolada, sem negrito extra além do já pedido. O resultado bate com o texto B4 colado verbatim.
+
+**Achado fora de escopo (não mexi):** `orq/commands/ajuda.md:20` lista o gatilho de elenco
+("quem tá revisando", "troca o modelo do planner") sem as frases novas de crédito/perfil — o plano
+(seções A–D) não pediu mudança nesse arquivo, então deixei como está. Pode valer um ajuste de
+coerência num card futuro se o dono quiser o cardápio (`/orq:ajuda`) alinhado com a `SKILL.md`.
+
+**Decisões próprias:**
+- Segui a leitura de que "não altere `memory/` além do `_elenco.md` ... e do handoff" desta tarefa
+  **relaxa** a divisão original do plano (que reservava a reescrita de `_elenco.md` ao Manager,
+  passo 7) — a instrução mais recente e explícita venceu.
+- No bump do `memory/MEMORY.md`, toquei **só** a linha de versão — não atualizei "Onde paramos",
+  contagem de cards em VALIDATE nem a linha da tabela de páginas sobre este card (isso é conteúdo
+  de pós-validação, passo 9, fora do escopo desta rodada, igual ao precedente do T-025).
+
+**Verificação — grep completo, julgado hit por hit:**
+
+```
+$ grep -rn "elenco\|perfil\|economia" orq/ README.md --include="*.md"
+orq/stack.md:60        "60-90% de economia" — pré-existente, sentido de "token savings", não relacionado
+orq/stack.md:194       referência a `_elenco.md` — pré-existente, intocado
+orq/commands/stack.md:32,47,93   referências a `_elenco.md`/revisores — pré-existentes, intocadas
+orq/commands/ajuda.md:20,32      pré-existente; NÃO ganhou as frases novas (fora do escopo — ver "achado")
+orq/commands/revisar.md:48,49,53,59,62,72,89,92   pré-existentes — `revisar.md` já é genérico
+   (lê "o `reviewer` do elenco", seja qual for o perfil ativo); nenhuma mudança necessária
+orq/commands/init.md:48,61,62,97,168   pré-existentes — decisão 6 já coberta via B4 (o template que
+   o init referencia é o de `elenco.md`); init.md não embute template próprio, não precisou mudar
+orq/commands/elenco.md:2,3,6,7,12,28,30,36,38,40,41,46,49,50,77,78,84,85,96,97   NOVO/editado — B1-B5
+orq/commands/implement-next.md:14,15   pré-existente, consumidor não muda (por desenho)
+orq/commands/plan-next.md:17,19        pré-existente, consumidor não muda (por desenho)
+orq/skills/orq/SKILL.md:17,18   NOVO — C1 (description), indentação YAML conferida (2 espaços, igual
+   às linhas irmãs do bloco `>`)
+orq/skills/orq/SKILL.md:47,73,121,123   pré-existentes, não relacionados a perfil especificamente
+orq/skills/orq/SKILL.md:74      NOVO — C2 (linha da tabela)
+README.md:126           pré-existente — tabela-resumo de comandos, 1 linha por comando (nenhum outro
+   comando lista subcomando ali; manter terso é consistente com o resto da tabela)
+README.md:157,197,222   pré-existentes, não relacionados a perfil
+README.md:162-166       pré-existentes (exemplos de `/orq:elenco`)
+README.md:167,168       NOVO — exemplos `perfil economia`/`perfil padrao`
+README.md:173-178       NOVO — parágrafo "Perfis"
+README.md:358,362,363   editado — bump 0.16.0 + bullet novo do Status
+```
+Nenhuma contradição encontrada. `memory/` foi ignorado do grep de propósito (é onde `_elenco.md`
+mora, e o lint já confirma coerência de nomes ali à parte).
+
+```
+$ claude plugin validate ./orq --strict
+✔ Validation passed
+
+$ python3 orq/scripts/lint-coerencia.py .
+✓ coerência interna ok — 19 nomes conferidos, memory/ ignorado
+```
+
+## Handoff da rodada de correções do review (2026-08-01)
+
+**Veredito do review:** aprovar com correções obrigatórias — 2 🔴 e 5 🟡. Todas as 7 aplicadas.
+
+1. **🔴 `elenco.md` — template com "a tabela acima"** (causa raiz do card reproduzida na solução):
+   os dois presets do template "Modelo do arquivo" agora são tabelas **literais e completas** (5
+   linhas cada, sem `manager`), como o `_elenco.md` real — nenhum preset é mais definido por
+   referência à tabela ativa. Adicionei o porquê (se `padrao` apontasse pra tabela ativa, ativar
+   `economia` a reescreveria e `padrao` perderia onde apontar).
+2. **🔴 SKILL.md — gatilho truncado:** troquei "final do ciclo" por "final do ciclo semanal"
+   (fala real), acrescentei "acabando os créditos" (atestada, tinha sido descartada sem motivo),
+   removi "volta o time normal" (zero atestação — a reversão agora é resolvida no anúncio da troca,
+   que diz na hora como reverter, tanto em `SKILL.md` quanto em `elenco.md` passo 3) e acrescentei
+   guarda de desambiguação pro "modo economia" (só dispara com assunto de crédito/custo de LLM;
+   "economia de contexto/tokens" é checkpoint, não perfil) — nota nova logo após a tabela de
+   gatilhos, no mesmo estilo do "Desempate obrigatório" que já existia ali. Marquei em `_elenco.md`
+   quais das 3 frases restantes são atestadas (verbatim do transcript) e qual é paráfrase
+   ("modo economia" — nome de apelo, não fala original).
+3. **🟡 `ajuda.md`:** a linha do elenco no cardápio ganhou a frase de crédito e menciona a troca do
+   time inteiro — antes só citava troca papel-a-papel.
+4. **🟡 `init.md`:** o passo 2b (FASE 4) agora instrui gerar o `_elenco.md` a partir do template de
+   `elenco.md` (que já traz "Perfil ativo" + seção "Perfis"), não só a tabela de papéis — projeto
+   novo nasce com o conceito. FASE 2 ganhou uma frase equivalente na proposta ao dono.
+5. **🟡 `--rapido` × `economia`:** `implement-next.md` e `revisar.md` ganharam a mesma exceção nos
+   dois pontos onde recomendavam `--rapido` em card pequeno — em `economia` isso deixa de valer
+   porque o revisor interno é justamente o rebaixado. Escrito no produto (`orq/commands/`), não só
+   aqui na memória deste repo.
+6. **🟡 risco de apagar `manager`:** o passo 2 de "Com argumento `perfil <nome>`" agora diz
+   explicitamente que a linha `manager` não pertence a preset nenhum e deve ser preservada — e
+   explica por quê (presets têm 5 linhas, tabela ativa tem 6).
+7. **🟡 `$ARGUMENTS` disputado:** a seção "Com argumento — ajustar" ganhou uma linha de despacho logo
+   no início: `perfil <nome>` não é papel, vai para a outra seção.
+
+**Verificação:**
+```
+$ claude plugin validate ./orq --strict
+✔ Validation passed
+
+$ python3 orq/scripts/lint-coerencia.py .
+✓ coerência interna ok — 19 nomes conferidos, memory/ ignorado
+```
+Grep completo (`grep -rn "perfil\|economia\|padrao\|rapido" orq/ README.md --include="*.md"`) —
+52 hits, julgados um a um: todos os novos são as edições acima; os pré-existentes (`stack.md:60`,
+`revisar.md:3,44`, `README.md:167-177,236,362-363`) são não-relacionados ou já cobertos por seções
+que o review não apontou como defeituosas — não toquei.
+
+**Não feito / fora do escopo desta rodada:**
+- **README.md:236** ("`--rapido` só o revisor interno", sem menção à exceção `economia`) não foi
+  ajustado — o review não listou README entre os arquivos a corrigir, e `orq/commands/` (o que é
+  instalado em outros projetos) já carrega a regra. Se o dono quiser espelhar em README por
+  consistência de leitura, é ajuste trivial, mas decidi não estender o escopo sem pedido.
+- Nada do que era proibido foi tocado: `orq/stack.md`, a tabela reload/restart do `README.md`, a
+  seção "Iniciativa própria" da `SKILL.md`, e `memory/` além de `_elenco.md` e este handoff.
+
+**Decisões próprias:**
+- Para a guarda de "modo economia" na `SKILL.md`, escolhi um parágrafo `⚠️` separado logo após a
+  tabela de gatilhos (mesmo padrão do "Desempate obrigatório" já existente ali), em vez de inflar a
+  célula da tabela — mantém a tabela legível e segue um precedente já presente no arquivo.
+- Para a "frase de volta", não inventei um novo gatilho fixo (era o próprio defeito apontado): a
+  reversão passa a ser tratada como qualquer pedido de mudança do dono, reconhecido na hora, com o
+  Manager sempre dizendo — no anúncio da troca inicial — como reverter.

@@ -67,6 +67,12 @@ movimento de card da A, e ninguém percebe.
 | `wiki/KANBAN.md` | todas | **o único ponto de disputa real** — ver as 3 regras |
 | `fixes-history.md` | todas | append **no fim**, relendo antes; entrada carimbada com a frente |
 | `wiki/<tópico>.md` | quem fechou o card | reler antes de reescrever |
+| `wiki/_elenco.md` | todas | **estado compartilhado** — o perfil ativo vale para **todas** as janelas no próximo spawn. Releia **imediatamente antes** de gravar. Ajuste de um papel: edite **só aquela linha**. **Exceção — trocar de perfil** (`/orq:elenco perfil <nome>`): aí a tabela ativa **é** reescrita inteira a partir do preset, preservando a linha do `manager` — o que continua proibido é reescrever a partir da **cópia velha do seu contexto** em vez de reler o disco |
+
+⚠️ **O `_elenco.md` é o mais fácil de perder sem perceber**, porque ninguém "trabalha" nele — só passa
+e troca uma linha. Cenário real: a janela A ativa o perfil `economia`; a janela B, com uma cópia velha
+no contexto, ajusta um papel e regrava a tabela inteira — a troca de A desaparece **em silêncio**, e a
+B segue spawnando com o time errado achando que está tudo certo.
 
 ### As três regras que evitam a colisão
 

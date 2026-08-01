@@ -93,7 +93,9 @@ do jeito registrado ali.
 o painel foi parcial**, nomeando quem faltou. Nunca apresente parecer de um revisor como se fosse a
 interseção de vários: o valor do painel está em distinguir confirmado-por-dois de achado-por-um.
 
-Com `--rapido`: só o revisor interno.
+Com `--rapido`: só o revisor interno. **Exceção: perfil `economia` ativo em `_elenco.md`** — nesse
+perfil o revisor interno é justamente o rebaixado, então `--rapido` deixa de ser recomendado mesmo
+em card pequeno; mantenha pelo menos um externo no painel.
 
 ## 3. Reconciliar (o passo que dá o valor)
 

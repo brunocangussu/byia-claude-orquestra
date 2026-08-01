@@ -657,3 +657,47 @@ assunto"); está no card como pendência dele, não corrigido por conta.
 **O que os gates pegaram disto tudo: nada.** `validate` e `lint` passaram verdes em todas as rodadas.
 Instrução que se autoanula, citação falsa sobre outro arquivo e gatilho inventado só aparecem para
 quem lê o texto procurando como ele quebra.
+
+---
+
+## [2026-07-31] feat | 0.16.0 — perfis de elenco trocados por frase
+
+**Card `T-020`.** O `_elenco.md` guardava um **valor** (o time de agora), não uma **escolha de
+catálogo**: trocar custava 7 edições, voltar dependia de memória, e o motivo da troca ("crédito curto")
+não tinha onde morar. Agora há presets nomeados — `padrao` e `economia` — e ativar um reescreve a
+tabela ativa a partir do preset, registrando nome, data e desvios. **Nenhum consumidor mudou:**
+`plan-next`, `implement-next`, `revisar` e `stack` seguem lendo a mesma tabela.
+
+**A composição do `economia` não foi inventada** — o planner foi ao transcript de 29/jul e achou a fala
+literal do dono: *"faço só com o Opus"*, *"uso mais o Codex e o Kimi"*. A paráfrase que estava na nota
+do card ("menos Fable") estava errada, e só se descobriu isso indo à fonte.
+
+**Escrito no preset, não só no plano:** `economia` muda **garantia**, não só custo — plano mais raso,
+desempate interno rebaixado, mais peso no Kimi (que não tem sandbox, `T-019`), e os externos são
+read-only, então **implementação continua queimando Claude**.
+
+**Duas reprovações, e as duas acharam defeito que a correção anterior tinha criado:**
+
+1. O template definia `padrao` como **ponteiro** ("a tabela acima"). Ativar `economia` fazia `padrao`
+   apontar para `economia`; voltar virava no-op e o time titular **sumia do arquivo**. Era a causa raiz
+   do card — *"voltar depende de memória"* — reproduzida **dentro da solução do card**.
+2. A correção do item 1 deixou o `init.md` com o **único caminho relativo do plugin inteiro**
+   (`orq/commands/elenco.md`). Dentro deste repo ele resolve **por acidente**, porque o repo *é* o
+   plugin; em qualquer outro projeto o arquivo mora no cache e a instrução quebra. **O lint não vê
+   caminho relativo** — verde no gate, quebrado no campo. É a mecânica que deixou `/orquestra:*`
+   sobreviver a três releases, e virou o card `T-029`.
+
+**Terceira reincidência do defeito do `T-014`, e desta vez o plano sabia:** foram embarcados dois
+gatilhos com **zero atestação** no corpus de 36 mensagens reais — "modo economia" (marcada no plano
+como paráfrase) e "volta o time normal". A mitigação que o próprio plano prescrevia — *entra marcada
+como tal* — não foi implementada, e as frases apareceram no `_elenco.md` indistinguíveis das medidas.
+
+**A solução para a volta é a parte que vale guardar:** em vez de inventar a frase de retorno, o
+**anúncio da troca ensina a reverter**. O dono aprende a frase no instante em que precisa dela, e o
+sistema para de adivinhar como ele fala — que é a origem do defeito nas três vezes em que apareceu.
+Junto, a coluna de gatilho ganhou uma **categoria** ("sair do perfil / voltar ao time normal") em vez
+de uma frase literal: descrever intenção não é fabricar fala.
+
+**Também nesta versão:** o `_schema.md` passou a listar o `_elenco.md` como **escrita compartilhada**
+entre janelas — ele é o arquivo mais fácil de perder sem perceber, porque ninguém "trabalha" nele, só
+passa e troca uma linha.

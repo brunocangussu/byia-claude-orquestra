@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.15.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-29.
+**Versão:** 0.16.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-29.
 
 ## Onde paramos
 
@@ -34,7 +34,7 @@ destruiu o working tree (`T-019`). É o argumento do `T-001` provado contra o pr
 foi provado, os comandos não). As 9 regras invioláveis seguem sendo texto — nenhum hook (`T-001`,
 `T-002`).
 
-⚠️ **11 cards em VALIDATE** (0.14.0 e 0.15.0 entraram em 2026-07-31). Card fecha quando o dono confirma, não quando o commit passa. Os
+⚠️ **12 cards em VALIDATE** (0.14.0, 0.15.0 e 0.16.0 entraram em 2026-07-31). Card fecha quando o dono confirma, não quando o commit passa. Os
 comportamentais só são testáveis **depois do release e do restart** — antes disso testam a versão
 anterior, pelo motivo acima.
 
@@ -56,7 +56,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-025-gatilhos.md`](wiki/threads/T-025-gatilhos.md) | **Implementado na 0.15.0** — descoberta (`/orq:ajuda`), gatilhos atestados e a política de iniciativa em três níveis |
 | [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | Plano **guardado no backlog** por decisão do dono — rodar a disciplina fora do Claude Code; reconferir a matriz de paridade antes de retomar |
 | [`wiki/threads/T-023-reload-vs-restart.md`](wiki/threads/T-023-reload-vs-restart.md) | **Implementado na 0.14.0**, reprovado no review e corrigido — evidência por componente no lugar de regra binária |
-| [`wiki/threads/T-020-perfis-elenco.md`](wiki/threads/T-020-perfis-elenco.md) | **Aprovado 2026-07-31**, terceiro da fila (0.16.0) — perfis de elenco (`padrao` · `economia`) |
+| [`wiki/threads/T-020-perfis-elenco.md`](wiki/threads/T-020-perfis-elenco.md) | **Entregue na 0.16.0** — perfis de elenco (`padrao` · `economia`) trocados por frase |
 | [`wiki/threads/_noturno.md`](wiki/threads/_noturno.md) | Manifesto **expirado** + relatório do modo noturno de 2026-07-30 — não abrir run novo a partir dele |
 
 ## A distinção que faz isto funcionar

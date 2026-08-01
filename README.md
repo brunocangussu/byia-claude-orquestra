@@ -164,9 +164,18 @@ arquivo do agente é só o padrão de fábrica.
 /orq:elenco reviewer opus      # revisor interno em Opus
 /orq:elenco codex off          # tira o GPT do painel (só Claude)
 /orq:elenco codex xhigh        # ajusta o esforço do Codex
+/orq:elenco perfil economia    # fim do ciclo: troca o time inteiro pelo preset de crédito curto
+/orq:elenco perfil padrao      # crédito voltou: time titular de volta
 ```
 
 Ou simplesmente fale: *"quero o Fable planejando"* · *"tira o GPT da revisão"* · *"quem tá revisando?"*
+
+**Perfis** — além do ajuste papel a papel, o `_elenco.md` pode ter **times nomeados** (seção
+"Perfis"): `padrao` (o titular) e `economia` (crédito Claude curto). Trocar o perfil reescreve a
+tabela ativa; os comandos continuam lendo a mesma tabela. Honesto: perfil de economia muda a
+**garantia**, não só o custo — plano mais raso, reconciliação mais fraca, mais peso em revisor sem
+sandbox — e o preset lista isso com todas as letras. O `manager` nunca entra em perfil: é o
+`/model` da sessão, e só o dono troca.
 
 **Padrões de fábrica:**
 
@@ -225,7 +234,8 @@ está instalado** nesta máquina (sem CLI e sem MCP) — quando estiver, basta r
 como ativo.
 
 Em card pequeno e de baixo risco, use `--rapido` (só o revisor interno). Painel em mudança trivial
-é desperdício.
+é desperdício — **exceto no perfil `economia`**, onde o revisor interno já está rebaixado e
+`--rapido` deixa de ser recomendado (mantenha pelo menos um externo).
 
 ---
 
@@ -345,12 +355,13 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.15.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.16.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
 corpus real (não inventados) · cardápio por situação (`/orq:ajuda`) · política de iniciativa própria em
-**três níveis** (age e relata · propõe 1× · sempre pergunta).
+**três níveis** (age e relata · propõe 1× · sempre pergunta) · **perfis de elenco** (`padrao` ·
+`economia`) pra trocar o time inteiro por contexto de crédito.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

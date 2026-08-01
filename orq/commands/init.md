@@ -59,7 +59,9 @@ Para cada papel adicional decida:
 - quando é chamado e o que entrega.
 
 **Proponha o ELENCO** (`memory/wiki/_elenco.md`) — qual LLM toca cada papel. Sugira uma escalação e
-deixe claro que ele pode mudar depois com `/orq:elenco planner fable`.
+deixe claro que ele pode mudar depois com `/orq:elenco planner fable`, ou trocar o **time inteiro**
+por contexto de crédito com `/orq:elenco perfil economia` — o arquivo já nasce com esse conceito
+(seção "Perfis", ver FASE 4).
 
 **Estratégia de leitura** (o que economiza contexto neste projeto):
 - Repo grande → busca semântica primeiro; indexar se ainda não estiver.
@@ -166,7 +168,13 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    adicionais aprovados, com nome próprio (nunca `orq-*`) e `model`/`tools` decididos. Não duplique o
    que o projeto já tem; complemente.
 2b. **Elenco** em `memory/wiki/_elenco.md` — a escalação aprovada (papel → modelo) + os revisores
-   externos ativos. É esse arquivo que os comandos leem na hora de spawnar.
+   externos ativos, **gerado a partir do template "Modelo do arquivo" de
+   `${CLAUDE_PLUGIN_ROOT}/commands/elenco.md`**
+   (traz de fábrica a linha "Perfil ativo" e a seção "Perfis" com `padrao`/`economia` prontos —
+   ajuste só os modelos e a nota de "o que se perde" à realidade deste projeto). Não crie um
+   `_elenco.md` só com a tabela de papéis: o projeto nasce **já** com o conceito de perfil, não como
+   um recurso que só aparece se alguém pedir depois. É esse arquivo que os comandos leem na hora de
+   spawnar.
 3. **`CLAUDE.md`** — adicione (ou atualize) um bloco `<!-- orquestra:start -->…<!-- orquestra:end -->`
    com: o ciclo, onde vive a memória, quem move o board, e as convenções do projeto que você
    descobriu (build, teste, o que quebra o deploy). **Preserve todo o resto do arquivo.**
