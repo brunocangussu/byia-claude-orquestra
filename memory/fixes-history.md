@@ -614,3 +614,46 @@ que pegou, lendo como leitor hostil.
 **Nota de execução:** o implementer das correções morreu por erro de API no meio da verificação. As
 sete correções já estavam aplicadas; o Manager mediu arquivo por arquivo antes de continuar, em vez de
 relançar cego — relançar teria refeito por cima do que já estava certo.
+
+---
+
+## [2026-07-31] feat | 0.15.0 — descoberta por frase e política de iniciativa em três níveis
+
+**Card `T-025`.** O dono disse que não lembra os comandos. A medição (31 mensagens reais dos
+transcripts) mostrou algo pior: os gatilhos canônicos da skill — *"onde paramos"*, *"cadê o board"* —
+**ele nunca digitou**. O que ele digita é *"o que preciso decidir??"* e *"não estou vendo card"*.
+Entraram só os gatilhos **atestados no corpus**; para `lembrar`, `dormir`, `acordar` e `init`, que não
+tinham uma única fala, **nenhum gatilho foi inventado** — a amostra foi declarada insuficiente.
+
+**Três entregas:** `/orq:ajuda` (cardápio por situação, frase em primeiro plano e comando entre
+parênteses); os gatilhos medidos; e a **política de iniciativa** que o dono escolheu com estas
+palavras — *"age no que é leitura, propõe 1× o resto"*. N1 age e relata (só leitura), N2 propõe uma
+vez, N3 sempre pergunta. Transversal: **iniciativa nunca escreve no produto**.
+
+**O review reprovou duas vezes. Quatro bloqueadores na primeira, e o mais instrutivo é o segundo:**
+
+1. A SKILL afirmava que *"o `wiki-lint.md` já proíbe corrigir"* — e o arquivo **autorizava** corrigir
+   "página faltando no índice", que é exatamente o que o lint acha. A primeira execução autônoma teria
+   escrito sem pedir.
+2. O teto *"recusou, não repropõe"* absorveu a regra do checkpoint acima de 50% e a **desligou**: um
+   "agora não" aos 52% calaria a salvaguarda até o fim da sessão. É o caminho para a sessão
+   irrecuperável que a regra global do dono existe para evitar.
+3. *"1 proposta por bloco de trabalho"* — e **"bloco" não estava definido em lugar nenhum**. Três
+   leituras defensáveis: 1 por dia, 1 por card, 1 por assunto.
+4. Dois gatilhos **inventados** entraram na tabela (zero ocorrências em 583 mensagens) — reincidência
+   do defeito que gerou o `T-014`, e um deles sequestrava o pedido de *revisão* para abrir o cardápio.
+
+**A segunda reprovação achou um defeito circular, e vale registrar como padrão:** a correção do item 2
+criou a exceção *"recusou aos 52%, repropõe aos 75%"*, mas o item 3 definiu bloco como *"até o próximo
+checkpoint"* — e **o que o dono recusou foi o checkpoint**. Logo os 85% caem sempre no mesmo bloco, e
+*"nunca no mesmo bloco"* mandava calar. A exceção era **inalcançável por construção**: código morto
+para o único caso que citava. Duas correções interagindo produziram um terceiro defeito que nenhuma
+delas tinha sozinha.
+
+**Fechado contando o teto por assunto** e permitindo repropor no mesmo bloco a cada piora material.
+⚠️ Isso **mudou a semântica de uma decisão que o dono tomou pessoalmente** ("1 por bloco" → "1 por
+assunto"); está no card como pendência dele, não corrigido por conta.
+
+**O que os gates pegaram disto tudo: nada.** `validate` e `lint` passaram verdes em todas as rodadas.
+Instrução que se autoanula, citação falsa sobre outro arquivo e gatilho inventado só aparecem para
+quem lê o texto procurando como ele quebra.

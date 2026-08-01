@@ -169,3 +169,172 @@ defeito que gerou o T-014. Ficam como estão.
 acima ao dono**. Com as respostas, o card vai a READY e o implementer executa os passos 1–11 na
 ordem — os passos 4, 6 e 7 dependem das decisões 1–2; o 3 e o 5 dependem das 3–5. Sem resposta,
 o card vira `[!]` com a pergunta exata: "responda as decisões 1–6 da thread T-025-gatilhos".
+
+## Handoff do implementer (2026-08-01)
+
+**Feito — passos 1–9 do plano, na ordem:**
+1. Gatilhos atestados acrescentados na `description` da SKILL: "não gostei", "valida isso", "o que
+   preciso decidir", "checkpoint", "retomemos"/"continue de onde parou", "quais as
+   possibilidades"/"o que dá pra fazer" (bloco novo "descoberta").
+2. Mesmas variantes nas 4 linhas da tabela (ciclo, quadro, checkpoint, revisar) — a linha de
+   RETOMAR da tabela ficou **intocada**, como o próprio plano especificou (ela é por "início de
+   sessão", não por frase).
+3. Duas linhas novas na tabela: descoberta → `/orq:ajuda`, e uma situacional (sem aspas, no
+   padrão da linha do `init`) pro `wiki-lint` autônomo.
+4. Criei `orq/commands/ajuda.md` — cardápio por situação, frase antes do comando. **Corrigi um
+   desvio meu próprio no meio do trabalho:** o rascunho inicial esqueceu o `wiki-lint` — a causa
+   raiz #1 da thread já dizia que a correção dele é "condição + **entrada no cardápio**, não
+   frase"; acrescentei uma linha situacional (sem gatilho inventado) antes de fechar. Cobre os
+   **13** comandos reais, sem virar manual de sintaxe. Fecha com "você não precisa decorar nada —
+   fale normal".
+5. `SKILL.md:182-206` expandido pra 3 níveis. Decisão própria: **não** recategorizei os 3
+   bullets pré-existentes (bug achado, limpeza/dedup, ordem da fila) dentro do N1 — eles escrevem
+   no board (criar card, ordenar fila) e o N1 do card é definido como "só leitura"; misturá-los
+   quebraria a própria definição. Adicionei "### Iniciativa própria — três níveis" como bloco
+   novo dentro da mesma seção, e dobrei o antigo "Sempre pergunte ao dono" dentro do N3 (sem
+   duplicar).
+6. `orq/commands/wiki-lint.md` ganhou seção curta "Quando o Manager roda isto por iniciativa
+   própria" que **aponta** pra SKILL (`Decisões que o Manager toma sozinho → N1`) — não restate
+   as bordas.
+7. `README.md`: linha de `/orq:ajuda` na tabela de comandos; linha nova na tabela "Você não digita
+   comandos" pra "quais as possibilidades"; seção nova "## Iniciativa própria" (entre "O board" e
+   "A memória (wiki)") que resume sem repetir números (não citei "1 proposta" ali, de propósito —
+   número vive só na SKILL, pra não divergir depois). Não achei contagem literal de "12 comandos"
+   pra corrigir (grep não achou nenhuma).
+8. Bump 0.14.0 → 0.15.0 nos 4 lugares: `orq/.claude-plugin/plugin.json`,
+   `.claude-plugin/marketplace.json`, `README.md` (seção Status, com os 3 itens novos anexados),
+   `memory/MEMORY.md` (só a linha "**Versão:**" — não toquei no resto da página por instrução
+   explícita de não mexer em `memory/` além do bump + este handoff).
+9. Gates rodados 3× (2 antes do fix do item 4, 1 depois) — sempre limpo, saída literal abaixo.
+
+**Não feito — e por quê:**
+- **Passo 10 (release completo + restart + teste comportamental):** proibido pelas instruções
+  desta tarefa ("não rode marketplace update, plugin update nem /reload-plugins"). Fica pro
+  Manager/dono decidir quando rodar.
+- **Passo 11 (pós-validação: atualizar `arquitetura.md` e o log):** não fiz — as instruções
+  restringem edição de `memory/` ao bump de versão + este handoff. Deixo registrado aqui pra quem
+  rodar o checkpoint depois do release.
+- Critérios de aceite 1–5 da thread **não foram testados** — dependem do passo 10, que não rodei.
+
+**Decisões próprias (além das já descritas acima):**
+- Não recategorizei os 3 bullets pré-existentes de "Decisões que o Manager toma sozinho" dentro
+  do framework N1/N2/N3 (ver item 5) — risco de contradizer a própria definição de N1 como
+  "só leitura".
+- `ajuda.md` cita `wiki-lint` como algo que "normalmente já roda sozinho" em vez de inventar uma
+  frase-gatilho pro dono — coerente com "zero falas no corpus" já registrado nesta thread.
+
+**Verificação — saída literal:**
+
+Antes (grep, colado no card acima): 3 hits relevantes (`stack.md`, `wiki-lint.md` inexistente
+ainda, `SKILL.md:178/181-188`).
+
+Depois:
+```
+$ grep -rn "iniciativa\|sozinho\|não solicitada" orq/ README.md --include="*.md"
+orq/stack.md:9        ...funciona sozinho... (pré-existente, não relacionado)
+orq/agents/orq-implementer.md:36   ...sozinho e o motivo. (pré-existente, não relacionado)
+orq/commands/stack.md:11           ...funciona sozinho... (pré-existente, não relacionado)
+orq/commands/revisar.md:42,104     ...sozinho... (pré-existente, não relacionado)
+orq/commands/init.md:229           ...decida sozinho... (pré-existente, não relacionado)
+orq/commands/wiki-lint.md:29,32    NOVO — aponta pra SKILL, não restate
+orq/commands/implement-next.md:58  ...sozinho... (pré-existente, não relacionado)
+orq/skills/orq/SKILL.md:82,83,182,194,197,203,252   política + 1 pré-existente (252)
+README.md:79,259,306,353           1 nova (259, aponta pra SKILL) + 3 pré-existentes
+```
+Julgamento hit-a-hit: nenhuma contradição — a política mora em `SKILL.md:182-206`; `wiki-lint.md`
+e `README.md` só apontam pra ela, sem restatar números (teto, exemplos).
+
+```
+$ claude plugin validate ./orq --strict
+✔ Validation passed
+
+$ python3 orq/scripts/lint-coerencia.py .
+✓ coerência interna ok — 19 nomes conferidos, memory/ ignorado
+```
+
+**Achado fora de escopo:** nenhum — não mexi em `arquitetura.md`/log/KANBAN por restrição
+explícita da tarefa; fica anotado acima pro passo 11 rodar depois do release.
+
+## Correções do review REPROVADO (2026-08-01)
+
+O revisor (Opus, read-only) reprovou a rodada acima com 4 bloqueadores, 4 riscos, 3 notas. O que
+ele confirmou limpo (bump 4 lugares, 0.14.0 intacta, gates, cardápio, gatilhos da `description`)
+**não foi mexido**. Correções aplicadas:
+
+- **B1** (`SKILL.md` citava `wiki-lint.md` dizendo algo que ele não dizia): `wiki-lint.md` agora
+  distingue os dois contextos — a exceção de correção trivial só vale quando o **dono pede o
+  comando diretamente**; rodando por iniciativa do Manager (N1), nada se corrige, nem trivial. A
+  citação na SKILL foi corrigida pra essa frase verdadeira.
+- **B2** (teto do N2 matava a sugestão de checkpoint >50% pra sempre): N2 agora distingue recusa
+  de **política** ("não quero X", não repropõe nunca mais) de recusa de **momento** ("agora não",
+  pode voltar quando a condição piorar materialmente — ex.: recusou aos 52%, só reproponha perto
+  de 75%+). `SKILL.md:92-96` (contexto >50%) foi reconciliado pra citar essa mesma regra em vez de
+  mandar sugerir incondicionalmente.
+- **B3** ("bloco de trabalho" nunca era definido): definido explicitamente como do início da sessão
+  (ou do checkpoint anterior) até o próximo `/orq:checkpoint`, que fecha o bloco — mesma unidade
+  pro contador "atrito 2×" do N2. E "quando um release fecha" (não disparava fora deste repo) virou
+  "checkpoint fecha com rótulo de marco" (`$ARGUMENTS` de `/orq:checkpoint`), que existe em
+  qualquer projeto, com ou sem versionamento.
+- **B4** (dois gatilhos inventados — zero ocorrência no corpus): removidos `"queria revisar o que
+  existe"` e `"o que você consegue fazer"` de `SKILL.md:77`. Nada substituído.
+- **R1**: "iniciativa nunca escreve" precisado pra "no produto" — registrar recusa (N2) ou achado
+  (N1) na memória/board é permitido e é o que os próprios níveis exigem.
+- **R2**: os 3 bullets pré-existentes (bug, limpeza, ordem da fila) rotulados **N0** — decisão de
+  board, escreve no board por definição, a regra dos N1-N3 não se aplica a eles.
+- **R3**: `README.md`, `wiki-lint.md` e `ajuda.md:27` (achado que meu grep anterior tinha
+  **perdido** — grep refeito e colado abaixo) pararam de restatar números/condição; agora só
+  apontam pra `SKILL.md`, que é onde o teto e as condições moram.
+- **R4**: `checkpoint.md` ganhou parêntese explícito — corrigir página no checkpoint não é a
+  "iniciativa" que o N1 restringe, porque checkpoint só roda a pedido do dono.
+- **Nota 1**: `ajuda.md` linha da "anota isso" não promete mais `/orq:plan-next` como continuação
+  leve — deixa claro que planejar é ação separada, futura, só quando o dono pedir.
+- **Nota 2**: acrescentadas ao cardápio as duas situações que faltavam — diagnóstico ferramental
+  (`/orq:stack --verificar`) e várias janelas (`@frente`) — o cardápio se declara "por situação".
+- **Nota 3**: a regra "não liste como manual" desambiguada — a tabela por situação cobrindo as 13
+  está certa; o que ela proíbe é a versão comando-primeiro sem frase.
+
+**Não feito, de novo pela mesma razão:** passo 10 (release/restart/teste comportamental) e passo 11
+(atualizar `arquitetura.md`/log) continuam fora — proibidos pelas instruções desta tarefa. Critérios
+de aceite 1-5 continuam não testados.
+
+**Decisão própria:** ao reescrever `ajuda.md:40`, troquei o exemplo `` `/orq:x` `` por "nome do
+comando seguido de descrição" — a forma literal `/orq:x` fazia o `lint-coerencia.py` acusar
+"comando /orq:x não existe" (falso positivo do lint, que não distingue placeholder de referência
+real). Resolvido trocando o texto, não o lint.
+
+**Verificação — grep completo, hit a hit (desta vez incluindo `ajuda.md`):**
+```
+$ grep -rn "iniciativa\|sozinho\|não solicitada\|uma vez\|bloco de trabalho" orq/ README.md --include="*.md"
+orq/stack.md:9                          "funciona sozinho" — pré-existente, não relacionado
+orq/agents/orq-implementer.md:36        template de handoff, "sozinho" — pré-existente, não relacionado
+orq/commands/stack.md:11                "funciona sozinho" — pré-existente, não relacionado
+orq/commands/ajuda.md:29                aponta pra iniciativa do Manager, SEM restatar número — corrigido (R3)
+orq/commands/revisar.md:18,42,104       "uma vez"/"sozinho" de briefing e higiene — pré-existente, não relacionado
+orq/commands/init.md:229                "decida sozinho" (colisão de nome) — pré-existente, não relacionado
+orq/commands/checkpoint.md:2            "bloco de trabalho" na description — mesma definição da SKILL, consistente
+orq/commands/checkpoint.md:51           NOVO — aponta pra N1, distingue (R4)
+orq/commands/wiki-lint.md:26,31,34      reescrito — só aponta pra SKILL, não restata números (B1+R3)
+orq/commands/acordar.md:18              "uma vez" de numerar perguntas — pré-existente, não relacionado
+orq/commands/implement-next.md:58       "sozinho" de marcar DONE — pré-existente, não relacionado
+orq/skills/orq/SKILL.md:82              "não instale sozinho" (init) — pré-existente, não relacionado
+orq/skills/orq/SKILL.md:83              linha da tabela — condição realinhada com N1 (B3)
+orq/skills/orq/SKILL.md:185,189,200,209,215-217   política canônica — consistente internamente
+orq/skills/orq/SKILL.md:270             "funciona sozinho" (ferramentas) — pré-existente, não relacionado
+README.md:48,55                         "uma vez por máquina/projeto" (instalação) — pré-existente, não relacionado
+README.md:79                             "funciona sozinho" (stack) — pré-existente, não relacionado
+README.md:129                           "bloco de trabalho" na tabela de comandos — consistente com a SKILL
+README.md:258                           reescrito — só aponta, sem números (R3)
+README.md:305                           "push... sozinho" — pré-existente, não relacionado
+README.md:352                           Status/changelog nomeando os 3 níveis — não é normativo, é registro de versão
+```
+Julgamento: nenhuma contradição. A política (números, condições, teto) mora só em
+`SKILL.md:185-224`; todo outro arquivo aponta pra ela sem restatar.
+
+**Gates:**
+```
+$ claude plugin validate ./orq --strict
+✔ Validation passed
+
+$ python3 orq/scripts/lint-coerencia.py .
+✓ coerência interna ok — 19 nomes conferidos, memory/ ignorado
+```

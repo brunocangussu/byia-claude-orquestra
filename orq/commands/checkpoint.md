@@ -48,7 +48,9 @@ O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁ
   Havendo mais de uma frente ativa, **carimbe a frente** no título: `| @auth · rotação de token`.
 - **PÁGINAS DE TÓPICO** (`memory/wiki/*.md`): **atualize as afetadas** — reescreva pra refletir o
   estado ATUAL; se o trabalho contradiz o que a página afirmava, **corrija a página**. Se o assunto
-  ainda não tem página e é recorrente, **crie**.
+  ainda não tem página e é recorrente, **crie**. (Isto não é a "iniciativa própria" que o N1 da
+  skill `orq` restringe — o checkpoint só roda quando o dono pede, mesmo em frase natural como
+  "terminamos"; a correção de página aqui vale sem pedir ok de novo.)
 - **THREAD ativa** (`memory/wiki/threads/*.md`): status das fases (✅/🔄/⬜), decisões novas (com o
   porquê, pra não re-litigar), perguntas abertas e — obrigatório — **⏭️ RETOMAR AQUI** com a próxima
   ação concreta. Thread concluída → sintetize nas páginas de tópico e mova pra `threads/_concluidas/`.

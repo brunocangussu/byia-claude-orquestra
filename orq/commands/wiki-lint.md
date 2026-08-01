@@ -21,7 +21,16 @@ Leia `memory/MEMORY.md` (índice), as páginas de `memory/wiki/`, as threads e o
    (diff, lista de arquivos, schema do banco) que deveria sair.
 
 **Entregue um relatório curto e priorizado**: o achado, o arquivo, e a correção sugerida.
-**Não corrija nada ainda** — apresente e pergunte o que aplicar. Exceção: erros triviais e
-inequívocos (link quebrado, página faltando no índice) pode corrigir direto e listar no fim.
+**Não corrija nada ainda** — apresente e pergunte o que aplicar. Exceção — **só quando o dono pediu
+este comando**, mesmo em frase natural ("dá uma olhada na saúde da wiki", não precisa ser
+`/orq:wiki-lint` digitado): erros triviais e inequívocos (link quebrado, página faltando no
+índice) pode corrigir direto e listar no fim. Rodando por iniciativa própria do Manager (seção
+abaixo), essa exceção **não vale** — nem o trivial se corrige sem ok.
 
 Se a wiki estiver saudável, diga isso em uma linha — não invente achado pra parecer útil.
+
+## Quando o Manager roda isto por iniciativa própria
+
+Este comando também roda **sem o dono pedir** — quando, como relatar e o teto estão só na skill
+`orq`, seção "Decisões que o Manager toma sozinho" → nível N1; este arquivo não repete os números
+para não divergir dela.

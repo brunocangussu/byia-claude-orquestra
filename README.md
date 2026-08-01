@@ -36,6 +36,7 @@ O plugin foi feito pra ser usado **conversando**. Você fala; o Claude reconhece
 | *"vou dormir, adianta o que der"* | modo noturno |
 | *"bom dia"* | relatório do que rodou à noite |
 | *"tá lento"* · *"o que falta instalar?"* | detecta a stack que falta e instala o que você aprovar |
+| *"quais as possibilidades?"* · *"o que dá pra fazer?"* | mostra o cardápio por situação — esta mesma tabela, adaptada ao projeto |
 
 Os comandos `/orq:*` existem como mecanismo. Use se quiser, mas não precisa.
 
@@ -130,6 +131,7 @@ atuais e mostra a você o que pretende rodar antes de rodar.
 | `/orq:lembrar` | Busca na memória de longo prazo (Supermemory) |
 | `/orq:dormir` | Modo noturno — adianta planejamento |
 | `/orq:acordar` | Relatório do modo noturno |
+| `/orq:ajuda` | Cardápio por situação — o que dizer pra cada coisa acontecer |
 
 ---
 
@@ -248,6 +250,15 @@ travá-la**. É o que permite o modo noturno funcionar sem você.
 
 ---
 
+## Iniciativa própria
+
+O Manager também age **sem você pedir**, dentro de limites — mas nunca escreve o produto por conta
+própria: toda mudança continua entrando pelo ciclo. Os três níveis, as condições de cada um e o
+teto ficam só na skill `orq` (`orq/skills/orq/SKILL.md`), seção "Decisões que o Manager toma
+sozinho" — este README não os repete, pra não divergir dela.
+
+---
+
 ## A memória (wiki)
 
 O board diz *onde estamos*; a wiki diz *o que o sistema é*.
@@ -334,10 +345,12 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.14.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.15.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
-· reload vs restart documentado por **evidência por componente**, não regra binária.
+· reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
+corpus real (não inventados) · cardápio por situação (`/orq:ajuda`) · política de iniciativa própria em
+**três níveis** (age e relata · propõe 1× · sempre pergunta).
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

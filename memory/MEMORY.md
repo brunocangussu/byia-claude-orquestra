@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.14.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-29.
+**Versão:** 0.15.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-29.
 
 ## Onde paramos
 
@@ -34,7 +34,7 @@ destruiu o working tree (`T-019`). É o argumento do `T-001` provado contra o pr
 foi provado, os comandos não). As 9 regras invioláveis seguem sendo texto — nenhum hook (`T-001`,
 `T-002`).
 
-⚠️ **10 cards em VALIDATE** (a 0.14.0 entrou em 2026-07-31). Card fecha quando o dono confirma, não quando o commit passa. Os
+⚠️ **11 cards em VALIDATE** (0.14.0 e 0.15.0 entraram em 2026-07-31). Card fecha quando o dono confirma, não quando o commit passa. Os
 comportamentais só são testáveis **depois do release e do restart** — antes disso testam a versão
 anterior, pelo motivo acima.
 
@@ -53,7 +53,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`fixes-history.md`](fixes-history.md) | **Log** cronológico, append-only — "o que aconteceu naquele dia" |
 | [`gotchas.md`](gotchas.md) | Armadilhas que já custaram tempo |
 | [`wiki/threads/desenvolvimento-do-plugin.md`](wiki/threads/desenvolvimento-do-plugin.md) | **Thread ativa** — fases, decisões a não re-litigar e **⏭️ RETOMAR AQUI** |
-| [`wiki/threads/T-025-gatilhos.md`](wiki/threads/T-025-gatilhos.md) | **Aprovado 2026-07-31**, próximo da fila (0.15.0) — cobertura de gatilho medida, descoberta e política de iniciativa |
+| [`wiki/threads/T-025-gatilhos.md`](wiki/threads/T-025-gatilhos.md) | **Implementado na 0.15.0** — descoberta (`/orq:ajuda`), gatilhos atestados e a política de iniciativa em três níveis |
 | [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | Plano **guardado no backlog** por decisão do dono — rodar a disciplina fora do Claude Code; reconferir a matriz de paridade antes de retomar |
 | [`wiki/threads/T-023-reload-vs-restart.md`](wiki/threads/T-023-reload-vs-restart.md) | **Implementado na 0.14.0**, reprovado no review e corrigido — evidência por componente no lugar de regra binária |
 | [`wiki/threads/T-020-perfis-elenco.md`](wiki/threads/T-020-perfis-elenco.md) | **Aprovado 2026-07-31**, terceiro da fila (0.16.0) — perfis de elenco (`padrao` · `economia`) |
