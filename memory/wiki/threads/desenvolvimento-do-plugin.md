@@ -59,16 +59,28 @@ deixou o consumidor aceitando lixo; o painel reprovou.
 
 ## ⏭️ RETOMAR AQUI
 
-**Estado: 0.13.0 publicada, commitada (`e0aed12`) e com push feito.** Plugin instalado em escopo
-`user` — vale em todos os projetos do dono, sem repetir nada em cada repo. `diff -rq` do cache contra
-`./orq/` volta **vazio**. Board em **15% (4/26)**, 9 em VALIDATE (contagem de 2026-07-30, depois dos cards `T-024` a `T-027`;
-o número muda a cada card — confira sempre com `bash orq/scripts/kanban-status.sh`).
+**Estado: 0.16.0 publicada, commitada (`e15101d`) e com push feito** (2026-07-31). Plugin em escopo
+`user` — vale em todos os projetos do dono. `diff -rq` do cache contra `./orq/` volta **vazio**.
+Board em **17% (5/28)**, 12 em VALIDATE (confira sempre com `bash orq/scripts/kanban-status.sh`;
+o número muda a cada card).
 
-**Três releases no mesmo dia:** 0.11.0 (diagnóstico de ambiente + parser do board + roteamento +
-guarda de bump) · 0.12.0 (relatório do checkpoint: audiência e gate) · 0.13.0 (formato do relatório:
-espaçamento). O ciclo completo rodou nos três, e **o review reprovou os três** — foi ele que pegou o
-falso positivo do parser em prosa real, o vazamento de numeração interna para a tela, e a supressão
-da autorização de `/clear` em projeto sem board.
+**Seis releases em três dias.** 0.11.0 (diagnóstico + parser + roteamento) · 0.12.0 e 0.13.0
+(relatório do checkpoint: audiência, depois espaçamento) · **0.14.0** (reload×restart vira evidência
+por componente) · **0.15.0** (`/orq:ajuda` + gatilhos medidos + iniciativa em três níveis) ·
+**0.16.0** (perfis de elenco trocados por frase). **O review reprovou todos os seis.**
+
+**O padrão que se repetiu nos três últimos, e é o achado de método da semana:** o review não pegou
+só defeito da implementação — pegou **defeito criado pela correção anterior**. Na 0.14.0 a correção
+inventou contradição entre `orq/stack.md` e `orq/commands/stack.md`; na 0.15.0 duas correções
+interagiram e produziram uma exceção **inalcançável por construção**; na 0.16.0 o template definiu um
+perfil como ponteiro para si mesmo, e depois a correção disso plantou o único caminho relativo do
+plugin. **Corrigir é uma mudança como outra qualquer — precisa da mesma revisão que o original.**
+
+⚠️ **Três reincidências do mesmo defeito de origem (`T-014`):** gatilho inventado em vez de medido.
+Na 0.15.0 e na 0.16.0 o plano até **sabia** e marcou a frase como paráfrase — e ela entrou no produto
+sem a marca. A saída adotada na 0.16.0 é a que deve virar regra: **não adivinhe a fala do dono**;
+descreva a **intenção** como categoria, e faça o sistema **ensinar** a frase no momento em que ele
+precisa dela.
 
 ⚠️ **Decisão de aparência sem ver renderizado é chute — custou um release.** O dono pediu relatório
 "curto, 3–6 linhas"; entregue, ele reprovou a leitura (*"embolado"*). A compressão era a causa. Na
@@ -87,15 +99,20 @@ O terceiro era o **controle**, e os dois lados se comportaram diferente, que era
 declarado: o Manager conhece a instrução, então quem julga é o dono — `T-014` e `T-016` seguem em
 VALIDATE esperando o "pode fechar" dele.
 
-**Depois, em ordem:**
-1. **Validar os 9 cards em VALIDATE** — cada um tem "Como validar" próprio na nota. O `T-022` é o
-   mais rápido: trabalhar um bloco, dizer *"salva aí"*, e conferir que o relatório vem em **seções
-   com título e espaçamento** (não em linhas comprimidas — isso foi reprovado), com a evidência do
-   parser na seção `✅ Verificação`.
-2. **`T-019`** — worktree obrigatório para revisor sem sandbox.
-3. **`T-020` / `T-021`** — perfis de elenco e motor alternativo (pedidos do dono em 29/jul). O
-   `T-021` tem teto técnico já escrito no card: subagente do Claude Code não roda modelo de terceiro.
-4. **`T-001`** — hooks. O `T-019` provou o argumento contra o próprio repo.
+**A fila aprovada acabou — nada está em curso.** Próximo, em ordem:
+
+1. **Validar os 12 cards em VALIDATE** — cada um tem "Como validar" na própria nota. Os três mais
+   novos se testam conversando: *"quais as possibilidades"* (0.15.0) · *"tô com pouco crédito"* e o
+   contra-teste *"chegamos ao final do ciclo"*, que **não** pode trocar o time (0.16.0) · e
+   *"instala o Serena aqui"*, que tem de sair com **uma** instrução só (0.14.0).
+2. **`T-029`** — o lint é cego para caminho relativo entre arquivos do plugin. É barato e fecha o
+   buraco que deixou passar o defeito do `init.md` na 0.16.0.
+3. **`T-028`** — o README afirma que o Kimi não está instalado; ele é revisor ativo desde 28/jul.
+4. **`T-019`** — worktree obrigatório para revisor sem sandbox. **A premissa dele mudou:** o Kimi
+   **tem** hooks `PreToolUse` bloqueáveis, então a opção (c) voltou à mesa (achado do `T-026`).
+5. **`T-001`** — hooks de segurança. O `T-019` provou o argumento contra o próprio repo.
+6. **`T-026`** — host alternativo: plano pronto, guardado por decisão do dono. Reconferir a matriz de
+   paridade antes de implementar, porque Codex e Kimi mudam rápido.
 
 ⚠️ **Não rode o painel de revisores externos no repo vivo antes do `T-019`.** Só o Codex tem sandbox
 (`-s read-only`); o Kimi não tem nenhum e destruiu o working tree em 28/jul. O revisor interno é

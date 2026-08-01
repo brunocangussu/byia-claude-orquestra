@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.16.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-29.
+**Versão:** 0.16.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-31.
 
 ## Onde paramos
 
@@ -58,6 +58,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-023-reload-vs-restart.md`](wiki/threads/T-023-reload-vs-restart.md) | **Implementado na 0.14.0**, reprovado no review e corrigido — evidência por componente no lugar de regra binária |
 | [`wiki/threads/T-020-perfis-elenco.md`](wiki/threads/T-020-perfis-elenco.md) | **Entregue na 0.16.0** — perfis de elenco (`padrao` · `economia`) trocados por frase |
 | [`wiki/threads/_noturno.md`](wiki/threads/_noturno.md) | Manifesto **expirado** + relatório do modo noturno de 2026-07-30 — não abrir run novo a partir dele |
+| [`snapshot-2026-07-31-releases-0.14-0.16.md`](snapshot-2026-07-31-releases-0.14-0.16.md) | **Marco**: estado exato ao fim das três entregas do dia + as três lições de método |
 
 ## A distinção que faz isto funcionar
 
