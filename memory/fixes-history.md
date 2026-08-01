@@ -577,3 +577,40 @@ Bash de dentro do Claude Code; `_elenco.md` e `revisar.md` instruem exatamente i
 registrada no `gotchas.md` venceu (o `codex:codex-rescue` aparece como agent type desde 29/jul), mas
 a escolha pode continuar certa — foi o `T-010` que provou a CLI direta funcionando, e o painel
 depende dela hoje. Decidir é do dono; o `gotchas.md` recebeu o aviso de premissa vencida.
+
+---
+
+## [2026-07-31] feat | 0.14.0 — reload vs restart vira evidência por componente
+
+**Card `T-023`.** A documentação já tinha oscilado **duas vezes** entre "reload basta" (0.10.0, sem
+procedência) e "reinicie sempre" (0.11.0, reação à desconfiança). O plano recusou virar a regra pela
+terceira vez: o defeito não era o polo escolhido, era **codificar regra binária onde só existe
+evidência parcial**. Agora há uma tabela de estados **por componente** — skill está `✅ observado 1×
+(2026-07-29)`; comando, agente, hook, MCP, PATH e arquivo lido em runtime estão `❓ não testado,
+presuma restart`. Dado novo atualiza **uma célula**, não a regra.
+
+**A regra que sobreviveu de propósito:** card só fecha com teste **pós-restart**. Sessão pós-reload
+pode estar mista, e é isso que invalidaria a validação.
+
+**O review reprovou, e os dois bloqueadores mais caros foram autoinfligidos:**
+
+1. A correção **criou** contradição entre `orq/stack.md` e `orq/commands/stack.md` — o texto novo
+   apagou o roteamento *instalação por CLI* × *por slash command*, e o comando **ainda dependia
+   dele**. O card que existe para eliminar instrução divergente produziu uma.
+2. O parágrafo novo passou a citar `plugin update --help` como fonte de uma regra sobre
+   **instalação**. O painel da 0.11.0 já havia corrigido exatamente isso (ver entrada de 29/jul), e a
+   ressalva explícita foi apagada em silêncio. Procedência errada num card cuja causa raiz declarada é
+   *afirmação sem procedência*.
+
+**Terceiro bloqueador, de processo:** a thread ficou com cabeçalho e "RETOMAR AQUI" dizendo *"nada foi
+implementado"* enquanto o rodapé descrevia a implementação. Quem retomasse re-perguntaria decisões já
+delegadas, ou reimplementaria por cima de 9 arquivos.
+
+**Lição, que é a mesma de sempre com uma volta a mais:** varrer as referências não basta se a
+varredura for só textual. As duas frases que quebraram estavam **corretas isoladamente** — o que
+quebrou foi a relação entre arquivos. Nenhum dos dois gates pega isso; foi o revisor humano-substituto
+que pegou, lendo como leitor hostil.
+
+**Nota de execução:** o implementer das correções morreu por erro de API no meio da verificação. As
+sete correções já estavam aplicadas; o Manager mediu arquivo por arquivo antes de continuar, em vez de
+relançar cego — relançar teria refeito por cima do que já estava certo.

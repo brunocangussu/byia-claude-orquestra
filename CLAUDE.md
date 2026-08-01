@@ -55,6 +55,8 @@ python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruçõe
 `claude plugin marketplace update orquestra` + `claude plugin update orq@orquestra` + **reiniciar a
 sessão** + `diff -rq ~/.claude/plugins/cache/orquestra/orq/<versão>/ ./orq/` voltando **vazio**.
 Só então conversar em português natural para ver se a intenção é reconhecida sem comando digitado.
+Para iterar numa **skill**, `/reload-plugins` comprovadamente aplica o update na sessão viva
+(2026-07-29) — serve para experimentar, **não** para fechar card: comando e agente seguem sem teste.
 
 ⚠️ **`validate` sozinho não prova correção.** Ele checa o manifesto e passa com instruções que mandam
 rodar comando inexistente — foi assim que `/orquestra:*` sobreviveu a três releases depois da

@@ -82,7 +82,7 @@ um arquivo já vale na hora. **Não vale.** O plugin instalado é uma **cópia e
 
 ```bash
 claude plugin marketplace update orquestra
-claude plugin update orq@orquestra          # exige reiniciar a sessão
+claude plugin update orq@orquestra          # copia para o cache — teste válido só após restart
 claude plugin list                          # confirma versão e escopo
 ```
 

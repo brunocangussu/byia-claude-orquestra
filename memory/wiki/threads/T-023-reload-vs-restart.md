@@ -2,8 +2,10 @@
 
 **Frente:** redação precisa sobre reload vs restart, nos 5 lugares que a 0.11.0 endureceu (+2 que a
 varredura achou).
-**Aberta em** 2026-07-30 · **estado: PLANO PRONTO — aguarda gate do dono (modo noturno)** · planner `fable`.
-**Nada em `orq/`, `README.md` ou `CLAUDE.md` foi editado** — este arquivo é o único artefato.
+**Aberta em** 2026-07-30 · **estado: IMPLEMENTADO (2026-07-31) — revisor reprovou (3 bloqueadores + 4
+riscos), correções aplicadas no mesmo dia — aguarda release + validação do dono** · planner `fable`.
+**As decisões 1–5 foram levadas ao dono e estão fechadas** (delegadas em 2026-07-31); `orq/`,
+`README.md` e `CLAUDE.md` já foram editados — ver "Implementação" e "Correções pós-review" abaixo.
 
 ## O fato verificado (2026-07-29, sessão viva)
 
@@ -214,8 +216,74 @@ com restart, porque `orq/stack.md` não é skill — é arquivo lido em runtime,
 
 ## ⏭️ RETOMAR AQUI
 
-**O plano está pronto e nada foi implementado.** Próxima ação: o **Manager leva as decisões 1–5 ao
-dono** (a 4 decide a ordem com o T-025 e implica renumerar a thread dele). Com as respostas, o card
-vai a READY e o implementer executa os passos 0–12 na ordem — os textos exatos estão nos passos 2–6;
-o grep dos passos 0 e 10 é obrigatório antes e depois. Sem resposta, o card vira `[!]` com a
-pergunta exata: "responda as decisões 1–5 da thread T-023-reload-vs-restart".
+**Implementado em 2026-07-31; revisor (Opus, read-only) reprovou com 3 bloqueadores + 4 riscos; as
+correções foram aplicadas no mesmo dia** (ver "Correções pós-review" abaixo). **As decisões 1–5 estão
+fechadas** — o dono já as delegou, não repergunte. Próxima ação: o **Manager roda o passo 11** (release
+completo + restart + `diff -rq` do cache 0.14.0 vazio) e cumpre o passo 12 (log em
+`fixes-history.md`, checkpoint desta thread, `MEMORY.md`). Só então o card vai a VALIDATE para o dono
+comprovar usando o produto (critérios de aceite acima).
+
+## Implementação (2026-07-31) — passos 0–10 e bump executados
+
+**Feito:** os textos exatos dos passos 2–6 foram aplicados literalmente (nenhum desvio de redação).
+Também: passo 7 (sonda documentada, 3 linhas, inserida logo após o parágrafo final da tabela do
+README, antes de "Um revisor sumiu do painel sem avisar"); decisão 5 (`gotchas.md` — comentário
+trocado por `# copia para o cache — teste válido só após restart`); bump 0.14.0 nos quatro lugares
+(`orq/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `memory/MEMORY.md` — só a
+linha de versão —, e a seção Status do README, à qual acrescentei uma cláusula curta: "· reload vs
+restart documentado por **evidência por componente**, não regra binária" — não havia texto sugerido
+no plano para essa linha, então segui o padrão das entradas anteriores da mesma seção).
+
+`orq/commands/stack.md` e `orq/skills/orq/SKILL.md:66` **não foram tocados**, como o plano mandava.
+`README.md:52` seguiu sem edição.
+
+**Arquivos tocados (linhas no `git diff --stat`):** `README.md` (+27/-8), `CLAUDE.md` (+2),
+`orq/stack.md` (+5/-5), `memory/wiki/distribuicao.md` (+8/-3), `memory/gotchas.md` (+1/-1),
+`orq/.claude-plugin/plugin.json` (+1/-1), `.claude-plugin/marketplace.json` (+1/-1),
+`memory/MEMORY.md` (+1/-1). 8 arquivos, 45 inserções / 21 deleções no total.
+
+**Verificação — os dois gates:**
+```
+$ claude plugin validate ./orq --strict
+Validating plugin manifest: .../orq/.claude-plugin/plugin.json
+✔ Validation passed
+
+$ python3 orq/scripts/lint-coerencia.py .
+✓ coerência interna ok — 18 nomes conferidos, memory/ ignorado
+```
+Ambos passaram sem achado.
+
+**Grep-guarda (passos 0 e 10), antes e depois:**
+- **Antes** (passo 0): bateu exatamente com o inventário do plano — 7 lugares + o homônimo do
+  `SKILL.md:66` + os 4 hits de `orq/commands/stack.md`.
+- **Depois** (passo 10), critérios hit por hit:
+  - `grep -rn "não está comprovado" ...` → **zero** ocorrências (frase extinta do polo estrito).
+  - `grep -rn -i "basta para comandos" ...` → **zero** ocorrências (frase extinta do polo frouxo).
+    Nota: existe `basta para` em `distribuicao.md:47` ("reload basta para experimentar skill, não
+    para validar") — é o texto literal do passo 6 do plano, escopado só a skill, não a frase extinta.
+  - Nenhuma linha afirma que reload **aplica** update de cache para comando, agente, hook ou MCP —
+    checado via `grep -i "aplica"`: todos os hits em componente são "skill" (comprovado) ou "seguem
+    sem teste" (comando/agente/hook/MCP, corretamente não afirmado).
+  - `orq/skills/orq/SKILL.md:66` — **intacto**, texto idêntico ao grep de entrada.
+  - Os 4 hits de `orq/commands/stack.md` (linhas 68, 73, 146, 170) — **intactos**, texto idêntico.
+
+**Não feito / fora do meu escopo neste card:**
+- Passo 11 (release completo + restart + `diff -rq` do cache 0.14.0) — proibido para o implementer
+  (mutaria o ambiente do dono); é o Manager quem roda.
+- Passo 12 (deveres de checkpoint: log em `fixes-history.md`, thread, `MEMORY.md` além da versão) —
+  não mexi em `fixes-history.md` nem na seção "Onde paramos"/páginas do `MEMORY.md`, por estar fora
+  da autorização deste card (só a linha de versão foi meu escopo, conforme o bump obrigatório).
+- Passo 4 do bloco de decisões (ordem T-023/T-025 e renumeração da thread do T-025) — decisão do
+  dono via Manager, não é ação de implementação.
+
+**Decisões que tomei sozinho:**
+- Na seção Status do README, como o plano não deu texto exato para essa linha (só mandou bumpar),
+  escrevi uma cláusula curta e neutra ("reload vs restart documentado por evidência por componente,
+  não regra binária") seguindo o estilo das cláusulas vizinhas (separadas por `·`).
+- Ao trocar a frase de `distribuicao.md:41` (decisão do passo 6), removi a frase remanescente "Antes
+  disso você está testando a versão anterior e concluindo coisas erradas sobre a atual" porque o
+  plano deu o texto de substituição completo para aquele parágrafo e essa frase não constava nele;
+  o conteúdo equivalente já está coberto pela regra operacional na tabela do README (passo 3).
+
+**O que falta para o card ir a VALIDATE:** passo 11 (release + restart + diff vazio do cache
+0.14.0) e o passo 12 completo (log + checkpoint), que são do Manager/dono — não deste implementer.

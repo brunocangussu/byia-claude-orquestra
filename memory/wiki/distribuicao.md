@@ -23,11 +23,16 @@ Um papel → o **agent**.
 claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência
 claude plugin marketplace update orquestra     # relê o marketplace local
-claude plugin update orq@orquestra             # copia para o cache — exige reiniciar
+claude plugin update orq@orquestra             # copia para o cache — teste válido só após restart
 claude plugin list                             # confirma versão e escopo
 V=$(python3 -c "import json;print(json.load(open('orq/.claude-plugin/plugin.json'))['version'])")
 diff -rq ~/.claude/plugins/cache/orquestra/orq/$V/ ./orq/   # TEM que voltar vazio
 ```
+
+**Reload vs restart, por componente (medido em 2026-07-29):** `/reload-plugins` na sessão viva
+**aplica** o update para **skill** (a 0.11.0 foi servida sem restart). Comando, agente, hook e MCP:
+**não testados** — presuma restart. Novo dado atualiza uma célula da tabela do README ("Problemas
+conhecidos"), nunca vira regra binária de novo.
 
 ⚠️ **O marketplace aponta pro diretório deste repo, mas isso NÃO significa que editar já vale.**
 O plugin em uso é uma **cópia em cache** (`~/.claude/plugins/cache/orquestra/orq/<versão>/`). Sem os
@@ -38,8 +43,8 @@ dois comandos de update, a máquina continua rodando a versão antiga — foi as
 o que roda e o `list` segue dizendo que está tudo certo (aconteceu no `5b75296`). O `diff` é o fecho
 do ciclo — não-vazio depois do update = o release não aconteceu; bumpa e repete.
 
-**Consequência prática:** o teste comportamental só é válido **depois** do update e do restart. Antes
-disso você está testando a versão anterior e concluindo coisas erradas sobre a atual.
+**Consequência prática:** o teste comportamental que **fecha card** só é válido depois do update **e
+do restart** — reload basta para experimentar skill, não para validar.
 
 A CLI `claude plugin` tem `install`, `update`, `marketplace`, `list`, `uninstall`, `validate` e
 `tag` — dá para operar tudo sem os slash commands do cliente.

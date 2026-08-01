@@ -310,8 +310,10 @@ cd byia-claude-orquestra
 
 Ao editar, as duas verificações — `claude plugin validate ./orq --strict` (manifesto) e
 `python3 orq/scripts/lint-coerencia.py .` (coerência: todo comando/agente/skill citado existe?) —
-depois `/plugin marketplace update orquestra` + `/plugin update orq@orquestra` + reiniciar a sessão
-(`/reload-plugins` sozinho não garante cache atualizado — ver "Problemas conhecidos" abaixo).
+depois `/plugin marketplace update orquestra` + `/plugin update orq@orquestra`. Para iterar numa
+skill, `/reload-plugins` comprovadamente aplica o update na sessão viva (verificado em 2026-07-29);
+teste que fecha card exige **reiniciar** — comando, agente, hook, MCP e PATH seguem sem teste (ver
+"Problemas conhecidos" abaixo).
 
 **Estrutura:**
 ```
@@ -332,9 +334,10 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.13.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.14.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
-auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**.
+auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
+· reload vs restart documentado por **evidência por componente**, não regra binária.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.
@@ -361,11 +364,26 @@ conteúdo igual** — quem edita sem bumpar deixa o cache stale com o `list` diz
 certo. Com marketplace local (`Source: Directory`, visível em `claude plugin marketplace list`), o
 `diff` fecha esse buraco: não-vazio = bump e repita o ciclo.
 
-Depois **reinicie a sessão** — o próprio `claude plugin update --help` avisa: "(restart required to
-apply)". `/reload-plugins` recarrega plugin de desenvolvimento (`--plugin-dir`), mas **não está
-comprovado** que aplique um update de cache numa sessão aberta; na dúvida, teste comportamental só
-vale após restart. Um plugin em **escopo `project`** não vale nos outros projetos: reinstale com
-escopo de usuário.
+O que o `/reload-plugins` aplica numa sessão viva, por componente — a doc já errou aqui nos dois
+sentidos (0.10.0 afirmou demais, 0.11.0 negou demais), então o vocabulário é de evidência, não de
+regra:
+
+| Componente | `/reload-plugins` aplica o update de cache? |
+|---|---|
+| skill | ✅ **observado 1×** (2026-07-29) — após `claude plugin update`, a sessão viva passou a servir a skill nova, sem restart |
+| comando · agente | ❓ **não testado** — presuma restart até alguém repetir o teste acima com eles |
+| hook · MCP server · PATH | ❓ **não testado** — presuma restart; o `claude plugin update --help` manda reiniciar, mas o caso da skill provou que esse aviso é conservador |
+| arquivo lido em runtime (`stack.md`, `scripts/`) | ❓ **não testado** — presuma restart |
+
+**A regra operacional não muda:** teste comportamental que fecha card só vale após **restart** +
+`diff` vazio — enquanto comando e agente não forem testados, a sessão pós-reload pode estar mista
+(skill nova, resto indeterminado). Novo dado? Atualize **uma célula** desta tabela, não a regra
+inteira. Um plugin em **escopo `project`** não vale nos outros projetos: reinstale com escopo de
+usuário.
+
+Sonda pendente (custo: uma invocação): no próximo release que alterar `orq/commands/*` ou
+`orq/agents/*`, rodar `/reload-plugins` na sessão viva e invocar o comando/agente alterado
+procurando o texto novo. Apareceu → a célula vira ✅; não apareceu → vira "exige restart".
 
 ### Um revisor sumiu do painel sem avisar
 
