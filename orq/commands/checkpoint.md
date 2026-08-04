@@ -139,7 +139,11 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
   de parágrafo para explicar um item? Ele não pertence ao relatório: vira card, ou já mora na thread.
 - **A seção Verificação nunca desaparece, e carrega a evidência — nunca só o ✓.** Sem os números ela é
   indistinguível de um checkpoint que não rodou nada, que é o defeito do passo 5. Ela é também a única
-  que autoriza o `/clear`: suprimi-la deixa o dono sem resposta. Projeto sem board nem thread? Ela
+  que autoriza o `/clear`: suprimi-la deixa o dono sem resposta. **Rodou o `wiki-lint` por iniciativa
+  própria (N1) neste checkpoint?** O achado dele entra como bullet **aqui** — é evidência de verificação,
+  não seção à parte, mas **não é sinal de verificação falhada**: o N1 só lê e nunca corrige (nem o
+  trivial — ver skill `orq`), então o achado nunca troca o título para `⚠️ Verificação falhou` nem
+  impede "Seguro dar `/clear`.". Projeto sem board nem thread? Ela
   aparece dizendo o que **não** havia a verificar, e autoriza:
 
       ### ✅ Verificação
@@ -147,7 +151,8 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
       **Seguro dar `/clear`.**
 
 - **Falhou um sinal?** Título vira `### ⚠️ Verificação falhou`, diga **qual** sinal e **o que corrigir**,
-  e troque a linha em negrito por esta — nunca a omita, senão o dono fica sem saber onde está:
+  e troque a linha em negrito por esta — nunca a omita, senão o dono fica sem saber onde está (o
+  achado do `wiki-lint` reportado acima nunca conta como esse sinal):
 
       ### ⚠️ Verificação falhou
       - <qual sinal> — <o que corrigir>

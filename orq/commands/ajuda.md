@@ -35,7 +35,7 @@ configurado, não anuncie um painel que não vai rodar.
 ## Regras
 
 - **Frase antes de comando, sempre.** O comando entre parênteses é rodapé, não a resposta.
-- A tabela acima, por situação, é o formato certo — cobrir as 13 situações reais nela **não** é o
+- A tabela acima, por situação, é o formato certo — cobrir as situações reais nela **não** é o
   que esta regra proíbe. O que não fazer é a versão *manual de referência*: uma lista
   comando-primeiro (nome do comando seguido de descrição), sem a frase que o dono diria, como se
   fosse uma cheat sheet de sintaxe. Frase na frente sempre; se sumir a frase, sumiu o ponto do

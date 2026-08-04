@@ -1,6 +1,6 @@
 ---
 description: Painel de revisores independentes (Claude + Codex + Kimi, e outros configurados) sobre a mudança atual, com os achados reconciliados num parecer só
-argument-hint: "[T-NNN | caminho | 'o que revisar'] [--rapido para só um revisor]"
+argument-hint: "[T-NNN | caminho | 'o que revisar'] [--rapido para painel mínimo — normalmente só o revisor interno]"
 ---
 
 Rode uma **revisão por painel**: revisores independentes olham a mesma mudança **em paralelo**, e
@@ -93,9 +93,25 @@ do jeito registrado ali.
 o painel foi parcial**, nomeando quem faltou. Nunca apresente parecer de um revisor como se fosse a
 interseção de vários: o valor do painel está em distinguir confirmado-por-dois de achado-por-um.
 
-Com `--rapido`: só o revisor interno. **Exceção: perfil `economia` ativo em `_elenco.md`** — nesse
-perfil o revisor interno é justamente o rebaixado, então `--rapido` deixa de ser recomendado mesmo
-em card pequeno; mantenha pelo menos um externo no painel.
+**Dado sensível no diff → a regra LGPD do passo 1b deste arquivo vence tudo, antes de qualquer outra
+coisa**: rode só o revisor interno, mesmo rebaixado, dizendo por quê. Sem esta precedência na frente,
+a saída "rebaixado + externo ativo" abaixo correria primeiro e mandaria dado sensível para fora.
+
+Sem dado sensível, com `--rapido`: rode só o revisor interno **salvo se ele estiver rebaixado** —
+modelo mais fraco que o do preset `padrao` do mesmo `_elenco.md` (ordem `haiku < sonnet < opus`;
+`fable` sem ordem definida → trate como **não rebaixado**; `inherit` → compare com o modelo real da
+sessão, não com o rótulo — é o caso em que o rótulo esconde o modelo, e é justamente o que esta regra
+existe para pegar; arquivo sem seção Perfis → trate como **não rebaixado**, na dúvida). Rebaixado,
+duas saídas, sem beco:
+
+1. **há externo ativo** → o `--rapido` inclui **um** externo, mesmo assim mais barato que o painel
+   completo;
+2. **nenhum externo ativo** (projeto solo-Claude) → roda só o interno e **anuncia em uma linha que o
+   painel está no mínimo** — não trave, não exija um revisor que não existe.
+
+Quem decide o painel mínimo é sempre este comando — os demais consumidores do `--rapido` (
+`/orq:implement-next`, o README do repositório do plugin, preset `economia`) não re-enunciam a
+condição, só apontam para cá.
 
 ## 3. Reconciliar (o passo que dá o valor)
 

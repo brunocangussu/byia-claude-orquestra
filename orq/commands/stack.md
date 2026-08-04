@@ -143,7 +143,8 @@ Para cada ferramenta aprovada:
    ```
 
    Instale no escopo **de usuário** salvo se ele pedir outra coisa — é o que faz a ferramenta valer
-   em todos os projetos dele. Ao terminar, avise que **é preciso reiniciar a sessão** para aplicar.
+   em todos os projetos dele. Ao terminar, avise que deve **presumir restart** para aplicar — o
+   efeito do `/reload-plugins` sobre instalação de ferramenta nova é **não testado**.
 
    ⚠️ **Nunca improvise um equivalente.** Nada de `git clone` para dentro de `~/.claude/plugins/`,
    nada de editar `config.json`, `installed_plugins.json` ou `known_marketplaces.json` na mão. Isso é

@@ -215,8 +215,10 @@ arquivos é "mínimo + Supermemory", **não** arrasta a camada 3.
 | **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | `codex` no painel |
 | **Multi-projeto** | Supermemory |
 
-Depois de instalar: plugin instalado pela **CLI** exige **reiniciar a sessão** — o `claude plugin
-update --help` diz "(restart required to apply)"; o `install --help` não menciona restart, então
-aqui a exigência é conservadora, não citação. Instalação por slash command dentro do cliente, peça
-o `/reload-plugins` ao dono. Em qualquer caso, confirme que a ferramenta **responde** antes de dizer que está pronta.
-Instalado ≠ funcionando.
+Depois de instalar: **presuma restart** — não testado por componente para instalação de ferramenta
+nova. O `claude plugin update --help` diz "(restart required to apply)"; trate como **aviso
+conservador**, não como prova — para **skill**, esse mesmo tipo de aviso já foi desmentido 1× (a
+sessão viva passou a servir a skill nova sem restart, noutro contexto). O `install --help` não
+menciona restart, o que reforça a leitura de aviso conservador, não confirmação. Instalação por
+slash command dentro do cliente, peça o `/reload-plugins` ao dono. Em qualquer caso, confirme que a
+ferramenta **responde** antes de dizer que está pronta. Instalado ≠ funcionando.

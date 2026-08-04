@@ -8,8 +8,9 @@
 **Perfil ativo:** `padrao` — desde 2026-07-28, sem desvio.
 *(Trocar o perfil reescreve a tabela "Papéis" abaixo e vale a partir do **próximo spawn, em todas
 as janelas** — crédito é da conta, não da frente. Agente já em execução termina no modelo antigo;
-não se refaz nada. Ajuste papel a papel depois da troca é permitido: registre nesta linha como
-desvio — ex.: `economia · desvio: planner→fable`.)*
+não se refaz nada. Ajuste papel a papel que diverge do preset ativo — inclusive com `padrao`
+ativo — vira `padrao · desvio: papel→modelo`; devolvido ao preset, remove-se o desvio. Ver passo 3
+de "Com argumento — ajustar" em `/orq:elenco`.)*
 
 ## Papéis (tabela ativa — é ESTA que os comandos leem)
 
@@ -66,8 +67,9 @@ maior consumo, e só ele troca.
 | docs | sonnet | escrita objetiva sobre código já pronto |
 | scout | sonnet | leitura ampla e barata |
 
-Revisores externos: codex **ativo** · kimi **ativo**. Painel completo em card normal; `--rapido`
-em card pequeno.
+Revisores externos: codex **ativo** · kimi **ativo** — estado informativo, o perfil não aplica isto
+(ver passo 2 de "Com argumento `perfil <nome>`" em `/orq:elenco`); vale o que está de fato
+registrado acima. Painel completo em card normal; `--rapido` em card pequeno.
 
 ### `economia` — fim do ciclo semanal, crédito Claude curto
 
@@ -82,14 +84,14 @@ Opus; uso mais as outras, o Codex e o Kimi"*.
 | docs | haiku | escrita objetiva; rebaixar aqui custa pouco |
 | scout | haiku | leitura ampla e barata |
 
-Revisores externos: codex **ativo** · kimi **ativo** — e `--rapido` (só o interno) **deixa de ser
-recomendado**: o interno é justamente o revisor rebaixado; em card pequeno, some pelo menos um
-externo.
+Revisores externos: codex **ativo** · kimi **ativo** — mesmo estado informativo do preset `padrao`,
+não aplicado pelo perfil (ver passo 2 de "Com argumento `perfil <nome>`" em `/orq:elenco`). Quem
+decide o painel mínimo do `--rapido` é o `/orq:revisar` — regra lá.
 
 **O que se perde neste perfil — dito com todas as letras:**
-- plano mais raso: card de **alto risco não se planeja em economia** — ou espera o crédito voltar,
-  ou o dono aceita o risco por escrito no card;
-- reconciliação mais fraca: quem desempata o painel é o reviewer interno, agora menor;
+- reconciliação interna mais fraca: quem desempata o painel é o reviewer, agora rebaixado — **com
+  externo ativo**, o desempate desloca para o painel externo (Codex/Kimi) — **sem externo ativo, não
+  há pra onde deslocar**: o reviewer rebaixado decide sozinho;
 - mais peso no Kimi = mais exposição — ele não tem sandbox (`T-019`); worktree descartável vira
   **mais** obrigatório, não menos;
 - Codex e Kimi são read-only: implementação continua queimando crédito Claude — o perfil **reduz,
@@ -112,4 +114,5 @@ modelo só. Três fornecedores distintos (Anthropic · OpenAI · Moonshot) erram
 correlacionadas que duas instâncias do mesmo.
 
 Em card pequeno e de baixo risco, `--rapido` (só o revisor interno). Painel em mudança trivial é
-desperdício. **Exceção: no perfil `economia`, ver a nota do preset.**
+desperdício. Quem decide o painel mínimo (inclusive no perfil `economia`) é o `/orq:revisar` — regra
+lá.

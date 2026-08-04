@@ -30,9 +30,8 @@ critérios de aceite, o que está fora de escopo.
 código** antes de aceitar; divergência **você desempata**.
 
 Em card pequeno e de baixo risco, um revisor só basta (`--rapido`) — não gaste painel em mudança
-trivial. **Exceção: perfil `economia` ativo em `_elenco.md`** — lá o revisor interno é justamente o
-rebaixado, então `--rapido` deixa de ser recomendado mesmo em card pequeno; mantenha pelo menos um
-revisor externo.
+trivial. Se o reviewer interno da tabela ativa estiver rebaixado, quem decide o painel mínimo é o
+`/orq:revisar` — regra lá.
 
 **Aplicar as correções é do implementer**, não do reviewer. Achado grave → devolva ao implementer e
 revise de novo. Máximo 2 rodadas; persistindo, escale pro dono.
