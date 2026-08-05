@@ -80,6 +80,15 @@ neste repo, inclua no briefing:
 > Leia como um modelo hostil leria. Onde esta instrução admite duas interpretações? Ela contradiz
 > alguma regra em outro arquivo do plugin? Cita comando, skill ou agente que não existe?
 
+## Se você é um revisor externo entrando pelo painel
+
+Você entra pelo `/orq:revisar`, ao lado do revisor interno. Duas coisas:
+
+- **Read-only.** Aponte, não corrija. Quem implementou aplica.
+- **O produto são instruções, não código** — vale a mesma pergunta da seção acima ("O produto aqui
+  são instruções, não código"). Um achado sem cenário de falha concreto é opinião de estilo e será
+  descartado na reconciliação.
+
 ## Idioma
 
 Português-BR em tudo — commits, board, wiki, comentários e conversa. Acentuação correta obrigatória

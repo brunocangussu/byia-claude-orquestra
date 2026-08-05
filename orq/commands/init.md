@@ -67,7 +67,7 @@ por contexto de crédito com `/orq:elenco perfil economia` — o arquivo já nas
 - Repo grande → busca semântica primeiro; indexar se ainda não estiver.
 - Saída volumosa (testes, logs, git) → context-mode.
 
-**Stack complementar.** Do que faltou no item 6, proponha só o que se paga *neste* projeto — o
+**Stack complementar.** Do que faltou no levantamento de ferramental, proponha só o que se paga *neste* projeto — o
 `stack.md` traz o filtro (projeto pequeno não precisa de camada 3; o que exige chave só com ganho
 claro). Uma linha por ferramenta: o que resolve · ganho aqui · custo · repositório oficial.
 
@@ -175,15 +175,27 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    `_elenco.md` só com a tabela de papéis: o projeto nasce **já** com o conceito de perfil, não como
    um recurso que só aparece se alguém pedir depois. É esse arquivo que os comandos leem na hora de
    spawnar.
-3. **`CLAUDE.md`** — adicione (ou atualize) um bloco `<!-- orquestra:start -->…<!-- orquestra:end -->`
-   com: o ciclo, onde vive a memória, quem move o board, e as convenções do projeto que você
-   descobriu (build, teste, o que quebra o deploy). **Preserve todo o resto do arquivo.**
-4. **`AGENTS.md`** — se existir, ponteiro equivalente de poucas linhas (o Codex lê esse). Se não
-   existir, só crie se o projeto usar Codex.
-5. **Statusline** (opcional, perguntar): apontar o `statusLine` do settings para o
+3. **`CLAUDE.md` e `AGENTS.md`** — os dois arquivos saem **byte-idênticos, do primeiro ao último
+   caractere — não só o bloco.** É decisão do dono: *"o agent MD tem que ter o mesmo conteúdo do
+   Claude MD"*; `diff CLAUDE.md AGENTS.md` tem que voltar vazio, arquivo inteiro, não só o bloco.
+   **No repositório deste plugin**, `lint-coerencia.py` também aplica isso como gate mecânico (falha
+   se os dois divergirem, ou se só um dos dois existir); em outro projeto-alvo o lint não roda (exige
+   `orq/.claude-plugin/plugin.json` na raiz) — o `diff` acima é a própria verificação.
+   Grave (ou atualize) o bloco `<!-- orquestra:start -->…<!-- orquestra:end -->` nos dois —
+   **criando o `AGENTS.md` se ele não existir**, como cópia do `CLAUDE.md` resultante — com o
+   ciclo, onde vive a memória, quem move o board, e as convenções do projeto que você descobriu
+   (build, teste, o que quebra o deploy). Se algum dos dois já tinha conteúdo fora do bloco antes
+   deste `/orq:init` (ex.: uma instrução pensada só para um host), **não deixe os arquivos
+   divergirem por causa disso**: incorpore esse trecho ao texto comum como uma seção que se
+   endereça por identidade a quem lê ("Se você é um revisor externo entrando pelo painel…", "Se
+   você é o Codex/Kimi rodando este projeto…") — conteúdo condicional na leitura, nunca conteúdo
+   que só existe num dos dois arquivos — e grave a mesma versão,
+   completa, nos dois arquivos. Nada de ponteiro ("leia o outro arquivo") e nada de "cada um guarda
+   o seu resto" — é o mesmo conteúdo, inteiro, nos dois.
+4. **Statusline** (opcional, perguntar): apontar o `statusLine` do settings para o
    `kanban-status.sh`. Se já houver statusline customizada, **não sobrescreva** — mostre a linha a
    acrescentar.
-6. **Stack complementar.** Instale **só o que ele aprovou explicitamente**, seguindo as regras do
+5. **Stack complementar.** Instale **só o que ele aprovou explicitamente**, seguindo as regras do
    `/orq:stack` (instruções lidas no repositório oficial e mostradas a ele antes de rodar, nada com
    chave sem ele fornecer; plugin do Claude Code entra pela **CLI** — `claude plugin marketplace add`
    + `claude plugin install <plugin>@<marketplace>` —, nunca pelo slash command, que você não invoca).
@@ -207,8 +219,12 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      **Conte os cards à mão e compare.** É esse terceiro sinal que pega o erro sutil.
 
    Qualquer um dos três → corrija o board pelo `_schema.md` e rode de novo antes de seguir.
-2. **O `CLAUDE.md` sobreviveu?** As seções que existiam antes continuam lá, e o bloco
-   `orquestra:start`/`orquestra:end` está fechado corretamente.
+2. **`CLAUDE.md` e `AGENTS.md` são byte-idênticos?** `diff CLAUDE.md AGENTS.md` tem que voltar
+   **vazio** — arquivo inteiro, não só o bloco. (No repositório deste plugin é exatamente o que
+   `lint-coerencia.py` confere, inclusive se só um dos dois existir; **neste** projeto-alvo o lint
+   não roda — o `diff` acima é a checagem que vale.) O bloco `orquestra:start`/`orquestra:end` está
+   fechado corretamente e o conteúdo que existia antes de cada um sobreviveu — mas sobreviveu **nos
+   dois**, nunca só num. Divergiu? Corrija antes de seguir.
 3. **Os arquivos de memória existem** e o `MEMORY.md` aponta para o que realmente foi criado
    (incluindo índice pré-existente em outro caminho, se for o caso).
 4. **Agentes adicionais** (se criou): contagem confere e nenhum tem nome `orq-*`.

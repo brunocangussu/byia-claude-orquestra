@@ -22,6 +22,7 @@ Uma tabela ou lista curta, **por situação**, não por comando:
 | "lembra quando a gente…" | Busca na memória de longo prazo (`/orq:lembrar`) |
 | "tá lento" · "o que falta instalar" | Detecta a stack que falta e instala só o que você aprovar (`/orq:stack`) |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" | Diagnóstico do ferramental — plugin, escopo, PATH (`/orq:stack --verificar`) |
+| "tem um comando pra instalar o Orquestra no Codex/no Kimi?" · "quero testar o Orquestra em outras LLMs" | Instala o próprio Orquestra nos hosts alternativos, escopo de usuário (`/orq:instalar`) |
 | "vou abrir outra janela pra isso" · "deixa essa parte pra depois" | Registra a frente com nome, marca os cards em curso com `@frente` — pra não colidir com outra janela sua |
 | "vou dormir, adianta o que der" | Modo noturno — só planejamento, com limites (`/orq:dormir`) |
 | "bom dia" (depois do noturno) | Relatório do que rodou à noite (`/orq:acordar`) |

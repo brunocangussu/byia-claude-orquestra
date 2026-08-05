@@ -120,6 +120,7 @@ atuais e mostra a você o que pretende rodar antes de rodar.
 | Comando | O que faz |
 |---|---|
 | `/orq:init` | Instala e **adapta** o Orquestra ao projeto |
+| `/orq:instalar` | Instala **o plugin em si** nos hosts alternativos do dono (Codex, Kimi) |
 | `/orq:plan-next` | **Loop A** — planeja o próximo card e para no gate |
 | `/orq:implement-next` | **Loop B** — implementa + painel de revisão + documentação |
 | `/orq:revisar` | Painel de revisores sobre a mudança atual |
@@ -355,7 +356,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.17.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.18.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
@@ -366,7 +367,10 @@ sobre 0.14.0–0.16.0: teto do N2 numa **cláusula única** (sem regra duplicada
 `--rapido` decidido num lugar só (`/orq:revisar`, pela propriedade real — reviewer rebaixado — não
 pelo nome do perfil) · template do elenco com heading `Papéis`, revisores externos literais e
 auto-cura da seção Perfis em arquivo pré-0.16.0 (ao trocar de perfil ou ajustar um papel — não migra
-nota de preset).
+nota de preset) · **`AGENTS.md` = `CLAUDE.md`, byte-idênticos** (identidade vira gate mecânico no
+lint, não mais "dever de sincronizar") · `/orq:init` grava o mesmo bloco `orquestra:start` nos dois
+· `/orq:instalar` novo — instala o plugin em si (não só o projeto) nos hosts alternativos do dono,
+Codex e Kimi, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4).
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

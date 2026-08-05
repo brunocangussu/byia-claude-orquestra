@@ -177,3 +177,36 @@ estava correta, e não impediu nada. Só o Codex tem sandbox de verdade (`-s rea
 
 **Regra:** revisor externo sem flag de sandbox **não olha o repo vivo**. Worktree descartável ou
 clone. Prompt não é permissão negada — é pedido educado.
+
+## `git diff` esconde arquivo NOVO — e o painel de revisão revisa o vazio
+
+**Pago em 2026-08-04, na 0.18.0.** O painel roda sobre um patch (`git diff > x.patch` + `git apply`
+num worktree descartável). Arquivo novo é **untracked**, e `git diff` **não inclui untracked** — o
+worktree do revisor externo nasceu sem `orq/commands/instalar.md`, que era **a peça central da
+release**. O revisor reprovou com um bloqueador correto para o que via, e a premissa é que estava
+furada.
+
+**Sempre `git add -N .` antes de gerar o patch do painel.** Vale para toda release que cria arquivo
+— e um comando novo é exatamente isso.
+
+**Como apareceu:** o revisor foi **conferir se o arquivo existia** (`ls`, `git status -uall`) em vez
+de assumir. Nenhum gate pegaria: `validate` e `lint` rodam no repo real, onde o arquivo está.
+
+## Guarda mecânico prova ausência de STRING, não ausência de REGRA
+
+**Pago em 2026-08-04, na 0.17.0.** O critério de aceite do A1 era `grep "Teto:" orq/` retornar 1
+ocorrência — e retornou. A regra **sobreviveu mesmo assim**, em `SKILL.md:207`, escrita como
+*"propõe **1×** o resto"*. O `grep` procurava uma redação; o defeito estava em outra.
+
+Foram **cinco reincidências** do mesmo defeito, cada uma com redação diferente
+(`"proponha 1× por bloco"` · `"propõe 1× o resto"` · `"(a unidade do teto do N2)"` ·
+`"até o fim do bloco"` · `"insistir sem a condição ter piorado"`).
+
+**Critério de aceite baseado em `grep` precisa vir acompanhado de leitura humana ou de revisor.**
+A quinta só apareceu na releitura manual do Manager, depois de dois gates verdes e do `grep` limpo.
+
+## Ao acrescentar cláusula a uma regra, a frase que a RESUME é sempre suspeita
+
+**Corolário do anterior.** Toda regra tem uma frase de fecho que a resume ("o que o teto proíbe
+é…"). Ao acrescentar uma cláusula nova, **essa frase foi escrita para a versão anterior** e passa a
+contradizer a cláusula que você acabou de adicionar. Foi exatamente a quinta reincidência.

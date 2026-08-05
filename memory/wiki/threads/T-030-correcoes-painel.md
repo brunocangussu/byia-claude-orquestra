@@ -805,7 +805,9 @@ inteira num lugar deixa uma dimensão órfã enunciada em outro parágrafo. Se a
 novo no mesmo ponto, **o problema não é redação — é que essa regra pode ser complexa demais para o
 formato**, e a saída passa a ser simplificá-la (menos dimensões), não reescrevê-la.
 
-## ⏭️ RETOMAR AQUI
+## 🗄️ RETOMAR AQUI — SUPERADO (ver o do fim do arquivo)
+
+> Congelado — mantido como registro do que se sabia neste ponto. **O RETOMAR AQUI vivo é o último do arquivo.**
 
 **Card criado em 2026-08-02, aprovado pelo dono para entrar no ciclo ("sim"). Plano escrito pelo
 Planner (`fable`) no mesmo dia. As duas decisões pendentes foram respondidas. Nada foi implementado
@@ -902,7 +904,9 @@ consumidores; o README não vai para o cache, então em outro projeto a palavra 
 - **O painel prescreveu uma saída incompleta (R1).** Revisor propor "correção mínima" não garante
   que a correção seja suficiente: a saída (b) resolvia a contradição apontada e abria outro buraco.
 
-## ⏭️ RETOMAR AQUI
+## 🗄️ RETOMAR AQUI — SUPERADO (ver o do fim do arquivo)
+
+> Congelado — mantido como registro do que se sabia neste ponto. **O RETOMAR AQUI vivo é o último do arquivo.**
 
 **Estado: a correção está PRONTA e APROVADA pelo painel, no working tree, NÃO COMMITADA.**
 Versão 0.17.0 bumpada nos quatro lugares. Nada foi publicado.

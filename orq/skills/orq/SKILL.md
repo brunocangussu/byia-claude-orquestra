@@ -62,6 +62,28 @@ pronto, quando a decisão errada já custou. **Roteie primeiro.**
 **Regra:** o Bruno conversa; **você** reconhece a intenção e executa. Os comandos `/orq:*` são o
 mecanismo interno — ele não precisa saber que existem.
 
+⚠️ **Fora do Claude Code (Kimi, ou Codex sem os commands instalados), os `/orq:*` citados na tabela
+abaixo não existem como comando.** O procedimento é o mesmo: leia o arquivo `commands/<nome>.md`
+(ex.: a linha "pode implementar" → `commands/implement-next.md`) — **não presuma que ele mora no
+mesmo diretório desta skill**, isso só vale no Kimi. O caminho certo é relativo à **raiz do pacote
+instalado**, a mesma que `${CLAUDE_PLUGIN_ROOT}` apontaria: no Kimi essa raiz **é** o diretório desta
+skill (o `/orq:instalar` copia `commands/` para dentro dele, ao lado do `SKILL.md`); num cache de
+plugin (Codex) a raiz é `.../orq/<versão>/`, da qual `skills/` e `commands/` são **irmãos** — nunca
+`skills/orq/commands/`. Onde um desses arquivos citar `${CLAUDE_PLUGIN_ROOT}`, substitua por essa
+mesma raiz.
+
+Siga o arquivo como se você tivesse acabado de "rodar o comando" — **até onde o host permitir, nunca
+além disso**. Vários passos exigem primitiva que nem todo host tem: spawn de subagente com override
+de modelo (`plan-next.md`, `revisar.md`), `isolation: "worktree"` (`implement-next.md`), spawn sem
+`name`, `AskUserQuestion` e caminhos `.claude/agents/`/`statusLine` (`init.md`), `/clear`
+(`checkpoint.md`). **Sem a primitiva, nunca finja**: não simule que houve subagente, painel ou
+worktree — declare a degradação ao dono numa frase e faça o passo você mesmo, dizendo o que se
+perdeu. Onde houver equivalente, use-o: no lugar de spawn em sessão, invoque o papel como
+**subprocesso de CLI** do vendor daquele modelo (vendor do modelo == vendor do host → mecanismo
+nativo; senão → CLI do vendor do modelo) — os comandos exatos e os gotchas de cada CLI
+(`< /dev/null`, fallback de binário) já estão em `memory/wiki/_elenco.md`, seção "Revisores
+externos"; não repita a regra aqui, siga o que está lá.
+
 | Ele diz algo como… | Você faz |
 |---|---|
 | **"quero X" · "queria acrescentar Y" · "vamos fazer/criar/mudar Z" · "seria bom se" · "dá pra" · "tem um problema em W" · "isso está errado" · "não funciona" · "não gostei" · "precisa melhorar"** | **ROTEIA PELO CICLO** — é o caso mais comum e o mais fácil de errar. Cria o card, planeja, **para no gate**. Só implementa direto se for trivial pela escala acima |
@@ -77,6 +99,7 @@ mecanismo interno — ele não precisa saber que existem.
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" — queixa sobre o **ferramental** (plugin, revisor, statusline, MCP, PATH), nunca sobre o que o produto faz | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado (versão **e** conteúdo), escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
 | "quais as possibilidades" · "o que dá pra fazer" | **Cardápio por situação** (`/orq:ajuda`) — frases naturais em primeiro plano, comando entre parênteses. Nunca ensine o dono a digitar comando como resposta |
+| "tem um comando pra instalar o Orquestra no Codex/no Kimi?" · "quero testar o Orquestra em outras LLMs" — só dispara aqui quando a frase **nomeia o host** (Codex, Kimi) ou **o Orquestra** em si; sem isso, é ambíguo e cai num dos desempates ao lado | **Instalação em outro host** (`/orq:instalar`) — descobre a fonte, instala no host escolhido e **verifica que instalou**. Desempate contra `/orq:elenco` (acima): ali o pedido troca **quem toca o papel** no time atual, nunca leva o produto pra outro CLI. Desempate contra `/orq:stack` (acima): ali o objeto é uma ferramenta que falta **neste projeto**; aqui o objeto é **o Orquestra**, indo para outro host. Desempate por destino: pedido para **este projeto** (o CLI onde você já está) é `/orq:init`, mesmo citando "o Orquestra" — só dispara aqui quando o destino declarado é **outro** CLI |
 | "vou abrir outra janela pra isso" · "deixa essa parte pra depois" · "essa janela é pra X" | **Registre a frente**: nomeie a thread, marque os cards em curso com `@frente`, e diga em uma linha o que fica onde |
 | "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
 | "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |

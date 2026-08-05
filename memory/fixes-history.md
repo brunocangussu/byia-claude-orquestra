@@ -1,5 +1,50 @@
 # Log de mudanças — append-only
 
+## [2026-08-04] feat | 0.17.0 e 0.18.0 — regra duplicada vira lugar unico; Orquestra instalavel em Codex e Kimi
+
+**0.17.0 (card `T-030`) — correcao dos 11 achados do painel sobre as releases 0.14.0–0.16.0.**
+Principio: cada regra tem **um lugar normativo** e se condiciona a **propriedade real**, nunca a um
+proxy (nome de perfil, argumento de comando). Tres painels, nove pareceres, convergencia
+5 bloqueadores graves -> 2 -> 0. Commitada (`10ecef2`) e no GitHub. **O dono ainda nao rodou o
+release na maquina** — os cards `T-020`, `T-023`, `T-025` e `T-030` seguem esperando o teste dele.
+
+**0.18.0 (card `T-026`) — instalacao multi-host.** `AGENTS.md` = `CLAUDE.md` byte-identicos (decisao
+do dono: **nao** e ponteiro), com `diff` no lint como gate mecanico; comando novo `/orq:instalar`;
+`/orq:init` gravando nos dois. **NAO commitada** — esperando o ok do dono.
+
+### Por que o dono reabriu o `T-026`, e o que a reabertura corrigiu
+
+Motivo dele, verbatim: *"alternar as assinaturas que eu tenho… a depender de qual LLM esteja melhor
+naquele momento"* — **nao e rodizio de custo, e liberdade de escolher o motor**. Cadencia: por
+**ciclo de mercado** (lancamento de modelo novo), nao por semana.
+
+A investigacao de 30/jul estava **errada em dois pontos**, e as versoes dos CLIs nao mudaram desde
+la — **o que mudou foi a qualidade da investigacao**: o Codex TEM subagente (`spawn_agent`, modelo
+por filho) e TEM statusline; o Kimi carrega o formato Claude Code inteiro, e o **roteamento por
+intencao foi provado vivo** (`kimi -p "onde paramos?"` invocou a skill sozinho).
+
+### A intervencao do dono que encurtou o card
+
+O Manager desenhou um "portatil" como **copia adaptada** da `SKILL.md`, e dai nasceu toda a
+complexidade (sincronizar, apodrecer, gerar no release). O dono cortou: *"Nao entendi toda essa
+complexidade… isso era para funcionar em qualquer LLM, apenas adaptado aos motores de cada uma."*
+**Ele estava certo: o problema era do plano, nao do dominio.** A licao: quando a solucao fica
+complexa, verifique se o problema foi inventado por uma premissa sua.
+
+Depois ele decidiu contra a proposta de ponteiro — `AGENTS.md` com o **mesmo conteudo**. Como sao
+identicos por definicao, a divergencia virou verificavel por `diff`: **gate mecanico no lugar de
+"dever de sincronizar"**, que e o defeito que custou cinco rodadas nesta mesma semana.
+
+### O achado que decide se o framework realmente atravessa
+
+Copiar arquivos **nao** entrega o framework: os comandos exigem **primitivas** (spawn de subagente
+com override de modelo, worktree, `AskUserQuestion`, `/clear`). Sem tratamento, no Kimi o modelo
+planejaria na propria janela e depois "devolveria ao Planner" **revisando a si mesmo** — o
+isolamento de contexto e o handoff sumiriam **em silencio**. A `SKILL.md` ganhou a regra: **sem a
+primitiva, nunca finja** — declare a degradacao; onde houver equivalente, invoque o papel como
+**subprocesso CLI** (o mesmo padrao que o `/orq:revisar` ja pratica ha semanas).
+
+
 > Cronológico e **imutável**: cada entrada registra o que aconteceu naquele dia e por quê.
 > Nunca reescrever entrada antiga. "Como funciona hoje" mora nas páginas de `wiki/`.
 

@@ -128,6 +128,40 @@ def main() -> int:
                     )
                 )
 
+    # ── AGENTS.md e CLAUDE.md têm que ser byte-idênticos ────────────────────
+    # Decisão do dono (T-026, 2026-08-04): não existe mais "portátil" nem
+    # "ponteiro" — o que se instala noutro host é o mesmo conteúdo, e
+    # identidade vira gate mecânico em vez de "dever de sincronizar" (o
+    # defeito que já custou cinco rodadas de painel nesta semana).
+    claude_md = raiz / "CLAUDE.md"
+    agents_md = raiz / "AGENTS.md"
+    claude_existe, agents_existe = claude_md.exists(), agents_md.exists()
+    if claude_existe and agents_existe:
+        if claude_md.read_bytes() != agents_md.read_bytes():
+            problemas.append(
+                (
+                    Path("AGENTS.md"),
+                    0,
+                    "diverge de CLAUDE.md — os dois têm que ser byte-idênticos "
+                    "(`diff CLAUDE.md AGENTS.md` tem que voltar vazio)",
+                )
+            )
+    elif claude_existe != agents_existe:
+        # Um dos dois sumiu (ex.: apagado à mão) e o outro ficou — isso não é
+        # "não diverge", é o mesmo silêncio que o guarda acima existe pra
+        # eliminar: trocou "divergiu" por "sumiu" sem avisar ninguém.
+        faltante, existente = (
+            ("AGENTS.md", "CLAUDE.md") if claude_existe else ("CLAUDE.md", "AGENTS.md")
+        )
+        problemas.append(
+            (
+                Path(faltante),
+                0,
+                f"não existe, mas {existente} existe — os dois têm que existir e ser "
+                "byte-idênticos (`diff CLAUDE.md AGENTS.md` tem que voltar vazio)",
+            )
+        )
+
     # ── Cache stale por edição sem bump ─────────────────────────────────────
     # O cache do plugin é indexado por versão (~/.claude/plugins/cache/
     # orquestra/orq/<versão>/): editar orq/ sem bumpar NÃO muda o que roda e

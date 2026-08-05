@@ -4,7 +4,17 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.17.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-07-31.
+**Versão:** 0.18.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-04.
+
+## ⏸️ O que espera o dono AGORA (2026-08-04)
+
+1. **Commitar a 0.18.0** — implementada, revisada por três painéis, corrigida, gates verdes, **não
+   commitada**. É o card `T-026`.
+2. **Rodar o release na máquina** — `marketplace update` + `plugin update` + **restart**. Entrega
+   **0.17.0 e 0.18.0 juntas**: o release da 0.17.0 nunca foi feito.
+3. **Testar** — isso destrava `T-020`, `T-023`, `T-025` e `T-030`, os quatro parados em VALIDATE.
+
+**A 0.17.0 já está commitada (`10ecef2`) e no GitHub.** A 0.18.0 não.
 
 ## Onde paramos
 
