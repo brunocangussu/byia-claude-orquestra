@@ -82,7 +82,8 @@ perdeu. Onde houver equivalente, use-o: no lugar de spawn em sessão, invoque o 
 **subprocesso de CLI** do vendor daquele modelo (vendor do modelo == vendor do host → mecanismo
 nativo; senão → CLI do vendor do modelo) — os comandos exatos e os gotchas de cada CLI
 (`< /dev/null`, fallback de binário) já estão em `memory/wiki/_elenco.md`, seção "Revisores
-externos"; não repita a regra aqui, siga o que está lá.
+externos" e a seção "Matriz de invocação" (templates completos por vendor e por host); não repita
+a regra aqui, siga o que está lá.
 
 | Ele diz algo como… | Você faz |
 |---|---|

@@ -1141,46 +1141,686 @@ existem · fallback de binário fora do PATH.
 
 ---
 
-## ⏭️ RETOMAR AQUI (atualizado 2026-08-04, fim do dia)
+# 🟠 PASSO 8 DETALHADO — 2026-08-05 · elenco host-agnóstico, com times padrão por host (v2, pós-review)
 
-**Estado: 0.18.0 implementada, revisada por TRÊS painéis e corrigida em duas rodadas. Gates verdes.
-Tudo no working tree, NÃO COMMITADA.** Bump nos quatro lugares. Nada instalado de verdade em host
-nenhum.
+> Planner `fable` · investigação **read-only** (nada tocado além desta thread) · **v2 — reescrita
+> após a REPROVAÇÃO do painel de três** (seção 🔍 abaixo, mantida como registro; as referências
+> `:NNNN` daquele review apontam para a v1, substituída in-place por esta — não conferem mais com o
+> texto atual). Entre a v1 e esta v2 o dono deu **regras novas por verbatim** que reorganizam o
+> desenho — elas vêm primeiro. As dez decisões anteriores seguem fechadas.
 
-**Convergência dos painéis:** 6 bloqueadores + 5 riscos → 2 bloqueadores + 5 riscos → corrigidos.
-Todo o resto foi auditado item a item pelos três e está correto, **incluindo a dúvida central do
-desenho**: todo `${CLAUDE_PLUGIN_ROOT}` dos comandos copiados resolve, e nenhum referencia arquivo
-que ficou de fora (verificado por simulação em diretório descartável, com `cp` rodado duas vezes).
+## As regras do dono (2026-08-05, verbatim) — e o que elas mudam no desenho
 
-### As dez decisões do dono continuam fechadas — não repergunte nenhuma
+Sobre o host Codex (e o princípio geral):
 
-Codex como primeiro host · Kimi escreve só com hook `PreToolUse` **testado vivo antes** (fail-open:
-"configurei" ≠ "funciona") · revisor segue Opus mesmo na semana OpenAI · estratégia A ampliada + C ·
-`AGENTS.md` = `CLAUDE.md` **mesmo conteúdo, não ponteiro** · mora em `portatil/` (superado: o que se
-instala é o próprio plugin) · implementer cross-vendor só em worktree · preset "zerar Claude" só
-documentado · card port-Kimi condicionado · smoke test no lugar da "semana de 5 dias".
+> "A ideia de usar o Codex é que use praticamente tudo do Codex: os 5.6 Sol no Xhigh como manager e
+> planejador. O revisor ficaria no Claude Opus 5 ou no Opus Fable 5, mas o implementador volta
+> novamente para o GPT. Aí eu usaria o GPT Terra 5.6. A ideia de usar outras LLMs é principalmente
+> no revisor, mas no implementador, no planejador e manager, sempre usar a principal."
+
+Sobre o host Claude (dito depois, confirmando os outros dois times):
+
+> "O Claude é o main, então geralmente Opus 5, com o planner Fable 5, ou o próprio Opus 5. O
+> implementador é o Sonnet 5. Os revisores vêm de fora: GPT-5.6 Xhigh e Kimi 3. O Codex está certo
+> e o Kimi está certo."
+
+**O princípio: manager, planner e implementer ficam sempre no modelo principal do host. Só o
+revisor vem de fora.**
+
+Cinco consequências estruturais:
+
+1. **O trio que escreve nunca cruza vendor.** Toda invocação cross-vendor do desenho passa a ser de
+   **leitura** (revisão sobre briefing) — exatamente o caminho comprovado no painel. Escrita
+   cross-vendor, em qualquer direção, **sai do desenho** — por regra, não por limitação.
+2. **A antiga decisão 11 morre resolvida pela regra, não pela técnica.** O implementer do host
+   Codex é nativo porque o dono assim decidiu. Nota de rodapé (confirmação, não justificativa):
+   mesmo sem a regra não haveria alternativa viável hoje — o hang do `claude -p` com tools (2×, não
+   diagnosticado) e o fato provado da probe 2 (`:511-514`): `--permission-mode acceptEdits` libera
+   Write e **nega Bash** — um implementer `sonnet` cross-vendor escreveria os arquivos e não
+   rodaria gate nenhum (`claude plugin validate`, lint, `git add -N`). Era o P6 do review; a regra
+   o dissolve.
+3. **O host Codex tem modelos ditos pelo dono:** manager e planner `gpt-5.6-sol@xhigh`; implementer
+   **`gpt-5.6-terra`** — existência **confirmada por chamada real hoje** (`codex exec -m
+   gpt-5.6-terra` respondeu; ~30s contra ~9s do `sol`, consistente com modelo mais pesado). Efforts
+   aceitos pelo `terra`: confirmar na doc na implementação — não inventar.
+4. **Os times propostos para Codex e Kimi estão CONFIRMADOS** (*"O Codex está certo e o Kimi está
+   certo"*) — deixam de ser proposta e entram como decisão do dono; o smoke valida
+   custo/velocidade, não a composição. E o modelo Moonshot do painel é verbatim agora ("Kimi 3" =
+   `kimi-code/k3`) — a ex-decisão 12 fecha pela palavra dele.
+5. **Revisor de fora: vale `opus`.** O dono citou "Opus 5 **ou** Fable" — mas a decisão 10,
+   fechada, já diz *reviewer segue `opus` cross-vendor sempre*, e `opus` é a forma exercitada (o
+   template que funcionou no `gotchas.md` é `--model opus`). Usar `fable` = **reabrir a decisão
+   10**, o que exige palavra explícita dele — não acontece no silêncio.
+
+## O pedido que originou a ampliação, verbatim
+
+> "O que seria interessante deixar pré-configurado é que, se for o Codex, existe uma configuração
+> específica dos agentes. Se for o Claude, tem outra configuração, que é essa que a gente está
+> usando aqui… No Codex tem outra configuração padrão que a gente pode estudar aqui as melhores
+> configurações."
+
+O passo 8 como estava resolvia **como invocar** (a Matriz). A ampliação acrescenta **qual é o time
+padrão em cada host** — pré-configurado, para o dia da troca de motor não começar do zero.
+
+## Evidência — o que os testes reais de 2026-08-05 ensinaram
+
+Observado em sessão real, não hipótese (itens com arquivo para conferir foram re-verificados por
+mim; marcados):
+
+1. **A invocação cruzada funciona nas duas direções.** O Codex montou e reconciliou
+   `claude -p --model opus` e `kimi -p` sozinho — a do Opus sem ter linha na tabela (improvisou
+   certo). A Matriz existe para tirar o improviso do caminho crítico.
+2. **Isolamento por diretório VAZIO mata a leitura autônoma.** Revisor isolado recebe
+   **worktree/clone descartável (repo presente, dano contido)** — nunca diretório vazio (repo
+   ausente, briefing explode), nunca o repo vivo.
+3. **`claude -p` invocado de dentro de outro agente NÃO lê arquivos.** Com tools, pendurou (2×,
+   causa não diagnosticada); sem tools, o Opus corretamente se recusou a inventar `arquivo:linha`.
+   A forma que funcionou está no `gotchas.md` (2026-08-05): prompt **antes** das flags + conteúdo
+   verbatim numerado. Com a regra do dono isso deixa de restringir o desenho (só revisor cruza
+   vendor, e revisor é alimentável por briefing verbatim) — vira propriedade da célula, não
+   restrição de papel.
+4. **O host apareceu como externo de si mesmo.** Rodando no Codex, a seção "Revisores externos"
+   lista `codex`. Defeito de desenho do arquivo.
+5. **Lacuna de declaração (achada pelo dono):** a linha do `codex` declara modelo e effort; a do
+   `kimi` não declara nada e cai no default de config alheio. **Re-verificado:
+   `~/.kimi-code/config.toml:1` = `default_model = "kimi-code/k3"`** — o painel rodou K3 por
+   acidente.
+6. **O Kimi não tem effort** — só `-m`. Aliases re-verificados no config: `kimi-code/kimi-for-coding`
+   · `kimi-code/kimi-for-coding-highspeed` · `kimi-code/k3` · `kimi-code/k3-256k`.
+7. **O Codex tem `spawn_agent` com modelo e effort por filho** — observado 1×, não re-verificado
+   (rodada read-only); o smoke promove ou derruba.
+8. **Ordem de flags derruba revisor em silêncio — nos TRÊS CLIs** (pago 2× no mesmo dia, inclusive
+   pelo próprio painel deste review: `kimi -p -m` devolveu 51 bytes e não rodou). Regras que saem:
+   **flags de configuração primeiro, prompt por último** e **conferir tamanho e formato da saída
+   antes de tratá-la como parecer**. Registrado no `gotchas.md`.
+
+Também verificado: 0.18.0 commitada (`7674cab`) e instalada no Claude e no Codex
+(`~/.codex/config.toml`); `diff CLAUDE.md AGENTS.md` vazio.
+
+## Problema (causa raiz, não sintoma)
+
+O `_elenco.md` nasceu quando só havia um host — e o host Claude está **implícito** nele em três
+pontos: os externos são fixos (`codex`/`kimi`, como se o leitor fosse sempre o Claude), o comando
+do Kimi confia no default de config de terceiro, e não existe time pré-configurado para outro
+motor. O dia da troca de assinatura (evento raro, por ciclo de mercado — reenquadramento nº 2)
+encontraria um arquivo que responde "quem me revisa" mas não "qual é o meu time aqui".
+
+## O desenho v2: três dimensões, um arquivo — com as correções do painel
+
+O arquivo continua sendo `memory/wiki/_elenco.md`, o mesmo nos três hosts:
+
+| Dimensão | Único lugar normativo | Mecanismo |
+|---|---|---|
+| **QUEM** (papel → modelo) | `## Papéis` (estado do host Claude) + `## Times por host` (Codex/Kimi) | **resolução pelo host em tempo de leitura** — sem ativação, sem estado compartilhado (P4) |
+| **COMO** (invocar vendor X do host H) | `## Matriz de invocação` | **só templates** — a regra geradora mora na `SKILL.md` e é citada, não reescrita (P2) |
+| **QUANTO** | `## Custo` | uma frase derivada da regra do dono — sem tabela por preset |
+
+**A correção de desenho (P4), por extenso.** A v1 fazia do time por host um *preset ativável* — e a
+linha `Perfil ativo` é global: ativar `padrao-codex` faria **toda janela Claude** passar a ler
+modelos OpenAI, cenário presente (o dono opera Claude e Codex no mesmo repo agora). A v2 **corta a
+ativação**: os times por host **não são perfis** — moram em seção própria (`## Times por host`) que
+**cada host resolve na leitura**. Regra escrita 1×, no topo do arquivo: *"A tabela `## Papéis` e a
+linha `Perfil ativo` são o estado do host Claude. Rodando noutro host, seu time é a tabela do SEU
+host em `## Times por host` — resolvido na leitura, sem ativação."* Bônus estrutural: `/orq:elenco
+perfil padrao-codex` cai sozinho em "perfil inexistente → liste e pergunte" (`elenco.md:59-60`) —
+**o mecanismo recusa, sem depender de prosa**. E "Motor" nunca vira 6ª linha de tabela: motor é
+prosa acima de cada time, como o `manager` é hoje (risco do review atendido — nada sobrescreve o
+`manager`).
+
+**P5:** a linha "Valores aceitos" (`_elenco.md:26-27`) deixa de ser intocável — ganha o escopo *"na
+tabela ativa do host Claude"* + uma frase: modelos de outros vendors existem nos Times por host e
+na Matriz; pô-los num papel do host Claude é o `T-021`. O arquivo para de declarar inválido o que
+ele mesmo prescreve.
+
+**P2:** a regra geradora (vendor do modelo vs. vendor do host) **já existe, palavra por palavra, em
+`orq/skills/orq/SKILL.md:82-83`** — e a 0.18.0 a instalou nos três hosts; lá ela é o consumidor
+operativo. A Matriz **não a reescreve**: a primeira linha da seção diz *"a regra que gera esta
+tabela mora na skill `orq` (`SKILL.md`, parágrafo 'Onde houver equivalente…'); aqui moram só os
+templates"*. O ponteiro da `SKILL.md:84` (que hoje cita a seção "Revisores externos") continua
+alcançando os templates via Config→Matriz; alinhar o texto dele entra no bump do 8.7.
+
+**Vocabulário:** termos atuais mantidos; os três sentidos de "ativo" seguem sendo frente do `T-031`
+(dependência declarada; quando aquele card decidir, o v2 entra na lista de lugares a tocar).
+
+## Os times, papel a papel
+
+**Princípios, escritos 1× no arquivo:**
+
+1. **Regra do dono:** manager, planner e implementer sempre no modelo principal do host; só o
+   revisor vem de fora.
+2. **Revisor de fora é `opus`** quando o host não é Claude (decisão 10) — via a forma-que-funcionou:
+   parecer sobre conteúdo verbatim, e o reconciliador declara essa natureza (gotcha 2026-08-05).
+3. **O painel fecha os três vendors** — o do host por mecanismo nativo fresco (diagonal da Matriz),
+   os outros dois por CLI.
+4. **Docs e scout seguem o vendor do host** — derivado da regra 1 (papel de leitura autônoma fica
+   na assinatura principal); composição confirmada pelo dono junto com os times.
+
+### Host Claude — `padrao`, agora com verbatim do dono
+
+O verbatim de hoje bate com o registrado: manager `opus` (o `/model` da sessão), planner `fable`
+(*"Fable 5, ou o próprio Opus 5"* — **`fable` segue registrado; `opus` fica anotado como
+alternativa declarada pelo dono**, e trocar entre os dois é ajuste normal de papel, sem cerimônia),
+implementer `sonnet`, e de fora `gpt-5.6-sol@xhigh` + `kimi-code/k3` — os externos de sempre, agora
+com o modelo do Kimi **declarado**. **Nenhuma linha de preset muda**; a declaração do Kimi acontece
+na seção Revisores externos (8.2), onde mora, e **não** nos presets: as linhas "Revisores
+externos:" dos presets seguem **informativas** (`elenco.md:68-71`), sem modelo declarado (risco do
+review atendido; a v1 punha "Painel:" com modelos nos presets — removido). `economia` inalterado
+(perfil de crédito do host Claude — anotação na seção Custo).
+
+**⚠️ Ambiguidade no verbatim — registrada para o dono decidir no gate, não resolvida por mim.**
+Ele disse *"os revisores vêm de fora"*, mas o arquivo tem hoje **duas coisas distintas**: o papel
+`reviewer` interno (`opus`, na tabela `## Papéis`) e os externos do painel (seção Revisores
+externos). Duas leituras possíveis:
+
+- **(a)** o `reviewer` interno **sai** do host Claude — o painel vira só GPT + Kimi. Custo: toca o
+  produto (`revisar.md:52` diz "Sempre — Claude interno"), ou seja, mais uma edição no bump; e
+  perde o reconciliador nativo.
+- **(b)** o `reviewer` interno **permanece como reconciliador/desempatador**, e "vêm de fora"
+  descreve os externos do painel — **é a prática de hoje, e ela se pagou**: nesta mesma semana o
+  interno Opus achou sozinho defeitos que Codex e Kimi não viram, inclusive o bloqueador do
+  `Perfil ativo` incompatível com host (P4) e a regra geradora duplicada na `SKILL.md` (P2).
+
+**Recomendo (b)**, com uma honestidade obrigatória no arquivo: o interno **não conta como "outra
+LLM"** para a diversidade que o dono quer — a diversidade vem dos dois externos; o interno é
+reconciliação. O plano está escrito para (b); se o dono escolher (a), o 8.7 ganha a edição do
+`revisar.md:52` e o plano volta ao gate antes de implementar.
+
+### Host Codex — time padrão (em `## Times por host`) — **confirmado pelo dono**
+
+Motor: a sessão Codex — prosa, não linha de tabela.
+
+| Papel | Modelo | Por quê |
+|---|---|---|
+| planner | `gpt-5.6-sol@xhigh` | verbatim do dono (2026-08-05) |
+| implementer | `gpt-5.6-terra` | verbatim do dono (2026-08-05); existência confirmada por chamada real hoje; effort: da doc, no smoke (8.8e) |
+| reviewer | `opus` | decisão 10; template na célula Anthropic×Codex da Matriz |
+| docs | `gpt-5.6-sol@low` | princípio 4 — escrita objetiva, effort mínimo |
+| scout | `gpt-5.6-sol@low` | verbatim do dono (🟣) |
+
+Painel: derivação do princípio 3 — **sem modelos re-declarados aqui**; modelos na Config dos
+Revisores externos, templates na Matriz.
+
+### Host Kimi — time padrão — **confirmado pelo dono**
+
+Motor: `kimi-code/k3` — hoje é acidente do `default_model` (config de terceiro); o arquivo o
+registra como **escolha**; editar o config só com o dono, no smoke.
+
+| Papel | Modelo | Por quê |
+|---|---|---|
+| planner | `kimi-code/k3` | topo de raciocínio do vendor; princípio 1 |
+| implementer | `kimi-code/kimi-for-coding` | coding-tuned; **condicionado**: hook `PreToolUse` testado vivo (decisão 4) + worktree (decisão 8). **Sem fallback cross-vendor** — a regra do dono o proíbe: hook reprovado → o host Kimi **não implementa**, card de escrita fica com outro host (o card port-Kimi já nasce condicionado) |
+| reviewer | `opus` | decisão 10 |
+| docs | `kimi-code/kimi-for-coding-highspeed` | princípio 4 (custo relativo não medido — smoke valida) |
+| scout | `kimi-code/kimi-for-coding-highspeed` | idem |
+
+`k3-256k` documentado como saída para briefing/patch que estoure contexto (a lição 2 força
+briefings maiores em revisor isolado).
+
+## Matriz de invocação v2
+
+Regras do cabeçalho da seção, cada uma escrita 1×:
+
+- **Origem:** a regra geradora mora na skill `orq` (`SKILL.md:82-83`; 0.18.0, nos três hosts) — a
+  Matriz cita e materializa templates, não reescreve (P2).
+- **Ordem das flags: configuração primeiro, prompt por último — nos TRÊS CLIs** (lição 8; a
+  `--tools` do claude é variádica e engole; o `-p` do kimi consome o `-m`).
+- **`< /dev/null` em TODA invocação por CLI** — os três (corrige o "os dois" da v1).
+- **Briefing:** `codex exec` e `kimi` **leem sozinhos** → worktree/clone descartável (nunca dir
+  vazio, nunca repo vivo) + briefing curto + `git add -N` antes de patch. `claude -p` **não lê** →
+  conteúdo verbatim numerado; o parecer é sobre o texto colado — o reconciliador declara.
+- **Saída conferida antes de virar parecer** (tamanho + formato) — 51 bytes não é parecer, é
+  revisor que não rodou.
+- **Procedência por célula:** `comprovado` · `observado 1×` · `não testado`.
+
+Templates (resumo — o arquivo real carrega célula a célula):
+
+| Vendor do modelo | host Claude | host Codex | host Kimi |
+|---|---|---|---|
+| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `claude -p '<briefing COM conteúdo verbatim numerado>' --model opus --permission-mode plan --tools '' --setting-sources '' --disable-slash-commands --no-session-persistence < /dev/null` — byte-idêntico ao `gotchas.md`; observado 1×; **não lê arquivos**; escrita: **não testado — e fora do desenho (regra do dono)** | idem coluna Codex — não testado |
+| **OpenAI** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=<e> -s read-only "<briefing>" < /dev/null` — comprovado no painel; escrita cross-vendor: fora do desenho (regra do dono) | nativo: `spawn_agent` com modelo+effort por filho — observado 1×; `-m gpt-5.6-terra` aceito — **comprovado por chamada real 2026-08-05** | como coluna Claude — não testado |
+| **Moonshot** | `"$KIMI" -m kimi-code/k3 --output-format text -p "<briefing>" < /dev/null` — **forma segura do `gotchas.md`: `-m` antes, `-p` por último**; comprovado no painel (a forma `-p -m` NÃO roda — ver 🔍) | idem — observado 1× | nativo: sub-agent, ou CLI para contexto limpo — roteamento comprovado vivo (🔵) |
+
+## Custo — uma frase no lugar da tabela
+
+Com a regra do dono o custo vira derivável, e a tabela da v1 — que re-enunciava o QUEM e
+envelheceria a cada troca — morre. A seção fica: **"Cada papel cobra a conta do vendor do SEU
+modelo. Pela regra do dono, isso significa: tudo cobra a conta do host — motor, trio, docs, scout e
+o painel fresco — exceto o revisor `opus` (gasto deliberado, decisão 10) e os dois revisores de
+fora do painel. Trocar de host move o bloco inteiro para a outra assinatura; o evento é a troca de
+assinatura (ciclo de mercado, reenquadramento nº 2)."** Mais a nota: o preset `economia` é a
+variante de crédito curto **do host Claude** (pressupõe host Claude — a anotação no preset aponta
+para cá); equivalente noutro host nasce sob demanda (decisão 9).
+
+## Passos executáveis (8.1–8.8)
+
+8.1–8.6 tocam só `memory/` (o lint não varre `memory/` de propósito — verificáveis são greps + o
+painel). **O 8.7 é bump `0.19.0` em `orq/`** — a resposta explícita ao P3, condicionada ao ok do
+dono. 8.8 é o smoke.
+
+- **8.1 — Reescrever `memory/wiki/_elenco.md` v2, âncoras preservadas** (9 consumidores, mapeados
+  por grep): heading `## Papéis` — segue sendo a **primeira tabela** do arquivo, então o fallback
+  de arquivo legado do `elenco.md:61-62` também continua caindo nela; linha `Perfil ativo:` no
+  **formato canônico intacto** (o escopo "host Claude" mora na regra de leitura no topo, não na
+  linha — nada de sufixo que quebre o parse do desvio); seção `## Revisores externos` com linha
+  **Config** e estado por revisor (`stack.md:32`, `revisar.md:59/72`); `## Perfis` com
+  `padrao`/`economia` **e nada mais**. Ordem v2: cabeçalho + **regra de leitura por host** ·
+  Perfil ativo · `## Papéis` (+ "Valores aceitos" escopada — P5) · `## Revisores externos` (v2) ·
+  `## Matriz de invocação` · `## Times por host` · `## Custo` · `## Perfis` · "Por que o painel
+  importa" (mantida). **Verificável:** grep de cada âncora; `git diff --stat` toca só `_elenco.md`
+  e esta thread; `## Perfis` sem `padrao-codex`/`padrao-kimi`.
+- **8.2 — Revisores externos v2:** cada linha Config passa a declarar **modelo** (kimi:
+  `kimi-code/k3` — fecha a lacuna do dono, agora por verbatim dele; codex: `gpt-5.6-sol` +
+  `xhigh`, mantidos), mantém binário+fallback (o `stack.md` precisa) e **aponta** para a Matriz
+  para o template completo — o comando inteiro **sai** da Config (era o "codex em dois lugares" do
+  review). Prosa, 1× cada: *"nunca dependa de default de config de terceiro"* · *"o vendor do host
+  nunca é externo de si mesmo — rodando noutro host, pule a linha do SEU vendor; seu painel fresco
+  entra pela Matriz"*, posicionada **antes** da tabela, para o leitor de outro host aplicá-la antes
+  de disparar qualquer linha · *"toda invocação por CLI exige `< /dev/null`"*. **Não há linha
+  `claude` na tabela — de propósito:** o catch-all do `revisar.md:89` dispara o que estiver
+  "ativo", e uma linha `claude` faria o host Claude spawnar um segundo revisor Anthropic via
+  `claude -p` (que não lê arquivos). O caminho do `opus` de fora é: time do host → reviewer `opus`
+  → célula Anthropic×host da Matriz. **Verificável:** grep de `-p -m` → **zero ocorrências** (P1);
+  template completo do kimi aparece **1×** no arquivo (Matriz); template completo do codex **1×**
+  (Matriz); a linha Config de cada revisor contém binário + modelo + a palavra "Matriz".
+- **8.3 — Matriz:** células com template + o que o briefing carrega + garantia + **procedência**;
+  células de escrita cross-vendor marcadas *"não testado — fora do desenho (regra do dono)"*.
+  **Verificável:** forma `claude -p` byte-idêntica ao `gotchas.md`; forma kimi com `-m` antes e
+  `-p` por último; toda célula com procedência; `< /dev/null` em todo template; zero `-p -m` no
+  arquivo inteiro.
+- **8.4 — Seção `## Times por host`:** os dois times acima, motor em prosa, condicionamento do
+  implementer kimi (decisões 4 e 8), e a declaração *"não são perfis — nenhum comando os ativa;
+  cada host os resolve na leitura"*. **Verificável:** nenhuma tabela de time com linha
+  `manager`/`Motor`; leitura cruzada de `elenco.md:48-71` confirma que `perfil padrao-codex`
+  cairia em "perfil inexistente".
+- **8.5 — Seção `## Custo`:** a frase única + a nota da `economia`. **Verificável:**
+  `grep -c "cobra a conta"` = 1; "economia" citada na seção; nenhuma tabela de custo por preset.
+- **8.6 — Conferência dos 9 consumidores** (leitura, sem editar `orq/`): âncora a âncora contra o
+  v2; registrar `arquivo → âncora → ok` nesta thread. Em especial: o catch-all do `revisar.md:89`
+  não encontra linha nova para disparar; o ponteiro da `SKILL.md:84` ainda alcança os templates
+  (Config→Matriz). Ajuste que exija `orq/` além do 8.7 → candidato a card, não editar aqui.
+- **8.7 — Bump `0.19.0` (P3: assumido o bump — só executa com o ok do dono):** três edições
+  cirúrgicas em `orq/`: **(a)** `revisar.md:76` — bloco kimi na **forma segura e parametrizado
+  como o do codex já é** (`"$KIMI" -m <modelo do elenco> --output-format text -p "<briefing>"
+  < /dev/null`) — fecha a lacuna do dono **no caminho operativo do painel**, não só no registro;
+  **(b)** `implement-next.md:25` — "(gpt-5.6-sol, read-only)" → "(modelo do elenco, read-only)";
+  **(c)** `SKILL.md:84` — o ponteiro ganha "e a seção 'Matriz de invocação'". *(Se o dono escolher
+  a leitura (a) do "revisores vêm de fora": +1 edição, `revisar.md:52`, e o plano volta ao gate.)*
+  Mais os **quatro** arquivos de versão, `claude plugin validate --strict`, `lint-coerencia.py`, e
+  o ciclo completo de release (marketplace update + plugin update + reiniciar + `diff -rq` vazio).
+  **Verificável:** grep no **cache instalado** da 0.19.0: zero `-p -m` em `orq/`; o bloco kimi do
+  `revisar.md` carrega `-m` antes do `-p`.
+- **8.8 — Smoke por host** (ex-passo 7 do 🟢): cada host confere que **resolve o próprio time em
+  leitura** (sem ativar nada) e exercita ≥1 célula da Matriz por papel usado. Promover/derrubar:
+  **(a)** `spawn_agent` com modelo+effort por filho; **(b)** hang do `claude -p` com tools —
+  re-testar 1× (**agora só diagnóstico**: a regra do dono o tirou do caminho crítico; persistindo
+  → card novo); **(c)** aliases `-m kimi-code/*` em `-p`, na forma segura; **(d)** custo/velocidade
+  relativos dos aliases Kimi; **(e)** efforts do `gpt-5.6-terra` na doc. Resultado alimenta a
+  **procedência** das células — promover "observado 1×" a "comprovado" ou corrigir.
+
+Depois: checkpoint (passo 9 do 🟢, inalterado) — `arquitetura.md`, log, board, esta thread.
+
+## Critério de aceite (checável)
+
+1. O `_elenco.md` v2 responde, sem sair do arquivo: *quem toca cada papel aqui* · *qual o time
+   noutro host* — respondido **pela seção do host, sem ativação** (P4) · *como invocar qualquer
+   vendor de qualquer host, e o que o briefing carrega* (Matriz).
+2. Nenhuma regra 2×: regra geradora só na SKILL (P2, citada); template completo só na Matriz; QUEM
+   só em Papéis/Times/Config; custo numa frase única.
+3. **Toda invocação com modelo declarado — inclusive nos consumidores de `orq/`** (P3, via 8.7,
+   conferido no cache instalado da 0.19.0).
+4. Zero ocorrências de `-p -m` em `_elenco.md` **e** em `orq/` (P1).
+5. "O host nunca é externo de si mesmo" escrita 1×, **antes** da tabela de revisores.
+6. Zero regressão no host Claude: `/orq:revisar` monta o painel (agora com `-m` no kimi);
+   `/orq:elenco` lista **só** `padrao`/`economia`; janela Claude paralela a janela Codex **não
+   pode** mudar de time — não existe ativação que a mude (P4).
+7. A linha "Valores aceitos" escopada — o arquivo não declara inválido o que prescreve (P5).
+8. Dono valida: diz "vou rodar no Codex" e encontra o time que aprovou, sem tocar em nada — e a
+   resposta dele às duas decisões pendentes (bump; leitura (a)/(b)) está refletida no texto final.
+
+## Escopo — fica de fora
+
+- **Escrita cross-vendor, qualquer direção** → fora do desenho pela regra do dono.
+- Template v2 no `/orq:init` (projetos novos nascem com elenco v1) → **card novo** ao fim.
+- Commands do Claude lendo a Matriz (papel não-Anthropic no host Claude) → **T-021**.
+- Vocabulário "ativo" → **T-031** (outra janela; thread deles intocada).
+- Ajustar papel de um Time de host via `/orq:elenco` → fora (times são default de leitura; mudar =
+  editar a seção com o dono).
+- Diagnóstico do hang do `claude -p` → 8.8(b); persistindo → card novo (sem urgência: fora do
+  caminho crítico agora).
+- Editar `~/.kimi-code/config.toml` (motor declarado) → só com o dono, no smoke.
+- `economia` por host → sob demanda (decisão 9).
+
+## Riscos
+
+- **Âncora perdida quebra consumidor em silêncio** (lint não varre `memory/`) → 8.1 + 8.6 + smoke
+  do `/orq:revisar`. Segue o risco nº 1.
+- **O bump alarga o card para dentro de `orq/`** → contido: três edições cirúrgicas + gates + ciclo
+  de release obrigatório. A alternativa (não bumpar) deixaria a lacuna que o dono achou **viva no
+  caminho operativo do painel** com o arquivo declarando-a corrigida — escolha dita com todas as
+  letras, não implícita.
+- **Template do kimi em dois planos** (produto `revisar.md` × Matriz da memória): por desenho — o
+  produto precisa funcionar em projeto sem elenco v2 ("sem elenco, valem os padrões"). O 8.6
+  confere o alinhamento de hoje; divergência futura aparece no smoke do painel. Residual aceito e
+  declarado.
+- **Leitor noutro host indo por inércia à tabela `## Papéis`** → a regra de leitura fica no TOPO do
+  arquivo, antes de qualquer tabela; residual até o `T-021`.
+- **A leitura (a) do "revisores vêm de fora", se escolhida, muda o produto** (`revisar.md:52`) e a
+  reconciliação do painel — por isso ela não entra por default: o plano implementa (b) e a troca
+  exige palavra do dono ANTES do 8.7.
+- **Células "observado 1×" lidas como garantia** → coluna de procedência obrigatória (8.3).
+- **`gpt-5.6-terra` sem effort conhecido** → 8.8(e); até lá a invocação declara só o modelo.
+- **`T-031` renomear "ativo"** → o v2 entra na lista de lugares a tocar quando aquele card decidir.
+
+## Decisões — de quem é cada uma (nenhuma vale "no silêncio" e "com confirmação" ao mesmo tempo)
+
+**Fechadas pelo dono hoje (verbatim acima):** a regra geral (trio+motor sempre no principal do
+host; só o revisor de fora) · time do host Codex (`gpt-5.6-sol@xhigh` manager/planner ·
+`gpt-5.6-terra` implementer · confirmação do restante) · time do host Kimi (confirmado) · time do
+host Claude (manager `opus` · planner `fable` ou `opus` · implementer `sonnet` · de fora
+`gpt-5.6-sol@xhigh` + `kimi-code/k3`) · modelo Moonshot do painel = `kimi-code/k3` (fecha a
+ex-decisão 12). As antigas decisões 11 e 14 morrem resolvidas por esses verbatims.
+
+**Fechada por decisão anterior:** revisor de fora = `opus` (decisão 10). O "ou Fable" citado hoje
+**não** reabre a 10 — reabrir exige palavra explícita do dono.
+
+**Minhas (planner) — parte deste plano: valem com a aprovação do plano no gate, caem com o veto:**
+
+- **D1** — times por host em seção própria, **não ativáveis**, resolvidos na leitura; `padrao`
+  intocado. (Mata a antiga decisão 13: sem preset, não há nome de preset a decidir.)
+- **D2** — no time Claude, planner segue `fable` com `opus` anotado como alternativa declarada —
+  não invento um terceiro estado; trocar é ajuste normal de papel.
+- **D3** — P3 resolvido pelo **bump 0.19.0** (8.7), não pelo rebaixamento do critério.
+
+**Do dono — exigem palavra explícita no gate; o plano não anda no 8.7 sem elas:**
+
+1. **Autorizar o bump `0.19.0`** (regra da casa: nenhum bump sem o ok dele). Recomendo autorizar —
+   é o que leva a correção da lacuna ao caminho que roda. Trade-off: sem o bump, o critério 3
+   rebaixa para "dentro do `_elenco.md`" e os consumidores viram card aberto na hora.
+2. **A leitura de "os revisores vêm de fora" no host Claude:** (a) interno sai, painel só GPT+Kimi
+   · (b) interno fica como reconciliador, de-fora são os externos. **Recomendo (b)** — é a prática
+   que achou sozinha o P4 e o P2 esta semana; e com a honestidade de que o interno não conta como
+   "outra LLM" na diversidade. Trade-off: (a) segue a letra do verbatim e economiza um spawn Opus;
+   (b) preserva o reconciliador que vem se pagando.
+
+---
+
+# 🔍 REVIEW DO PASSO 8 — painel de três, 2026-08-05
+
+**Opus REPROVADO (6 bloq. + 9 riscos) · Codex REPROVADO (5 bloq.) · Kimi REPROVADO (1 bloq. + 2 riscos)**
+
+⚠️ **Erro de procedimento do Manager, e é o 3º da família em dois dias:** a 1ª invocação do Kimi
+usou `-p -m`, o `-p` consumiu o `-m`, e ele **não rodou** — devolveu 51 bytes. Se eu não tivesse
+conferido o tamanho da saída, teria reportado *"o Kimi não achou nada"* em vez de *"o Kimi não
+rodou"*. São afirmações opostas. Registrado em `gotchas.md`; a regra que sai é **conferir tamanho e
+formato da saída antes de tratá-la como parecer**.
+
+## Achados
+
+### 🔴 P1 — O plano ensina o comando quebrado *(Opus + Codex)*
+`:1302`. O template Kimi da Matriz está escrito **na ordem que o `gotchas.md` registra como quebrada
+no mesmo dia** (`-p` antes de `-m`). Pior, apontado pelo Opus: **o verificável do 8.2 e o critério de
+aceite 3 PASSAM na forma quebrada** — o grep procura `-m kimi-code/`, que está lá, na posição errada.
+**Correção:** forma segura do `gotchas.md` (`-m` primeiro, `-p` por último) e verificável trocado
+para "zero ocorrências de `-p -m`".
+
+### 🔴 P2 — A regra geradora JÁ EXISTE na `SKILL.md`, palavra por palavra *(Opus)*
+`:1217` vs `orq/skills/orq/SKILL.md:82-83`. O plano reescreve em `_elenco.md` a regra
+*"vendor do modelo == vendor do host → nativo; senão → CLI"* **que a 0.18.0 já instalou nos três
+hosts**. Nos hosts alternativos **a SKILL é o consumidor operativo**. Duas cópias, e a exceção que
+um dia for acrescentada a uma não chega à outra. **É a classe de defeito que o plano promete
+extinguir, presente na entrega.** **Correção:** a Matriz cita a `SKILL.md` como origem e materializa
+só os templates — ou a Matriz vira normativa e o `SKILL.md:82-83` é podado no mesmo card.
+
+### 🔴 P3 — O critério de aceite é insatisfazível junto com "sem tocar `orq/`" *(os TRÊS)*
+`revisar.md:52/59/72/76` e `implement-next.md:25` **hard-codam** os comandos; o do Kimi (`:76`) **sem
+`-m`**. O 8.2 supõe que o `revisar.md:89` dispara "do jeito registrado" — falso: a linha 89 é
+catch-all para *outros* revisores. **Cenário:** v2 pronto, `_elenco.md` declara `-m kimi-code/k3`, e
+o `/orq:revisar` continua caindo no `default_model` — **a lacuna que o dono achou fica de pé
+exatamente no painel**, com o arquivo declarando-a corrigida. **Correção:** ou assume o bump e
+corrige os consumidores, ou rebaixa o critério a "dentro do `_elenco.md`" e abre o item já.
+
+### 🔴 P4 — Um `Perfil ativo` global não representa defaults por host *(Codex)*
+`:1211`, `:1287`, `_elenco.md:8`. O arquivo é **um só, lido por todos os hosts ao mesmo tempo**.
+Ativar `padrao-codex` faria **todas as janelas Claude** passarem a ler modelos OpenAI. A guarda
+proposta é **prosa** ("ative apenas naquele host"), e o `/orq:elenco` reescreve a tabela no passo 2 e
+só avisa no passo 3. **Cenário real e presente:** o dono está agora com Claude numa janela e Codex
+noutra, no mesmo repo. **Correção:** resolver o preset **pelo host em tempo de leitura**, não por
+ativação — ou manter seleção ativa separada por host. É o único achado de **desenho**.
+
+### 🔴 P5 — O arquivo declararia inválido o que ele mesmo prescreve *(Opus)*
+`_elenco.md:26-27` diz *"Valores aceitos: `opus` · `sonnet` · `haiku` · `fable` · `inherit`"*, e o
+8.1 manda preservar essa seção **inalterada** — enquanto os presets v2 trazem `gpt-5.6-sol@xhigh` e
+`kimi-code/k3`. **Cenário:** dono pede *"põe o scout no gpt baixinho"* → `elenco.md:30` manda
+**perguntar em vez de gravar** (valor desconhecido), logo depois de o mesmo arquivo ter aprovado
+esse valor num preset.
+
+### 🔴 P6 — A decisão 11 está certa pelo motivo ERRADO *(Opus)* — e isto muda a pergunta ao dono
+`:1423`. A justificativa registrada é o **hang do `claude -p`**, que é observação **não
+diagnosticada**. Mas há um **fato provado nesta mesma thread** (probe 2, `:511-514`):
+`--permission-mode acceptEdits` **libera Write e NEGA Bash**.
+
+Neste repo o implementer precisa de Bash para os **dois gates obrigatórios** (`claude plugin
+validate`, `lint-coerencia.py`) e para o `git add -N`. **Então, mesmo que o hang seja resolvido, o
+`sonnet` como implementer no host Codex escreveria os arquivos e não conseguiria rodar gate nenhum.**
+O 8.7(b) re-testa só o hang; se ele destravar, a 11b assumiria o lugar e quebraria na primeira
+tentativa. **Correção:** a 11a cita o **Bash negado (fato)** além do hang (hipótese), e o 8.7 recupera
+o teste que resolveria de verdade (implementer `sonnet` via `acceptEdits` em worktree, tarefa real).
+
+### 🟠 Riscos que o painel confirmou
+Termo "Motor" vira 6ª linha num preset que o `elenco.md:66` define como tendo 5 — e sobrescreveria o
+`manager`, perda que `perfil padrao` **não devolve** · o comando do Codex fica em dois lugares (linha
+Config + célula da Matriz) sem verificável cobrindo · as linhas "Painel:" dos presets declaram
+modelos, mas `elenco.md:68-71` diz que são **informativas** · a tabela de Custo re-enuncia o QUEM e
+ficaria velha ao trocar um preset · o preset `economia` — cujo motivo **é** custo — fica fora da
+seção de Custo · *"os dois exigem `< /dev/null`"* vira falso com **três** CLIs · a célula do
+`claude -p` afirma *"escrita: indisponível"* quando **nunca foi tentada** (cabe "não testado") ·
+`revisar.md:59` dispara o Codex consultando só a coluna Estado, então "o host nunca é externo de si
+mesmo" nasceria inerte.
+
+### ⚖️ Divergência que o Manager desempatou
+O **Codex** classificou o `Perfil ativo` global como **bloqueador**; o **Opus**, como risco de UX.
+**Desempate: bloqueador.** O cenário não é hipotético — está acontecendo agora, com duas janelas de
+hosts diferentes no mesmo repositório. Prosa não impede escrita concorrente.
+
+### ✅ O que os três confirmaram como correto
+O desenho central **se sustenta**: três dimensões num arquivo é viável, host-default como preset usa
+mecanismo existente (zero toque em `orq/` para a ativação), a Matriz com coluna de procedência é
+honesta, as âncoras dos 9 consumidores existem de fato, e a decisão 11a **procede** — implementar
+exige tools, e tools é o que pendura.
+
+---
+
+## 🗄️ RETOMAR AQUI — SUPERADO (ver o do fim do arquivo)
+
+> Congelado em 2026-08-05, antes do review da 0.19.0. Mantido como registro do que se sabia
+> naquele ponto — as duas decisões pendentes fecharam (ver "✅ AS DUAS DECISÕES DO GATE" logo
+> abaixo) e os passos 8.1–8.7 rodaram. **O RETOMAR AQUI vivo é o último do arquivo.**
+
+**Estado: 0.18.0 commitada (`7674cab`) e instalada (Claude + Codex; `AGENTS.md` = `CLAUDE.md`
+byte-idênticos). O plano do passo 8 foi REPROVADO pelo painel de três (🔍 acima, mantido como
+registro) e REESCRITO — a seção 🟠 é a v2: aplica os verbatims do dono de 2026-08-05 (trio+motor
+sempre no principal do host; só o revisor vem de fora; times dos três hosts ditos por ele), resolve
+o P4 trocando "preset ativável" por resolução por host em tempo de leitura, e assume o bump 0.19.0
+como resposta ao P3.**
+
+### Decisões — estado exato
+
+- As dez anteriores seguem fechadas — não repergunte nenhuma.
+- **Novas, fechadas pelo dono hoje (verbatim na 🟠):** a regra geral · os três times por host ·
+  `gpt-5.6-terra` como implementer do Codex · `kimi-code/k3` como Moonshot do painel. As antigas
+  11, 12 e 14 morrem resolvidas; a 13 morreu com o fim dos presets de host (D1).
+- Revisor de fora segue `opus` (decisão 10); o "ou Fable" de hoje só vale com reabertura explícita.
+- D1–D3 são do planner e entram com a aprovação do plano no gate.
+- **Pendentes do dono, e são DUAS:** (1) o ok ao bump `0.19.0` (8.7); (2) a leitura de "os
+  revisores vêm de fora" no host Claude — (a) interno sai vs. **(b) interno fica como
+  reconciliador (recomendada)**. As duas na seção "Decisões" da 🟠, com trade-off.
 
 ### Próxima ação, em ordem
 
-1. **Commit da 0.18.0** — só com o ok do dono.
-2. **Release na máquina dele:** `claude plugin marketplace update orquestra` +
-   `claude plugin update orq@orquestra` + **reiniciar a sessão** + `diff -rq` do cache vazio.
-   ⚠️ Este release entrega **0.17.0 e 0.18.0 juntas** — o dono nunca rodou o release da 0.17.0.
-3. **Passos 5–9 do redesenho:** teste de descoberta vivo no Kimi · smoke test por host (≥1 invocação
-   cross-vendor por papel usado) · elenco v2 (Matriz de invocação — **hoje ela só existe como plano
-   nesta thread, não como artefato vivo**; o implementer corretamente se recusou a apontar a skill
-   para ela e apontou para `_elenco.md`, que existe) · checkpoint.
+1. **Re-passar a v2 no painel** (a ordem do dono era revisar antes de implementar; a v1 reprovou —
+   rodada de confirmação focada: P1–P6 fechados? riscos atendidos?). Briefing pela própria regra da
+   seção: worktree/clone descartável para quem lê sozinho; verbatim numerado para `claude -p`;
+   flags antes do prompt; **conferir tamanho e formato da saída antes de tratá-la como parecer**.
+2. **Gate do dono:** aprovar o plano v2 + responder as duas decisões pendentes.
+3. **Implementar 8.1–8.6** (só `memory/wiki/_elenco.md` + esta thread), depois **8.7** (bump
+   0.19.0, após o ok), depois **8.8** (smoke por host, alimentando a procedência das células).
+4. **Passo 9 do 🟢:** checkpoint — `arquitetura.md`, log, board, esta thread.
 
 ### Aberto, e é do dono
 
-**A instalação no Kimi tem uma hipótese não confirmada:** `~/.kimi-code/agents/` como diretório de
-perfis de agente. O `~/.agents/skills/` **existe** nesta máquina e é o caminho provável da skill; o
-de agents, não. **Só o teste vivo decide** — está marcado como hipótese dentro do próprio comando,
-com fallback.
+- As duas decisões pendentes acima (bump; leitura (a)/(b) do revisor interno).
+- Motor do host Kimi declarado no `~/.kimi-code/config.toml` — mexer só com ele, no smoke.
+- (mantidos) hipótese `~/.kimi-code/agents/` como diretório de perfis; hook do Kimi testado vivo
+  antes de qualquer escrita.
+- (só se ele quiser) trocar o revisor de fora para `fable` = reabrir a decisão 10.
 
-### Card pequeno que nasceu e não foi aberto
+### Card pequeno que nasceu e não foi aberto (mantido de 2026-08-04)
 
-O `description` do frontmatter da `SKILL.md` — o texto que faz a skill disparar sozinha — **não
-menciona instalação**. A tabela interna está correta, mas o gatilho de entrada não cobre o assunto
-novo. Não é bloqueador (a skill dispara por outros gatilhos e a tabela roteia dentro), mas se o dono
-disser *"instala o orq no Codex"* numa sessão fria, a skill pode não ser invocada.
+O `description` do frontmatter da `SKILL.md` não menciona instalação — se o dono disser *"instala o
+orq no Codex"* numa sessão fria, a skill pode não disparar (a tabela interna roteia certo quando a
+skill carrega). Não é bloqueador; vira card quando o Manager abrir.
+
+## ✅ AS DUAS DECISÕES DO GATE — fechadas em 2026-08-05
+
+1. **Bump `0.19.0` AUTORIZADO.** O passo 8.7 corrige os consumidores dentro de `orq/`
+   (`revisar.md:76` parametrizado, `implement-next.md:25`, ponteiro da `SKILL.md:84`). Sem isso, o
+   `_elenco.md` declararia o modelo do Kimi corrigido enquanto o painel continuava caindo no
+   `default_model` — a lacuna que o próprio dono achou, de pé, com o arquivo dizendo o contrário.
+2. **O `reviewer` interno FICA, como reconciliador** (leitura (b)). Evidência que pesou: nos painéis
+   desta semana foi ele quem achou **sozinho** o P4 (o `Perfil ativo` global ser incompatível com
+   hosts simultâneos) e o P2 (a regra geradora duplicada na `SKILL.md`) — nenhum dos dois externos
+   viu. **Registrado com honestidade:** o interno **não conta** como "outra LLM" para a diversidade
+   que o dono quer; ela vem dos dois externos (`gpt-5.6-sol@xhigh` e `kimi-code/k3`).
+
+**Decisão de processo do Manager, declarada:** o painel de confirmação sobre o plano v2 foi
+**pulado** — o plano já passou por um painel completo (que gerou P1–P6) e a correção respondeu a
+todos. O painel entra sobre o **diff da implementação**, que é onde os defeitos desta semana
+nasceram. A solução do P4 é verificável mecanicamente (o comando recusa `perfil padrao-codex`
+sozinho), então não depende de leitura adversarial para ser conferida.
+
+---
+
+# 🔍 REVIEW DA 0.19.0 — painel de três, 2026-08-05
+
+**Opus APROVADO_COM_RESSALVAS (4 bloq., condicionados à correção antes do commit) · Codex REPROVADO
+(3 bloq.) · Kimi REPROVADO (1 bloq. + 4 riscos)**
+
+Os três confirmaram o desenho: `## Times por host` **estruturalmente** fora de `## Perfis` (um nome
+de time cai em "perfil inexistente" pelo próprio mecanismo) · âncoras dos 9 consumidores intactas ·
+`< /dev/null` corrigido para três CLIs · versão nos quatro lugares · gates verdes.
+
+## 🔴 R1 — "prompt por último nos TRÊS CLIs" é falso para o Claude *(os TRÊS)*
+`_elenco.md:78`. A regra em negrito diz *"configuração primeiro, prompt por último — nos TRÊS
+CLIs"*, e **a frase seguinte a refuta**: *"a `--tools` do `claude` é variádica e engole o que vem
+depois dela"*. Se engole o que vem depois, o prompt **não pode** vir por último ali.
+**Cenário:** agente no host Kimi (célula Anthropic marcada "não testado" — justo onde ele se apoia na
+regra em vez de copiar template) monta `claude --model opus … --tools '' … -p '<briefing>'` → a
+`--tools` engole o prompt → saída vazia → **painel com um revisor a menos, em silêncio**.
+**Correção:** quebrar por CLI, nos dois arquivos (`_elenco.md` **e** `gotchas.md:255`, que repete a
+generalização errada) — *kimi: config primeiro, `-p` por último · claude: prompt **antes** das flags
+· codex: prompt posicional no fim*.
+⚠️ **A generalização é erro do Manager**, escrita no gotcha de ontem e propagada daqui para o produto:
+dois sintomas parecidos, causas diferentes (`-p` **aceita valor**; `--tools` é **variádica**).
+
+## 🔴 R2 — A Matriz reescreve a regra que afirma não reescrever *(Codex; Kimi discordou — Manager desempatou)*
+`_elenco.md:73-76`. O texto diz *"esta seção não reescreve a regra, materializa-a"* — e **reescreve o
+conteúdo dentro do parêntese** (`vendor do modelo == vendor do host → nativo; senão → CLI`).
+**Desempate:** o Kimi leu como citação com proveniência (defensável), mas o Codex está certo no que
+importa — **o conteúdo normativo está duplicado**, e uma exceção futura na `SKILL.md` deixaria este
+parêntese divergente. Sexta ocorrência da família.
+**Correção:** identificar o parágrafo pelo nome, **sem repetir o conteúdo da regra**.
+
+## 🔴 R3 — Referente ambíguo reintroduz o bug por escrito *(Opus; Kimi discordou — Manager desempatou)*
+`_elenco.md:79-80`: *"o `-p` do `kimi` aceita valor e consome o `-m` **se vier antes dele**"*.
+O referente mais próximo de "vier" é o **`-m`** — leitura que diz que o perigoso é `-m` antes do
+`-p`, ou seja, **a forma segura**. **Desempate:** o Kimi leu do jeito certo, mas ambiguidade é
+exatamente isto: duas leituras possíveis. O `revisar.md:80-81` diz sem ambiguidade.
+**Correção:** copiar a frase do `revisar.md`.
+
+## 🔴 R4 — A garantia de isolamento é falsa fora de `## Times por host` *(Opus)*
+`_elenco.md:11-12` promete *"uma janela Codex nunca muda o que uma janela Claude lê"*. Mas
+`orq/commands/elenco.md:31` manda **gravar** neste arquivo, e a `SKILL.md` manda qualquer host seguir
+o `elenco.md`. **Cenário:** dono na janela Codex diz *"troca o modelo do planner"* → a sessão Codex
+reescreve `## Papéis` e `Perfil ativo`, que são o time do **Claude** — e ainda valida
+`gpt-5.6-terra` contra `opus·sonnet·haiku·fable·inherit`. A próxima janela Claude planeja com o
+modelo errado, sem rastro. **A regra certa existia no plano (`:1486-1487`) e não entrou no arquivo.**
+**Correção:** *"o `/orq:elenco` só escreve a tabela do host Claude; noutro host, mudar o time é
+edição manual desta seção, com o dono"*.
+
+## 🔴 R5 — O princípio "o painel fecha os três vendors" não tem passo que o execute *(Opus)*
+`_elenco.md:119-120` × `:44-46` × `orq/commands/revisar.md:46-96`. A regra manda **pular a linha do
+próprio vendor** rodando fora do Claude, e **nada recoloca** esse membro pela diagonal da Matriz.
+**Cenário:** host Codex, *"revisa isso"* → interno vira `claude -p` + kimi → a linha codex é pulada
+→ **painel com dois vendors, e o agente não sabe que está parcial** (seguiu todos os passos), então
+nem dispara o aviso de painel incompleto do `revisar.md:98`.
+**Correção:** ou uma linha em `revisar.md:52` ("em host que não é Claude, o membro do vendor do host
+entra pela célula-diagonal, em sessão nova"), ou enfraquecer o princípio para descrever o que o
+produto faz hoje.
+
+## 🟠 R6 — O P4 ficou aberto na direção inversa *(Kimi)*
+O P4 matou preset-de-host, mas **a ativação de perfil de crédito não tem guarda de host**. O gatilho
+*"tô com pouco crédito"* dispara em qualquer host, e o `elenco.md` passo 2 reescreve `## Papéis` —
+que o banner acabou de declarar estado do host Claude — **sem checar host**.
+**Cenário:** dono numa janela Kimi diz *"tô com pouco crédito"* → o time do **Claude** é reescrito no
+meio de uma janela Claude paralela (o stomp que o P4 eliminou, pela porta oposta), e o time do Kimi
+não muda — **errado nas duas pontas**. O banner lista `## Papéis`/`Perfil ativo`/`Valores aceitos`
+como estado Claude e **não lista `## Perfis`**.
+**Correção:** declarar no heading `## Perfis` (ou no banner) que perfis são do host Claude.
+
+## 🟠 Demais riscos confirmados
+`## Custo` erra **no host Claude** — diz que o revisor `opus` cobra fora, mas ali ele é nativo e
+cobra a conta Claude; o dono planejaria crédito curto deslocando revisão para onde acha que é grátis
+*(Kimi)* · procedência inflada em duas células ("observado 1×" sem lastro; "roteamento comprovado
+vivo" para sub-agent que ninguém exercitou — o `MEMORY.md` do mesmo commit diz que o Kimi **nem foi
+instalado**) *(Opus + Kimi)* · o heading `## Papéis` segue sem escopo, e o `plan-next.md:17` só diz
+"leia `_elenco.md`" — sessão Codex planejaria com `fable`, violando a regra do dono *(Opus; conserto
+de quatro palavras no heading)* · o ponteiro novo da `SKILL.md:84` cita a "Matriz de invocação", que
+**só existe neste repo** — o template do `/orq:init` não a tem *(Opus)* · `instalar.md:121` e
+`stack.md:169` rodam o kimi na forma que a regra nova declara insegura, e **sem `-m`** *(Opus)* ·
+a aritmética do "confirmado por 2+" ficou com duas leituras depois da honestidade nova sobre o
+interno *(Opus)* · o título do gotcha diz "nos TRÊS CLIs" e o corpo prova **dois** — o Codex nunca
+falhou por ordem de flag *(Kimi; erro do Manager)*.
+
+## 🔴 R7 — O `⏭️ RETOMAR AQUI` desta thread está desatualizado *(Opus)* — erro do Manager
+Ele lista como pendentes *"re-passar a v2 no painel"*, *"gate do dono"* e *"implementar 8.1–8.6"* —
+tudo já feito, e a seção logo abaixo diz que as decisões estão **fechadas** e que o painel do plano
+foi **pulado de propósito**. O `MEMORY.md` aponta esse RETOMAR como "o vivo".
+**Cenário:** `/clear` agora → a próxima janela repergunta decisões que a própria thread marca como
+"não repergunte" e rediscute plano já implementado. **É exatamente o que o checkpoint existe para
+impedir.**
+
+---
+
+## ⏭️ RETOMAR AQUI (atualizado 2026-08-05, pós-review da 0.19.0 — corrige o R7)
+
+**Estado: 0.19.0 IMPLEMENTADA** (passos 8.1–8.7: `_elenco.md` v2 com `## Times por host` +
+`## Matriz de invocação` + `## Custo`; bump nos quatro lugares; `revisar.md`, `implement-next.md`
+e `SKILL.md` editados) **e REVISADA pelo painel de três** (seção 🔍 "REVIEW DA 0.19.0" acima) —
+Opus APROVADO_COM_RESSALVAS (4 bloq., condicionados à correção antes do commit) · Codex REPROVADO
+(3 bloq.) · Kimi REPROVADO (1 bloq. + 4 riscos). **Os achados R1–R7 estão EM CORREÇÃO** nesta
+rodada — conferir o diff e o `fixes-history.md` antes de assumir que já foram aplicados.
+
+### O que falta, em ordem
+
+1. **Aplicar/confirmar as correções R1–R7** (rodada de correção em curso — ver diff antes de supor).
+2. **Commit** — só com o ok do dono.
+3. **Release** — marketplace update + plugin update + reiniciar a sessão + `diff -rq` vazio no
+   Claude (ciclo de sempre); `/orq:instalar` para Codex/Kimi.
+4. **Smoke test do dono (passo 8.8)** — por host, ≥1 invocação cross-vendor por papel usado;
+   alimenta a coluna de procedência da Matriz ("observado 1×"/"não testado" → "comprovado", ou
+   corrige).
+5. **Passo 9 do 🟢:** checkpoint — `arquitetura.md`, log, board, esta thread.
+
+### Aberto, e é do dono
+
+- O smoke test em si (passo 8.8) — ninguém testou o painel fora do Claude ainda.
+- Motor do host Kimi declarado no `~/.kimi-code/config.toml` — mexer só com ele, no smoke.
+- Hipótese `~/.kimi-code/agents/` como diretório de perfis; hook do Kimi testado vivo antes de
+  qualquer escrita (decisão 4).
+- (só se ele quiser) trocar o revisor de fora para `fable` = reabrir a decisão 10.
+
+### Card pequeno que nasceu e não foi aberto (mantido de 2026-08-04)
+
+O `description` do frontmatter da `SKILL.md` não menciona instalação — se o dono disser *"instala o
+orq no Codex"* numa sessão fria, a skill pode não disparar (a tabela interna roteia certo quando a
+skill carrega). Não é bloqueador; vira card quando o Manager abrir.

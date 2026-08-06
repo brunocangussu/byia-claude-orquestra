@@ -356,7 +356,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.18.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.19.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
@@ -370,7 +370,10 @@ auto-cura da seção Perfis em arquivo pré-0.16.0 (ao trocar de perfil ou ajust
 nota de preset) · **`AGENTS.md` = `CLAUDE.md`, byte-idênticos** (identidade vira gate mecânico no
 lint, não mais "dever de sincronizar") · `/orq:init` grava o mesmo bloco `orquestra:start` nos dois
 · `/orq:instalar` novo — instala o plugin em si (não só o projeto) nos hosts alternativos do dono,
-Codex e Kimi, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4).
+Codex e Kimi, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4) · **elenco
+host-agnóstico** (`T-026`, passo 8): `## Times por host` resolve o time de Codex e Kimi na leitura,
+sem preset ativável; `## Matriz de invocação` documenta o template por vendor × host com
+procedência; painel do Kimi corrigido para a ordem de flags segura (`-m` antes, `-p` por último).
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

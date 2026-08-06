@@ -210,3 +210,74 @@ A quinta só apareceu na releitura manual do Manager, depois de dois gates verde
 **Corolário do anterior.** Toda regra tem uma frase de fecho que a resume ("o que o teto proíbe
 é…"). Ao acrescentar uma cláusula nova, **essa frase foi escrita para a versão anterior** e passa a
 contradizer a cláusula que você acabou de adicionar. Foi exatamente a quinta reincidência.
+
+## `claude -p` como revisor externo NÃO lê arquivos — o briefing tem que carregar o conteúdo
+
+**Pago em 2026-08-05, no primeiro painel cross-vendor com o Codex como host.** O Codex precisava do
+Opus 5 revisando e montou a invocação sozinho (sem ter a linha na tabela — iniciativa correta dele).
+Três atritos, nesta ordem:
+
+1. **`--tools 'Read,Grep,Glob'` engole o prompt.** A flag é variádica, então o argumento seguinte
+   virou item da lista de ferramentas: *"Input must be provided either through stdin or as a prompt
+   argument"*. Ponha o prompt **antes** das flags, ou passe por stdin.
+2. **Com ferramentas habilitadas, `claude -p` pendura.** Mais de 2 min sem um byte de saída, duas
+   vezes. Autenticação válida (`Max`), modelo válido — não era login.
+3. **Sem ferramentas, o Opus se recusa a revisar — e está CERTO.** Ele respondeu que não tinha
+   `Read`/`Grep`/`Glob` e que **não inventaria `arquivo:linha`**. Recusa é o comportamento correto de
+   um revisor sem evidência.
+
+**A assimetria que isso revela, e ela importa para o `T-026`:** `codex exec -s read-only` e
+`kimi -p` **leem o repositório sozinhos**. O `claude -p` invocado de dentro de outro agente, **não**.
+
+**Forma que funcionou:**
+```bash
+claude -p '<briefing COM o conteúdo verbatim, numerado por linha>' \
+  --model opus --permission-mode plan --tools '' \
+  --setting-sources '' --disable-slash-commands --no-session-persistence < /dev/null
+```
+
+⚠️ **E um cuidado de método:** quando o revisor demora, a tentação é mandar *"não verifique mais
+nada, emita o parecer agora"*. Foi o que destravou — mas **o veredito que sai daí vale menos**: é
+parecer sobre o texto colado, não sobre o estado do repositório. Quem reconcilia tem que dizer isso
+com todas as letras, senão um APROVADO forçado entra no board com peso que não tem.
+
+## Ordem das flags derruba o revisor em silêncio — no Claude e no Kimi, por causas diferentes
+
+**Pago duas vezes no mesmo dia, 2026-08-05, com CLIs diferentes.** (O Codex apareceu como chamador
+no incidente 1, mas nunca falhou por ordem de flag — não é o terceiro caso, é o mesmo `claude -p`.)
+
+1. **Codex chamando o Claude:** `claude -p '<prompt>' --tools 'Read,Grep,Glob'` → a flag `--tools`
+   é **variádica** e engoliu o que vinha depois; erro real: *"Input must be provided either through
+   stdin or as a prompt argument"*.
+2. **Manager chamando o Kimi:** `kimi -p -m kimi-code/k3 '<prompt>'` → o `-p` **aceita valor**,
+   então consumiu o `-m`, e o nome do modelo virou comando posicional; erro real:
+   *"unknown command 'kimi-code/k3'"*.
+
+**Forma segura, por CLI — não generalizável (a causa é oposta em cada um):**
+- `claude`: prompt **antes** das flags — `claude -p '<prompt>' --tools '...'` (nunca o inverso).
+- `kimi`: configuração primeiro, `-p` por último —
+  `kimi -m <modelo> --output-format text -p '<prompt>' < /dev/null`.
+
+⚠️ **O que torna isto perigoso não é o erro — é o silêncio depois dele.** Um revisor que não roda
+devolve arquivo vazio, e quem reconcilia pode reportar "não achou nada" em vez de "não rodou". São
+coisas opostas. **Depois de invocar revisor externo, confira o tamanho e o conteúdo da saída antes
+de tratá-la como parecer** — `wc -c` e um `grep` pelo formato exigido bastam.
+
+## Correção que ACRESCENTA em vez de SUBSTITUIR mantém a afirmação falsa viva
+
+**Sétima ocorrência da família em duas semanas, pega em 2026-08-05 na releitura manual do Manager —
+depois de gates verdes e de um painel de três aprovar a rodada.**
+
+O review apontou que a garantia *"uma janela Codex nunca muda o que uma janela Claude lê"* era falsa,
+porque o `/orq:elenco` grava no arquivo. A correção **acrescentou** a regra certa (*"o `/orq:elenco`
+só escreve a tabela do host Claude"*) **no mesmo parágrafo, sem remover a promessa absoluta**.
+
+Resultado: duas frases vizinhas se contradizendo — *"nenhum comando reescreve nada aqui"* seguido de
+*"o `/orq:elenco` escreve…"*.
+
+**A regra que sai daqui:** ao corrigir uma afirmação falsa, **localize e reescreva a afirmação**, não
+escreva a verdade ao lado dela. Frase acrescentada não revoga frase anterior — para um leitor, as
+duas valem, e ele escolhe a que vier primeiro.
+
+**Sintoma para procurar em review:** um parágrafo onde uma frase promete um absoluto ("nunca",
+"nenhum") e outra, perto, descreve a exceção. Se a exceção é verdadeira, o absoluto está errado.

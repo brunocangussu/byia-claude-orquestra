@@ -4,17 +4,31 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.18.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-04.
+**Versão:** 0.19.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-04.
 
-## ⏸️ O que espera o dono AGORA (2026-08-04)
+## ⏸️ O que espera o dono AGORA (2026-08-05)
 
-1. **Commitar a 0.18.0** — implementada, revisada por três painéis, corrigida, gates verdes, **não
-   commitada**. É o card `T-026`.
-2. **Rodar o release na máquina** — `marketplace update` + `plugin update` + **restart**. Entrega
-   **0.17.0 e 0.18.0 juntas**: o release da 0.17.0 nunca foi feito.
-3. **Testar** — isso destrava `T-020`, `T-023`, `T-025` e `T-030`, os quatro parados em VALIDATE.
+1. **A 0.19.0 está implementada e NÃO commitada** — elenco host-agnóstico (`T-026`, passo 8).
+   Falta o painel de três sobre o diff, depois commit + release.
+2. **Testar os quatro cards em VALIDATE** — `T-020`, `T-023`, `T-025`, `T-030`. A 0.18.0 **já está
+   instalada e ativa** (cache idêntico ao repo), então esses testes podem ser feitos **agora**:
+   *"quais as possibilidades"* · *"instala o Serena aqui"* · *"tô com pouco crédito"* seguido de
+   *"chegamos ao final do ciclo"* (a segunda **não** pode trocar o elenco).
+3. **Terminar os smokes nos outros hosts** — o Codex já rodou o framework com sucesso; o Kimi ainda
+   não foi instalado.
 
-**A 0.17.0 já está commitada (`10ecef2`) e no GitHub.** A 0.18.0 não.
+**Já commitado e no GitHub:** 0.17.0 (`10ecef2`), 0.18.0 (`7674cab`), correção de board (`7c14aa9`).
+
+## ✅ O que foi provado em 2026-08-05 — o framework roda fora do Claude Code
+
+O Codex, com o plugin instalado, passou nos quatro testes comportamentais: **invocou a skill sozinho**
+por frase natural · **achou e leu os `commands/`** · roteou um pedido pelo ciclo e **parou no gate**
+sem tocar no produto · e, ao ser mandado revisar, **declarou a degradação** (*"este host não oferece
+override de modelo no subagente nativo"*) em vez de fingir painel — a regra escrita na 0.18.0 indo a
+campo. Ele ainda **cruzou o board com o `git log`** e flagrou dois defeitos do checkpoint anterior.
+
+**O protocolo de várias janelas (`T-013`) foi validado entre hosts diferentes:** o Codex detectou uma
+edição do Manager em `gotchas.md` que não era dele, e a excluiu do escopo sem sobrescrever.
 
 ## Onde paramos
 
@@ -64,7 +78,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`gotchas.md`](gotchas.md) | Armadilhas que já custaram tempo |
 | [`wiki/threads/desenvolvimento-do-plugin.md`](wiki/threads/desenvolvimento-do-plugin.md) | **Thread ativa** — fases, decisões a não re-litigar e **⏭️ RETOMAR AQUI** |
 | [`wiki/threads/T-025-gatilhos.md`](wiki/threads/T-025-gatilhos.md) | **Implementado na 0.15.0** — descoberta (`/orq:ajuda`), gatilhos atestados e a política de iniciativa em três níveis |
-| [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | Plano **guardado no backlog** por decisão do dono — rodar a disciplina fora do Claude Code; reconferir a matriz de paridade antes de retomar |
+| [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | **Ativo** — o Orquestra rodando fora do Claude Code. Instalação multi-host (0.18.0, entregue e provada no Codex) e elenco host-agnóstico (0.19.0, aguardando painel). **A thread é longa: o `⏭️ RETOMAR AQUI` vivo é o último do arquivo** — os anteriores estão marcados como superados |
 | [`wiki/threads/T-023-reload-vs-restart.md`](wiki/threads/T-023-reload-vs-restart.md) | **Implementado na 0.14.0**, reprovado no review e corrigido — evidência por componente no lugar de regra binária |
 | [`wiki/threads/T-020-perfis-elenco.md`](wiki/threads/T-020-perfis-elenco.md) | **Entregue na 0.16.0** — perfis de elenco (`padrao` · `economia`) trocados por frase |
 | [`wiki/threads/_noturno.md`](wiki/threads/_noturno.md) | Manifesto **expirado** + relatório do modo noturno de 2026-07-30 — não abrir run novo a partir dele |

@@ -52,6 +52,10 @@ plugin existir).
 **Sempre — Claude interno:** subagente `orq-reviewer` (read-only, adversarial), com o modelo do papel
 `reviewer` do elenco.
 
+> Isto só existe no host Claude (é spawn nativo). **Em host que não é Claude, o membro do vendor do
+> host entra pela célula-diagonal da `## Matriz de invocação`** (`_elenco.md`), em sessão nova — sem
+> esse passo, o painel fecha só dois vendors e ninguém avisa.
+
 > ⚠️ **Spawne o `orq-reviewer` SEM `name`.** Com `name` ele vira teammate endereçável e fica vivo em
 > loop de *idle* em vez de devolver o parecer — o painel morre esperando. Sem nome, ele retorna o
 > resultado normalmente. (Quebrou assim em 2026-07-26; ver `memory/gotchas.md`.)
@@ -69,13 +73,19 @@ codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
-**Se o Kimi estiver ATIVO no elenco:** rode a CLI direto, resolvendo o binário com fallback:
+**Se o Kimi estiver ATIVO no elenco:** rode a CLI direto, resolvendo o binário com fallback e
+passando o modelo do elenco:
 
 ```bash
 KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
-"$KIMI" -p "<briefing>" --output-format text < /dev/null
+"$KIMI" -m <modelo do elenco> --output-format text -p "<briefing>" < /dev/null
 ```
 
+> ⚠️ **Ordem das flags importa: `-m` antes, `-p` por último.** O `-p` aceita valor, então com o `-m`
+> vindo depois dele o Kimi consome o nome do modelo como se fosse o próprio briefing — não roda e
+> devolve saída vazia em silêncio (pago em 2026-08-05; ver `gotchas.md`). Confira o tamanho da saída
+> antes de tratá-la como parecer.
+>
 > ⚠️ **O instalador do Kimi põe o binário em `~/.kimi-code/bin/` e adiciona ao `.zshrc`** — o que só
 > vale em shell aberto **depois** da instalação. Uma sessão já em curso não enxerga, `which kimi`
 > falha, e o painel vira silenciosamente um revisor a menos **enquanto o binário está lá, funcionando**.

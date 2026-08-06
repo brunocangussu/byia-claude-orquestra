@@ -23,7 +23,7 @@ no caminho.
 
 ## 2. Revisar (painel independente, read-only)
 Rode o **painel de revisores** (`/orq:revisar`): `orq-reviewer` (Claude) **em paralelo** com o Codex
-(gpt-5.6-sol, read-only) e demais revisores configurados. Passe a todos o **mesmo briefing**: diff,
+(modelo do elenco, read-only) e demais revisores configurados. Passe a todos o **mesmo briefing**: diff,
 critérios de aceite, o que está fora de escopo.
 
 **Reconcilie** antes de agir: confirmado por 2+ = alta confiança; achado solitário você **verifica no

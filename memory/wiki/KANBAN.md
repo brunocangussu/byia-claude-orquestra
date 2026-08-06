@@ -18,6 +18,7 @@
 
 ## 🟡 Fazendo
 
+- [>] `T-031` Comando para listar agentes ativos — 🟡 pedido do dono em 2026-08-05. O `/orq:elenco` já lista o time **configurado** para os próximos spawns e os revisores externos marcados como ativos, mas não responde necessariamente quais agentes estão **rodando agora**. **Decisão 1 fechada:** mostrar ambos em blocos separados — execução atual e elenco configurado. Planejamento em `memory/wiki/threads/T-031-agentes-ativos.md`. @frente-agentes-ativos
 
 ---
 
