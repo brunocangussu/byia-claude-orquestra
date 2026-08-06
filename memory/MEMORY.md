@@ -6,18 +6,21 @@
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
 **Versão:** 0.19.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-04.
 
-## ⏸️ O que espera o dono AGORA (2026-08-05)
+## ⏸️ O que espera o dono AGORA (2026-08-05, fim do dia)
 
-1. **A 0.19.0 está implementada e NÃO commitada** — elenco host-agnóstico (`T-026`, passo 8).
-   Falta o painel de três sobre o diff, depois commit + release.
-2. **Testar os quatro cards em VALIDATE** — `T-020`, `T-023`, `T-025`, `T-030`. A 0.18.0 **já está
-   instalada e ativa** (cache idêntico ao repo), então esses testes podem ser feitos **agora**:
+1. **Release da 0.19.0** — `claude plugin marketplace update orquestra` + `claude plugin update
+   orq@orquestra` + **restart**. Ela está commitada mas **não instalada**; a versão ativa é a 0.18.0.
+2. **Testar os cinco cards em VALIDATE** — `T-020`, `T-023`, `T-025`, `T-030` (a 0.18.0 já está
+   ativa, então esses três primeiros podem ser testados **agora**) e `T-026`. As frases:
    *"quais as possibilidades"* · *"instala o Serena aqui"* · *"tô com pouco crédito"* seguido de
    *"chegamos ao final do ciclo"* (a segunda **não** pode trocar o elenco).
-3. **Terminar os smokes nos outros hosts** — o Codex já rodou o framework com sucesso; o Kimi ainda
-   não foi instalado.
+3. **Instalar no Kimi** — nunca foi feito. `/orq:instalar` tem os comandos; o `~/.agents/skills/`
+   existe, o `~/.kimi-code/agents/` é **hipótese não confirmada**, com fallback documentado.
+4. **Decidir os 6 riscos menores** que o painel da 0.19.0 achou e que viraram candidatos a card
+   (listados no `T-026` no board) — nenhum tinha correção óbvia de uma frase.
 
-**Já commitado e no GitHub:** 0.17.0 (`10ecef2`), 0.18.0 (`7674cab`), correção de board (`7c14aa9`).
+**Commitado e no GitHub:** 0.17.0 (`10ecef2`) · 0.18.0 (`7674cab`) · board (`7c14aa9`).
+**Commitado, falta push:** 0.19.0 (`8bef7f9`).
 
 ## ✅ O que foi provado em 2026-08-05 — o framework roda fora do Claude Code
 

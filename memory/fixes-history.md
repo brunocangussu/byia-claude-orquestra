@@ -1,5 +1,60 @@
 # Log de mudanças — append-only
 
+## [2026-08-05] feat | 0.19.0 — elenco host-agnostico; e o framework rodou no Codex de verdade
+
+**O dia entregou duas coisas: a prova de que o Orquestra atravessa para outro host, e o elenco
+sabendo disso.**
+
+### O que foi provado, nao deduzido
+
+O Codex, com o plugin instalado, passou nos **quatro** testes comportamentais: invocou a skill
+sozinho por frase natural · achou e leu os `commands/` · roteou um pedido pelo ciclo e **parou no
+gate** sem tocar no produto · e, mandado revisar, **declarou a degradacao** (*"este host nao oferece
+override de modelo no subagente nativo"*) em vez de fingir painel — a regra da 0.18.0 indo a campo.
+
+Fez ainda duas coisas que ninguem pediu: **cruzou o board com o `git log`** e flagrou que o
+checkpoint anterior dizia "nao commitada" depois do commit; e **detectou uma edicao do Manager em
+`gotchas.md` que nao era dele, excluindo-a do escopo sem sobrescrever** — o `T-013` validado entre
+hosts diferentes, que era so teoria ate aqui.
+
+### A regra do dono que simplificou o desenho
+
+Verbatim: *"manager, planner e implementer sempre no modelo principal do host; a ideia de usar outras
+LLMs e principalmente no revisor"*. Isso **dissolveu** o impasse tecnico do implementer — nenhuma
+invocacao cross-vendor de **escrita** existe no desenho, so de leitura, que e o unico caminho
+comprovado. O `acceptEdits` liberar Write e negar Bash deixou de importar.
+
+### O que a implementacao ensinou sobre invocacao cross-vendor
+
+- `claude -p` de dentro de outro agente **nao le arquivos**: trava com tools; sem tools, o Opus
+  **recusa revisar** em vez de inventar `arquivo:linha` — comportamento correto.
+- **Isolamento e leitura autonoma sao incompativeis**: revisor em diretorio descartavel nao enxerga
+  o repo. Worktree com o patch aplicado resolve; diretorio vazio, nao.
+- **A ordem das flags nao e generalizavel** e derrubou o painel **duas vezes no mesmo dia**, por
+  causas opostas: o `-p` do kimi **aceita valor**; a `--tools` do claude e **variadica**.
+
+### O padrao de metodo que se repetiu — e e o achado mais caro do dia
+
+**Tres dos oito achados do painel eram REINCIDENCIA** da mesma familia (regra em dois lugares, um
+falso), incluindo uma **generalizacao errada do proprio Manager**, escrita num gotcha e propagada
+dai para o produto.
+
+E a **setima ocorrencia** so apareceu na **releitura manual**, depois de gates verdes e do painel de
+tres aprovar a rodada: a correcao tinha **ACRESCENTADO** a regra certa sem apagar a promessa falsa
+ao lado, deixando duas frases vizinhas se contradizendo.
+
+**Duas releases seguidas, o ultimo filtro que pegou o defeito foi humano, nao mecanico** (na 0.17.0
+foi a quinta reincidencia, tambem so na releitura). Registrado em `gotchas.md`: corrigir afirmacao
+falsa e **reescrever a afirmacao**, nunca escrever a verdade ao lado dela.
+
+### Um criterio do Manager que o implementer recusou, com razao
+
+O Manager exigiu `grep "-p -m"` **zero na arvore inteira**. O implementer mostrou que o `gotchas.md`
+**precisa** citar a forma quebrada para ensinar qual e — o criterio, cumprido ao pe da letra,
+**apagaria a licao**. E a distincao log x pagina de topico do `CLAUDE.md`, e ele estava certo em nao
+obedecer.
+
+
 ## [2026-08-04] feat | 0.17.0 e 0.18.0 — regra duplicada vira lugar unico; Orquestra instalavel em Codex e Kimi
 
 **0.17.0 (card `T-030`) — correcao dos 11 achados do painel sobre as releases 0.14.0–0.16.0.**
