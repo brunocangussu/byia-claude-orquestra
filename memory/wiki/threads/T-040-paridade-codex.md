@@ -46,4 +46,4 @@
 
 ## RETOMAR AQUI
 
-O dono confirma execução inline nesta sessão. Depois, executar `T-041` task-by-task com checkpoints; manter `T-042` no backlog até a release core estar concluída localmente.
+Execução inline autorizada em 2026-08-09. Implementar `T-041` task-by-task na worktree `.worktrees/t041-paridade-core-codex`; manter `T-042` no backlog até a release core estar concluída localmente. Publicação, cache global e push seguem fora da autorização.
