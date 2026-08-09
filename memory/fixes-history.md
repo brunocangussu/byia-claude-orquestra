@@ -1,5 +1,12 @@
 # Log de mudanças — append-only
 
+## [2026-08-09] correção de evidência | smoke externo criou metadado Serena fora do escopo
+
+A entrada de validação abaixo diz que o workspace de teste permaneceu limpo. Escopo correto: os
+arquivos do smoke não mudaram; o hook de início da sessão criou `.serena/` como untracked. Não foi
+escrita do Orquestra/Opus, mas impede chamar a árvore inteira de limpa. O diretório temporário foi
+descartado após a conferência.
+
 ## [2026-08-09] validação | T-041 · Opus 5 comprovado em projeto externo pelo plugin instalado
 
 Claude e Codex receberam `orq 0.21.0`; os dois caches ficaram byte-idênticos à fonte. Uma nova

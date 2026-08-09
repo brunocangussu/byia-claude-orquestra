@@ -97,7 +97,8 @@ distribui `0.20.0`. Pergunta exata: autoriza push da `main` local validada para 
 - Opus: exit 0, `OPUS_STARTED`, `OPUS_MODEL=claude-opus-5`, 956 bytes de briefing, parecer real com
   contradição `contrato.md:3↔4` e veredito reprovado.
 - Kimi K3: exit 0, 2.167 bytes, confirmou a mesma contradição.
-- Painel: completo; estado Git do projeto temporário permaneceu limpo.
+- Painel: completo; os quatro arquivos do escopo permaneceram idênticos. O hook de sessão criou
+  `.serena/` como untracked fora do escopo; o projeto temporário inteiro foi descartado depois.
 - GitHub verificado depois do smoke: `origin/main=164387c`, versão `0.20.0`, zero referência ao
   runner e zero bloco do painel Opus no Host Codex. A distribuição pública ainda não está corrigida.
 
