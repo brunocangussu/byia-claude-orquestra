@@ -36,6 +36,14 @@
 - Autocrítica concluída: nenhum placeholder real, escopo de coordenação explicitado, limitações de statusline e modelos sem entitlement tratadas sem promessa falsa.
 - Nenhum arquivo em `orq/` foi alterado nesta fase.
 
+## Planos executáveis
+
+- Core Codex `0.21.0`: `docs/superpowers/plans/2026-08-09-paridade-core-codex.md` — 4 Tasks, 25 Steps.
+- Statusline nativa `0.22.0`: `docs/superpowers/plans/2026-08-09-statusline-nativa-codex.md` — 4 Tasks, 18 Steps.
+- Autocrítica passou: cobertura de interface, elenco, init, statusline, diagnóstico, privacidade, verificação e release; nenhum placeholder.
+- A primeira execução é `T-041`; `T-042` depende dela.
+- Publicação, atualização de cache global e push não estão autorizados.
+
 ## RETOMAR AQUI
 
-O dono revisa a especificação escrita. Com aprovação explícita, invocar `writing-plans`, escrever o plano executável e manter `orq/` intocado até o próximo gate do ciclo.
+O dono confirma execução inline nesta sessão. Depois, executar `T-041` task-by-task com checkpoints; manter `T-042` no backlog até a release core estar concluída localmente.
