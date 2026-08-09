@@ -346,3 +346,48 @@ E preservar o modo do arquivo original — o `mv` do temporário traz a permiss�
 malicioso vindo do stdin, o `awk` executa. Provado com PoC no `T-036` (2026-08-08).
 → `awk -v c="$var" 'BEGIN { printf "%.2f", c+0 }'`. Vale para qualquer interpolação em `awk`, `sed`
 ou `eval`.
+
+### `jq '…' arquivo > arquivo` trunca o arquivo para 0 byte — e settings vazio faz o merge falhar calado
+
+Duas faces do mesmo buraco, as duas provadas por revisor executando (2026-08-09, `T-036`):
+- o shell abre o redirecionamento **antes** de o `jq` ler → o arquivo vira 0 byte. É a forma que
+  qualquer executor escreve primeiro. Use `> tmp && mv tmp arquivo`, **preservando o modo**;
+- `jq` **sem entrada** devolve **0 bytes com exit 0**; validar o temporário com `jq .` também sai 0;
+  o `mv` conclui; e a chave **nunca é gravada**. Instalação relatada como sucesso, efeito zero.
+→ Antes de mesclar JSON: exigir arquivo **não vazio** (`test -s`) **e raiz objeto**
+(`jq -e 'type == "object"'`). Vazio, `null`, lista ou malformado → **abortar e relatar**.
+
+### Guarda que reprova o caminho feliz vira alarme ignorado — e isso reincidiu 3× no mesmo card
+
+Padrão observado no `T-036`: a verificação existe, funciona, e acusa falha numa situação **correta**
+— recusa legítima do dono, folha que por desenho não escreve, `jq` ausente num ramo criado para
+máquinas sem `jq`. O executor aprende a ignorar o item inteiro, e quando a falha for real ela some
+no ruído. É a mesma doença que o comentário do `kanban-status.sh` já documentava.
+→ Toda asserção nova precisa da pergunta: **em que caminho correto isto fica vermelho?** Se houver
+um, ele vira exceção nomeada — não observação em prosa.
+
+### `grep` vazio não prova ausência quando o arquivo está staged no índice do git
+
+Ao remover `orq/compor-statusline.md`, o `grep -rn` no diretório voltou vazio e eu reportei "resíduo
+limpo". O arquivo continuava **no índice**, como blob vazio (`e69de29`) — teria entrado no commit,
+e nem o lint nem o `validate` olham para o índice. (2026-08-09)
+→ Antes de fechar release que **removeu** arquivo: `git ls-files --stage | grep <nome>` tem que
+voltar vazio. `git rm --cached` resolve.
+
+### Marketplace local do Codex copia o DISCO, não o commit
+
+`~/.codex/plugins/cache/orquestra/` vem do marketplace `orquestra`, que aponta para **a pasta do
+projeto**. Um `codex plugin add` copia o working tree **como estiver** — inclusive trabalho não
+commitado e não revisado. Em 2026-08-08 o Codex ficou com uma "0.20.0" tirada do meio de uma sessão,
+que tinha reprovado em três rodadas de painel. E como o cache é indexado **por versão**, atualizar
+depois **não troca nada**: mesmo rótulo, conteúdo velho.
+→ Para consertar: apagar `~/.codex/plugins/cache/orquestra/orq/<versão>/` e reinstalar. Para
+prevenir: só instalar noutro host **depois** do commit.
+
+### Migração de memória com PII não pode passar por Codex nem Kimi
+
+Projeto com dado de paciente (`Bruno Vascular`): ler e reescrever os arquivos de memória **é** enviar
+o conteúdo ao modelo. Codex (OpenAI) e Kimi (Moonshot) são transferência internacional — a regra do
+dono proíbe. (2026-08-09)
+→ Host padrão pode ser o Codex para o **produto** (código e instruções). Projeto com PII fica em
+host Anthropic, e isso vale como regra permanente daquele projeto, não exceção pontual.

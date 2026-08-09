@@ -1,5 +1,66 @@
 # Log de mudanças — append-only
 
+## [2026-08-09] release+processo | @frente-statusline · 0.20.0 no ar, o painel cobrou 12 pareceres, e o Codex virou host padrão
+
+Continuação do bloco de 07→08. O card `T-036` fechou o ciclo e foi para VALIDATE.
+
+**O que saiu na 0.20.0** (commit `164387c`, push `b62b39c..164387c`): árvore de **três folhas** com
+um predicado binário (o alvo **diretamente invocado** aponta para dentro do plugin?), a folha que
+não é nossa **nunca escreve**, e o asset novo `orq/scripts/statusline.sh` — a barra completa
+distribuída com o plugin. Mais o tripwire do lint e o merge seguro de settings.
+
+**O que o painel custou e o que só ele acharia** — 5 rodadas, **12 pareceres**, e o veredito foi
+REPROVADO em todas até a última:
+
+- a **verificação criada para impedir o bug não pegava o bug**: asseria sobre um arquivo que o
+  comando nunca escreve, e só rodava se o próprio modelo se auto-classificasse como "instalei algo";
+- o guarda `[ -x ]` num script invocado via `sh` — sem `jq`, a barra saía **inteira vazia**;
+- **injeção de código** no `awk` do custo (PoC comprovado);
+- `jq '…' arquivo > arquivo` **trunca para 0 byte** — e era a forma que a instrução de "mescle, não
+  sobrescreva" deixava o executor escrever;
+- settings **vazio** fazia a instalação falhar **em silêncio**: `jq` sem entrada devolve 0 bytes com
+  exit 0, a validação aprova, o `mv` conclui, e a chave nunca é criada (provado por 2 revisores,
+  cada um executando);
+- e, na verificação final, a opção **"remover a chave"** — que eu tinha acrescentado porque foi ela
+  que consertou o incidente real — **desfazia o próprio conserto**: copiou o critério de sucesso da
+  migração (exigir o board na saída) para uma barra alheia, que não tem obrigação de mostrar board,
+  e o desfecho de "falhou" era restaurar a chave defeituosa.
+
+**Duas regressões introduzidas por correções** (o padrão que o `T-014`→`T-016` já tinha mostrado):
+a de cima, e a guarda "incondicional" que reprovava o caminho feliz — **pela terceira vez** neste
+card a mesma família. O que finalmente quebrou o ciclo não foi mais leitura: foi **partir o card**
+(a composição saiu para o `T-038`), reduzindo a superfície.
+
+**Erros do Manager registrados de propósito:**
+1. **Varredura rasa** (1 nível) concluiu "só um projeto afetado". O dono falou em "projetos", no
+   plural, e insistiu — a de 6 níveis achou o segundo, com a chave **commitada**.
+2. **Emenda derrubada por 2 revisores:** propus stamp de versão nas cópias; ele faz o `diff` do
+   re-sync divergir **sempre**, virando alarme crônico.
+3. **All-clear falso:** reportei "resíduo limpo" com base num `grep` que voltava vazio porque o
+   arquivo estava **staged no índice do git como blob vazio**. Teria entrado no commit.
+4. **Afirmação exagerada no `T-039`:** escrevi que o `init` "monta a estrutura nova ao lado da
+   antiga, sem migrar nem avisar" — **falso**, verificado depois no `init.md:174-187`: ele preserva
+   e cria ponteiro. Corrigido no card. O defeito real é comunicar mal e entregar só o ponteiro.
+
+**Decisões do dono neste bloco:** partir o card (`T-038` nasce) · publicar a 0.20.0 · **adotar o
+Codex como host padrão**.
+
+**Requisito de origem reafirmado por ele:** *"instalar em projetos já em andamento — acrescentar o
+que existe e melhorias, não alterar"*. O princípio **estava** implementado para `CLAUDE.md`/
+`AGENTS.md` (bloco delimitado, conteúdo externo preservado) e **faltou onde a destruição é
+indireta**: statusline (por precedência — o `T-036`) e memória (o `T-039`). Isso reclassifica o
+`T-039` de melhoria para **dívida**.
+
+**Fora deste repo, mapeado e não executado:** migração de memória do `Bruno Vascular`. Achado que
+inverte o trabalho — **6 dos 11 snapshots de lá já são páginas vivas** (autodeclaram "como funciona
+HOJE" e "esta vence a anterior"); a migração é consolidar, não extrair. Risco principal: **três
+conclusões foram revogadas** por auditorias posteriores e os números velhos ainda estão nos
+arquivos — consolidar por cronologia faria a wiki nova **nascer com dado errado**.
+⚠️ **Regra de dados:** aquele projeto tem PII de paciente, então **a migração não pode ser feita
+pelo Codex nem pelo Kimi** (transferência internacional). Fica com host Anthropic.
+⚠️ Achado de segurança **fora do escopo do Orquestra**, reportado ao dono: o
+`workflow_secretaria.json` de lá tem PII e token em texto puro, nunca revisado.
+
 ## [2026-08-08] bug+processo | @frente-statusline · o `/orq:init` apagou a statusline do dono em dois projetos, e o painel reprovou a correção 8×
 
 Bloco da noite de 07 para 08. Começou com o dono notando que a barra dele tinha "ficado mais

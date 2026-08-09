@@ -111,6 +111,27 @@ há lock: lock mataria o paralelismo que motiva as N janelas.
 E o ganho maior não é a trava: **pendência de decisão vira card `[!]` e a janela pode fechar.** Antes
 ela ficava viva só como memória de pendência.
 
+## O que o plugin distribui além de instruções (0.20.0)
+
+Até a 0.19.0 o plugin era **só texto** — comandos, skill, agentes — mais dois scripts de leitura
+(`kanban-status.sh`, `lint-coerencia.py`). A 0.20.0 acrescentou o primeiro **asset de runtime**:
+`orq/scripts/statusline.sh`, a barra de status completa, instalada no projeto ou no usuário.
+
+Três propriedades que o desenho garante, e que valem para qualquer asset futuro:
+
+1. **Nada em settings aponta para dentro do plugin.** O caminho do cache muda a cada versão — uma
+   chave apontando para lá quebra no próximo update. O que vai para settings é sempre uma **cópia**
+   instalada fora do plugin, e a cópia acha a irmã **por vizinhança** (`$(dirname "$0")`).
+2. **O par é indivisível.** `statusline.sh` e `kanban-status.sh` são copiados juntos, sempre. O
+   primeiro degrada para board-only se faltar `jq`, e **se completa sozinho** quando `jq` aparecer.
+3. **Instalar nunca é alterar.** Havendo statusline em qualquer escopo, o init **não grava chave** —
+   relata, e oferece **remover** a chave que estiver sombreando outra barra. Foi a ausência disso que
+   causou o `T-036`.
+
+**A lição que generaliza, e que já vale para a memória também:** *em configuração com precedência,
+adicionar É sobrescrever*. Um diff aditivo (`+N -0`) pode desligar comportamento global sem tocar em
+arquivo nenhum do usuário — e nenhuma verificação do tipo "sobrescrevi algo?" acusa.
+
 ## O que foi deliberadamente recusado
 
 O desenho nasceu do app **Terminals** (canvas de terminais multi-agente, do Alison) e passou por
