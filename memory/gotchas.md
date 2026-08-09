@@ -4,6 +4,29 @@
 
 ---
 
+### Revisor externo em foreground morre no teto de 10 min do shell — e parece falha do revisor
+
+Em 2026-08-07 o painel dos três foi disparado assim, e Codex e Kimi voltaram **os dois** com
+`Exit code 143 — Command timed out after 10m 0s`:
+
+```bash
+codex exec -m gpt-5.6-sol -c model_reasoning_effort=xhigh -s read-only "<briefing>" < /dev/null
+```
+
+O comando estava **correto** — `< /dev/null` presente, flags na ordem certa. O que estourou foi o
+teto do **chamador**: a ferramenta Bash do Claude Code tem máximo de 600 000 ms. Relançados com
+`run_in_background: true`, os mesmos comandos entregaram 64 KB e 83 KB de parecer.
+
+**Por que engana:** o sintoma ("os externos não voltaram") é idêntico ao de revisor que falhou, e o
+`T-024` chegou a registrar "Codex e Kimi estouraram o tempo e voltaram parciais" atribuindo a causa
+aos revisores. A causa é o chamador, e revisor com `reasoning_effort=xhigh` sobre diff de ~30 KB
+passa de 10 minutos com folga.
+
+→ **Revisor externo roda sempre em background**, com a saída redirecionada para arquivo; confira o
+tamanho do arquivo antes de tratá-lo como parecer (51 bytes não é parecer).
+
+---
+
 ### Renomear o plugin não renomeia as auto-referências
 
 A v0.2.0 trocou `orquestra` por `orq` no pacote, mas os prompts continuaram mandando rodar
@@ -281,3 +304,45 @@ duas valem, e ele escolhe a que vier primeiro.
 
 **Sintoma para procurar em review:** um parágrafo onde uma frase promete um absoluto ("nunca",
 "nenhum") e outra, perto, descreve a exceção. Se a exceção é verdadeira, o absoluto está errado.
+
+### Em configuração com precedência, ADICIONAR é sobrescrever
+
+`.claude/settings.json` do projeto **vence** `~/.claude/settings.json`. Gravar uma chave nova no
+projeto **desliga** o comportamento global sem tocar em arquivo nenhum do usuário — o diff é
+`+N -0`, aditivo, e nenhuma verificação do tipo "sobrescrevi algum arquivo?" acusa. Foi assim que o
+`/orq:init` anulou a statusline do dono em dois projetos (2026-08-08, `T-036`).
+→ Ao instruir gravação em settings: **diga em qual escopo checar**, e trate "existe no global" como
+"já existe". Precedência: Local > Projeto > Usuário.
+
+### Varredura rasa devolve falso negativo com cara de conclusão
+
+Procurando projetos afetados, uma varredura de **1 nível** (`~/Projetos DEV - Cursor/*/`) devolveu
+"só um projeto". O dono falou em "projetos", no plural, e insistiu; a varredura de **6 níveis** achou
+o segundo — com a chave já **commitada**. (2026-08-08)
+→ Ao afirmar "só X está afetado", diga **qual foi o alcance da busca**. Sem isso, "não achei" vira
+"não existe".
+
+### `[ -x ]` é guarda falso para script invocado via `sh`
+
+`sh script.sh` **não exige** o bit de execução. Um guarda `[ -x "$script" ]` antes de `sh "$script"`
+reprova arquivo perfeitamente utilizável — e o modo 644, que qualquer Write de LLM produz, passa a
+zerar a saída. No `T-036` isso deixava a barra **completamente vazia** quando faltava `jq`.
+→ Use `[ -r ]` para o que vai ser lido por um interpretador; `[ -x ]` só para o que é executado
+diretamente. **E não documente o sintoma como se fosse lei da natureza** — foi o que o texto fez,
+criando um item de smoke para um defeito de uma linha.
+
+### `jq '…' arquivo > arquivo` trunca o arquivo para zero byte
+
+O shell abre o redirecionamento **antes** de o `jq` ler. É a forma que qualquer executor escreve
+primeiro, e destrói exatamente o que uma instrução de "mescle, não sobrescreva" existe para
+proteger.
+→ Instrução que manda mesclar JSON **tem que dar o comando seguro**: `> tmp && mv tmp arquivo`.
+E preservar o modo do arquivo original — o `mv` do temporário traz a permissão do umask, o que pode
+**abrir** um settings que estava restrito.
+
+### Interpolar dado dentro do programa do `awk` é execução arbitrária
+
+`awk "BEGIN { printf \"%.2f\", $var }"` põe `$var` no **código**, não nos dados. Com um valor
+malicioso vindo do stdin, o `awk` executa. Provado com PoC no `T-036` (2026-08-08).
+→ `awk -v c="$var" 'BEGIN { printf "%.2f", c+0 }'`. Vale para qualquer interpolação em `awk`, `sed`
+ou `eval`.

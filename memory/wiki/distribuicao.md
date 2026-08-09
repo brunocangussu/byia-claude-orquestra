@@ -92,6 +92,17 @@ git push origin main      # remote já configurado
 
 Instalação a partir do GitHub: `/plugin marketplace add brunocangussu/byia-claude-orquestra`.
 
+**O repositório é público, então o que está no `main` é o que terceiros instalam.** Enquanto um
+release fica commitado sem push, quem instalar recebe a versão **anterior** e nada acusa — foi o
+estado entre 05 e 07/ago, com a 0.19.0 parada localmente e o mundo recebendo a 0.18.0. Publicar é,
+portanto, parte do release, não um passo opcional depois dele.
+
+**Instalar nos outros dois hosts é o mesmo release, por outro mecanismo** (`/orq:instalar`):
+Codex por `codex plugin add orq@orquestra` (cache indexado por versão, mesmo gotcha do Claude);
+Kimi por **cópia** para `~/.agents/skills/orq/` + `~/.kimi-code/agents/` — snapshot **sem
+versionamento**, que envelhece em silêncio se `/orq:instalar` não for re-rodado a cada release.
+Os três hosts estavam na 0.19.0 em 2026-08-07.
+
 **Convenção de commit** (do `git log`): `feat(0.X.0): descrição em minúscula, sem acento no assunto`,
 travessão para o subtítulo. A versão vive em **quatro** lugares e os quatro andam juntos no mesmo
 commit: `orq/.claude-plugin/plugin.json` · a seção **Status** do `README.md` · `memory/MEMORY.md` ·

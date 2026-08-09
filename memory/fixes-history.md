@@ -1,5 +1,109 @@
 # Log de mudanças — append-only
 
+## [2026-08-08] bug+processo | @frente-statusline · o `/orq:init` apagou a statusline do dono em dois projetos, e o painel reprovou a correção 8×
+
+Bloco da noite de 07 para 08. Começou com o dono notando que a barra dele tinha "ficado mais
+simples" depois de um `/orq:init`.
+
+**O bug.** O `/orq:init` gravava a chave `statusLine` no settings **do projeto** sem checar se já
+havia statusline no settings **global**. Settings de projeto vencem o global por precedência → a
+barra rica do dono (modelo · effort · contexto · custo · rate-limit · git · **board**) foi
+**anulada** em `IVA - App System` e em `Prompts - Byia/prompts-byia-clientes`. O diff foi `+4 -0` —
+**puramente aditivo**, invisível a qualquer verificação de "sobrescrevi arquivo?". A instrução tinha
+a ressalva certa ("se já houver statusline customizada, não sobrescreva") mas **não dizia em que
+escopo procurar**: o executor olhou o settings do projeto, viu vazio, e gravou. Os dois projetos
+foram revertidos à mão; no segundo a chave estava **commitada** (`fa1363c`), então a reversão também
+virou commit (`41fa1f9`).
+
+**Erro do Manager no diagnóstico, registrado porque quase escondeu metade do problema:** a primeira
+varredura desceu **1 nível** (`~/Projetos DEV - Cursor/*/`) e concluiu "só o IVA". O dono falou em
+"projetos", no plural, e insistiu — a varredura de 6 níveis achou o segundo. Varredura rasa dá falso
+negativo com cara de conclusão.
+
+**O que o painel custou e o que entregou.** Três rodadas, oito pareceres (Opus · Codex · Kimi),
+**oito reprovações**. Vale registrar *o que* ele pegou, porque nada disso apareceria em teste:
+
+- a **verificação criada para impedir o bug não pegava o bug** — asseria sobre um arquivo que o
+  comando nunca escreve, e só rodava se o próprio modelo se auto-classificasse como "instalei algo";
+- a instrução de merge que existia para **impedir destruição de arquivo** não dava o comando, e a
+  forma óbvia (`jq '…' arquivo > arquivo`) **trunca o arquivo para zero byte**;
+- o guarda `[ -x ]` num script invocado via `sh` — sem `jq` e sem o bit, a barra saía **vazia**;
+- **injeção de código**: o `awk` do custo interpolava o dado dentro do *programa* (PoC comprovado);
+- a guarda de metacaracteres do parser de `command` não cobria `>`, `<` e `&`, e o `eval echo`
+  fechava o ciclo: conteúdo de settings podia **disparar processo na fase declarada read-only**.
+
+**A emenda do Manager que os revisores derrubaram:** propus stamp de versão nas cópias para tornar o
+drift detectável. Dois revisores mostraram que isso **quebra o próprio re-sync** — a cópia ganha a
+linha, a fonte não, o `diff` diverge **sempre**, e o `--reinstalar` vira alarme crônico. A ideia
+estava certa; a execução se auto-sabotava.
+
+**Três desenhos, e o terceiro veio do dono.** v1/v2 = árvore de decisão com ramos mais um "legado"
+transversal; reprovada 5× porque os bloqueadores caíam nas **interseções**. Ofereci duas saídas
+(simplificar para "nunca escreve" · manter edição automática) e **ele recusou as duas**: *"o script
+pesquisaria se já existe uma board, veria qual é a arquitetura dessa board, e incluiria nela a parte
+das tasks"*. A v3 responde a isso sem pedir juízo: **não entender o script**, mas encolher o que
+precisa ser entendido até caber em checagens binárias, inserir um **bloco-sufixo no fim do fluxo**
+(nunca editar linha alheia) e **provar por experimento** — a saída antiga tem que ser **prefixo
+byte-a-byte** da nova, senão restaura o backup. Validada com **9 fixtures executáveis**, incluindo
+uma que escreve, reprova, reverte e prova a restauração com `cmp`.
+
+**Desfecho: card partido, por decisão do dono.** O `T-036` fica com o conserto + F1/F2/F3 + o asset
+saneado; a composição (F4 + `compor-statusline.md`) virou **`T-038`**. Razão: o conserto está maduro
+e resolve o problema real; a composição consumia rodada após rodada — e **na máquina do dono ela
+nunca dispara**, porque a barra dele já mostra o board.
+
+**Nada foi commitado nem publicado.** A 0.20.0 está bumpada nos quatro lugares, no working tree.
+
+## [2026-08-07] processo | @release-validacao · a 0.19.0 no ar nos três hosts, e o painel reprovou o próprio release
+
+Bloco da noite de 06 para 07.
+
+**Release fechado.** A 0.19.0 saiu do limbo "commitada mas não instalada": `marketplace update` +
+`plugin update` + restart (cache `0.19.0`, `diff -rq` vazio), e os três commits pendentes foram para
+o GitHub (`7c14aa9..b62b39c`). O repositório é público, então **quem instalar agora recebe a 0.19.0**
+— até ontem recebia a 0.18.0.
+
+**Instalado nos outros dois hosts, o Kimi pela primeira vez.** Codex por `codex plugin add`
+(installed+enabled, `diff -rq` vazio). Kimi por cópia para `~/.agents/skills/orq/` e
+`~/.kimi-code/agents/`; as cinco verificações do `instalar.md` bateram.
+
+**O `~/.kimi-code/agents/` deixou de ser hipótese** — o diretório aceitou os cinco `orq-*.md`. O que
+segue **não** exercitado é o Kimi *usar* esses agentes: copiar não é invocar.
+
+**O smoke do Kimi passou, e vale como validação SEM viés.** `kimi -m kimi-code/k3 -p "onde paramos?"`
+num worktree descartável invocou a skill sozinho, leu o `MEMORY.md` antes do board e apresentou na
+ordem que a skill manda; `git status` do worktree ficou vazio. Por que vale mais que um teste meu:
+`T-014`/`T-016` avisam que o Manager acerta de memória porque a frase do teste está escrita no
+próprio card — o Kimi não carregava essa expectativa.
+
+**Efeito colateral revelador:** o Kimi leu o `MEMORY.md` e me devolveu "falta release e push" e
+"instalar no Kimi — nunca foi feito", as duas já falsas naquele instante. Índice desatualizado não é
+cosmético: ele **mente para quem retoma**, e hoje isso foi observado ao vivo em vez de suposto.
+
+**Painel dos três sobre o diff da própria 0.19.0: REPROVADO por 3/3.** Opus interno, Codex
+`gpt-5.6-sol@xhigh` e Kimi K3, independentes. Verifiquei 8 dos 10 achados no código antes de aceitar.
+Convergência dos três: **procedência inflada** — a família de defeito que a 0.19.0 dizia ter
+eliminado. O mais grave (2 revisores + minha verificação): o template do `_elenco.md` em
+`orq/commands/elenco.md` não ganhou as seções v2, então `/orq:init` em projeto novo nasce sem a
+`## Matriz de invocação` que `revisar.md:56` e `SKILL.md:85` mandam consultar.
+
+**O achado que responde ao critério do próprio card:** o `T-026` mandava conferir que "no Codex o
+painel fecha três vendors, não dois". Pelo texto atual **não fecha** — o `revisar.md` não tem passo
+que invoque o revisor Anthropic pelo time do host, e a linha 63 dispara `codex exec` sempre que
+`codex` estiver no PATH, o que no host Codex é sempre. Resultado: OpenAI duplicado, zero Anthropic.
+
+**Ironia útil:** o `instalar.md:120-121` manda rodar a fumaça do Kimi sem `-m` e com `-p` primeiro —
+as duas formas que a 0.19.0 acabou de declarar inseguras. Só não mordeu porque segui a Matriz, e não
+o `instalar.md`; seguindo o arquivo, a instalação teria sido validada rodando o `default_model` de
+terceiro.
+
+**Validados por mim, mecanicamente e sem viés:** `T-017` (o lint acusou a edição sem bump nomeando o
+arquivo; `diff -rq` pós-release vazio) · `T-007` e `T-010` (os três pareceres voltaram no formato
+exigido, e a reconciliação separou confirmado-por-3, por-2 e solitário).
+
+**Nada foi corrigido em `orq/`** — review é read-only e todo achado ali é mudança de produto, que
+entra pelo ciclo. Nasceram `T-033`, `T-034` e `T-035`.
+
 ## [2026-08-05] feat | 0.19.0 — elenco host-agnostico; e o framework rodou no Codex de verdade
 
 **O dia entregou duas coisas: a prova de que o Orquestra atravessa para outro host, e o elenco

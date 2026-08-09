@@ -1791,7 +1791,7 @@ impedir.**
 
 ---
 
-## ⏭️ RETOMAR AQUI (atualizado 2026-08-05, pós-review da 0.19.0 — corrige o R7)
+## ⏭️ ~~RETOMAR AQUI (2026-08-05, pós-review da 0.19.0)~~ — **SUPERADO em 2026-08-07, ver o fim do arquivo**
 
 **Estado: 0.19.0 IMPLEMENTADA** (passos 8.1–8.7: `_elenco.md` v2 com `## Times por host` +
 `## Matriz de invocação` + `## Custo`; bump nos quatro lugares; `revisar.md`, `implement-next.md`
@@ -1824,3 +1824,47 @@ rodada — conferir o diff e o `fixes-history.md` antes de assumir que já foram
 O `description` do frontmatter da `SKILL.md` não menciona instalação — se o dono disser *"instala o
 orq no Codex"* numa sessão fria, a skill pode não disparar (a tabela interna roteia certo quando a
 skill carrega). Não é bloqueador; vira card quando o Manager abrir.
+
+---
+
+## ⏭️ RETOMAR AQUI (atualizado 2026-08-07 — @release-validacao)
+
+**Estado: 0.19.0 LIBERADA, INSTALADA NOS TRÊS HOSTS E REVISADA.** Da lista anterior, os passos 1–3
+estão **feitos**, o passo 4 (smoke) está **pela metade** e o passo 5 (checkpoint) é este.
+
+### O que aconteceu em 07/ago
+
+- **Release + push.** Cache `0.19.0` com `diff -rq` vazio; `7c14aa9..b62b39c` no GitHub. O
+  repositório é público, então quem instalar agora recebe a 0.19.0 — antes recebia a 0.18.0.
+- **Codex:** `codex plugin add orq@orquestra` → installed+enabled, `diff -rq` vazio.
+- **Kimi: instalado pela primeira vez.** As cinco verificações do `instalar.md` bateram. **A hipótese
+  `~/.kimi-code/agents/` caiu para o lado bom** — o diretório existe e aceitou os cinco `orq-*.md`.
+  Mas **copiar não é invocar**: usar esses agentes segue não testado.
+- **Smoke do Kimi: PASSOU.** `kimi -m kimi-code/k3 -p "onde paramos?"` em worktree descartável →
+  invocou a skill sozinho, leu o `MEMORY.md` antes do board, ordenou como a skill manda, worktree
+  intacto no fim. **Fecha metade do passo 8.8**, e vale mais que um teste do Manager, que conhece a
+  resposta esperada por tê-la lido no card.
+- **Painel dos três sobre o diff da própria 0.19.0: REPROVADO 3/3.** 8 dos 10 achados verificados
+  pelo Manager no código antes de aceitos. Nasceram `T-033` (template v2 não é gerado), `T-034`
+  (painel não fecha 3 vendors fora do Claude + Loop A com planner cego), `T-035` (procedência
+  inflada + fumaça do `instalar.md` na forma insegura).
+- **Procedência corrigida com medição real:** a célula Moonshot×host Kimi da Matriz passou de
+  *"roteamento comprovado vivo"* para **CLI comprovada em 07/ago · sub-agent NÃO testado**.
+
+### O que falta, em ordem
+
+1. **Smoke no host Codex** — a outra metade do passo 8.8: abrir sessão viva no Codex e conversar,
+   conferindo que a skill dispara por frase e que o painel monta. **É lá que o `T-034` se prova na
+   prática**: pelo texto, o painel fecha 2 vendors com OpenAI duplicado e zero Anthropic.
+2. **Decidir `T-033`/`T-034`/`T-035`** — os três são do dono; nenhum tem correção de uma frase.
+3. **Commit do checkpoint** — as mudanças de 07/ago (índice, log, gotchas, `_elenco.md`, board)
+   estão no working tree e **não commitadas**; o dono não pediu commit.
+
+### Aberto, e é do dono (revisado em 07/ago)
+
+- ~~O smoke test em si~~ → **metade feita** (Kimi ✅); falta o Codex.
+- ~~Hipótese `~/.kimi-code/agents/`~~ → **confirmada** como diretório aceito; usar os agentes, não.
+- Motor do host Kimi declarado no `~/.kimi-code/config.toml` — mexer só com ele.
+- Hook `PreToolUse` do Kimi testado vivo **antes** de qualquer escrita (decisão 4) — **não feito**,
+  então o Kimi segue restrito a leitura e planejamento.
+- (só se ele quiser) trocar o revisor de fora para `fable` = reabrir a decisão 10.

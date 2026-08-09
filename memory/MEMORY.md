@@ -4,23 +4,50 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.19.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-04.
+**Versão:** 0.20.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-08.
 
-## ⏸️ O que espera o dono AGORA (2026-08-05, fim do dia)
+## ⏸️ O que espera o dono AGORA (2026-08-08) — @frente-statusline + @release-validacao
 
-1. **Release da 0.19.0** — `claude plugin marketplace update orquestra` + `claude plugin update
-   orq@orquestra` + **restart**. Ela está commitada mas **não instalada**; a versão ativa é a 0.18.0.
-2. **Testar os cinco cards em VALIDATE** — `T-020`, `T-023`, `T-025`, `T-030` (a 0.18.0 já está
-   ativa, então esses três primeiros podem ser testados **agora**) e `T-026`. As frases:
+**Da noite de 07→08 (frente statusline, `T-036`/`T-037`/`T-038`):**
+
+0. **Reiniciar as sessões** do `IVA - App System` e do `prompts-byia-clientes` — é o que faz a barra
+   completa voltar naqueles dois projetos. A correção já está no disco (o segundo, commitada em
+   `41fa1f9`); só falta a sessão reler o settings.
+1. **Tirar o conector Supermemory** em **claude.ai → Settings → Connectors**. ⚠️ Verificado em
+   2026-08-08: ele **não está** em `~/.claude.json`, nem em `~/.claude/settings.json`, nem em
+   `.mcp.json` de projeto algum — `claude mcp list` não o lista. É conector **da conta**, e nenhuma
+   mudança no plugin alcança isso. O `T-037` tira o Supermemory do produto; **o erro de conexão que
+   você vê só para aqui.**
+2. **Decidir o release da 0.20.0** — está bumpada nos quatro lugares e **não commitada**. O `T-036`
+   ficou com escopo reduzido (conserto + F1/F2/F3 + asset saneado); falta a rodada de correção
+   terminar e um painel final antes de qualquer publicação.
+
+**Do bloco anterior (@release-validacao, segue valendo):**
+
+
+
+1. **Dar o de-acordo em três cards já testados** — `T-017`, `T-007` e `T-010` passaram em 07/ago,
+   com a evidência escrita em cada card. São testes mecânicos, sem viés; falta só você concordar.
+2. **Rodar os testes que só você pode rodar** — `T-014`, `T-016`, `T-009`, `T-022`, `T-025`, `T-020`,
+   `T-023`, `T-030`. Todos dependem de **frase natural sua**: o Manager lê a frase do teste e a
+   resposta esperada no próprio card, então acertaria de memória e não provaria nada. As frases:
    *"quais as possibilidades"* · *"instala o Serena aqui"* · *"tô com pouco crédito"* seguido de
-   *"chegamos ao final do ciclo"* (a segunda **não** pode trocar o elenco).
-3. **Instalar no Kimi** — nunca foi feito. `/orq:instalar` tem os comandos; o `~/.agents/skills/`
-   existe, o `~/.kimi-code/agents/` é **hipótese não confirmada**, com fallback documentado.
-4. **Decidir os 6 riscos menores** que o painel da 0.19.0 achou e que viraram candidatos a card
-   (listados no `T-026` no board) — nenhum tinha correção óbvia de uma frase.
+   *"chegamos ao final do ciclo"* (a segunda **não** pode trocar o elenco) · *"agora não"* a uma
+   sugestão de ferramenta, repetida numa sessão seguinte.
+3. **Decidir os três cards que nasceram do painel de 07/ago** — `T-033` (template v2 não é gerado),
+   `T-034` (painel não fecha 3 vendors fora do Claude; Loop A escolhe planner cego), `T-035`
+   (procedência inflada + a fumaça do `instalar.md` na forma insegura).
+4. **`T-013`** — exige duas janelas simultâneas suas; nada a fazer sozinho aqui.
 
-**Commitado e no GitHub:** 0.17.0 (`10ecef2`) · 0.18.0 (`7674cab`) · board (`7c14aa9`).
-**Commitado, falta push:** 0.19.0 (`8bef7f9`).
+**Distribuição:** 0.19.0 **instalada e no GitHub** (`b62b39c`) e presente nos **três hosts** —
+Claude (cache `0.19.0`), Codex (`plugin add`, enabled) e Kimi (cópia em `~/.agents/skills/orq/`).
+Quem instalar do repositório público recebe a 0.19.0.
+
+**Commitado e no GitHub:** 0.17.0 (`10ecef2`) · 0.18.0 (`7674cab`) · 0.19.0 (`8bef7f9`) ·
+board (`7c14aa9`) · `T-032` (`b62b39c`). **Nada pendente de push.**
+
+⚠️ **O checkpoint de 07/ago tem mudanças ainda NÃO commitadas** (este índice, log, gotchas,
+`_elenco.md`, board) — o dono não pediu commit.
 
 ## ✅ O que foi provado em 2026-08-05 — o framework roda fora do Claude Code
 
@@ -81,7 +108,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`gotchas.md`](gotchas.md) | Armadilhas que já custaram tempo |
 | [`wiki/threads/desenvolvimento-do-plugin.md`](wiki/threads/desenvolvimento-do-plugin.md) | **Thread ativa** — fases, decisões a não re-litigar e **⏭️ RETOMAR AQUI** |
 | [`wiki/threads/T-025-gatilhos.md`](wiki/threads/T-025-gatilhos.md) | **Implementado na 0.15.0** — descoberta (`/orq:ajuda`), gatilhos atestados e a política de iniciativa em três níveis |
-| [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | **Ativo** — o Orquestra rodando fora do Claude Code. Instalação multi-host (0.18.0, entregue e provada no Codex) e elenco host-agnóstico (0.19.0, aguardando painel). **A thread é longa: o `⏭️ RETOMAR AQUI` vivo é o último do arquivo** — os anteriores estão marcados como superados |
+| [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | **Ativo** — o Orquestra rodando fora do Claude Code. Instalação multi-host (0.18.0, provada no Codex) e elenco host-agnóstico (0.19.0 — **liberada, instalada nos três hosts e revisada pelo painel em 07/ago; reprovada 3/3, achados em `T-033`/`T-034`/`T-035`**). **A thread é longa: o `⏭️ RETOMAR AQUI` vivo é o último do arquivo** — os anteriores estão marcados como superados |
 | [`wiki/threads/T-023-reload-vs-restart.md`](wiki/threads/T-023-reload-vs-restart.md) | **Implementado na 0.14.0**, reprovado no review e corrigido — evidência por componente no lugar de regra binária |
 | [`wiki/threads/T-020-perfis-elenco.md`](wiki/threads/T-020-perfis-elenco.md) | **Entregue na 0.16.0** — perfis de elenco (`padrao` · `economia`) trocados por frase |
 | [`wiki/threads/_noturno.md`](wiki/threads/_noturno.md) | Manifesto **expirado** + relatório do modo noturno de 2026-07-30 — não abrir run novo a partir dele |

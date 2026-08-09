@@ -356,7 +356,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.19.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.20.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
@@ -373,7 +373,13 @@ lint, não mais "dever de sincronizar") · `/orq:init` grava o mesmo bloco `orqu
 Codex e Kimi, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4) · **elenco
 host-agnóstico** (`T-026`, passo 8): `## Times por host` resolve o time de Codex e Kimi na leitura,
 sem preset ativável; `## Matriz de invocação` documenta o template por vendor × host com
-procedência; painel do Kimi corrigido para a ordem de flags segura (`-m` antes, `-p` por último).
+procedência; painel do Kimi corrigido para a ordem de flags segura (`-m` antes, `-p` por último) ·
+**statusline distribuída** (`T-036`): novo asset `orq/scripts/statusline.sh` — a barra completa do
+dono (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board),
+achando o `kanban-status.sh` por vizinhança em vez de caminho fixo e degradando para só o board sem
+`jq` — e o `init` passa a checar os **três escopos** de settings (local do projeto, compartilhado do
+projeto, global do usuário) antes de propor, nunca sobrescrevendo statusline existente em nenhum
+deles; a cópia instalada leva marca de versão para re-sync detectável.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
 implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.

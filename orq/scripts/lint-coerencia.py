@@ -162,6 +162,67 @@ def main() -> int:
             )
         )
 
+    # ── Statusline: tripwire dos três escopos (T-036) ───────────────────────
+    # A causa raiz do T-036 foi o `init.md` gravar `statusLine` checando só o
+    # escopo do projeto — settings de projeto vencem o global por
+    # precedência, então a omissão vira sobrescrita silenciosa mesmo com diff
+    # aditivo. O gate é textual: todo arquivo de orq/ que se propõe a
+    # ESCREVER a chave (identificado pela forma JSON `"statusLine":`, que só
+    # aparece em template de settings a gravar — não em prosa citando o
+    # identificador) precisa nomear os três escopos onde ela pode morar,
+    # senão a omissão do bug original volta a ser possível sem o lint notar.
+    # Mira só quem grava, de propósito: um arquivo que cita `statusLine` sem
+    # gravar nada (ex.: a skill listando primitivas por comando) não decide
+    # onde a chave mora, e exigir os três escopos ali seria falso positivo.
+    #
+    # Gatilho: forma JSON de escrita ('"statusLine":') OU forma de atribuição
+    # jq ('.statusLine = ...'/'.statusLine |= ...', usadas em filtros tipo
+    # `jq '.statusLine = {...}'`) OU forma de merge por adição de objeto
+    # ('{statusLine: ...}', usada em `jq '. + {statusLine: {...}}'`) — as
+    # versões anteriores só cobriam a primeira forma (depois, `=`/`|=`); o
+    # achado 6 do painel (T-036, rodada 2) provou que `jq '. + {statusLine:
+    # …}'`, a segunda forma canônica de merge seguro em jq, escapava do lint
+    # gravando a chave de verdade.
+    # Probes (documentação viva do que o guarda cobre — teste ao mexer aqui):
+    #   dispara     — '"statusLine": {...}' · jq '.statusLine = {"type":...}'
+    #                 · jq '.statusLine |= {...}' · jq '. + {statusLine: {...}}'
+    #   não dispara — '.statusLine // empty'  · "a chave `statusLine`" em prosa
+    # Limitação conhecida: o gatilho é textual/sintático, não um parser de
+    # comando de verdade. Reescrever o passo em prosa livre, sem nenhuma das
+    # formas acima, desarma o guarda — não há como cobrir toda paráfrase
+    # possível sem executar o comando descrito.
+    GRAVA_STATUSLINE_RE = re.compile(r'"statusLine"\s*:|\.statusLine\s*(\|=|=)(?!=)|\{\s*statusLine\s*:')
+    # Escopo do projeto (".claude/settings.json") é SUBSTRING do escopo do
+    # usuário ("~/.claude/settings.json") — um `in txt` ingênuo dava falso
+    # negativo: um arquivo que cite só o escopo usuário passava a checagem do
+    # escopo projeto de graça (o "~/.claude/settings.json" citado já contém a
+    # substring). Casa por regex com fronteira, negando os dois prefixos que
+    # denotam o HOME (o achado 6 também provou que "$HOME/.claude/settings.json"
+    # — forma equivalente a "~/…" — colava como escopo de projeto com um único
+    # lookbehind negativo): `~/` e `$HOME/`. Os outros dois escopos não são
+    # substring um do outro e seguem checados por substring simples.
+    ESCOPO_PROJETO_RE = re.compile(r"(?<!~/)(?<!\$HOME/)\.claude/settings\.json")
+    ESCOPOS_STATUSLINE = ("settings.local.json", ".claude/settings.json", "~/.claude/settings.json")
+    for arq in plugin.rglob("*.md"):
+        if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):
+            continue
+        txt = arq.read_text(encoding="utf-8")
+        if GRAVA_STATUSLINE_RE.search(txt):
+            faltando = [
+                e
+                for e in ESCOPOS_STATUSLINE
+                if not (ESCOPO_PROJETO_RE.search(txt) if e == ".claude/settings.json" else e in txt)
+            ]
+            if faltando:
+                problemas.append(
+                    (
+                        arq.relative_to(raiz),
+                        0,
+                        f"grava statusLine mas não menciona o(s) escopo(s) {faltando} — "
+                        "reabre o risco do T-036 (settings de projeto vencem o global)",
+                    )
+                )
+
     # ── Cache stale por edição sem bump ─────────────────────────────────────
     # O cache do plugin é indexado por versão (~/.claude/plugins/cache/
     # orquestra/orq/<versão>/): editar orq/ sem bumpar NÃO muda o que roda e
