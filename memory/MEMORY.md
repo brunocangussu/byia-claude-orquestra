@@ -4,9 +4,28 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.20.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-08.
+**Versão:** 0.20.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## ⏸️ O que espera o dono AGORA (2026-08-08) — @frente-statusline + @release-validacao
+
+**⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
+
+- **0.20.0 RELEASADA E PUBLICADA** (commit `164387c`, push feito). Instalada e verificada no Claude
+  **e** no Codex, cache idêntico ao repo nos dois. O `T-036` está em **VALIDATE**, aguardando só o
+  teste do dono: projeto de rascunho → `/orq:init` → tem que dizer *"sua statusline já mostra o
+  board"* e **não gravar chave nenhuma**.
+- **O dono adotou o Codex como host padrão.** O time do host Codex está em `_elenco.md`,
+  `## Times por host` — planner e implementer OpenAI, **revisor `opus` de fora** (a diversidade do
+  painel depende disso). ⚠️ **Subagente nativo no Codex é "observado 1×", não comprovado** — se não
+  funcionar, **declare a degradação**, não finja que houve painel.
+- **Próximo card natural: `T-037`** (tirar o Supermemory do produto) — **planejado e aprovado**, plano
+  em `threads/T-037-sem-supermemory.md`, decisões 1-4 já respondidas. É o mais mecânico dos três
+  abertos. O `T-039` teve a descrição corrigida hoje (estava exagerada). O `T-038` é o maior.
+- **Fora deste repo, mapeado e não executado:** a migração de memória do projeto
+  `Bruno Vascular - Gestão Dados Marketing` (relatório completo do scout na conversa de 09/ago;
+  6 dos 11 snapshots de lá **já são páginas vivas**; 7 páginas de tópico e 14 cards propostos).
+  ⚠️ Achado de segurança **fora do escopo do Orquestra**, reportado ao dono: `workflow_secretaria.json`
+  daquele projeto tem PII de paciente e token em texto puro.
 
 **Da noite de 07→08 (frente statusline, `T-036`/`T-037`/`T-038`):**
 
