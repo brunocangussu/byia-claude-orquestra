@@ -1,5 +1,13 @@
 # Log de mudanças — append-only
 
+## [2026-08-09] validação | T-041 · Opus 5 comprovado em projeto externo pelo plugin instalado
+
+Claude e Codex receberam `orq 0.21.0`; os dois caches ficaram byte-idênticos à fonte. Uma nova
+sessão Codex num projeto temporário carregou a skill do cache, passou o gate LGPD e disparou o painel
+real. O runner devolveu exit 0, `OPUS_MODEL=claude-opus-5` e parecer não vazio; Kimi K3 também saiu
+com exit 0 e confirmou o mesmo bloqueador. O workspace de teste permaneceu limpo. O GitHub foi
+verificado separadamente e ainda entrega `0.20.0`, sem runner: push depende do gate explícito.
+
 ## [2026-08-09] fix+prova | T-041 · Opus 5 deixa de falhar em silêncio no Host Codex
 
 O relato de outro projeto expôs duas causas. A instalação real ainda estava em `0.20.0`, cuja regra

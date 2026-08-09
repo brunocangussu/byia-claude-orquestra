@@ -118,7 +118,9 @@ portanto, parte do release, não um passo opcional depois dele.
 Codex por `codex plugin add orq@orquestra` (cache indexado por versão, mesmo gotcha do Claude);
 Kimi por **cópia** para `~/.agents/skills/orq/` + `~/.kimi-code/agents/` — snapshot **sem
 versionamento**, que envelhece em silêncio se `/orq:instalar` não for re-rodado a cada release.
-**Estado em 2026-08-09: Claude e Codex na 0.20.0** (publicada, commit `164387c`); o Kimi segue na 0.19.0 — a cópia dele não tem versionamento e só sai do lugar quando o `/orq:instalar` roda de novo.
+**Estado local em 2026-08-09: Claude e Codex na 0.21.0**, caches byte-idênticos à fonte; smoke
+externo do painel Opus 5 + Kimi K3 aprovado. **GitHub ainda na 0.20.0** (`164387c`) até gate de push.
+O Kimi como host segue na cópia anterior; no smoke Codex ele respondeu como reviewer via CLI.
 
 ⚠️ **Gotcha do Codex, pago em 2026-08-08:** o marketplace `orquestra` dele aponta para **a pasta do projeto**, não para o GitHub. Então `codex plugin add` copia **o que estiver no disco naquele instante — inclusive trabalho não commitado e não revisado**. Foi assim que o Codex ficou rodando uma "0.20.0" tirada do meio de uma sessão, reprovada em três rodadas de painel. E como o cache é indexado **por versão**, atualizar depois **não troca nada**: mesmo rótulo, conteúdo velho. A saída é apagar `~/.codex/plugins/cache/orquestra/orq/<versão>/` e reinstalar.
 

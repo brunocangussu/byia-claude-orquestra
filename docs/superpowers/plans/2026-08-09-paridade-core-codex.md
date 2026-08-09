@@ -408,8 +408,9 @@ validações e pedido explícito de autorização para instalação local da rel
 - [x] Rodar Opus 5 real como revisor sobre o runner em lotes abaixo de 16 KiB.
 - [x] Reconciliar Opus/Kimi: refutar flags inexistentes e descendente sobrevivente com chamadas reais
   e cinco repetições; aplicar os achados confirmados de privacidade, diagnóstico e cobertura.
-- [ ] Reinstalar `0.21.0` em Claude/Codex e executar smoke numa conversa Codex nova em projeto externo.
-- [ ] Confirmar o estado do GitHub e obter gate explícito antes de push/publicação.
+- [x] Reinstalar `0.21.0` em Claude/Codex e executar smoke numa conversa Codex nova em projeto externo.
+- [x] Confirmar o estado do GitHub: `main` remota permanece em `0.20.0`, sem runner/Host Codex Opus.
+- [ ] Fazer push/publicar somente depois do gate explícito do dono.
 
 ## Plan Self-Review Checklist
 

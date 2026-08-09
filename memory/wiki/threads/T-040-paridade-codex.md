@@ -58,9 +58,8 @@
 
 ## RETOMAR AQUI
 
-`T-041` voltou a IMPLEMENTING após o dono relatar que Opus não respondeu em outro projeto. Criar e
-testar o runner determinístico do Opus, amend da candidata `0.21.0`, integrar localmente, reinstalar
-em Claude/Codex e executar smoke em projeto externo. GitHub permanece read-only até o gate de push.
+`T-041` está em AWAITING_OWNER. A `0.21.0` passou localmente e em projeto externo; GitHub ainda
+distribui `0.20.0`. Pergunta exata: autoriza push da `main` local validada para `origin/main`?
 
 ## Reabertura por validação real do Opus 5
 
@@ -89,6 +88,18 @@ em Claude/Codex e executar smoke em projeto externo. GitHub permanece read-only 
   descendente sobrevivente foi refutada por teste com marcador repetido 5×. Foram aceitos os
   achados confirmados: stdin em vez de argv, anúncio imediato, erro limitado, lint fail-closed e
   cobertura explícita de saída vazia/modelos usados.
+
+## Smoke externo instalado — PASS
+
+- Projeto descartável: `/private/tmp/orq-opus-smoke-20260809-01`, nova sessão Codex.
+- Plugin carregado do cache `~/.codex/plugins/cache/orquestra/orq/0.21.0`.
+- Gate LGPD: clear; alvo artificial sem PII/credencial/dado clínico.
+- Opus: exit 0, `OPUS_STARTED`, `OPUS_MODEL=claude-opus-5`, 956 bytes de briefing, parecer real com
+  contradição `contrato.md:3↔4` e veredito reprovado.
+- Kimi K3: exit 0, 2.167 bytes, confirmou a mesma contradição.
+- Painel: completo; estado Git do projeto temporário permaneceu limpo.
+- GitHub verificado depois do smoke: `origin/main=164387c`, versão `0.20.0`, zero referência ao
+  runner e zero bloco do painel Opus no Host Codex. A distribuição pública ainda não está corrigida.
 
 ## Painel e reconciliação de T-041
 
