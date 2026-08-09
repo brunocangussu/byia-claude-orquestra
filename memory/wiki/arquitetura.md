@@ -27,6 +27,32 @@ no Terminals o Manager é separado do canvas.
 **Por que os workers nascem frescos:** contexto contaminado faz o agente arrastar premissas da tarefa
 anterior. No Claude Code cada spawn é contexto novo, então isso é de graça.
 
+## Interface e execução por host
+
+O núcleo é único; a interface e o executor variam pelo host:
+
+| Host | Interface explícita | Resolução do trabalho |
+|---|---|---|
+| Claude Code | linguagem natural + `/orq:*` | subagente nativo quando suporta o papel; CLIs externas para diversidade |
+| Codex | linguagem natural + `/skills` | time `Host Codex` e Matriz; CLI explícita quando a primitiva não aceita modelo/effort |
+| Kimi | linguagem natural pela skill instalada | time `Host Kimi` e Matriz; escrita só com contenção comprovada |
+
+`commands/` é a superfície de slash commands do Claude e a descrição canônica das operações; o
+Codex não a converte em `/orq:*`. Ausência de `/orq` no menu do Codex não é falha de instalação.
+
+Todo consumidor resolve na mesma ordem: **host → papel → vendor → mecanismo**. O template de
+`_elenco.md` gera `## Times por host` e `## Matriz de invocação`; projeto existente é migrado de
+forma aditiva. “Configurado” descreve o próximo despacho, não prova qual processo está rodando.
+
+No host Codex, o titular é Manager `gpt-5.6-sol@high`, Planner `gpt-5.6-sol@ultra` e Implementer
+`gpt-5.6-terra@xhigh`. O painel independente obrigatório é Opus 5 + Kimi K3; o Manager reconcilia,
+mas não conta como parecer.
+
+O reviewer Opus não é uma chamada `claude -p` crua. `orq/scripts/run-opus-reviewer.py` recebe o
+briefing sanitizado pelo stdin, limita cada lote a 16 KiB, anuncia o início e aplica timeout de
+240s; só libera a saída quando `modelUsage` comprova `claude-opus-5`. Diff maior é dividido por arquivo/hunk, cobrindo
+todos os lotes sem truncamento; falha em qualquer lote produz painel parcial com diagnóstico.
+
 ## Máquina de estados
 
 ```

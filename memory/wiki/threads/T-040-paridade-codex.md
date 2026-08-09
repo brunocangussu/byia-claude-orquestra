@@ -38,12 +38,67 @@
 
 ## Planos executáveis
 
-- Core Codex `0.21.0`: `docs/superpowers/plans/2026-08-09-paridade-core-codex.md` — 4 Tasks, 25 Steps.
+- Core Codex `0.21.0`: `docs/superpowers/plans/2026-08-09-paridade-core-codex.md` — 4 Tasks, 27 Steps no desenho original; execução acrescentou o gate explícito de painel/correção antes do commit.
 - Statusline nativa `0.22.0`: `docs/superpowers/plans/2026-08-09-statusline-nativa-codex.md` — 4 Tasks, 18 Steps.
 - Autocrítica passou: cobertura de interface, elenco, init, statusline, diagnóstico, privacidade, verificação e release; nenhum placeholder.
 - A primeira execução é `T-041`; `T-042` depende dela.
 - Publicação, atualização de cache global e push não estão autorizados.
 
+## Implementação T-041
+
+- Worktree: `.worktrees/t041-paridade-core-codex`, branch `feat/t041-paridade-core-codex`.
+- Task 1 RED→GREEN: template gera Matriz/Times, init migra aditivamente e lint guarda headings.
+- Task 2 RED→GREEN: Planner/Implementer/painel resolvem host→papel→executor; Codex usa Sol/ultra,
+  Terra/xhigh, Opus 5 e Kimi K3.
+- Task 3 RED→GREEN: interface Codex por linguagem natural + `/skills`, diagnóstico em sete camadas,
+  smoke em conversa nova e classificação de memória virgem/legada/parcial/completa.
+- O bump `0.21.0` foi antecipado porque o guard de cache torna lint intermediário impossível quando
+  `orq/` diverge de uma versão já publicada. Os quatro locais estão sincronizados.
+- Manifesto, lint de coerência e probes locais passaram antes do painel.
+
 ## RETOMAR AQUI
 
-Execução inline autorizada em 2026-08-09. Implementar `T-041` task-by-task na worktree `.worktrees/t041-paridade-core-codex`; manter `T-042` no backlog até a release core estar concluída localmente. Publicação, cache global e push seguem fora da autorização.
+`T-041` voltou a IMPLEMENTING após o dono relatar que Opus não respondeu em outro projeto. Criar e
+testar o runner determinístico do Opus, amend da candidata `0.21.0`, integrar localmente, reinstalar
+em Claude/Codex e executar smoke em projeto externo. GitHub permanece read-only até o gate de push.
+
+## Reabertura por validação real do Opus 5
+
+- Codex e Claude instalados: `orq 0.20.0`; GitHub `main`: commit `164387c`, também `0.20.0`.
+- No `0.20.0`, `revisar.md` não contém painel Opus no Host Codex; portanto o silêncio observado em
+  outro projeto é reproduzível por contrato: o Opus nem é invocado.
+- Sonda direta do CLI em repo e diretório externo: exit 0 em 4–6s, resultado `OPUS_REVIEWER_OK` e
+  `modelUsage` contendo `claude-opus-5`. CLI/auth/modelo estão saudáveis.
+- Na candidata `0.21.0`, prompt completo de 31–40 KB excedeu 180–300s; trechos focados responderam.
+  A instrução crua não tem limite de entrada, timeout estruturado nem validação do modelo/saída.
+- Hipótese confirmada: versão antiga explica a ausência total; briefings sem orçamento explicam o
+  risco residual de silêncio mesmo depois da atualização. A correção deve atacar as duas camadas.
+
+## Runner Opus 5 — implementação e revisão
+
+- Runner lê briefing só por stdin; a sonda real do CLI confirmou esse modo em 5,7s.
+- `OPUS_STARTED` sai imediatamente no stderr; prazo padrão 240s; cada lote tem no máximo 16.384
+  bytes UTF-8 depois da sanitização; excesso falha antes de chamar o provedor.
+- Saída só é liberada com `modelUsage` contendo `claude-opus-5` e resultado não vazio. O diagnóstico
+  registra todos os modelos auxiliares observados para auditoria.
+- Testes stdlib: 14 casos verdes, incluindo argv, timeout, alias errado, JSON inválido, API error,
+  saída vazia, input grande, override inválido e auditoria de modelos.
+- Opus revisou código e integração em dois lotes reais; um lote anterior expirou e foi contado como
+  parcial, não como parecer. Kimi revisou o mesmo runner.
+- Achados de "flags inexistentes" foram refutados por `claude --help` e chamadas reais. A tese de
+  descendente sobrevivente foi refutada por teste com marcador repetido 5×. Foram aceitos os
+  achados confirmados: stdin em vez de argv, anúncio imediato, erro limitado, lint fail-closed e
+  cobertura explícita de saída vazia/modelos usados.
+
+## Painel e reconciliação de T-041
+
+- Rodada 1: Opus 5 e Kimi K3 reprovaram a contradição da diagonal no Host Codex. O Opus também
+  confirmou override nativo não comprovado, raiz host-específica e lint permissivo.
+- Correções: painel Codex fixado em exatamente Opus 5 + Kimi K3; `codex exec` virou padrão; a skill
+  resolve `ORQ_PACKAGE_ROOT`; o lint passou a exigir contratos no arquivo normativo.
+- Rodada 2: os dois revisores deram `APROVADO_COM_RESSALVAS` e confirmaram os quatro bloqueadores
+  fechados. O Manager verificou e corrigiu as ressalvas presentes: defaults sem elenco agora incluem
+  Kimi, degradação/diagonal entram no lint, alias Opus é verificado em todo host e raiz Kimi valida o
+  layout antes de usar.
+- Tentativas que expiraram não foram contadas como parecer. Os dois pareceres válidos da rodada 2
+  retornaram exit 0 sobre trechos verbatim numerados e foram reconciliados antes dos gates finais.

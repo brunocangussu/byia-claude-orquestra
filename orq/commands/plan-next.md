@@ -14,9 +14,21 @@ Você é o **Manager** (leia a skill `orq`). Rode o **Loop A — Planejamento**.
 Marque o card como `[>]` PLANNING no `memory/wiki/KANBAN.md`.
 
 ## 2. Despachar o Planner
-Spawn **fresco** do agente `orq-planner`. **Antes de spawnar, leia `memory/wiki/_elenco.md`** e passe
-o modelo do papel `planner` como override (o `model:` do arquivo do agente é só o padrão de fábrica).
-Sem elenco, use o padrão.
+
+Antes de despachar, **identifique o host** da sessão atual: Claude, Codex ou Kimi. Leia
+`memory/wiki/_elenco.md`, resolva a linha `planner` em `## Times por host` e só então aplique a
+célula vendor×host de `## Matriz de invocação`. Sem elenco, use o template de fábrica completo de
+`ORQ_PACKAGE_ROOT/commands/elenco.md` — a skill já precisa ter resolvido `ORQ_PACKAGE_ROOT` para o
+host atual; não improvise um modelo a partir da tabela do host Claude.
+
+- **Host Claude:** spawn **fresco** do agente `orq-planner`, com o modelo resolvido como override.
+- **Host Codex:** use o modelo/effort da linha `planner` em `## Times por host` e copie o comando da
+  célula OpenAI×Codex da Matriz, com sandbox `read-only`. `codex exec` é o caminho padrão; só use a
+  primitiva nativa se o `_elenco.md` registrar que o override foi comprovado por chamada real.
+- **Host Kimi:** siga a célula Moonshot×Kimi da Matriz e mantenha o papel read-only.
+
+Modelo, CLI ou override indisponível → não troque de modelo em silêncio. Mantenha o card em
+PLANNING, registre a capacidade ausente e peça ao dono a escolha do fallback.
 
 No prompt, inclua:
 - o card (ID, título, notas) e **por que ele existe**;

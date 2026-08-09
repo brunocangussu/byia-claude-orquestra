@@ -49,6 +49,22 @@ Idem para `--help | head`: a lista é alfabética e o `head` corta. Verifique o 
 | Contrato da memória | há `memory/` **e** falta `memory/wiki/_schema.md`? | instalação pré-0.6.0: `checkpoint` e `wiki-lint` degradam para o contrato inline — **informativo, não defeito** |
 | Agente colidindo | `ls .claude/agents/orq-*.md ~/.claude/agents/orq-*.md 2>/dev/null` — projeto **e** usuário | colisão de nome com o plugin, resolução indefinida |
 
+### Codex: sete camadas, sem falso “não instalado”
+
+Quando o host ou o sintoma envolver Codex, reporte separadamente:
+
+1. marketplace/fonte encontrada;
+2. plugin instalado;
+3. plugin **instalado e habilitado**;
+4. versão e conteúdo do cache coerentes;
+5. **skill carregada** e visível em `/skills`;
+6. estrutura Orquestra do projeto e elenco resolvidos;
+7. **smoke comportamental** aprovado em conversa nova.
+
+No Codex, a interface é linguagem natural ou `/skills`; `/orq:*` pertence ao Claude Code. Pare na
+camada que falhou e mostre a evidência. Não condense PATH, autenticação, cache, carregamento e smoke
+em “plugin ausente”.
+
 Com `--verificar`: mostre o diagnóstico dos dois blocos e **pare aqui** — não proponha instalação.
 Para cada problema, diga **o comando que corrige**, não só que está errado — com duas exceções:
 item **informativo** (como o `_schema.md` ausente numa instalação antiga) não pede correção; e

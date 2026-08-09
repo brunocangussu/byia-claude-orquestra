@@ -32,6 +32,16 @@ Levante:
 4. **Memória e docs que já existem** — `memory/`, `docs/`, `NOTES.md`, `TODO.md`, `ROADMAP.md`,
    snapshots, planos. **Tudo isso é matéria-prima** — a wiki nasce com a verdade que já existe.
    Anote **em que caminho** cada coisa está: um índice já existente pode não estar onde você espera.
+
+   Classifique o estado sem reduzir “não tem board” a “não tem memória”:
+   - **VIRGEM:** não há memória nem equivalente funcional;
+   - **MEMÓRIA LEGADA:** há `MEMORY.md`, `memory/`, `NOTES.md` ou equivalente, mas não há board do
+     Orquestra;
+   - **ORQUESTRA PARCIAL:** existe ao menos um artefato do Orquestra, mas faltam obrigatórios;
+   - **ORQUESTRA COMPLETO:** board, índice, schema e elenco existem.
+
+   No segundo caso, diga exatamente: **“Memória preexistente detectada em outro formato; o
+   Orquestra ainda não foi inicializado.”** Preserve tudo e siga a migração aditiva da FASE 4.
 5. **Trabalho em aberto** — TODO/FIXME no código, issues, itens não concluídos nos docs, testes
    quebrados. Vira o backlog inicial (com IDs `T-NNN`).
 6. **Ferramental disponível** (checar de verdade, não presumir):
@@ -96,7 +106,8 @@ Para cada papel adicional decida:
 **Proponha o ELENCO** (`memory/wiki/_elenco.md`) — qual LLM toca cada papel. Sugira uma escalação e
 deixe claro que ele pode mudar depois com `/orq:elenco planner fable`, ou trocar o **time inteiro**
 por contexto de crédito com `/orq:elenco perfil economia` — o arquivo já nasce com esse conceito
-(seção "Perfis", ver FASE 4).
+(seção "Perfis", ver FASE 4). Identifique também o host atual e proponha a linha correspondente em
+`## Times por host`; fora do Claude, não use a tabela `## Papéis` como se fosse universal.
 
 **Estratégia de leitura** (o que economiza contexto neste projeto):
 - Repo grande → busca semântica primeiro; indexar se ainda não estiver.
@@ -235,11 +246,16 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 2b. **Elenco** em `memory/wiki/_elenco.md` — a escalação aprovada (papel → modelo) + os revisores
    externos ativos, **gerado a partir do template "Modelo do arquivo" de
    `${CLAUDE_PLUGIN_ROOT}/commands/elenco.md`**
-   (traz de fábrica a linha "Perfil ativo" e a seção "Perfis" com `padrao`/`economia` prontos —
-   ajuste só os modelos e a nota de "o que se perde" à realidade deste projeto). Não crie um
-   `_elenco.md` só com a tabela de papéis: o projeto nasce **já** com o conceito de perfil, não como
-   um recurso que só aparece se alguém pedir depois. É esse arquivo que os comandos leem na hora de
-   spawnar.
+   (traz de fábrica `## Matriz de invocação`, `## Times por host`, a linha "Perfil ativo" e a seção
+   "Perfis" com `padrao`/`economia` prontos — ajuste só os modelos e a nota de "o que se perde" à
+   realidade deste projeto). Não crie um `_elenco.md` só com a tabela de papéis: o projeto nasce
+   **já** com o conceito de perfil e resolução por host, não como um recurso que só aparece se
+   alguém pedir depois. É esse arquivo que os comandos leem na hora de spawnar.
+
+   `_elenco.md` já existe? Leia o arquivo inteiro, preserve modelos/perfis/revisores escolhidos e
+   acrescente somente headings obrigatórias ausentes. Se `## Matriz de invocação` ou `## Times por
+   host` existe mas está incompleta, mostre o diff e pare no gate; não substitua linha existente sem
+   aprovação explícita.
 3. **`CLAUDE.md` e `AGENTS.md`** — os dois arquivos saem **byte-idênticos, do primeiro ao último
    caractere — não só o bloco.** É decisão do dono: *"o agent MD tem que ter o mesmo conteúdo do
    Claude MD"*; `diff CLAUDE.md AGENTS.md` tem que voltar vazio, arquivo inteiro, não só o bloco.
@@ -685,6 +701,13 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      removida), fechando o achado 3: uma sombreada que também apontasse pro plugin não teria virado
      remoção, teria virado migração, então este item nunca deveria achar um efetivo dentro do
      plugin. O backup do settings existe no caminho dito, mesmo em sucesso.
+
+6. **Host Codex — carregamento e comportamento.** Instalação no disco não prova skill carregada.
+   Em conversa Codex nova: confirme `/plugins` e `/skills`; diga “onde paramos?” e confira que
+   `memory/MEMORY.md` vem antes do board; depois, num fixture sem dado real, diga “quero melhorar
+   X” e confirme que nasce um card/plano com parada no gate. Sem essa prova, registre **“instalado,
+   não validado”**. A ausência de `/orq` no menu é esperada: a interface é linguagem natural ou
+   `/skills`, não slash commands do Claude.
 
 Só então mostre: o que foi criado vs alterado · o board inicial (`/orq:quadro`) · e o ciclo:
 

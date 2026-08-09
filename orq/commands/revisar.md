@@ -46,21 +46,64 @@ toca dado sensível, use `--rapido` e diga por quê.
 ## 2. Disparar os revisores EM PARALELO
 
 **Leia `memory/wiki/_elenco.md` primeiro** — ele define o modelo do reviewer interno e **quais
-revisores externos estão ativos**. Sem elenco, valem os padrões (reviewer `opus`; Codex ativo se o
-plugin existir).
+revisores externos estão ativos**. **Sem elenco, valem os padrões de fábrica: reviewer `opus`,
+Codex ativo e Kimi K3 ativo**; ausência de qualquer capacidade vira `PAINEL PARCIAL`, não exclusão
+silenciosa do revisor.
 
-**Sempre — Claude interno:** subagente `orq-reviewer` (read-only, adversarial), com o modelo do papel
-`reviewer` do elenco.
+Primeiro **identifique o host** e resolva o papel em `## Times por host`; depois use a célula da
+`## Matriz de invocação`. O Manager que reconcilia não conta como parecer independente.
 
-> Isto só existe no host Claude (é spawn nativo). **Em host que não é Claude, o membro do vendor do
-> host entra pela célula-diagonal da `## Matriz de invocação`** (`_elenco.md`), em sessão nova — sem
-> esse passo, o painel fecha só dois vendors e ninguém avisa.
+**Host Claude — Claude interno:** subagente `orq-reviewer` (read-only, adversarial), com o modelo do
+papel `reviewer` do elenco.
+
+> Isto só existe no host Claude (é spawn nativo). **No Host Kimi**, o membro Moonshot do próprio
+> host entra pela célula-diagonal da `## Matriz de invocação`, em sessão nova. **Host Codex é exceção:**
+> seu painel é exatamente Opus 5 + Kimi K3; o Manager OpenAI só reconcilia e não há
+> terceiro parecer OpenAI pela diagonal.
 
 > ⚠️ **Spawne o `orq-reviewer` SEM `name`.** Com `name` ele vira teammate endereçável e fica vivo em
 > loop de *idle* em vez de devolver o parecer — o painel morre esperando. Sem nome, ele retorna o
 > resultado normalmente. (Quebrou assim em 2026-07-26; ver `memory/gotchas.md`.)
 
-**Se o Codex estiver ATIVO no elenco** e a CLI existir (`codex` no PATH): rode direto, read-only:
+**Host Codex — painel obrigatório Opus 5 + Kimi K3:** dispare em paralelo dois pareceres
+independentes, ambos sobre o mesmo briefing sanitizado:
+
+O briefing do Opus tem orçamento de **16 KiB = 16.384 bytes UTF-8 por lote, medidos depois da
+sanitização**. Até esse limite, envie o pacote inteiro. Acima dele, divida por arquivo/hunk em lotes
+independentes, repetindo em cada lote o objetivo, os critérios e o fora de escopo; cubra todos os
+hunks e registre a cobertura. **Nunca corte bytes nem resuma em silêncio** para caber. Um lote
+omitido ou que falhar torna a cobertura do Opus parcial.
+
+```bash
+# ORQ_PACKAGE_ROOT já foi resolvido pela skill para um caminho absoluto.
+OPUS_RUNNER="<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"
+OPUS_OUT=$(printf '%s' "$OPUS_BRIEFING_SANITIZADO" | python3 "$OPUS_RUNNER")
+OPUS_EXIT=$?
+if [ "$OPUS_EXIT" -ne 0 ] || [ -z "$OPUS_OUT" ]; then
+  echo "PAINEL PARCIAL: Opus ausente; preserve o diagnóstico do stderr"
+fi
+
+KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
+"$KIMI" -m kimi-code/k3 --output-format text -p "<briefing>" < /dev/null
+```
+
+O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 240s. A validação
+de tamanho ocorre antes do anúncio: `BRIEFING_TOO_LARGE` significa que nenhuma chamada começou;
+redivida o lote e execute, sem contar isso como retry. O runner exige
+`claude-opus-5` no `modelUsage` JSON e não imprime parecer em modelo errado, timeout, erro ou saída
+vazia (`OPUS_EMPTY_RESULT`). `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer lote incompleto →
+**PAINEL PARCIAL** com o diagnóstico do stderr;
+não faça retry automático após chamada iniciada, para não duplicar custo.
+
+O Manager Codex reconcilia Opus 5 e `kimi-code/k3`; ele próprio não vira um terceiro parecer. Se um
+não rodar, escreva **PAINEL PARCIAL**, nomeie o revisor ausente e a causa real: PATH, autenticação,
+timeout, modelo indisponível ou saída vazia. Nunca anuncie painel completo com um único parecer.
+Todo host que usar o alias `opus` como Opus 5 usa o mesmo runner e precisa verificar essa resolução
+antes do parecer. Se ela não puder ser comprovada, trate Opus 5 como ausente e marque **PAINEL
+PARCIAL**, sem trocar de modelo. A regra vale também no Host Kimi.
+
+**Se o Codex estiver ATIVO no elenco e o host não for Codex** e a CLI existir (`codex` no PATH):
+rode direto, read-only:
 
 ```bash
 codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only "<briefing>" < /dev/null
@@ -73,8 +116,8 @@ codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
-**Se o Kimi estiver ATIVO no elenco:** rode a CLI direto, resolvendo o binário com fallback e
-passando o modelo do elenco:
+**Se o Kimi estiver ATIVO no elenco e o host não for Kimi:** rode a CLI direto, resolvendo o
+binário com fallback e passando o modelo do elenco:
 
 ```bash
 KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
@@ -96,11 +139,14 @@ KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
 > `--auto`: sem elas, em modo `-p`, ele não aplica mudança. Reforce no prompt: *"não edite arquivo
 > nenhum, apenas relate"*. Se precisar de garantia dura, rode-o num worktree descartável.
 
-**Outros revisores** marcados como **ativo** na seção "Revisores externos" do `_elenco.md`: dispare
-do jeito registrado ali.
+**Outros revisores** marcados como **ativo** na seção "Revisores externos" do `_elenco.md`: `ativo`
+é política habilitada, não capacidade comprovada; verifique CLI, autenticação, modelo e saída no
+momento do parecer. No Host Codex, a composição obrigatória permanece exatamente Opus 5 + Kimi K3;
+não acrescente a diagonal OpenAI. No Host Kimi, pule o externo Moonshot duplicado porque o parecer
+fresco desse vendor já entrou pela diagonal da Matriz. Em outros hosts, siga a composição registrada.
 
 **Revisor ativo no elenco que falhar** (binário ausente, timeout, saída vazia) → **diga ao dono que
-o painel foi parcial**, nomeando quem faltou. Nunca apresente parecer de um revisor como se fosse a
+o painel parcial perdeu aquele revisor**, nomeando quem faltou. Nunca apresente parecer de um revisor como se fosse a
 interseção de vários: o valor do painel está em distinguir confirmado-por-dois de achado-por-um.
 
 **Dado sensível no diff → a regra LGPD do passo 1b deste arquivo vence tudo, antes de qualquer outra

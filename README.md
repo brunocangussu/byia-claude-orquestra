@@ -40,6 +40,17 @@ O plugin foi feito pra ser usado **conversando**. Você fala; o Claude reconhece
 
 Os comandos `/orq:*` existem como mecanismo. Use se quiser, mas não precisa.
 
+### Interface por host
+
+- **Claude Code:** conversa natural ou comandos `/orq:*`.
+- **Codex:** linguagem natural ou `/skills`. A pasta `commands/` do plugin não cria `/orq:*` no
+  Codex; a ausência desse comando no menu não significa plugin ausente.
+
+No Codex, “instalado e habilitado”, “skill carregada” e “smoke comportamental aprovado” são estados
+diferentes. O diagnóstico e o instalador mostram os três separadamente. Um atalho local
+`/prompts:orq` pode ser criado manualmente como compatibilidade depreciada, mas não integra a
+instalação padrão e exige nova conversa/reinício.
+
 ---
 
 ## Instalar
@@ -218,7 +229,7 @@ escopo. O valor está na **interseção** (alta confiança) e na **divergência*
 | Revisores discordam | **desempata olhando o código** e explica |
 | Sem cenário de falha concreto | descarta ou marca como opinião de estilo |
 
-### Acrescentar um revisor (ex.: Kimi K2)
+### Revisores externos (Codex + Kimi K3)
 
 Registre na seção **Revisores externos** do mesmo `memory/wiki/_elenco.md`:
 
@@ -227,12 +238,17 @@ Registre na seção **Revisores externos** do mesmo `memory/wiki/_elenco.md`:
 | Revisor | Estado | Config |
 |---|---|---|
 | codex | ativo | `--model gpt-5.6-sol --effort xhigh` (read-only) |
-| kimi-k2 | ativo | `<comando CLI ou ferramenta MCP>` · bom em raciocínio longo · read-only |
+| kimi | ativo | `kimi-code/k3` · CLI com `-m` antes de `-p` · read-only, sem `--yolo`/`--auto` |
 ```
 
-O `/orq:revisar` lê esse arquivo e inclui todo revisor marcado como **ativo**. **Kimi K2 ainda não
-está instalado** nesta máquina (sem CLI e sem MCP) — quando estiver, basta registrar aqui e marcar
-como ativo.
+O `/orq:revisar` lê esse arquivo e inclui todo revisor marcado como **ativo**. Aqui, ativo significa
+política habilitada, não saúde de runtime: CLI, autenticação, modelo e saída são verificados a cada
+parecer. No Host Codex, o painel é exatamente Opus 5 + Kimi K3 e não inclui uma diagonal OpenAI;
+no Host Kimi, o parecer Moonshot fresco entra pela diagonal da Matriz. Capacidade ausente vira
+**PAINEL PARCIAL** com a causa nomeada; nunca é tratada como parecer entregue nem substituída.
+O Opus roda por `orq/scripts/run-opus-reviewer.py`: briefings acima de 16 KiB são divididos por
+arquivo/hunk sem truncamento; cada lote tem timeout e só vale se o JSON comprovar
+`claude-opus-5`. Timeout, modelo errado ou saída vazia deixam diagnóstico explícito.
 
 Em card pequeno e de baixo risco, use `--rapido` (só o revisor interno). Painel em mudança trivial
 é desperdício. Se o revisor interno estiver rebaixado, quem decide o painel mínimo é o
@@ -356,7 +372,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.20.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.21.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
@@ -373,7 +389,11 @@ lint, não mais "dever de sincronizar") · `/orq:init` grava o mesmo bloco `orqu
 Codex e Kimi, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4) · **elenco
 host-agnóstico** (`T-026`, passo 8): `## Times por host` resolve o time de Codex e Kimi na leitura,
 sem preset ativável; `## Matriz de invocação` documenta o template por vendor × host com
-procedência; painel do Kimi corrigido para a ordem de flags segura (`-m` antes, `-p` por último) ·
+procedência; o template do `init` gera as duas seções e migra arquivo antigo de forma aditiva;
+consumidores resolvem host→papel→executor; no Codex, Manager Sol/high, Planner Sol/ultra,
+Implementer Terra/xhigh e painel Opus 5 + Kimi K3; diagnóstico separa plugin instalado/habilitado,
+skill carregada e smoke comportamental; painel do Kimi corrigido para a ordem de flags segura
+(`-m` antes, `-p` por último) ·
 **statusline distribuída** (`T-036`): novo asset `orq/scripts/statusline.sh` — a barra completa do
 dono (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board),
 achando o `kanban-status.sh` por vizinhança em vez de caminho fixo e degradando para só o board sem

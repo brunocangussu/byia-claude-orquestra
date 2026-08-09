@@ -42,6 +42,11 @@ seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez
    2 de `perfil <nome>` abaixo).
 4. Confirme o que mudou e **a partir de quando vale** (próximo spawn — não afeta agente em execução).
 
+**Migração aditiva obrigatória:** antes de qualquer ajuste, leia o `_elenco.md` inteiro. Preserve
+modelos, perfis e revisores escolhidos pelo projeto; acrescente somente headings obrigatórias
+ausentes. Se `## Matriz de invocação` ou `## Times por host` existir mas estiver incompleta, mostre
+o diff proposto e pare no gate — não substitua uma linha já escolhida sem aprovação explícita.
+
 **`manager` é caso especial:** é a sessão principal, definida pelo `/model` do Claude Code — não dá
 pra trocar por aqui. Se ele pedir, explique e sugira o `/model`.
 
@@ -106,7 +111,65 @@ preset, remove-se o desvio. Ver passo 3 de "Com argumento — ajustar".)*
 | Revisor | Estado | Config |
 |---|---|---|
 | codex | ativo | `--model gpt-5.6-sol --effort xhigh` (read-only) |
-| kimi-k2 | inativo | registrar aqui quando houver CLI ou MCP |
+| kimi | ativo | `kimi-code/k3` · CLI com `-m` antes de `-p` · read-only, sem `--yolo`/`--auto` |
+
+Aqui, **ativo significa política habilitada, não capacidade comprovada**. Antes de cada parecer, o
+Manager verifica binário, autenticação, modelo e saída não vazia. Falha de capacidade mantém o
+revisor obrigatório no elenco, mas produz `PAINEL PARCIAL`; nunca autoriza substituição silenciosa.
+
+## Matriz de invocação
+
+Resolva sempre **host → papel → vendor → mecanismo**. Toda CLI recebe `< /dev/null`; sem TTY os
+três vendors podem bloquear lendo stdin. O briefing para terceiro é sanitizado e nunca leva dado
+de paciente, PII, prontuário ou credencial.
+
+| Vendor do modelo | Host Claude | Host Codex | Host Kimi |
+|---|---|---|---|
+| Anthropic | spawn nativo com override | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"` — limite 16 KiB/lote, timeout e comprovação `claude-opus-5` | mesmo runner Anthropic read-only |
+| OpenAI | `codex exec -m <modelo> -c model_reasoning_effort=<effort> -s <sandbox> "<briefing>" < /dev/null` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real | CLI Codex com sandbox explícito |
+| Moonshot | `KIMI=$(command -v kimi \|\| echo "$HOME/.kimi-code/bin/kimi"); "$KIMI" -m <modelo> --output-format text -p "<briefing>" < /dev/null` | mesma CLI Kimi read-only | primitiva nativa somente quando a capacidade estiver comprovada; até lá, CLI |
+
+## Times por host
+
+Times de host **não são perfis** e são resolvidos somente na leitura. `/orq:elenco perfil <nome>`
+continua alterando apenas `## Perfis`. “Configurado” não significa “rodando agora”: o Manager deve
+verificar a sessão/CLI real antes de anunciar o papel.
+
+### Host Claude
+
+| Papel | Modelo | Sandbox |
+|---|---|---|
+| manager | modelo da sessão (`/model`) | sessão principal |
+| planner | `opus` | read-only |
+| implementer | `inherit` | worktree dedicado, writer único |
+| reviewer 1 | `gpt-5.6-sol@xhigh` | `read-only` |
+| reviewer 2 | `kimi-code/k3` | read-only, sem `--yolo`/`--auto` |
+| docs | `sonnet` | arquivos de documentação autorizados |
+| scout | `sonnet` | read-only |
+
+### Host Codex
+
+| Papel | Modelo | Sandbox |
+|---|---|---|
+| manager | `gpt-5.6-sol@high` | sessão principal; verificar, não trocar silenciosamente |
+| planner | `gpt-5.6-sol@ultra` | `read-only` |
+| implementer | `gpt-5.6-terra@xhigh` | `workspace-write`, em worktree dedicado |
+| reviewer 1 | `opus` (exigir comprovação de que o alias resolve para Opus 5) | read-only, sem ferramentas |
+| reviewer 2 | `kimi-code/k3` | read-only, sem `--yolo`/`--auto` |
+| docs | `gpt-5.6-sol@low` | arquivos de documentação autorizados |
+| scout | `gpt-5.6-sol@low` | read-only |
+
+### Host Kimi
+
+| Papel | Modelo | Sandbox |
+|---|---|---|
+| manager | `kimi-code/k3` | sessão principal |
+| planner | `kimi-code/k3` | read-only |
+| implementer | `kimi-code/kimi-for-coding` | só com hook bloqueante comprovado e worktree dedicado |
+| reviewer 1 | `opus` (exigir comprovação de que o alias resolve para Opus 5) | read-only, sem ferramentas |
+| reviewer 2 | `gpt-5.6-sol@xhigh` | `read-only` |
+| docs | `kimi-code/kimi-for-coding-highspeed` | arquivos de documentação autorizados |
+| scout | `kimi-code/kimi-for-coding-highspeed` | read-only |
 
 ## Perfis — times nomeados
 
@@ -127,7 +190,7 @@ tabela ativa **preserva a linha `manager` e a seção "Revisores externos"** com
 | docs | sonnet | escrita objetiva sobre código já pronto |
 | scout | sonnet | leitura ampla e barata |
 
-Revisores externos: `codex` ativo · `kimi-k2` inativo — estado de fábrica, informativo: o perfil não
+Revisores externos: `codex` ativo · `kimi` ativo — estado de fábrica, informativo: o perfil não
 aplica isto (ver passo 2 de "Com argumento `perfil <nome>`"), vale o que está de fato registrado.
 Painel completo em card normal; `--rapido` em card pequeno.
 
@@ -141,7 +204,7 @@ Painel completo em card normal; `--rapido` em card pequeno.
 | docs | haiku | escrita objetiva; rebaixar aqui custa pouco |
 | scout | haiku | leitura ampla e barata |
 
-Revisores externos: `codex` ativo · `kimi-k2` inativo — mesmo estado de fábrica do preset `padrao`,
+Revisores externos: `codex` ativo · `kimi` ativo — mesmo estado de fábrica do preset `padrao`,
 também informativo, não aplicado pelo perfil (ver passo 2 acima). Quem decide o painel mínimo do
 `--rapido` é o `/orq:revisar` — regra lá.
 

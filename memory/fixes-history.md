@@ -1,5 +1,34 @@
 # Log de mudanças — append-only
 
+## [2026-08-09] fix+prova | T-041 · Opus 5 deixa de falhar em silêncio no Host Codex
+
+O relato de outro projeto expôs duas causas. A instalação real ainda estava em `0.20.0`, cuja regra
+do Host Codex nunca invocava Claude/Opus. Na candidata `0.21.0`, chamadas diretas comprovaram
+`claude-opus-5`, mas briefings de 31–40 KB reproduziram timeout de 180–300s sem diagnóstico. Foi
+adicionado um runner stdlib: limite de 16 KiB por lote, anúncio imediato, timeout de 240s, JSON obrigatório,
+comprovação de `modelUsage`, saída não vazia e códigos explícitos para cada falha. Quatorze testes
+RED→GREEN cobrem sucesso, modelo errado, excesso de entrada e timeout. Falta reinstalar e rodar o
+smoke do plugin em projeto externo antes de publicar.
+
+## [2026-08-09] review+correção | T-041 · painel Codex sem diagonal e despacho comprovável
+
+Opus 5 e Kimi K3 reprovaram a primeira candidata por uma contradição concreta: a regra genérica da
+diagonal podia acrescentar um terceiro parecer OpenAI ao painel Codex, embora o dono tivesse fixado
+exatamente Opus 5 + Kimi K3. A correção também tornou `codex exec` o caminho padrão para Planner e
+Implementer, introduziu `ORQ_PACKAGE_ROOT` e substituiu o lint permissivo por contratos por arquivo.
+Na segunda rodada, ambos aprovaram com ressalvas; defaults sem elenco, alias Opus, raiz Kimi e guards
+de degradação foram fechados com probes RED→GREEN. Nenhuma tentativa expirada contou como parecer.
+
+## [2026-08-09] implementação | T-041 · paridade core do Codex candidata a 0.21.0
+
+O produto passou a distinguir plugin instalado/habilitado, cache coerente, skill carregada e smoke
+comportamental. No Codex a interface oficial é linguagem natural + `/skills`; ausência de `/orq`
+não é falha. O template do elenco agora gera `Matriz de invocação` e `Times por host`, e os
+consumidores resolvem host→papel→executor. Time aprovado: Manager Sol/high, Planner Sol/ultra,
+Implementer Terra/xhigh, painel Opus 5 + Kimi K3. Projeto com memória preexistente sem board é
+classificado como memória legada, não virgem. Candidata local aguardando painel e commit; sem
+publicação, cache global ou push.
+
 ## [2026-08-09] release+processo | @frente-statusline · 0.20.0 no ar, o painel cobrou 12 pareceres, e o Codex virou host padrão
 
 Continuação do bloco de 07→08. O card `T-036` fechou o ciclo e foi para VALIDATE.

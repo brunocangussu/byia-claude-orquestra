@@ -1,26 +1,14 @@
 ---
 name: orq
 description: >
-  A disciplina do Orquestra — board, time de agentes, memória-wiki e gates. Num projeto com
-  `memory/wiki/KANBAN.md`, use em QUALQUER conversa de trabalho, mesmo sem comando e mesmo que a
-  frase não esteja listada aqui. O gatilho principal é o PEDIDO DE MUDANÇA em qualquer forma:
-  "quero/queria X", "vamos fazer/criar/acrescentar/mudar X", "seria bom/interessante se", "dá pra",
-  "precisa de", "vale a pena", "sugerir", "tem um problema em Y", "isso está errado", "não
-  funciona", "não gostei", "melhorar", "ajustar", "implementar", "corrigir", "refatorar" — tudo isso
-  entra pelo CICLO (plano → seu ok → implementação → revisão), nunca em código direto. Também:
-  prosseguir ("pode começar", "siga", "seguir", "podemos seguir", "manda ver", "aprovado", "pode ir",
-  "perfeito", "certo", "vamos seguir", "toca essa"); estado do
-  trabalho ("onde paramos", "o que falta", "cadê o board", "quais as pendências", "o que estamos
-  fazendo", "o que preciso decidir"); fechar bloco ("terminamos", "acabou essa parte", "salva aí",
-  "pode limpar", "vamos limpar o contexto", "checkpoint"); registrar ("anota isso", "não esquece",
-  "isso vira card", "guarda essa decisão"); revisar ("revisa isso", "o que você acha", "manda
-  revisar", "valida isso"); elenco ("quem tá revisando", "troca o modelo", "tira o GPT", "pouco
-  crédito", "acabando os créditos", "final do ciclo semanal", "modo economia" — só quando o assunto
-  é crédito/custo de LLM); memória
-  ("lembra quando", "o que decidimos sobre"); ferramentas ("tá lento", "o que falta instalar");
-  descoberta ("quais as possibilidades", "o que dá pra fazer"); noturno ("vou dormir", "adianta o
-  que der"); e ao RETOMAR ("bom dia", "voltei", "continuando", "retomemos", "continue de onde
-  parou").
+  Use when a project contains `memory/wiki/KANBAN.md` and the user requests any work change,
+  implementation, fix, improvement, refactor, review, validation, or continuation. Also use for
+  project status and resumption, recording decisions/cards, checkpoints and context cleanup, model
+  roster or LLM-credit changes, memory recall, tool/setup diagnosis, capability discovery, and
+  night-mode delegation. Trigger from natural language such as "quero", "vamos mudar", "tem um
+  problema", "pode seguir", "onde paramos", "anota isso", "revisa", "quem está revisando",
+  "lembra quando", "o que falta instalar", "vou dormir", "voltei" or equivalent phrasing, even
+  when the user does not type `/orq`.
 ---
 
 # Orquestra — a disciplina
@@ -62,15 +50,25 @@ pronto, quando a decisão errada já custou. **Roteie primeiro.**
 **Regra:** o Bruno conversa; **você** reconhece a intenção e executa. Os comandos `/orq:*` são o
 mecanismo interno — ele não precisa saber que existem.
 
+**No Codex, a interface oficial é linguagem natural ou `/skills`.** A pasta `commands/` não cria
+`/orq:*` nesse host; esses slash commands pertencem ao Claude Code. Ausência de `/orq` no menu do
+Codex não significa plugin ausente.
+
 ⚠️ **Fora do Claude Code (Kimi, ou Codex sem os commands instalados), os `/orq:*` citados na tabela
 abaixo não existem como comando.** O procedimento é o mesmo: leia o arquivo `commands/<nome>.md`
 (ex.: a linha "pode implementar" → `commands/implement-next.md`) — **não presuma que ele mora no
-mesmo diretório desta skill**, isso só vale no Kimi. O caminho certo é relativo à **raiz do pacote
-instalado**, a mesma que `${CLAUDE_PLUGIN_ROOT}` apontaria: no Kimi essa raiz **é** o diretório desta
-skill (o `/orq:instalar` copia `commands/` para dentro dele, ao lado do `SKILL.md`); num cache de
-plugin (Codex) a raiz é `.../orq/<versão>/`, da qual `skills/` e `commands/` são **irmãos** — nunca
-`skills/orq/commands/`. Onde um desses arquivos citar `${CLAUDE_PLUGIN_ROOT}`, substitua por essa
-mesma raiz.
+mesmo diretório desta skill**, isso só vale no Kimi.
+
+Antes de ler qualquer command, resolva uma vez a **raiz do pacote instalado** e chame-a de
+`ORQ_PACKAGE_ROOT`: no Claude é `${CLAUDE_PLUGIN_ROOT}`; no Kimi, use o diretório desta skill **só
+se `commands/` existir ao lado** (o instalador cria esse layout); se não existir, suba como no
+Codex até o ancestral do pacote. No Codex, suba a partir desta skill até o ancestral do pacote que
+contém `.claude-plugin/plugin.json`, onde `skills/` e `commands/` são irmãos — nunca use
+`skills/orq/commands/`. Se o diretório adjacente ou o ancestral do pacote não puder ser comprovado,
+pare e declare a raiz ausente; não invente caminho. Toda referência
+`ORQ_PACKAGE_ROOT/commands/<nome>.md` nos commands usa essa raiz já resolvida. Quando um command
+legado citar `${CLAUDE_PLUGIN_ROOT}`, substitua pelo `ORQ_PACKAGE_ROOT` comprovado antes de executar;
+fora do Claude, nunca passe a variável literal ao shell.
 
 Siga o arquivo como se você tivesse acabado de "rodar o comando" — **até onde o host permitir, nunca
 além disso**. Vários passos exigem primitiva que nem todo host tem: spawn de subagente com override
@@ -80,10 +78,14 @@ de modelo (`plan-next.md`, `revisar.md`), `isolation: "worktree"` (`implement-ne
 worktree — declare a degradação ao dono numa frase e faça o passo você mesmo, dizendo o que se
 perdeu. Onde houver equivalente, use-o: no lugar de spawn em sessão, invoque o papel como
 **subprocesso de CLI** do vendor daquele modelo (vendor do modelo == vendor do host → mecanismo
-nativo; senão → CLI do vendor do modelo) — os comandos exatos e os gotchas de cada CLI
-(`< /dev/null`, fallback de binário) já estão em `memory/wiki/_elenco.md`, seção "Revisores
-externos" e a seção "Matriz de invocação" (templates completos por vendor e por host); não repita
-a regra aqui, siga o que está lá.
+nativo; senão → CLI do vendor do modelo). Se existir, o projeto `memory/wiki/_elenco.md` governa o
+time e a Matriz; sem ele, use o template em `ORQ_PACKAGE_ROOT/commands/elenco.md`. O comando do Opus
+vem do runner nessa Matriz, nunca de memória do modelo. Gotchas específicos permanecem no elenco do
+projeto; não repita nem improvise a regra aqui.
+
+Fora do Claude, antes de executar qualquer papel: **identifique o host**, leia `## Times por host`,
+resolva o papel e só então aplique a célula da `## Matriz de invocação`. “Configurado” não significa
+“rodando agora”. Sem executor comprovado, declare a degradação e preserve o gate do card.
 
 | Ele diz algo como… | Você faz |
 |---|---|

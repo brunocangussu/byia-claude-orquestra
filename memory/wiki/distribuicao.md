@@ -49,6 +49,23 @@ do restart** — reload basta para experimentar skill, não para validar.
 A CLI `claude plugin` tem `install`, `update`, `marketplace`, `list`, `uninstall`, `validate` e
 `tag` — dá para operar tudo sem os slash commands do cliente.
 
+### Codex: instalação não é smoke
+
+No Codex, reporte separadamente: fonte encontrada · plugin instalado · plugin habilitado · cache
+coerente · skill visível em `/skills` · projeto/elenco resolvidos · smoke comportamental aprovado.
+`codex plugin list` prova só parte dessa cadeia.
+
+O smoke exige conversa nova: `/plugins` e `/skills` encontram o Orquestra; “onde paramos?” lê
+`memory/MEMORY.md` antes do board; “quero melhorar X” cria/planeja card e para no gate. Até esse
+teste passar, o estado correto é **“instalado, não validado”**. `/orq:*` permanece exclusivo do
+Claude Code; no Codex a interface oficial é linguagem natural ou `/skills`.
+
+Para validar o reviewer externo de verdade, use um projeto de teste sem instruções locais e peça
+revisão em linguagem natural. A evidência mínima do Opus é: runner exit 0, stderr com
+`OPUS_MODEL=claude-opus-5` e parecer não vazio. Testar só `claude --version` ou o alias no help não
+prova modelo nem integração do plugin. Briefing acima de 16 KiB deve aparecer como lotes completos;
+timeout/modelo errado/saída vazia precisam resultar em `PAINEL PARCIAL`, nunca silêncio.
+
 ## As duas verificações
 
 `validate --strict` checa o **manifesto** e nada mais: passa com instruções que mandam rodar comando

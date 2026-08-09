@@ -4,11 +4,18 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.20.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.21.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
-## ⏸️ O que espera o dono AGORA (2026-08-08) — @frente-statusline + @release-validacao
+## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
 
 **⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
+
+- **0.21.0 CANDIDATA LOCAL — `T-041` reaberto em IMPLEMENTING:** template/migração do elenco host-aware,
+  resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
+  sete camadas e memória legada diferenciada de projeto virgem. A validação real do Opus achou que
+  `0.20.0` nem o invoca no Codex e que briefings grandes da candidata ainda silenciam por timeout;
+  runner determinístico em implementação/teste antes da reinstalação. Publicação/push seguem fora.
+- **`T-042` permanece no backlog:** statusline nativa Codex opt-in só começa depois da core local.
 
 - **0.20.0 RELEASADA E PUBLICADA** (commit `164387c`, push feito). Instalada e verificada no Claude
   **e** no Codex, cache idêntico ao repo nos dois. O `T-036` está em **VALIDATE**, aguardando só o
@@ -18,9 +25,8 @@
   `## Times por host` — planner e implementer OpenAI, **revisor `opus` de fora** (a diversidade do
   painel depende disso). ⚠️ **Subagente nativo no Codex é "observado 1×", não comprovado** — se não
   funcionar, **declare a degradação**, não finja que houve painel.
-- **Próximo card natural: `T-037`** (tirar o Supermemory do produto) — **planejado e aprovado**, plano
-  em `threads/T-037-sem-supermemory.md`, decisões 1-4 já respondidas. É o mais mecânico dos três
-  abertos. O `T-039` teve a descrição corrigida hoje (estava exagerada). O `T-038` é o maior.
+- **Outras frentes preservadas:** `T-037` continua planejado/aprovado; `T-038` continua separado;
+  esta janela pertence exclusivamente à paridade Codex.
 - **Fora deste repo, mapeado e não executado:** a migração de memória do projeto
   `Bruno Vascular - Gestão Dados Marketing` (relatório completo do scout na conversa de 09/ago;
   6 dos 11 snapshots de lá **já são páginas vivas**; 7 páginas de tópico e 14 cards propostos).

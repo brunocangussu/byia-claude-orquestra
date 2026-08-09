@@ -63,6 +63,22 @@ codex plugin list                                                            # o
 diff -rq ~/.codex/plugins/cache/orquestra/orq/<versão>/ <fonte-local>/orq/    # tem que voltar vazio
 ```
 
+O diagnóstico do Codex tem **sete camadas independentes** — não pule da primeira para a última:
+
+1. marketplace/fonte encontrada;
+2. plugin instalado;
+3. plugin **instalado e habilitado**;
+4. versão e conteúdo do cache coerentes;
+5. **skill carregada** e visível em `/skills`;
+6. estrutura do projeto e elenco resolvidos;
+7. **smoke comportamental** aprovado em conversa nova.
+
+No Codex, use linguagem natural ou `/skills`; `/orq:*` pertence ao Claude Code. Depois das quatro
+primeiras camadas, abra uma conversa Codex nova: confirme `/plugins` e `/skills`, diga “onde
+paramos?” e verifique leitura de `memory/MEMORY.md` antes do board. Em fixture sem dado real, diga
+“quero melhorar X”: o Orquestra deve criar/planejar o card e parar no gate. Sem esse smoke, reporte
+**“instalado, não validado”** — nunca “pronto”.
+
 Reversão (mecanismo comprovado limpo — instala, confere e remove sem sobra):
 `codex plugin remove orq@orquestra` + `codex plugin marketplace remove orquestra`.
 

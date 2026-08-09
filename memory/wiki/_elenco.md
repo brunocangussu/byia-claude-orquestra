@@ -57,6 +57,10 @@ Regras, cada uma escrita 1×:
 | codex | **ativo** | binário `/usr/local/bin/codex` (`codex` no PATH) · modelo `gpt-5.6-sol` @ `xhigh` · comando completo: ver **Matriz de invocação** |
 | kimi | **ativo** | `KIMI=$(command -v kimi \|\| echo "$HOME/.kimi-code/bin/kimi")` · modelo `kimi-code/k3` · v0.29.2, OAuth, symlink em `~/.local/bin/kimi` (2026-07-28) · comando completo: ver **Matriz de invocação** |
 
+**Ativo é política habilitada, não capacidade comprovada.** O Manager confirma binário,
+autenticação, modelo e saída em cada parecer; falha vira `PAINEL PARCIAL`, sem substituição
+silenciosa. Nesta máquina, as evidências de capacidade e sua data estão na coluna Config.
+
 **Nenhum dos dois recebe dado sensível** (ver a regra em `/orq:revisar`, passo 1b).
 
 O Kimi **não tem flag de sandbox**. Não passar `-y`/`--yolo` nem `--auto`; reforçar "não edite
@@ -105,8 +109,8 @@ uma vez, não repetido) · `não testado`.
 
 | Vendor do modelo | host Claude | host Codex | host Kimi |
 |---|---|---|---|
-| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `claude -p '<briefing COM conteúdo verbatim numerado>' --model opus --permission-mode plan --tools '' --setting-sources '' --disable-slash-commands --no-session-persistence < /dev/null` — flags byte-idênticas ao `gotchas.md`; observado 1×; **não lê arquivos**; escrita: **não testado — e fora do desenho (regra do dono)** | idem coluna Codex — não testado |
-| **OpenAI** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=<e> -s read-only "<briefing>" < /dev/null` — comprovado no painel; escrita cross-vendor: fora do desenho (regra do dono) | nativo: `spawn_agent` com modelo+effort por filho — observado 1×; `-m gpt-5.6-terra` aceito — **comprovado por chamada real 2026-08-05** | como coluna Claude — não testado |
+| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"` — comprova `claude-opus-5`, limita 16 KiB/lote e aplica timeout; sonda real em repo + diretório externo passou em 2026-08-09 | mesmo runner; scripts são copiados pelo instalador Kimi |
+| **OpenAI** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=<e> -s read-only "<briefing>" < /dev/null` — comprovado no painel; escrita cross-vendor: fora do desenho (regra do dono) | a primitiva exposta nesta sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos. `gpt-5.6-sol@ultra` e `gpt-5.6-terra@xhigh` são o time aprovado | como coluna Claude — não testado |
 | **Moonshot** | `"$KIMI" -m kimi-code/k3 --output-format text -p "<briefing>" < /dev/null` — **forma segura do `gotchas.md`: `-m` antes, `-p` por último**; comprovado no painel (a ordem inversa, `-m` depois do `-p`, NÃO roda) | idem — observado 1× | **CLI** (`kimi -m kimi-code/k3 … -p`): **comprovado 2026-08-07** — instalado no host e, num worktree, `"onde paramos?"` invocou a skill sozinho, leu o `MEMORY.md` antes do board e não tocou em arquivo. **Sub-agent nativo: NÃO testado** — os cinco `orq-*.md` foram copiados para `~/.kimi-code/agents/` e o diretório os aceitou, mas copiar não é invocar. Até alguém exercitar, use a CLI. |
 
 ## Times por host
@@ -124,26 +128,28 @@ uma janela Claude convivem no mesmo repositório sem uma pisar no time da outra.
 2. **Revisor de fora é `opus`** quando o host não é Claude (decisão 10) — via a forma-que-funcionou:
    parecer sobre conteúdo verbatim, e o reconciliador declara essa natureza (`gotchas.md`,
    2026-08-05).
-3. **O painel fecha os três vendors** — o do host por mecanismo nativo fresco (diagonal da
-   Matriz), os outros dois por CLI.
+3. **A composição é específica do host** — no Codex são exatamente Opus 5 + Kimi K3 e o Manager só
+   reconcilia; no Kimi, o vendor Moonshot entra por mecanismo fresco na diagonal da Matriz. Nunca
+   acrescente um terceiro parecer OpenAI ao painel Codex.
 4. **Docs e scout seguem o vendor do host** — derivado da regra 1 (papel de leitura autônoma fica
    na assinatura principal); composição confirmada pelo dono junto com os times.
 
 ### Host Codex
 
-Motor: a sessão Codex (prosa — não é linha da tabela, para não sobrescrever o `manager`, como já
-é hoje no host Claude).
+Motor: a sessão Codex. A linha `manager` é expectativa verificável, não comando de troca da sessão.
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| planner | `gpt-5.6-sol@xhigh` | verbatim do dono (2026-08-05) |
-| implementer | `gpt-5.6-terra` | verbatim do dono (2026-08-05); existência confirmada por chamada real hoje; effort: da doc, no smoke |
-| reviewer | `opus` | decisão 10; template na célula Anthropic×Codex da Matriz |
+| manager | `gpt-5.6-sol@high` | sessão principal; verificar o modelo real antes de anunciar |
+| planner | `gpt-5.6-sol@ultra` | decisão do dono em 2026-08-09; read-only |
+| implementer | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
+| reviewer 1 | `opus` (comprovar que o alias resolve para Opus 5) | parecer externo read-only, sem ferramentas |
+| reviewer 2 | `kimi-code/k3` | parecer externo read-only, sem `--yolo`/`--auto` |
 | docs | `gpt-5.6-sol@low` | princípio 4 — escrita objetiva, effort mínimo |
 | scout | `gpt-5.6-sol@low` | verbatim do dono |
 
-Painel: derivação do princípio 3 — sem modelos re-declarados aqui; modelos na Config dos
-Revisores externos, templates na Matriz.
+Painel: Opus 5 + Kimi K3 são os dois pareceres independentes; o Manager Codex reconcilia e não conta
+como terceiro parecer. Falha de um revisor vira `PAINEL PARCIAL` com causa nomeada.
 
 ### Host Kimi
 
@@ -154,7 +160,7 @@ registra aqui como **escolha**; editar `~/.kimi-code/config.toml` só com o dono
 |---|---|---|
 | planner | `kimi-code/k3` | topo de raciocínio do vendor; princípio 1 |
 | implementer | `kimi-code/kimi-for-coding` | coding-tuned; **condicionado**: hook `PreToolUse` testado vivo (decisão 4) + worktree (decisão 8). **Sem fallback cross-vendor** — a regra do dono o proíbe: hook reprovado → o host Kimi **não implementa**, o card de escrita fica com outro host |
-| reviewer | `opus` | decisão 10 |
+| reviewer | `opus` (comprovar que resolve para Opus 5) | decisão 10; falha vira painel parcial |
 | docs | `kimi-code/kimi-for-coding-highspeed` | princípio 4 (custo relativo não medido — smoke valida) |
 | scout | `kimi-code/kimi-for-coding-highspeed` | idem |
 

@@ -162,6 +162,159 @@ def main() -> int:
             )
         )
 
+    # ── Template do elenco host-aware (T-041) ──────────────────────────────
+    # Os consumidores leem estas headings literalmente. Se um consumidor
+    # exige a seção, o template usado pelo init tem que gerá-la; do contrário
+    # projeto novo nasce apontando para o vazio e improvisa o executor.
+    elenco_cmd = plugin / "commands" / "elenco.md"
+    consumidores_elenco = [
+        plugin / "skills" / "orq" / "SKILL.md",
+        plugin / "commands" / "plan-next.md",
+        plugin / "commands" / "implement-next.md",
+        plugin / "commands" / "revisar.md",
+    ]
+    txt_elenco = elenco_cmd.read_text(encoding="utf-8")
+    try:
+        template_elenco = txt_elenco.split("## Modelo do arquivo", 1)[1]
+        template_elenco = template_elenco.split("```markdown", 1)[1].split("```", 1)[0]
+    except IndexError:
+        template_elenco = ""
+        problemas.append(
+            (
+                elenco_cmd.relative_to(raiz),
+                0,
+                "não contém bloco ```markdown canônico em ## Modelo do arquivo",
+            )
+        )
+    for heading in ("## Matriz de invocação", "## Times por host"):
+        exigida = any(
+            heading in arq.read_text(encoding="utf-8") for arq in consumidores_elenco
+        )
+        if exigida and heading not in template_elenco:
+            problemas.append(
+                (
+                    elenco_cmd.relative_to(raiz),
+                    0,
+                    f"template não gera {heading}, exigida pelos consumidores",
+                )
+            )
+
+    # ── Interface do Codex (T-041) ─────────────────────────────────────────
+    # O guarda antigo procurava apenas "Codex" e "/skills" em qualquer lugar
+    # do arquivo. Uma nota histórica solta satisfazia a condição mesmo se o
+    # contrato operacional tivesse sido apagado. Estes fragmentos são o
+    # contrato mínimo, no arquivo que realmente governa cada comportamento.
+    opus_runner = plugin / "scripts" / "run-opus-reviewer.py"
+    opus_runner_test = plugin / "scripts" / "test_run_opus_reviewer.py"
+    for arq in (opus_runner, opus_runner_test):
+        if not arq.is_file():
+            problemas.append((arq.relative_to(raiz), 0, "runner/teste obrigatório do Opus não existe"))
+
+    CONTRATOS_CODEX = {
+        plugin / "skills" / "orq" / "SKILL.md": (
+            "No Codex, a interface oficial é linguagem natural ou `/skills`",
+            "`ORQ_PACKAGE_ROOT`",
+            ".claude-plugin/plugin.json",
+            "ORQ_PACKAGE_ROOT/commands/elenco.md",
+        ),
+        plugin / "commands" / "instalar.md": ("`/plugins`", "`/skills`"),
+        raiz / "README.md": (
+            "**Codex:** linguagem natural ou `/skills`",
+            "não cria `/orq:*`",
+        ),
+        plugin / "commands" / "plan-next.md": (
+            "`ORQ_PACKAGE_ROOT/commands/elenco.md`",
+            "`codex exec` é o caminho padrão",
+        ),
+        plugin / "commands" / "implement-next.md": (
+            "`ORQ_PACKAGE_ROOT/commands/elenco.md`",
+            "`codex exec` é o caminho padrão",
+        ),
+        plugin / "commands" / "revisar.md": (
+            "Host Codex é exceção",
+            "exatamente Opus 5 + Kimi K3",
+            "política habilitada, não capacidade comprovada",
+            "não acrescente a diagonal OpenAI",
+            "PAINEL PARCIAL",
+            "Sem elenco, valem os padrões de fábrica: reviewer `opus`,",
+            "Codex ativo e Kimi K3 ativo",
+            "run-opus-reviewer.py",
+            "16 KiB",
+            "Nunca corte bytes nem",
+            "OPUS_EXIT",
+            "OPUS_STARTED",
+            "timeout de 240s",
+            "BRIEFING_TOO_LARGE",
+            "OPUS_EMPTY_RESULT",
+            "**no stderr**",
+        ),
+        elenco_cmd: (
+            "Host Codex: `codex exec` é obrigatório",
+            "política habilitada, não capacidade comprovada",
+            "| reviewer 1 | `opus` (exigir comprovação de que o alias resolve para Opus 5)",
+            "| reviewer 2 | `kimi-code/k3` |",
+            "run-opus-reviewer.py",
+        ),
+        opus_runner: (
+            "BRIEFING_TOO_LARGE",
+            "OPUS_TIMEOUT",
+            "OPUS_MODEL_MISMATCH",
+            "OPUS_STARTED",
+            "claude-opus-5",
+            "OPUS_MODEL_USAGE",
+            "DEFAULT_TIMEOUT_SECONDS = 240.0",
+            "input=briefing",
+            "OPUS_EMPTY_RESULT",
+            "file=sys.stderr",
+            '"--output-format"',
+            '"json"',
+        ),
+    }
+    for arq, fragmentos in CONTRATOS_CODEX.items():
+        if not arq.is_file():
+            continue
+        txt = arq.read_text(encoding="utf-8")
+        for fragmento in fragmentos:
+            if fragmento not in txt:
+                problemas.append(
+                    (
+                        arq.relative_to(raiz),
+                        0,
+                        f"contrato Codex ausente: {fragmento}",
+                    )
+                )
+
+    # A comprovação do alias Opus 5 é obrigatória tanto no Host Codex quanto
+    # no Host Kimi; uma única ocorrência deixaria a outra tabela degradar com
+    # lint verde.
+    reviewer_opus = "| reviewer 1 | `opus` (exigir comprovação de que o alias resolve para Opus 5)"
+    if template_elenco.count(reviewer_opus) != 2:
+        problemas.append(
+            (
+                elenco_cmd.relative_to(raiz),
+                0,
+                "template precisa comprovar alias Opus 5 nos hosts Codex e Kimi",
+            )
+        )
+
+    # Consumers não repetem modelos nem dependem da variável exclusiva do
+    # Claude: ambos causam drift quando o elenco ou o host muda.
+    for arq in (plugin / "commands" / "plan-next.md", plugin / "commands" / "implement-next.md"):
+        txt = arq.read_text(encoding="utf-8")
+        for proibido in (
+            "${CLAUDE_PLUGIN_ROOT}/commands/elenco.md",
+            "gpt-5.6-sol@ultra",
+            "gpt-5.6-terra@xhigh",
+        ):
+            if proibido in txt:
+                problemas.append(
+                    (
+                        arq.relative_to(raiz),
+                        0,
+                        f"redeclara contrato do elenco/host: {proibido}",
+                    )
+                )
+
     # ── Statusline: tripwire dos três escopos (T-036) ───────────────────────
     # A causa raiz do T-036 foi o `init.md` gravar `statusLine` checando só o
     # escopo do projeto — settings de projeto vencem o global por
