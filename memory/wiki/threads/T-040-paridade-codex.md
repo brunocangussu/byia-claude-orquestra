@@ -58,8 +58,9 @@
 
 ## RETOMAR AQUI
 
-`T-041` está em AWAITING_OWNER. A `0.21.0` passou localmente e em projeto externo; GitHub ainda
-distribui `0.20.0`. Pergunta exata: autoriza push da `main` local validada para `origin/main`?
+`T-041` está em VALIDATE. A `0.21.0` passou localmente e em projeto externo; push foi autorizado e
+confirmado no GitHub. Próxima ação: o dono abre nova sessão Codex no projeto real que antes falhava,
+pede revisão e confirma `OPUS_MODEL=claude-opus-5` + parecer não vazio.
 
 ## Reabertura por validação real do Opus 5
 

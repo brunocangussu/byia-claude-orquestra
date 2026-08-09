@@ -410,7 +410,7 @@ validações e pedido explícito de autorização para instalação local da rel
   e cinco repetições; aplicar os achados confirmados de privacidade, diagnóstico e cobertura.
 - [x] Reinstalar `0.21.0` em Claude/Codex e executar smoke numa conversa Codex nova em projeto externo.
 - [x] Confirmar o estado do GitHub: `main` remota permanece em `0.20.0`, sem runner/Host Codex Opus.
-- [ ] Fazer push/publicar somente depois do gate explícito do dono.
+- [x] Fazer push/publicar somente depois do gate explícito do dono.
 
 ## Plan Self-Review Checklist
 

@@ -1,5 +1,12 @@
 # Log de mudanças — append-only
 
+## [2026-08-09] publicação | 0.21.0 no GitHub com runner Opus 5 comprovado
+
+O dono autorizou o push após a validação local. `origin/main` avançou de `164387c` para `6ba462b`;
+o remoto foi relido e confirmou versão `0.21.0`, referência a `run-opus-reviewer.py` no painel e o
+guard `OPUS_MODEL_MISMATCH` no script distribuído. O card segue em VALIDATE até o dono repetir a
+revisão no projeto real que originou o relato.
+
 ## [2026-08-09] correção de evidência | smoke externo criou metadado Serena fora do escopo
 
 A entrada de validação abaixo diz que o workspace de teste permaneceu limpo. Escopo correto: os

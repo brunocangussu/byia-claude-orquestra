@@ -10,11 +10,11 @@
 
 **⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
 
-- **0.21.0 VALIDADA LOCALMENTE — `T-041` em AWAITING_OWNER:** template/migração do elenco host-aware,
+- **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
   sete camadas e memória legada diferenciada de projeto virgem. Runner Opus 5 comprovado em nova
   sessão Codex de projeto externo; Claude/Codex instalados em `0.21.0`, caches idênticos. GitHub
-  segue em `0.20.0`; falta somente o gate explícito do dono para push/publicação.
+  atualizado e verificado; falta o dono repetir a revisão no projeto real que originou o bug.
 - **`T-042` permanece no backlog:** statusline nativa Codex opt-in só começa depois da core local.
 
 - **0.20.0 RELEASADA E PUBLICADA** (commit `164387c`, push feito). Instalada e verificada no Claude
