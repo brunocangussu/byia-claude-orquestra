@@ -118,10 +118,26 @@ houve retry automático. O dono autorizou uma tentativa sequencial menor em 2026
 - convergência: corrida residual do marcador pode exigir um segundo `/clear`, mas não cria bypass;
   registrada no `T-044`, junto do fallback Windows sem recuperação de lock órfão.
 
-Ainda não houve instalação, configuração global, publicação ou push.
+Instalação local concluída depois da integração em `main`:
+
+- `orq@orquestra` aparece instalado e habilitado como `0.22.0`;
+- excluindo os diretórios de metadados, o cache é idêntico à fonte; o Codex omite
+  `.claude-plugin/plugin.json` e cria `.codex-plugin/migrated-command-skills`, enquanto
+  `codex plugin list` confirma a versão `0.22.0` e o marketplace-fonte correto;
+- seis hooks do `orq` foram revisados e confiados interativamente, sem bypass;
+- uma sessão Codex nova executou o hook real e gravou estado em
+  `~/.codex/plugins/data/orq-orquestra/context-guard/` com `last_percent=3.19` e somente as sete
+  chaves permitidas;
+- smoke sintético diretamente do cache passou em Stop 60%, handshake, bloqueio até `/clear`,
+  reidratação e retomada aberta.
+
+Não houve configuração global do backstop de 90%, publicação ou push. O startup ainda aponta um
+erro pré-existente e separado: `~/.codex/hooks.json` contém `_managedBy`, campo que o Codex 0.147.0
+não aceita; isso não impediu os seis hooks confiados do plugin de rodarem.
 
 ## RETOMAR AQUI
 
-Painel fechado. Rodar verificação fresca, commitar as correções e escolher a integração da branch.
-Depois da integração local autorizada: reinstalar somente no Codex e fazer smoke descartável.
-Publicação, push, configuração global e atualização do Claude continuam em gates separados.
+T-043 em VALIDATE. O dono testa em uma nova janela Codex o ciclo natural: pré-alerta ≥55%,
+checkpoint ≥60%, bloqueio depois de “Seguro dar `/clear`” e reidratação após `/clear`. O T-044
+carrega a corrida conservadora do marcador. Publicação, push, backstop global e atualização do
+Claude continuam em gates separados.

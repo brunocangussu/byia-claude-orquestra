@@ -1,5 +1,14 @@
 # Log de mudanças — append-only
 
+## [2026-08-10] instalação local | T-043 · 0.22.0 ativa no Codex
+
+A `0.22.0` foi integrada por fast-forward em `main`, reinstalada pelo marketplace local e ficou
+`installed, enabled`. Os seis hooks foram revisados e confiados na UI sem bypass. Uma sessão Codex
+nova criou estado real no `PLUGIN_DATA` com `last_percent=3.19`; o estado contém somente as sete
+chaves permitidas. O smoke do cache cobriu checkpoint em 60%, handshake, bloqueio até `/clear` e
+reidratação. O arquivo global `~/.codex/hooks.json` ainda gera aviso por `_managedBy`, problema
+pré-existente que não impediu os hooks do plugin de rodar. Sem push e sem backstop global.
+
 ## [2026-08-10] review+correção | T-043 · painel fecha sem bloqueadores
 
 Opus 5 e Kimi K3 revisaram a candidata final sequencialmente e devolveram
