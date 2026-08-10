@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -160,6 +162,251 @@ class ContextGuardStateTest(unittest.TestCase):
 
         self.assertEqual(path.parent, self.data_dir / "context-guard")
         self.assertNotIn("..", path.name)
+
+
+class ContextGuardHookInterfaceTest(unittest.TestCase):
+    def test_hook_api_exists(self) -> None:
+        missing = [
+            name for name in ("handle_event", "main") if not hasattr(guard, name)
+        ]
+        self.assertEqual(missing, [], f"interfaces de hook ausentes: {missing}")
+
+
+@unittest.skipUnless(
+    guard is not None and hasattr(guard, "handle_event"),
+    "decisões dos hooks ainda não implementadas",
+)
+class ContextGuardHookDecisionTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory(prefix="orq-context-hook-test-")
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.transcript = self.root / "rollout.jsonl"
+        self.data_dir = self.root / "plugin-data"
+        self.env = {
+            "PLUGIN_ROOT": str(self.root / "plugin"),
+            "PLUGIN_DATA": str(self.data_dir),
+        }
+
+    def event(self, event_name: str, percent: float, **extra: object) -> dict:
+        write_jsonl(
+            self.transcript,
+            [token_event(round(percent * 10_000), 1_000_000)],
+        )
+        return {
+            "session_id": "session-a",
+            "transcript_path": str(self.transcript),
+            "cwd": str(self.root),
+            "hook_event_name": event_name,
+            **extra,
+        }
+
+    def test_non_codex_host_fails_open(self) -> None:
+        event = self.event("Stop", 65.0, stop_hook_active=False)
+
+        self.assertIsNone(guard.handle_event(event, {}))
+
+    def test_stop_pre_alert_is_emitted_once(self) -> None:
+        event = self.event("Stop", 55.0, stop_hook_active=False)
+
+        first = guard.handle_event(event, self.env)
+        second = guard.handle_event(event, self.env)
+
+        self.assertIn("55", first["systemMessage"])
+        self.assertIsNone(second)
+
+    def test_stop_at_sixty_continues_once_with_checkpoint_instruction(self) -> None:
+        event = self.event("Stop", 60.0, stop_hook_active=False)
+
+        first = guard.handle_event(event, self.env)
+        second = guard.handle_event(event, self.env)
+
+        self.assertEqual(first["decision"], "block")
+        self.assertIn("checkpoint", first["reason"].lower())
+        self.assertNotEqual((second or {}).get("decision"), "block")
+
+    def test_stop_hook_active_does_not_loop(self) -> None:
+        event = self.event("Stop", 65.0, stop_hook_active=True)
+
+        result = guard.handle_event(event, self.env)
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+
+    def test_jump_to_emergency_requests_checkpoint(self) -> None:
+        event = self.event("Stop", 72.0, stop_hook_active=False)
+
+        result = guard.handle_event(event, self.env)
+        state = guard.load_state(self.data_dir, "session-a")
+
+        self.assertEqual(result["decision"], "block")
+        self.assertEqual(state["phase"], "emergency")
+
+    def test_safe_checkpoint_phrase_marks_clear_required(self) -> None:
+        event = self.event(
+            "Stop",
+            63.0,
+            stop_hook_active=True,
+            last_assistant_message="### ✅ Verificação\n**Seguro dar `/clear`.**",
+        )
+
+        result = guard.handle_event(event, self.env)
+        state = guard.load_state(self.data_dir, "session-a")
+
+        self.assertTrue(state["clear_required"])
+        self.assertIn("/clear", result["systemMessage"])
+
+    def test_failed_checkpoint_phrase_does_not_mark_clear_required(self) -> None:
+        event = self.event(
+            "Stop",
+            63.0,
+            stop_hook_active=True,
+            last_assistant_message="Gravado, mas NÃO afirmo que é seguro limpar.",
+        )
+
+        guard.handle_event(event, self.env)
+
+        self.assertFalse(
+            guard.load_state(self.data_dir, "session-a")["clear_required"]
+        )
+
+    def test_post_tool_use_injects_checkpoint_context(self) -> None:
+        event = self.event("PostToolUse", 61.0)
+
+        result = guard.handle_event(event, self.env)
+
+        output = result["hookSpecificOutput"]
+        self.assertEqual(output["hookEventName"], "PostToolUse")
+        self.assertIn("checkpoint", output["additionalContext"].lower())
+
+    def test_user_prompt_is_blocked_after_safe_checkpoint(self) -> None:
+        state = guard.default_state()
+        state["clear_required"] = True
+        guard.save_state(self.data_dir, "session-a", state)
+        event = self.event("UserPromptSubmit", 63.0, prompt="continue implementando")
+
+        result = guard.handle_event(event, self.env)
+
+        self.assertEqual(result["decision"], "block")
+        self.assertIn("/clear", result["reason"])
+
+    def test_checkpoint_prompt_is_allowed_during_emergency(self) -> None:
+        event = self.event("UserPromptSubmit", 72.0, prompt="faça o checkpoint agora")
+
+        result = guard.handle_event(event, self.env)
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+        self.assertIn(
+            "checkpoint",
+            result["hookSpecificOutput"]["additionalContext"].lower(),
+        )
+
+    def test_ordinary_prompt_at_sixty_injects_checkpoint_before_work(self) -> None:
+        event = self.event("UserPromptSubmit", 61.0, prompt="implemente a próxima tela")
+
+        result = guard.handle_event(event, self.env)
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+        context = result["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("antes", context.lower())
+        self.assertIn("checkpoint", context.lower())
+
+    def test_session_start_clear_injects_memory_rehydration(self) -> None:
+        event = self.event("SessionStart", 10.0, source="clear")
+
+        result = guard.handle_event(event, self.env)
+
+        context = result["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("memory/MEMORY.md", context)
+        self.assertIn("KANBAN", context)
+
+    def test_session_start_compact_marks_recovery_mode(self) -> None:
+        event = self.event("SessionStart", 20.0, source="compact")
+
+        result = guard.handle_event(event, self.env)
+
+        context = result["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("compactação", context.lower())
+        self.assertIn("checkpoint", context.lower())
+
+    def test_precompact_never_returns_continue_false(self) -> None:
+        event = self.event("PreCompact", 91.0, trigger="auto")
+
+        result = guard.handle_event(event, self.env)
+
+        self.assertIsNot((result or {}).get("continue"), False)
+
+    def test_state_never_persists_conversation_content(self) -> None:
+        secret = "PACIENTE-NAO-PERSISTIR"
+        event = self.event(
+            "Stop",
+            60.0,
+            stop_hook_active=False,
+            last_assistant_message=secret,
+            prompt=secret,
+            tool_input={"message": secret},
+        )
+
+        guard.handle_event(event, self.env)
+        state_text = guard.state_path(self.data_dir, "session-a").read_text()
+
+        self.assertNotIn(secret, state_text)
+        self.assertNotIn("last_assistant_message", state_text)
+        self.assertNotIn("tool_input", state_text)
+
+
+@unittest.skipUnless(
+    guard is not None and hasattr(guard, "main"),
+    "entrada CLI ainda não implementada",
+)
+class ContextGuardCliTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory(prefix="orq-context-cli-test-")
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.transcript = self.root / "rollout.jsonl"
+        self.data_dir = self.root / "plugin-data"
+        self.env = os.environ.copy()
+        self.env.update(
+            {
+                "PLUGIN_ROOT": str(self.root / "plugin"),
+                "PLUGIN_DATA": str(self.data_dir),
+            }
+        )
+
+    def run_guard(self, raw_stdin: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, str(GUARD_PATH)],
+            input=raw_stdin,
+            text=True,
+            capture_output=True,
+            env=self.env,
+            timeout=5,
+            check=False,
+        )
+
+    def test_invalid_stdin_fails_open_without_output(self) -> None:
+        result = self.run_guard("{")
+
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+
+    def test_valid_event_emits_one_json_object(self) -> None:
+        write_jsonl(self.transcript, [token_event(600_000, 1_000_000)])
+        event = {
+            "session_id": "session-cli",
+            "transcript_path": str(self.transcript),
+            "cwd": str(self.root),
+            "hook_event_name": "Stop",
+            "stop_hook_active": False,
+            "last_assistant_message": "trabalho concluído",
+        }
+
+        result = self.run_guard(json.dumps(event))
+
+        self.assertEqual(result.returncode, 0)
+        output = json.loads(result.stdout)
+        self.assertEqual(output["decision"], "block")
+        self.assertIn("checkpoint", output["reason"].lower())
 
 
 if __name__ == "__main__":
