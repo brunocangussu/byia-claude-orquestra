@@ -94,5 +94,6 @@ escopo `total`. A alteração de configuração continua opt-in.
 
 ## RETOMAR AQUI
 
-O dono deve revisar a especificação escrita. Após aprovação, produzir o plano de implementação;
-parar no gate antes de alterar o produto.
+Especificação aprovada pelo dono em 2026-08-09. Executar inline o plano
+`docs/superpowers/plans/2026-08-09-protecao-contexto-codex.md`, começando pelos testes RED do parser.
+Publicação, push, configuração global e atualização do Claude continuam em gates separados.
