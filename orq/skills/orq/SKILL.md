@@ -124,9 +124,12 @@ plano, não desfecho. Só encerre com "ambiente ok", sem card, quando a queixa e
 sobre ferramenta instalada. **Na dúvida, ciclo**: card desnecessário custa uma linha no board;
 bug engolido por um "ambiente ok" custa o bug.
 
-**Quando o contexto passar de ~50%** ou ele mudar de assunto: **sugira** o checkpoint + limpeza —
-é o exemplo canônico do nível N2 (ver "Iniciativa própria — três níveis" abaixo; teto e cadência de
-reproposta moram lá, na regra N2). Não force — proponha em uma linha e siga se ele topar.
+**Proteção da janela de contexto:** no Codex com o guardião carregado, 55% gera pré-alerta; no
+primeiro valor observado em **60%** ou mais, pare trabalho novo e execute o checkpoint completo; em
+**70%**, aceite somente checkpoint/recuperação. Depois da frase verificada **Seguro dar `/clear`.**,
+não trabalhe mais nessa sessão: o dono executa `/clear` manualmente. O contador é discreto e pode
+saltar; o primeiro valor já acima de uma faixa adota imediatamente a faixa mais severa. Em host sem
+telemetria comprovada, preserve o fallback: sugira checkpoint + limpeza perto de ~50%.
 
 **Não pergunte "quer que eu rode o comando X?"** — faça o que a intenção pede e diga o que fez.
 Peça confirmação só quando a ação for irreversível ou mudar o rumo do produto.
@@ -250,8 +253,9 @@ duas ocorrências têm que cair no mesmo bloco; atravessar um checkpoint zera a 
   correção trivial em `wiki-lint.md` só vale quando **o dono pede** — em comando ou em frase natural
   —, nunca aqui).
 - **N2 — propõe, nunca insiste:** sugere `/orq:stack` quando o mesmo atrito aparece 2× no mesmo
-  bloco de trabalho; sugere checkpoint quando o contexto passa de ~50% (é o exemplo canônico deste
-  nível). Teto e cadência de reproposta, numa cláusula só, contados **por assunto** — assuntos
+  bloco de trabalho; em host **sem** guardião/telemetria, sugere checkpoint perto de ~50%. As faixas
+  automáticas 55%/60%/70% do guardião Codex são mecanismo de segurança e não consomem o teto N2.
+  Teto e cadência de reproposta, numa cláusula só, contados **por assunto** — assuntos
   distintos (stack, checkpoint etc.) têm teto próprio, um não consome o do outro:
 
   > Teto: 1 proposta não solicitada por assunto **e por estado da condição**. Recusa de política

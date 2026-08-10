@@ -536,5 +536,38 @@ class ContextGuardReleaseVersionTest(unittest.TestCase):
         self.assertIn(f"**Versão:** {expected} ·", memory)
 
 
+class ContextGuardDocumentationContractTest(unittest.TestCase):
+    def test_guard_contract_is_present_in_live_instructions(self) -> None:
+        required = {
+            PLUGIN_ROOT / "commands" / "checkpoint.md": [
+                "CLEAR_REQUIRED",
+                "Seguro dar `/clear`",
+            ],
+            PLUGIN_ROOT / "commands" / "stack.md": [
+                "model_auto_compact_token_limit",
+                "90%",
+                "opt-in",
+            ],
+            PLUGIN_ROOT / "commands" / "instalar.md": [
+                "/hooks",
+                "confiança",
+            ],
+            PLUGIN_ROOT / "skills" / "orq" / "SKILL.md": [
+                "55%",
+                "60%",
+                "70%",
+                "/clear",
+            ],
+        }
+        missing: dict[str, list[str]] = {}
+        for path, phrases in required.items():
+            text = path.read_text(encoding="utf-8")
+            absent = [phrase for phrase in phrases if phrase not in text]
+            if absent:
+                missing[str(path.relative_to(PLUGIN_ROOT))] = absent
+
+        self.assertEqual(missing, {})
+
+
 if __name__ == "__main__":
     unittest.main()

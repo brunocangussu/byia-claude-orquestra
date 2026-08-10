@@ -394,6 +394,10 @@ consumidores resolvem host→papel→executor; no Codex, Manager Sol/high, Plann
 Implementer Terra/xhigh e painel Opus 5 + Kimi K3; diagnóstico separa plugin instalado/habilitado,
 skill carregada e smoke comportamental; painel do Kimi corrigido para a ordem de flags segura
 (`-m` antes, `-p` por último) ·
+**guardião preventivo do contexto Codex** (`T-043`): hooks empacotados observam a telemetria por
+sessão, pré-alertam em 55%, executam checkpoint obrigatório no primeiro valor observado ≥60% e
+bloqueiam trabalho novo até o `/clear` manual; compactação automática fica apenas como backstop
+opt-in em 90%, nunca como substituto do board/wiki ·
 **statusline distribuída** (`T-036`): novo asset `orq/scripts/statusline.sh` — a barra completa do
 dono (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board),
 achando o `kanban-status.sh` por vizinhança em vez de caminho fixo e degradando para só o board sem

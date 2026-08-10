@@ -180,3 +180,19 @@ revisão adversarial do Codex, cujo veredito foi *"aprovar com redesenho"*: ~80-
 - **Agent teams são experimentais**, mais caros e não isolam arquivos automaticamente.
 - **"Só o Manager move cards" pode não ser enforçável por hook** como o parecer supõe: depende de o
   payload distinguir subagente da sessão principal, o que ainda não foi verificado (ver `T-002`).
+
+## Guardião preventivo do contexto Codex
+
+O pacote traz `hooks/hooks.json` e `scripts/context-guard.py`. O guardião lê somente o último evento
+`token_count` do `transcript_path`, limita a leitura ao fim do arquivo e persiste em `PLUGIN_DATA`
+apenas faixa, percentual, timestamps e estado do checkpoint, isolados por `session_id`.
+
+- 55%: pré-alerta único;
+- primeiro valor observado ≥60%: `Stop` cria uma continuação única para o checkpoint;
+- ≥70%: trabalho novo é bloqueado, exceto recuperação/checkpoint;
+- **Seguro dar `/clear`.**: handshake que passa a sessão para `CLEAR_REQUIRED`;
+- `/clear`: sempre manual e seguido de reidratação por memória/board/thread;
+- compactação: contingência permitida pelo núcleo, nunca o fluxo normal.
+
+O transcript não é uma interface estável. Parser, estado e hooks falham abertos; nenhum erro do
+guardião pode impedir `PreCompact` ou persistir conteúdo da conversa.

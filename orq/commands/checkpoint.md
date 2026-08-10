@@ -69,6 +69,12 @@ gotchas). Se falhar ou não existir, siga sem erro e avise que pulou.
 
 "Seguro dar `/clear`" é a promessa deste comando — sustente-a antes de fazê-la.
 
+**Guardião de contexto no Codex:** a frase exata **Seguro dar `/clear`.** é também o handshake que
+move a sessão para `CLEAR_REQUIRED`. Só a emita depois de todas as verificações desta seção. Nesse
+estado, o hook bloqueia trabalho novo até o dono executar `/clear` manualmente. Se uma verificação
+falhar, preserve a frase negativa do contrato e corrija somente o sinal quebrado; nunca tente
+destravar o guardião por texto equivalente ou por compactação.
+
 **Com board**, rode de novo `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` e confira:
 
 1. saída **vazia havendo cards escritos** no board → nenhum card reconhecido *(board legitimamente

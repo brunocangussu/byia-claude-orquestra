@@ -92,8 +92,20 @@ Design registrado em
 foi definido como valor absoluto calculado da janela efetiva; para `997500`, o valor é `897750` com
 escopo `total`. A alteração de configuração continua opt-in.
 
+## Implementação inline
+
+- ✅ parser limitado, faixas e estado atômico por sessão;
+- ✅ decisões dos seis eventos, handshake e prevenção de loop;
+- ✅ bundle `hooks/hooks.json` e lint de referências;
+- ✅ contrato natural, diagnóstico e documentação viva;
+- ✅ release local identificada como `0.22.0` para evitar colisão com cache `0.21.0`.
+
+Evidência intermediária: 36 testes, manifesto estrito e lint de coerência passam no worktree
+`feat/t043-context-guard`. Ainda não houve instalação, review externo, configuração global,
+publicação ou push.
+
 ## RETOMAR AQUI
 
-Especificação aprovada pelo dono em 2026-08-09. Executar inline o plano
-`docs/superpowers/plans/2026-08-09-protecao-contexto-codex.md`, começando pelos testes RED do parser.
-Publicação, push, configuração global e atualização do Claude continuam em gates separados.
+Finalizar registros da release e replanejar `T-042` para `0.23.0`; depois instalar somente no Codex
+local, fazer smoke descartável e passar o diff pelo painel Opus 5 + Kimi K3. Publicação, push,
+configuração global e atualização do Claude continuam em gates separados.

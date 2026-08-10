@@ -133,3 +133,13 @@ commit: `orq/.claude-plugin/plugin.json` · a seção **Status** do `README.md` 
 card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) hoje confere os quatro.
 
 **Nunca commitar nem publicar sem o ok do dono.**
+
+## Hooks do guardião de contexto
+
+Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e precisa entrar no `diff -rq`. Instalação no
+Codex só está validada quando `/hooks` mostra o bundle com confiança aprovada e uma sessão nova roda
+`SessionStart` sem erro. `plugin list` e presença no disco não provam hook ativo.
+
+O backstop de 90% usa `model_auto_compact_token_limit` absoluto e `scope = "total"`; ele não é
+gravado pelo pacote. Diagnóstico calcula o valor da janela efetiva, mostra backup/operação e aguarda
+aprovação nominal antes de alterar `~/.codex/config.toml`.

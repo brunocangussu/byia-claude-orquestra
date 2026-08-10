@@ -49,7 +49,7 @@ Idem para `--help | head`: a lista é alfabética e o `head` corta. Verifique o 
 | Contrato da memória | há `memory/` **e** falta `memory/wiki/_schema.md`? | instalação pré-0.6.0: `checkpoint` e `wiki-lint` degradam para o contrato inline — **informativo, não defeito** |
 | Agente colidindo | `ls .claude/agents/orq-*.md ~/.claude/agents/orq-*.md 2>/dev/null` — projeto **e** usuário | colisão de nome com o plugin, resolução indefinida |
 
-### Codex: sete camadas, sem falso “não instalado”
+### Codex: nove camadas, sem falso “não instalado”
 
 Quando o host ou o sintoma envolver Codex, reporte separadamente:
 
@@ -59,11 +59,25 @@ Quando o host ou o sintoma envolver Codex, reporte separadamente:
 4. versão e conteúdo do cache coerentes;
 5. **skill carregada** e visível em `/skills`;
 6. estrutura Orquestra do projeto e elenco resolvidos;
-7. **smoke comportamental** aprovado em conversa nova.
+7. hooks do plugin carregados e com **confiança** confirmada em `/hooks`;
+8. guardião de contexto com telemetria disponível e `PLUGIN_DATA` gravável;
+9. **smoke comportamental** aprovado em conversa nova.
 
 No Codex, a interface é linguagem natural ou `/skills`; `/orq:*` pertence ao Claude Code. Pare na
 camada que falhou e mostre a evidência. Não condense PATH, autenticação, cache, carregamento e smoke
 em “plugin ausente”.
+
+Para o backstop de compactação, leia `model_context_window` observado e calcule
+`round(model_context_window * 0.90)`. Mostre, sem editar, a proposta:
+
+```toml
+model_auto_compact_token_limit = <90% da janela efetiva>
+model_auto_compact_token_limit_scope = "total"
+```
+
+Essa configuração é **opt-in**: nomeie o arquivo e o valor, faça backup e só escreva após aprovação
+explícita. Ela não substitui o guardião: aos 55% há pré-alerta, a partir de 60% o checkpoint é
+obrigatório e em 70% trabalho novo fica bloqueado. Compactação em 90% é apenas a última defesa.
 
 Com `--verificar`: mostre o diagnóstico dos dois blocos e **pare aqui** — não proponha instalação.
 Para cada problema, diga **o comando que corrige**, não só que está errado — com duas exceções:
