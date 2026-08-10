@@ -8,7 +8,8 @@ checkpoint ao ultrapassar 60%, antes que saltos da statusline levem a sessão di
 
 ## Estado
 
-AWAITING_OWNER. Nenhuma implementação autorizada.
+DEV_REVIEW. Implementação inline concluída no worktree; o dono autorizou em 2026-08-10 uma única
+nova tentativa sequencial e menor do Opus 5 e do Kimi K3.
 
 ## Perguntas da investigação
 
@@ -100,12 +101,27 @@ escopo `total`. A alteração de configuração continua opt-in.
 - ✅ contrato natural, diagnóstico e documentação viva;
 - ✅ release local identificada como `0.22.0` para evitar colisão com cache `0.21.0`.
 
-Evidência intermediária: 36 testes, manifesto estrito e lint de coerência passam no worktree
-`feat/t043-context-guard`. Ainda não houve instalação, review externo, configuração global,
-publicação ou push.
+Evidência atual: 49 testes, manifesto estrito, lint de coerência e `git diff --check` passam no
+worktree `feat/t043-context-guard`. O primeiro painel real comprovou `claude-opus-5` no
+`modelUsage` e encontrou falso handshake, reset inseguro no `/clear` e corrida no lock; os casos
+foram reproduzidos RED e corrigidos com handshake ancorado, marcador durável de reset e `flock`
+liberado pelo SO. O Kimi K3 também revisou o diff e suas ressalvas verificáveis entraram nos testes.
+
+Na rodada final, três lotes Opus 5 começaram pelo runner, mas todos encerraram em
+`OPUS_TIMEOUT` após 240 s. O Kimi encerrou com exit 1 e sem o contrato final. Pelo protocolo, não
+houve retry automático. O dono autorizou uma tentativa sequencial menor em 2026-08-10:
+
+- Opus: exit 0, `OPUS_MODEL=claude-opus-5`, `OPUS_SECONDS=205.2`, briefing 14.927 bytes,
+  `APROVADO_COM_RESSALVAS`, nenhum bloqueador;
+- Kimi: exit 0, sessão `session_b7c87685-862d-4dd0-81ef-5131dc282d5c`,
+  `APROVADO_COM_RESSALVAS`, nenhum bloqueador;
+- convergência: corrida residual do marcador pode exigir um segundo `/clear`, mas não cria bypass;
+  registrada no `T-044`, junto do fallback Windows sem recuperação de lock órfão.
+
+Ainda não houve instalação, configuração global, publicação ou push.
 
 ## RETOMAR AQUI
 
-Finalizar registros da release e replanejar `T-042` para `0.23.0`; depois instalar somente no Codex
-local, fazer smoke descartável e passar o diff pelo painel Opus 5 + Kimi K3. Publicação, push,
-configuração global e atualização do Claude continuam em gates separados.
+Painel fechado. Rodar verificação fresca, commitar as correções e escolher a integração da branch.
+Depois da integração local autorizada: reinstalar somente no Codex e fazer smoke descartável.
+Publicação, push, configuração global e atualização do Claude continuam em gates separados.

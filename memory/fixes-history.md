@@ -1,5 +1,14 @@
 # Log de mudanças — append-only
 
+## [2026-08-10] review+correção | T-043 · painel fecha sem bloqueadores
+
+Opus 5 e Kimi K3 revisaram a candidata final sequencialmente e devolveram
+`APROVADO_COM_RESSALVAS`, sem bloqueadores. Antes disso, o painel encontrou e os testes
+reproduziram falso handshake de `/clear`, checkpoint falho sem retry, corrida read-modify-write,
+estado inválido silencioso e lock órfão. A correção usa frase afirmativa ancorada, retry
+conservador, `flock` liberado pelo SO, marcador de reset e falha aberta visível. A corrida residual
+do marcador e o fallback Windows viraram `T-044`; ambos erram para over-enforcement, não bypass.
+
 ## [2026-08-09] feature local | 0.22.0 protege contexto antes do clear
 
 O `T-043` adicionou guardião Codex por hooks: pré-alerta em 55%, checkpoint obrigatório no primeiro

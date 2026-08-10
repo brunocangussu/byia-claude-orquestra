@@ -4,19 +4,28 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import errno
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
 import sys
 import tempfile
 import time
-from typing import Mapping
+from typing import BinaryIO, Mapping
 import unicodedata
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - fallback para Windows
+    fcntl = None
 
 
 DEFAULT_TAIL_BYTES = 4 * 1024 * 1024
+MAX_TAIL_BYTES = 32 * 1024 * 1024
+STATE_LOCK_WAIT_SECONDS = 0.75
 STATE_KEYS = (
     "phase",
     "pre_alert_sent",
@@ -38,6 +47,13 @@ class UsageSnapshot:
     @property
     def percent(self) -> float:
         return self.used_tokens * 100.0 / self.context_window
+
+
+@dataclass
+class StateLock:
+    path: Path
+    handle: BinaryIO | None = None
+    directory: bool = False
 
 
 def _is_positive_int(value: object) -> bool:
@@ -69,30 +85,41 @@ def read_latest_usage(
 ) -> UsageSnapshot | None:
     """Lê o token_count completo mais recente sem carregar o transcript inteiro."""
 
-    for raw_line in reversed(_read_tail_lines(path, tail_bytes)):
+    scan_bytes = tail_bytes
+    max_scan_bytes = max(tail_bytes, MAX_TAIL_BYTES)
+    while scan_bytes > 0:
+        for raw_line in reversed(_read_tail_lines(path, scan_bytes)):
+            if b'"token_count"' not in raw_line:
+                continue
+            try:
+                event = json.loads(raw_line)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                continue
+            if not isinstance(event, dict):
+                continue
+            payload = event.get("payload")
+            if not isinstance(payload, dict) or payload.get("type") != "token_count":
+                continue
+            info = payload.get("info")
+            if not isinstance(info, dict):
+                continue
+            usage = info.get("last_token_usage")
+            if not isinstance(usage, dict):
+                continue
+            used_tokens = usage.get("total_tokens")
+            context_window = info.get("model_context_window")
+            if not _is_positive_int(used_tokens) or not _is_positive_int(context_window):
+                continue
+            return UsageSnapshot(
+                used_tokens=used_tokens,
+                context_window=context_window,
+            )
         try:
-            event = json.loads(raw_line)
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            continue
-        if not isinstance(event, dict):
-            continue
-        payload = event.get("payload")
-        if not isinstance(payload, dict) or payload.get("type") != "token_count":
-            continue
-        info = payload.get("info")
-        if not isinstance(info, dict):
-            continue
-        usage = info.get("last_token_usage")
-        if not isinstance(usage, dict):
-            continue
-        used_tokens = usage.get("total_tokens")
-        context_window = info.get("model_context_window")
-        if not _is_positive_int(used_tokens) or not _is_positive_int(context_window):
-            continue
-        return UsageSnapshot(
-            used_tokens=used_tokens,
-            context_window=context_window,
-        )
+            if path.stat().st_size <= scan_bytes or scan_bytes >= max_scan_bytes:
+                return None
+        except OSError:
+            return None
+        scan_bytes = min(scan_bytes * 2, max_scan_bytes)
     return None
 
 
@@ -123,11 +150,134 @@ def state_path(data_dir: Path, session_id: str) -> Path:
     return data_dir / "context-guard" / f"{digest}.json"
 
 
+def _state_lock_path(data_dir: Path, session_id: str) -> Path:
+    return state_path(data_dir, session_id).with_suffix(".lock")
+
+
+def _state_reset_path(data_dir: Path, session_id: str) -> Path:
+    return state_path(data_dir, session_id).with_suffix(".reset")
+
+
+def _mark_state_reset(data_dir: Path, session_id: str) -> bool:
+    marker = _state_reset_path(data_dir, session_id)
+    try:
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.touch(exist_ok=True)
+    except OSError:
+        return False
+    try:
+        state_path(data_dir, session_id).unlink(missing_ok=True)
+    except OSError:
+        pass
+    return True
+
+
+def _apply_pending_reset(data_dir: Path, session_id: str) -> None:
+    if not _state_reset_path(data_dir, session_id).exists():
+        return
+    try:
+        state_path(data_dir, session_id).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def _finish_pending_reset(data_dir: Path, session_id: str) -> None:
+    try:
+        _state_reset_path(data_dir, session_id).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def _acquire_state_lock(data_dir: Path, session_id: str) -> StateLock | None:
+    lock_path = _state_lock_path(data_dir, session_id)
+    deadline = time.monotonic() + STATE_LOCK_WAIT_SECONDS
+    try:
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return None
+
+    if fcntl is not None:
+        try:
+            handle = lock_path.open("a+b")
+        except OSError:
+            return None
+        while True:
+            try:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return StateLock(path=lock_path, handle=handle)
+            except OSError as error:
+                if error.errno not in {errno.EACCES, errno.EAGAIN}:
+                    handle.close()
+                    return None
+                if time.monotonic() >= deadline:
+                    handle.close()
+                    return None
+                time.sleep(0.01)
+
+    directory_path = lock_path.with_suffix(".lockdir")
+    while True:
+        try:
+            directory_path.mkdir()
+            return StateLock(path=directory_path, directory=True)
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                return None
+            time.sleep(0.01)
+        except OSError:
+            return None
+
+
+def _release_state_lock(lock: StateLock) -> None:
+    if lock.handle is not None:
+        try:
+            fcntl.flock(lock.handle.fileno(), fcntl.LOCK_UN)
+        except OSError:
+            pass
+        lock.handle.close()
+        return
+    if not lock.directory:
+        return
+    try:
+        lock.path.rmdir()
+    except OSError:
+        pass
+
+
 def _quarantine_corrupt_state(path: Path) -> None:
     try:
         path.replace(path.with_name(f"{path.name}.corrupt-{time.time_ns()}"))
     except OSError:
         pass
+
+
+def _recovered_state(warning: str) -> dict:
+    state = default_state()
+    state["_state_warning"] = warning
+    return state
+
+
+def _has_valid_state_types(raw: dict) -> bool:
+    phases = {"normal", "pre_alert", "checkpoint_required", "emergency", "clear_required"}
+    if "phase" in raw and raw["phase"] not in phases:
+        return False
+    for key in (
+        "pre_alert_sent",
+        "checkpoint_started",
+        "clear_required",
+        "telemetry_warning_sent",
+    ):
+        if key in raw and not isinstance(raw[key], bool):
+            return False
+    if "last_percent" in raw and raw["last_percent"] is not None:
+        value = raw["last_percent"]
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return False
+        if not math.isfinite(value) or value < 0:
+            return False
+    if "updated_at" in raw and raw["updated_at"] is not None:
+        if not _is_positive_int(raw["updated_at"]):
+            return False
+    return True
 
 
 def load_state(data_dir: Path, session_id: str) -> dict:
@@ -138,16 +288,20 @@ def load_state(data_dir: Path, session_id: str) -> dict:
         return default_state()
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         _quarantine_corrupt_state(path)
-        return default_state()
-    if not isinstance(raw, dict):
+        return _recovered_state(
+            "Estado do guardião corrompido ou ilegível; foi isolado e reiniciado."
+        )
+    if not isinstance(raw, dict) or not _has_valid_state_types(raw):
         _quarantine_corrupt_state(path)
-        return default_state()
+        return _recovered_state(
+            "Estado do guardião inválido; foi isolado e reiniciado."
+        )
     state = default_state()
     state.update({key: raw[key] for key in STATE_KEYS if key in raw})
     return state
 
 
-def save_state(data_dir: Path, session_id: str, state: dict) -> None:
+def save_state(data_dir: Path, session_id: str, state: dict) -> bool:
     path = state_path(data_dir, session_id)
     filtered = default_state()
     filtered.update({key: state[key] for key in STATE_KEYS if key in state})
@@ -167,12 +321,43 @@ def save_state(data_dir: Path, session_id: str, state: dict) -> None:
             os.fsync(handle.fileno())
             tmp_path = Path(handle.name)
         os.replace(tmp_path, path)
+        return True
     except OSError:
         if tmp_path is not None:
             try:
                 tmp_path.unlink(missing_ok=True)
             except OSError:
                 pass
+        return False
+
+
+def _persist_response(
+    data_dir: Path,
+    session_id: str,
+    state: dict,
+    response: dict | None,
+) -> dict | None:
+    state_warning = state.get("_state_warning")
+    saved = save_state(data_dir, session_id, state)
+    if saved:
+        _finish_pending_reset(data_dir, session_id)
+    if saved and not state_warning:
+        return response
+    warnings: list[str] = []
+    if isinstance(state_warning, str):
+        warnings.append(f"Orquestra: {state_warning}")
+    if not saved:
+        warnings.append(
+            "Orquestra: telemetria de contexto indisponível; o hook falhou aberto e não "
+            "bloqueará esta ação."
+        )
+    result = dict(response or {})
+    result.pop("decision", None)
+    result.pop("reason", None)
+    previous = result.get("systemMessage")
+    warning = " ".join(warnings)
+    result["systemMessage"] = f"{previous} {warning}" if previous else warning
+    return result
 
 
 def _additional_context(event_name: str, text: str) -> dict:
@@ -209,7 +394,19 @@ def _is_checkpoint_intent(prompt: object) -> bool:
 def _has_safe_clear_phrase(message: object) -> bool:
     if not isinstance(message, str):
         return False
-    return re.search(r"seguro dar\s+[`\"']?/clear[`\"']?\s*\.", message, re.I) is not None
+    return (
+        re.search(
+            r"^\s*(?:\*\*)?seguro dar\s+[`\"']?/clear[`\"']?\s*\.\s*(?:\*\*)?\s*$",
+            message,
+            re.I | re.M,
+        )
+        is not None
+    )
+
+
+def _has_failed_checkpoint_phrase(message: object) -> bool:
+    normalized = _normalize_text(message)
+    return "nao afirmo que e seguro limpar" in normalized
 
 
 def _session_context(event_name: str, source: object) -> dict | None:
@@ -228,17 +425,45 @@ def _session_context(event_name: str, source: object) -> dict | None:
     return None
 
 
-def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
+def _plugin_env(env: Mapping[str, str], name: str) -> str | None:
+    value = env.get(name) or env.get(f"CLAUDE_{name}")
+    return value if isinstance(value, str) and value else None
+
+
+def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
     """Converte um evento Codex numa decisão curta de hook, sempre fail-open."""
 
-    if not isinstance(event, dict) or not env.get("PLUGIN_ROOT"):
+    if not isinstance(event, dict) or _plugin_env(env, "PLUGIN_ROOT") is None:
         return None
     event_name = event.get("hook_event_name")
     if not isinstance(event_name, str):
         return None
 
     if event_name == "SessionStart":
-        return _session_context(event_name, event.get("source"))
+        source = event.get("source")
+        session_id = event.get("session_id")
+        plugin_data = _plugin_env(env, "PLUGIN_DATA")
+        if source == "clear":
+            if isinstance(session_id, str) and session_id and isinstance(plugin_data, str):
+                return _persist_response(
+                    Path(plugin_data),
+                    session_id,
+                    default_state(),
+                    _session_context(event_name, source),
+                )
+        if (
+            source == "compact"
+            and isinstance(session_id, str)
+            and session_id
+            and isinstance(plugin_data, str)
+            and load_state(Path(plugin_data), session_id).get("clear_required")
+        ):
+            return _additional_context(
+                event_name,
+                "Checkpoint já verificado antes da compactação. Não inicie recuperação nem "
+                "trabalho novo; execute /clear manualmente.",
+            )
+        return _session_context(event_name, source)
     if event_name in {"PreCompact", "PostCompact"}:
         return {
             "systemMessage": (
@@ -248,7 +473,7 @@ def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
 
     session_id = event.get("session_id")
     transcript_path = event.get("transcript_path")
-    plugin_data = env.get("PLUGIN_DATA")
+    plugin_data = _plugin_env(env, "PLUGIN_DATA")
     if not isinstance(session_id, str) or not session_id or not isinstance(plugin_data, str):
         return None
     if not isinstance(transcript_path, str) or not transcript_path:
@@ -257,16 +482,58 @@ def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
     data_dir = Path(plugin_data)
     state = load_state(data_dir, session_id)
 
+    if event_name == "Stop" and _has_failed_checkpoint_phrase(
+        event.get("last_assistant_message")
+    ):
+        state["checkpoint_started"] = False
+        state["clear_required"] = False
+        state["updated_at"] = int(time.time())
+        return _persist_response(
+            data_dir,
+            session_id,
+            state,
+            {
+                "systemMessage": (
+                    "Checkpoint não foi verificado. Corrija o sinal quebrado; uma nova tentativa "
+                    "será exigida antes de /clear."
+                )
+            },
+        )
     if event_name == "Stop" and _has_safe_clear_phrase(event.get("last_assistant_message")):
         state["phase"] = "clear_required"
         state["clear_required"] = True
         state["updated_at"] = int(time.time())
-        save_state(data_dir, session_id, state)
-        return {
-            "systemMessage": (
-                "Checkpoint verificado. Não inicie trabalho novo nesta sessão; execute /clear."
-            )
-        }
+        return _persist_response(
+            data_dir,
+            session_id,
+            state,
+            {
+                "systemMessage": (
+                    "Checkpoint verificado. Não inicie trabalho novo nesta sessão; execute /clear."
+                )
+            },
+        )
+    if (
+        event_name == "Stop"
+        and event.get("stop_hook_active")
+        and state.get("checkpoint_started")
+        and isinstance(event.get("last_assistant_message"), str)
+        and event.get("last_assistant_message")
+    ):
+        state["checkpoint_started"] = False
+        state["clear_required"] = False
+        state["updated_at"] = int(time.time())
+        return _persist_response(
+            data_dir,
+            session_id,
+            state,
+            {
+                "systemMessage": (
+                    "Checkpoint terminou sem a frase contratual de verificação. Corrija o sinal; "
+                    "uma nova tentativa será exigida antes de /clear."
+                )
+            },
+        )
 
     snapshot = read_latest_usage(Path(transcript_path))
     if snapshot is None:
@@ -280,83 +547,158 @@ def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
 
     if event_name == "UserPromptSubmit":
         if state.get("clear_required"):
-            save_state(data_dir, session_id, state)
-            return {
-                "decision": "block",
-                "reason": "Checkpoint já verificado. Execute /clear antes de iniciar trabalho novo.",
-            }
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                {
+                    "decision": "block",
+                    "reason": "Checkpoint já verificado. Execute /clear antes de iniciar trabalho novo.",
+                },
+            )
         if band == "emergency" and not _is_checkpoint_intent(event.get("prompt")):
-            save_state(data_dir, session_id, state)
-            return {
-                "decision": "block",
-                "reason": (
-                    f"Contexto em {percent:.1f}%. Peça o checkpoint agora; trabalho novo está bloqueado "
-                    "até ser seguro executar /clear."
-                ),
-            }
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                {
+                    "decision": "block",
+                    "reason": (
+                        f"Contexto em {percent:.1f}%. Peça o checkpoint agora; trabalho novo está bloqueado "
+                        "até ser seguro executar /clear."
+                    ),
+                },
+            )
         if band in {"checkpoint_required", "emergency"}:
             state["checkpoint_started"] = True
-            save_state(data_dir, session_id, state)
-            return _additional_context(
-                event_name,
-                f"Contexto em {percent:.1f}%. Antes de atender trabalho novo, execute somente o "
-                "checkpoint do Orquestra e finalize com a verificação para /clear.",
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                _additional_context(
+                    event_name,
+                    f"Contexto em {percent:.1f}%. Antes de atender trabalho novo, execute somente o "
+                    "checkpoint do Orquestra e finalize com a verificação para /clear.",
+                ),
             )
         if band == "pre_alert" and not state.get("pre_alert_sent"):
             state["pre_alert_sent"] = True
-            save_state(data_dir, session_id, state)
-            return _additional_context(
-                event_name,
-                f"Contexto em {percent:.1f}%: conclua apenas a unidade atômica atual e prepare checkpoint.",
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                _additional_context(
+                    event_name,
+                    f"Contexto em {percent:.1f}%: conclua apenas a unidade atômica atual e prepare checkpoint.",
+                ),
             )
 
     if event_name == "PostToolUse":
         if band in {"checkpoint_required", "emergency"}:
-            save_state(data_dir, session_id, state)
-            return _additional_context(
-                event_name,
-                f"Contexto em {percent:.1f}%. Pare antes de outra ferramenta e execute o checkpoint.",
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                _additional_context(
+                    event_name,
+                    f"Contexto em {percent:.1f}%. Pare antes de outra ferramenta e execute o checkpoint.",
+                ),
             )
         if band == "pre_alert" and not state.get("pre_alert_sent"):
             state["pre_alert_sent"] = True
-            save_state(data_dir, session_id, state)
-            return _additional_context(
-                event_name,
-                f"Contexto em {percent:.1f}%: prepare o fechamento atômico e o checkpoint.",
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                _additional_context(
+                    event_name,
+                    f"Contexto em {percent:.1f}%: prepare o fechamento atômico e o checkpoint.",
+                ),
             )
 
     if event_name == "Stop":
         if state.get("clear_required"):
-            save_state(data_dir, session_id, state)
-            return {"systemMessage": "Checkpoint concluído; execute /clear."}
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                {"systemMessage": "Checkpoint concluído; execute /clear."},
+            )
         if band == "pre_alert" and not state.get("pre_alert_sent"):
             state["pre_alert_sent"] = True
-            save_state(data_dir, session_id, state)
-            return {
-                "systemMessage": (
-                    f"Orquestra: contexto em {percent:.1f}%; prepare checkpoint antes de 60%."
-                )
-            }
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                {
+                    "systemMessage": (
+                        f"Orquestra: contexto em {percent:.1f}%; prepare checkpoint antes de 60%."
+                    )
+                },
+            )
         if band in {"checkpoint_required", "emergency"}:
             if event.get("stop_hook_active") or state.get("checkpoint_started"):
-                save_state(data_dir, session_id, state)
-                return {
-                    "systemMessage": (
-                        f"Orquestra: contexto em {percent:.1f}%; checkpoint continua obrigatório."
-                    )
-                }
+                return _persist_response(
+                    data_dir,
+                    session_id,
+                    state,
+                    {
+                        "systemMessage": (
+                            f"Orquestra: contexto em {percent:.1f}%; checkpoint continua obrigatório."
+                        )
+                    },
+                )
             state["checkpoint_started"] = True
-            save_state(data_dir, session_id, state)
-            return {
-                "decision": "block",
-                "reason": (
-                    f"Contexto em {percent:.1f}%. Execute agora o checkpoint completo do Orquestra; "
-                    "não faça trabalho novo e termine informando se é seguro dar /clear."
-                ),
-            }
+            return _persist_response(
+                data_dir,
+                session_id,
+                state,
+                {
+                    "decision": "block",
+                    "reason": (
+                        f"Contexto em {percent:.1f}%. Execute agora o checkpoint completo do Orquestra; "
+                        "não faça trabalho novo e emita a frase contratual somente após verificar o board."
+                    ),
+                },
+            )
 
-    save_state(data_dir, session_id, state)
-    return None
+    return _persist_response(data_dir, session_id, state, None)
+
+
+def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
+    """Serializa a transação de estado por sessão e falha aberto se o lock não vier."""
+
+    if not isinstance(event, dict) or _plugin_env(env, "PLUGIN_ROOT") is None:
+        return None
+    event_name = event.get("hook_event_name")
+    if event_name in {"PreCompact", "PostCompact"}:
+        return _handle_event_unlocked(event, env)
+    session_id = event.get("session_id")
+    plugin_data = _plugin_env(env, "PLUGIN_DATA")
+    if not isinstance(session_id, str) or not session_id or not isinstance(plugin_data, str):
+        return _handle_event_unlocked(event, env)
+
+    data_dir = Path(plugin_data)
+    if event_name == "SessionStart" and event.get("source") == "clear":
+        _mark_state_reset(data_dir, session_id)
+
+    lock_path = _acquire_state_lock(data_dir, session_id)
+    if lock_path is None:
+        response = (
+            _session_context("SessionStart", event.get("source"))
+            if event_name == "SessionStart"
+            else None
+        )
+        result = dict(response or {})
+        result["systemMessage"] = (
+            "Orquestra: telemetria de contexto ocupada ou indisponível; o hook falhou aberto."
+        )
+        return result
+    try:
+        _apply_pending_reset(data_dir, session_id)
+        return _handle_event_unlocked(event, env)
+    finally:
+        _release_state_lock(lock_path)
 
 
 def main() -> int:
