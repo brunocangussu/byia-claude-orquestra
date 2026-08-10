@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Executar somente depois da release core `0.21.0` instalada no branch de implementação.
-- Release alvo deste plano: `0.22.0`. Se a base não for `0.21.0`, parar e regenerar o plano.
+- Release alvo deste plano: `0.23.0`. Se a base não for `0.22.0`, parar e regenerar o plano.
 - A statusline é opt-in; instalar o Orquestra não autoriza editar `~/.codex/config.toml`.
 - Criar backup carimbado antes de qualquer escrita.
 - Preservar campos, ordem e `status_line_use_colors` existentes.
@@ -240,9 +240,9 @@ Distribuição deve exigir parse TOML, `doctor --strict-config` e nova sessão.
 
 **Interfaces:**
 - Consumes: Tasks 1-3 finalizadas.
-- Produces: release local `0.22.0`, validada e parada antes de instalação/publicação.
+- Produces: release local `0.23.0`, validada e parada antes de instalação/publicação.
 
-- [ ] **Step 1: Atualizar os quatro locais de versão para `0.22.0`**
+- [ ] **Step 1: Atualizar os quatro locais de versão para `0.23.0`**
 
 ```text
 orq/.claude-plugin/plugin.json
@@ -261,7 +261,7 @@ Adicionar entrada atemporal nas páginas vivas, entrada datada no topo de `fixes
 claude plugin validate ./orq --strict
 python3 orq/scripts/lint-coerencia.py .
 git diff --check
-python3 -c 'import json; assert json.load(open("orq/.claude-plugin/plugin.json"))["version"]=="0.22.0"; assert json.load(open(".claude-plugin/marketplace.json"))["plugins"][0]["version"]=="0.22.0"'
+python3 -c 'import json; assert json.load(open("orq/.claude-plugin/plugin.json"))["version"]=="0.23.0"; assert json.load(open(".claude-plugin/marketplace.json"))["plugins"][0]["version"]=="0.23.0"'
 ```
 
 Expected: todos exit `0`.
@@ -270,7 +270,7 @@ Expected: todos exit `0`.
 
 ```bash
 git add orq README.md .claude-plugin/marketplace.json memory/MEMORY.md memory/wiki/arquitetura.md memory/wiki/distribuicao.md memory/fixes-history.md memory/wiki/KANBAN.md memory/wiki/threads/T-040-paridade-codex.md
-git commit -m "feat(0.22.0): statusline nativa do codex — perfil opt-in e seguro"
+git commit -m "feat(0.23.0): statusline nativa do codex — perfil opt-in e seguro"
 ```
 
 - [ ] **Step 5: Parar no gate de instalação**

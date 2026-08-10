@@ -535,6 +535,20 @@ class ContextGuardReleaseVersionTest(unittest.TestCase):
         self.assertIn(f"## Status\n\n`{expected}`", readme)
         self.assertIn(f"**Versão:** {expected} ·", memory)
 
+        board = (repo_root / "memory" / "wiki" / "KANBAN.md").read_text()
+        t042_line = next(
+            line for line in board.splitlines() if "`T-042` Statusline" in line
+        )
+        statusline_plan = (
+            repo_root
+            / "docs"
+            / "superpowers"
+            / "plans"
+            / "2026-08-09-statusline-nativa-codex.md"
+        ).read_text()
+        self.assertIn("0.23.0", t042_line)
+        self.assertIn("Release alvo deste plano: `0.23.0`", statusline_plan)
+
 
 class ContextGuardDocumentationContractTest(unittest.TestCase):
     def test_guard_contract_is_present_in_live_instructions(self) -> None:

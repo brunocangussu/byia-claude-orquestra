@@ -10,12 +10,17 @@
 
 **⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
 
+- **0.22.0 LOCAL — `T-043` em implementação/review:** guardião Codex empacotado em seis hooks,
+  parser/estado por sessão, faixas 55%/60%/70%, handshake “Seguro dar `/clear`” e backstop de 90%
+  documentado como opt-in. Testes e validadores locais passam; ainda faltam instalação Codex,
+  smoke externo, painel Opus 5 + Kimi K3 e gates de configuração/publicação.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
   sete camadas e memória legada diferenciada de projeto virgem. Runner Opus 5 comprovado em nova
   sessão Codex de projeto externo; Claude/Codex instalados em `0.21.0`, caches idênticos. GitHub
   atualizado e verificado; falta o dono repetir a revisão no projeto real que originou o bug.
-- **`T-042` permanece no backlog:** statusline nativa Codex opt-in só começa depois da core local.
+- **`T-042` permanece no backlog para 0.23.0:** statusline nativa Codex opt-in começa depois do
+  guardião `T-043`.
 
 - **0.20.0 RELEASADA E PUBLICADA** (commit `164387c`, push feito). Instalada e verificada no Claude
   **e** no Codex, cache idêntico ao repo nos dois. O `T-036` está em **VALIDATE**, aguardando só o

@@ -1,5 +1,13 @@
 # Log de mudanças — append-only
 
+## [2026-08-09] feature local | 0.22.0 protege contexto antes do clear
+
+O `T-043` adicionou guardião Codex por hooks: pré-alerta em 55%, checkpoint obrigatório no primeiro
+valor observado ≥60%, contingência em 70% e bloqueio de trabalho novo depois da frase verificada
+“Seguro dar `/clear`”. Estado é isolado por sessão em `PLUGIN_DATA`, sem conteúdo da conversa; erros
+de telemetria falham abertos e compactação automática continua permitida como backstop. Release
+ainda local: sem instalação, configuração global, publicação ou push neste registro.
+
 ## [2026-08-09] publicação | 0.21.0 no GitHub com runner Opus 5 comprovado
 
 O dono autorizou o push após a validação local. `origin/main` avançou de `164387c` para `6ba462b`;
