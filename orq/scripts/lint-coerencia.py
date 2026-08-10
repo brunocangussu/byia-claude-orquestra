@@ -13,6 +13,7 @@ Uso:
 Saída: 0 se coerente, 1 se achou referência quebrada.
 """
 
+import json
 import os
 import re
 import sys
@@ -58,6 +59,49 @@ def arquivos_a_varrer(raiz: Path, plugin: Path):
             yield alvo
 
 
+def validate_hooks(raiz: Path, plugin: Path) -> list[tuple[Path, int, str]]:
+    hooks_path = plugin / "hooks" / "hooks.json"
+    if not hooks_path.exists():
+        return []
+    rel = hooks_path.relative_to(raiz)
+    try:
+        config = json.loads(hooks_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        return [(rel, 0, f"hooks/hooks.json inválido: {exc}")]
+    hooks = config.get("hooks") if isinstance(config, dict) else None
+    if not isinstance(hooks, dict):
+        return [(rel, 0, "hooks/hooks.json precisa conter objeto `hooks`")]
+
+    problemas: list[tuple[Path, int, str]] = []
+    raiz_plugin = plugin.resolve()
+    root_ref = re.compile(r"\$\{(?:CLAUDE_)?PLUGIN_ROOT\}/([\w./-]+)")
+    for evento, grupos in hooks.items():
+        if not isinstance(grupos, list):
+            problemas.append((rel, 0, f"hook {evento} precisa ser uma lista"))
+            continue
+        for grupo in grupos:
+            handlers = grupo.get("hooks") if isinstance(grupo, dict) else None
+            if not isinstance(handlers, list):
+                problemas.append((rel, 0, f"hook {evento} não contém lista de handlers"))
+                continue
+            for handler in handlers:
+                if not isinstance(handler, dict) or handler.get("type") != "command":
+                    problemas.append((rel, 0, f"hook {evento} tem handler não-command"))
+                    continue
+                command = handler.get("command")
+                if not isinstance(command, str):
+                    problemas.append((rel, 0, f"hook {evento} não tem command string"))
+                    continue
+                for match in root_ref.finditer(command):
+                    ref = match.group(1).rstrip(".")
+                    alvo = (plugin / ref).resolve()
+                    dentro = os.path.commonpath([str(alvo), str(raiz_plugin)]) == str(raiz_plugin)
+                    if not dentro or not alvo.is_file():
+                        motivo = "escapa do plugin" if not dentro else "não existe"
+                        problemas.append((rel, 0, f"{ref} {motivo}"))
+    return problemas
+
+
 def main() -> int:
     raiz = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     plugin = raiz / "orq"
@@ -67,6 +111,7 @@ def main() -> int:
 
     conhecidos = universos(plugin)
     problemas = []
+    problemas.extend(validate_hooks(raiz, plugin))
 
     for arq in arquivos_a_varrer(raiz, plugin):
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):
@@ -98,8 +143,6 @@ def main() -> int:
     # A versão vive em 3 lugares e eles divergem calados: o manifesto é a fonte,
     # o README anuncia e o MEMORY.md orienta quem retoma. Já desatualizou duas
     # vezes — quem lê o índice primeiro parte de premissa velha.
-    import json
-
     manifesto = plugin / ".claude-plugin" / "plugin.json"
     versao = json.loads(manifesto.read_text(encoding="utf-8")).get("version")
     for arq, rotulo in ((raiz / "README.md", "README"), (raiz / "memory" / "MEMORY.md", "MEMORY.md")):

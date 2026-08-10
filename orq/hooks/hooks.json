@@ -1,0 +1,83 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Verificando janela de contexto",
+            "additionalContextLimit": 300
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Verificando checkpoint preventivo"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Protegendo contexto antes do trabalho",
+            "additionalContextLimit": 300
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "^(clear|compact)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Reidratando memória do Orquestra",
+            "additionalContextLimit": 300
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "^(manual|auto)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Registrando contingência de compactação"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "^(manual|auto)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py\"",
+            "timeout": 5,
+            "statusMessage": "Recuperando após compactação"
+          }
+        ]
+      }
+    ]
+  }
+}
+

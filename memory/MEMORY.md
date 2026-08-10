@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.21.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
 

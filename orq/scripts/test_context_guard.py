@@ -14,6 +14,9 @@ import unittest
 
 
 GUARD_PATH = Path(__file__).with_name("context-guard.py")
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+HOOKS_PATH = PLUGIN_ROOT / "hooks" / "hooks.json"
+LINT_PATH = Path(__file__).with_name("lint-coerencia.py")
 
 
 def token_event(used_tokens: int, context_window: int) -> dict:
@@ -45,10 +48,19 @@ if GUARD_PATH.exists():
 else:
     guard = None
 
+lint_spec = importlib.util.spec_from_file_location("orq_lint_coerencia", LINT_PATH)
+assert lint_spec is not None and lint_spec.loader is not None
+lint_module = importlib.util.module_from_spec(lint_spec)
+sys.modules[lint_spec.name] = lint_module
+lint_spec.loader.exec_module(lint_module)
+
 
 class ContextGuardPresenceTest(unittest.TestCase):
     def test_guard_script_exists(self) -> None:
         self.assertTrue(GUARD_PATH.is_file(), f"guardião ausente: {GUARD_PATH}")
+
+    def test_hooks_bundle_exists(self) -> None:
+        self.assertTrue(HOOKS_PATH.is_file(), f"bundle de hooks ausente: {HOOKS_PATH}")
 
 
 @unittest.skipIf(guard is None, "guardião ainda não implementado")
@@ -407,6 +419,121 @@ class ContextGuardCliTest(unittest.TestCase):
         output = json.loads(result.stdout)
         self.assertEqual(output["decision"], "block")
         self.assertIn("checkpoint", output["reason"].lower())
+
+
+@unittest.skipUnless(HOOKS_PATH.is_file(), "bundle de hooks ainda não implementado")
+class ContextGuardHooksBundleTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.config = json.loads(HOOKS_PATH.read_text(encoding="utf-8"))
+
+    def test_bundle_registers_exact_codex_events(self) -> None:
+        expected = {
+            "PostToolUse",
+            "Stop",
+            "UserPromptSubmit",
+            "SessionStart",
+            "PreCompact",
+            "PostCompact",
+        }
+
+        self.assertEqual(set(self.config["hooks"]), expected)
+
+    def test_handlers_are_bounded_commands_to_guard(self) -> None:
+        context_events = {"PostToolUse", "UserPromptSubmit", "SessionStart"}
+        for event_name, groups in self.config["hooks"].items():
+            with self.subTest(event=event_name):
+                self.assertEqual(len(groups), 1)
+                handlers = groups[0]["hooks"]
+                self.assertEqual(len(handlers), 1)
+                handler = handlers[0]
+                self.assertEqual(handler["type"], "command")
+                self.assertIn("${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py", handler["command"])
+                self.assertLessEqual(handler["timeout"], 5)
+                if event_name in context_events:
+                    self.assertGreater(handler["additionalContextLimit"], 0)
+                    self.assertLessEqual(handler["additionalContextLimit"], 300)
+                else:
+                    self.assertNotIn("additionalContextLimit", handler)
+
+
+class ContextGuardLintInterfaceTest(unittest.TestCase):
+    def test_hook_lint_api_exists(self) -> None:
+        self.assertTrue(
+            hasattr(lint_module, "validate_hooks"),
+            "validate_hooks ausente no lint-coerencia",
+        )
+
+
+@unittest.skipUnless(
+    hasattr(lint_module, "validate_hooks"),
+    "validação de hooks ainda não implementada no lint",
+)
+class ContextGuardHookLintTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory(prefix="orq-hooks-lint-test-")
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.plugin = self.root / "orq"
+        (self.plugin / "hooks").mkdir(parents=True)
+
+    def write_hooks(self, command: str) -> None:
+        config = {
+            "hooks": {
+                "Stop": [
+                    {
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": command,
+                                "timeout": 5,
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        (self.plugin / "hooks" / "hooks.json").write_text(
+            json.dumps(config),
+            encoding="utf-8",
+        )
+
+    def test_missing_hook_script_is_reported(self) -> None:
+        self.write_hooks(
+            'python3 "${CLAUDE_PLUGIN_ROOT}/scripts/inexistente.py"'
+        )
+
+        problems = lint_module.validate_hooks(self.root, self.plugin)
+
+        self.assertTrue(any("scripts/inexistente.py não existe" in item[2] for item in problems))
+
+    def test_valid_hook_script_has_no_problem(self) -> None:
+        (self.plugin / "scripts").mkdir()
+        (self.plugin / "scripts" / "context-guard.py").write_text("# ok\n")
+        self.write_hooks(
+            'python3 "${CLAUDE_PLUGIN_ROOT}/scripts/context-guard.py"'
+        )
+
+        self.assertEqual(lint_module.validate_hooks(self.root, self.plugin), [])
+
+
+class ContextGuardReleaseVersionTest(unittest.TestCase):
+    def test_release_version_is_coordinated(self) -> None:
+        repo_root = PLUGIN_ROOT.parent
+        expected = "0.22.0"
+        manifest = json.loads(
+            (PLUGIN_ROOT / ".claude-plugin" / "plugin.json").read_text()
+        )
+        marketplace = json.loads(
+            (repo_root / ".claude-plugin" / "marketplace.json").read_text()
+        )
+        entry = next(item for item in marketplace["plugins"] if item["name"] == "orq")
+        readme = (repo_root / "README.md").read_text(encoding="utf-8")
+        memory = (repo_root / "memory" / "MEMORY.md").read_text(encoding="utf-8")
+
+        self.assertEqual(manifest["version"], expected)
+        self.assertEqual(entry["version"], expected)
+        self.assertIn(f"## Status\n\n`{expected}`", readme)
+        self.assertIn(f"**Versão:** {expected} ·", memory)
 
 
 if __name__ == "__main__":
