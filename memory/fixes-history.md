@@ -9,6 +9,11 @@ de bloqueio passaram sem `decision=block`. Depois, a saída textual do hook tamb
 instruções legadas de `/clear`, e `SKILL.md`/`checkpoint.md` do cache foram alinhados ao contrato
 consultivo, com backups próprios. A fonte `0.22.1` ainda precisa incorporar a mesma regra.
 
+O primeiro hotfix ainda deixava o modelo preso ao contrato já carregado porque usava somente
+`systemMessage`. O entrypoint passou então a injetar uma regra prioritária consultiva em todo
+`UserPromptSubmit`. O smoke realista em 80% com `clear_required` passou como
+`LIVE_PRIORITY_OVERRIDE=PASS`: continuação explícita, sem decisão de bloqueio nem limpeza manual.
+
 ## [2026-08-10] decisão | @frente-protecao-contexto · Codex sem hooks bloqueantes
 
 O dono decidiu que o Orquestra no Codex apenas alerta e executa checkpoint; nenhum hook pode bloquear

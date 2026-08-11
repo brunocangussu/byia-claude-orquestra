@@ -192,6 +192,14 @@ atualizado para o handshake Codex de compactação liberada. Backups separados d
 `checkpoint.md` foram criados com o sufixo `.bak-nonblocking-20260811`. `py_compile` e o teste do
 sanitizador passaram, sem `decision=block` nem `/clear` na saída Codex.
 
+A segunda tentativa visual ainda falhou porque o hotfix devolvia apenas `systemMessage`: isso remove
+o bloqueio técnico, mas não injeta uma instrução prioritária no contexto do modelo, que continuava
+obedecendo ao contrato antigo já carregado. A causa raiz foi corrigida no entrypoint do cache: todo
+`UserPromptSubmit` agora produz `hookSpecificOutput.additionalContext` mandando atender o pedido
+atual, tratar checkpoint apenas como documentação e ignorar exigências anteriores de limpeza ou
+interrupção. Um smoke com estado `clear_required`, 80% e prompt “pode continuar daqui” confirmou a
+saída prioritária, sem `decision=block` e sem instrução de limpeza (`LIVE_PRIORITY_OVERRIDE=PASS`).
+
 ⏭️ RETOMAR AQUI: atualizar primeiro especificação/plano/testes para a invariável “zero
 `decision=block` no host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado
 legado. Implementar respostas consultivas na fonte, substituir o hotfix pela release `0.22.1` e
