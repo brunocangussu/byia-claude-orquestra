@@ -162,9 +162,21 @@ Painel da candidata `eeb2899`:
   trabalho novo antes da compactação. Outros riscos: startup/New chat sem reidratação explícita,
   frase Claude aceita como compatibilidade no Codex e hooks Pre/PostCompact registrados como no-op.
 
-⏭️ RETOMAR AQUI: primeiro escrever teste RED para recuperação sem telemetria e corrigir o branch
-antes de `read_latest_usage`. Depois decidir tecnicamente como invalidar ou sinalizar checkpoint
-obsoleto sem recriar o deadlock do App; registrar a decisão sobre `SessionStart(startup)`. Rodar
-GREEN + gates, obter parecer Opus 5 válido (nova tentativa só com autorização/protocolo), reconciliar
-o painel, integrar em `main`, instalar somente no Codex e executar smoke do cache `0.22.1`. Não fazer
-push, publicação, update do Claude nem alterar o backstop de 90%.
+## Decisão do dono — guardião Codex nunca bloqueia
+
+Em 2026-08-10, o dono substituiu explicitamente o requisito de enforcement: no framework do Codex,
+nenhum hook do Orquestra pode bloquear prompt, ferramenta, `Stop` ou compactação. As faixas continuam
+observando a telemetria e solicitando o checkpoint durável; depois dele, a pessoa escolhe continuar,
+abrir outra conversa/task ou deixar a compactação nativa acontecer. O Claude mantém o contrato
+próprio com `/clear`; esta mudança é Codex-only.
+
+Esta decisão também resolve o risco de checkpoint obsoleto sem recriar deadlock: continuar é uma
+escolha consciente e o próximo alerta/checkpoint pode rearmar de modo consultivo, nunca impeditivo.
+Compactação sem checkpoint injeta recuperação, mas não bloqueia trabalho.
+
+⏭️ RETOMAR AQUI: atualizar primeiro especificação/plano/testes para a invariável “zero
+`decision=block` no host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado
+legado. Implementar somente respostas consultivas, hotfixar com backup o script do cache `0.22.0`
+para liberar as sessões já abertas e depois fechar a release `0.22.1`. Rodar GREEN + gates, obter
+parecer Opus 5 válido, reconciliar Kimi, integrar em `main`, instalar somente no Codex e executar
+smoke real. Não fazer push, publicação, update do Claude nem alterar o backstop de 90%.

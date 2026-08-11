@@ -1,5 +1,12 @@
 # Log de mudanças — append-only
 
+## [2026-08-10] decisão | @frente-protecao-contexto · Codex sem hooks bloqueantes
+
+O dono decidiu que o Orquestra no Codex apenas alerta e executa checkpoint; nenhum hook pode bloquear
+prompt, ferramenta, `Stop` ou compactação. Depois do checkpoint, continuar, abrir conversa/task nova
+ou aguardar compactação são escolhas válidas. O Claude preserva o fluxo `/clear`. A implementação
+deve incluir hotfix recuperável do cache `0.22.0` para liberar sessões já abertas.
+
 ## [2026-08-10] review | @frente-protecao-contexto · Kimi aprova e Opus expira
 
 Kimi K3 revisou a candidata `eeb2899` em clone descartável, saiu `0` e devolveu
