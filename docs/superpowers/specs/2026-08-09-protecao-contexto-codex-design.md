@@ -1,190 +1,212 @@
-# Proteção preventiva da janela de contexto no Codex
+# Proteção de contexto Codex com compactação reidratada
 
-**Card:** `T-043`  
-**Data:** 2026-08-09  
-**Estado:** design aprovado conceitualmente; especificação aguardando revisão do dono
+**Card:** `T-043`
+**Data da revisão:** 2026-08-10
+**Estado:** desenho aprovado pelo dono para implementação completa
 
 ## Objetivo
 
-Evitar que uma sessão Codex longa dependa de compactações sucessivas. Antes da saturação, o
-Orquestra deve persistir o estado do trabalho com seu checkpoint verificado, declarar que é seguro
-executar `/clear` e impedir que trabalho novo continue naquela conversa.
+Preservar o checkpoint durável do Orquestra sem impor ao Codex App um comando que ele não possui.
+Cada host conserva a fronteira nativa que realmente oferece:
 
-O fluxo desejado é:
+| Host | Depois do checkpoint verificado |
+|---|---|
+| Claude Code | bloquear trabalho novo até o dono executar `/clear` |
+| Codex CLI e Codex App | permitir a compactação do núcleo; depois reidratar board, wiki e thread |
+| Kimi | manter o fallback textual existente, sem ativar o guardião Codex |
+
+O fluxo Codex passa a ser:
 
 ```text
-trabalho → aviso preventivo → checkpoint verificado → “Seguro dar /clear” → /clear manual
-        → chat novo → reidratação por board/wiki/memória
+trabalho → 55% pré-alerta → ≥60% checkpoint obrigatório
+        → checkpoint verificado → compactação manual ou automática permitida
+        → SessionStart(source=compact) → reidratação → trabalho
 ```
 
-`/compact` não é parte do fluxo normal. A compactação automática do Codex permanece apenas como
-última proteção para a sessão não falhar se todo o protocolo anterior for ultrapassado.
+## Evidência que reprovou o desenho anterior
 
-## Fatos confirmados
+No teste real do dono no Codex App, o checkpoint terminou em **Seguro dar `/clear`.** e o estado
+`clear_required` passou a bloquear `/CLEAR`, `continue` e `allow`. O App não expõe `/clear`; a
+conversa ficou sem saída até a compactação automática.
 
-1. O contrato atual de `orq/commands/checkpoint.md` já persiste log, páginas vivas, thread, board e
-   índice; depois verifica os sinais e só então pode afirmar “Seguro dar `/clear`”.
-2. O Codex define `/clear` como “limpar o terminal e iniciar um chat novo”. `Ctrl+L` limpa apenas a
-   tela e mantém o chat atual.
-3. A statusline não é um contador contínuo. `context-used` deriva do último `token_count` concluído;
-   por isso pode saltar entre dois valores.
-4. Hooks Codex recebem `session_id` e `transcript_path`. `UserPromptSubmit` e `PostToolUse` podem
-   adicionar developer context; `UserPromptSubmit` pode bloquear; `Stop` pode criar uma continuação
-   automática; `SessionStart` distingue `clear` de `compact`.
-5. Plugins podem distribuir `hooks/hooks.json`. O Codex fornece `PLUGIN_ROOT`/`PLUGIN_DATA` e as
-   aliases compatíveis `CLAUDE_PLUGIN_ROOT`/`CLAUDE_PLUGIN_DATA`.
-6. O transcript contém eventos `token_count` com `last_token_usage` e `model_context_window`, mas a
-   documentação declara que o formato do transcript não é uma interface estável.
+A documentação oficial confirma:
 
-## Limites e não objetivos
+- o App lista `/compact`, mas não `/clear`;
+- `/clear` e `/new` são comandos do CLI;
+- `PreCompact` e `PostCompact` distinguem `manual` de `auto`;
+- depois da compactação, `SessionStart(source="compact")` roda antes da próxima chamada ao
+  modelo, inclusive quando a compactação automática acontece no meio de um turno;
+- `PreCompact` pode impedir a compactação com `continue: false`, portanto o guardião nunca emitirá
+  esse campo.
 
-- O guardião não interrompe uma amostragem do modelo que já começou.
-- Um salto pode atravessar 60% sem que um evento intermediário tenha existido. Por isso há pré-alerta
-  em 55% e contingência no primeiro valor observado acima do limiar.
-- O plugin não executa `/clear` sozinho. Encerrar o chat permanece uma ação visível do dono.
-- O plugin não desabilita a compactação automática do núcleo e nunca bloqueia `PreCompact` perto do
-  limite duro.
-- O plugin não envia transcript, prompts ou dados do projeto a serviços externos.
-- Esta entrega não altera a statusline nativa planejada em `T-042`.
+Referências: [Hooks](https://learn.chatgpt.com/docs/hooks),
+[comandos](https://learn.chatgpt.com/docs/developer-commands) e
+[projetos e chats](https://learn.chatgpt.com/docs/projects).
+
+## Alternativas avaliadas
+
+1. **Manter `/clear` nos dois hosts:** rejeitada porque cria um estado sem saída no Codex App.
+2. **Remover o checkpoint e confiar apenas na compactação:** rejeitada porque a compactação não
+   substitui board, wiki, thread e log duráveis.
+3. **Checkpoint por host + compactação reidratada no Codex:** escolhida. Preserva o contrato forte
+   do Claude e usa a primitiva nativa do Codex.
 
 ## Arquitetura
 
-### 1. `context-guard.py`
+### 1. Isolamento de host
 
-Novo script empacotado em `orq/scripts/context-guard.py`, chamado pelos hooks. Ele:
+`hooks/hooks.json` continua sendo o bundle portátil reconhecido pelo Codex. O script só fica ativo
+quando existe a variável nativa `PLUGIN_ROOT`, fornecida pelo Codex. Variáveis exclusivamente
+`CLAUDE_PLUGIN_ROOT`/`CLAUDE_PLUGIN_DATA` não ativam o guardião.
 
-1. lê o JSON do hook por `stdin`;
-2. usa apenas `session_id`, `transcript_path`, `cwd`, `hook_event_name`, `stop_hook_active` e o match
-   da frase final do checkpoint;
-3. busca de trás para frente o evento `token_count` mais recente, com limite rígido de bytes;
-4. calcula `last_token_usage.total_tokens / model_context_window`;
-5. consulta e atualiza estado pequeno por sessão em
-   `${PLUGIN_DATA}/context-guard/<session_id>.json`;
-6. emite JSON válido para o evento atual ou sai `0` sem saída.
+Depois de confirmar que o host é Codex, o script pode aceitar as aliases `CLAUDE_*` apenas para
+resolver caminhos compatíveis. Assim, uma futura instalação do mesmo pacote no Claude carrega o
+bundle, mas o comando sai `0` sem stdout, sem estado e sem mudar a conversa.
 
-O parser não carrega o transcript inteiro. Ele não armazena prompts nem mensagens; persiste somente
-percentual, faixa já sinalizada, estado do checkpoint e timestamps.
+### 2. Estado Codex v2
 
-### 2. Hooks empacotados
+O estado por `session_id` passa a conter somente:
 
-`orq/hooks/hooks.json` registra:
-
-- **`PostToolUse`** — observa o percentual depois de ferramentas e injeta aviso/model context quando
-  a telemetria já estiver atualizada;
-- **`Stop`** — aplica pré-alerta e, ao primeiro valor observado em 60% ou mais, cria uma única
-  continuação automática instruindo o Manager a executar o checkpoint; `stop_hook_active` e o estado
-  persistido impedem loop;
-- **`UserPromptSubmit`** — bloqueia trabalho novo depois que o checkpoint foi declarado seguro e, na
-  contingência de 70%, aceita somente intenção de checkpoint/recuperação;
-- **`SessionStart`** — em `source=clear`, injeta uma orientação curta para carregar
-  `memory/MEMORY.md`, board e thread; em `source=compact`, informa que houve falha do fluxo normal e
-  manda recuperar/persistir o estado antes de continuar;
-- **`PreCompact`/`PostCompact`** — registram a contingência, mas não impedem o núcleo de compactar.
-
-Hooks existentes do usuário continuam válidos; o Codex executa hooks correspondentes de múltiplas
-fontes. A instalação deve explicar a revisão/confiança exigida para novos hooks.
-
-### 3. Máquina de estados
-
-| Estado | Condição | Comportamento |
-|---|---|---|
-| `NORMAL` | `<55%` | silêncio |
-| `PRE_ALERT` | `55%–<60%` | um aviso por sessão; concluir apenas a unidade atômica atual |
-| `CHECKPOINT_REQUIRED` | primeiro valor observado `≥60%` | uma continuação automática executa o checkpoint |
-| `CHECKPOINT_RUNNING` | continuação já criada | não criar outro `Stop`; permitir correções da verificação |
-| `CLEAR_REQUIRED` | resposta contém exatamente “Seguro dar `/clear`” | bloquear trabalho novo e pedir `/clear` |
-| `EMERGENCY` | primeiro valor observado `≥70%` sem checkpoint seguro | bloquear trabalho novo; permitir apenas checkpoint/recuperação |
-| `COMPACTED` | `PreCompact`/`PostCompact` observado | registrar falha do fluxo e reidratar antes de trabalhar |
-
-Um chat novo após `/clear` recebe outro `session_id`; portanto, começa novamente em `NORMAL`.
-
-### 4. Reconhecimento do checkpoint concluído
-
-O `Stop` hook não tenta inferir mudanças de arquivos. Ele marca `CLEAR_REQUIRED` somente quando a
-última resposta contém a frase contratual exata **“Seguro dar `/clear`”**, que o comando checkpoint
-só pode emitir depois de verificar board/thread/memória.
-
-Se a resposta disser “Gravado, mas NÃO afirmo que é seguro limpar”, o estado permanece
-`CHECKPOINT_RUNNING` e o guardião permite apenas a correção da verificação.
-
-## Compactação automática como backstop
-
-As chaves corretas são:
-
-```toml
-model_auto_compact_token_limit = 897750
-model_auto_compact_token_limit_scope = "total"
+```text
+state_version, phase, pre_alert_sent, checkpoint_started,
+checkpoint_verified, recovery_required, last_percent, updated_at
 ```
 
-Para a janela efetiva atual de `997500`, `897750` representa 90%. `700000` representaria
-aproximadamente 70,2% e poderia competir com o checkpoint obrigatório iniciado em 60%.
+Valores de `phase`:
 
-O valor é absoluto, não percentual. Como modelos diferentes têm janelas diferentes, o plugin não
-deve gravar `897750` silenciosamente para todos. O diagnóstico/instalação deve:
+| Fase | Significado |
+|---|---|
+| `normal` | menos de 55% |
+| `pre_alert` | 55% a menos de 60% |
+| `checkpoint_required` | 60% ou mais sem checkpoint iniciado |
+| `emergency` | 70% ou mais sem checkpoint verificado |
+| `checkpoint_verified` | artefatos duráveis verificados; compactação liberada |
+| `recovery_required` | a compactação ocorreu antes de um checkpoint verificável |
 
-1. descobrir a janela efetiva do modelo ativo;
-2. calcular 90%;
-3. mostrar o valor e o arquivo que seria alterado;
-4. aplicar somente com aprovação explícita e backup;
-5. alertar quando uma troca de modelo tornar o valor incompatível.
+Nenhum prompt, mensagem, saída de ferramenta, caminho clínico ou dado do projeto é persistido.
 
-`model_auto_compact_token_limit_scope = "total"` é o padrão atual, mas será escrito explicitamente
-quando o usuário aprovar a configuração, para o contrato não depender de default implícito.
+Estados legados sem `state_version` são migrados. `clear_required=true` vira
+`checkpoint_verified=true`; nunca conserva o bloqueio antigo. Estado inválido continua sendo
+renomeado para diagnóstico e recriado vazio.
 
-## Falhas seguras
+### 3. Handshake por host
 
-- Transcript ausente, truncado, alterado ou JSON inválido: sair `0`, não bloquear trabalho e mostrar
-  no máximo um aviso de “telemetria indisponível” por sessão.
-- `model_context_window` ausente/zero: não calcular percentual.
-- `PLUGIN_DATA` não gravável: manter aviso em memória apenas naquela execução e nunca falhar o hook.
-- Estado corrompido: renomear o arquivo de estado para diagnóstico e recriar vazio.
-- Dois chats no mesmo projeto: isolamento obrigatório por `session_id`, nunca apenas por `cwd`.
-- Claude/Kimi: o guardião detecta o host/schema; nesta primeira entrega, comportamento Codex é ativo
-  e hosts não suportados saem `0` sem efeito.
-- Nenhum caminho de erro pode impedir `PreCompact` do núcleo.
+O comando compartilhado de checkpoint produz uma frase final conforme o host:
 
-## Testes
+- Claude: **Seguro dar `/clear`.**
+- Codex: **Checkpoint verificado; compactação liberada.**
 
-### Unidade
+O guardião Codex reconhece a frase nova e, por compatibilidade de migração, também reconhece a
+frase antiga **Seguro dar `/clear`.** como checkpoint verificado — sem entrar em bloqueio.
+Menções instrutivas ou negativas não completam o handshake.
 
-- parser encontra o último `token_count` sem ler o transcript inteiro;
-- limites em 54,9%, 55%, 59,9%, 60%, 69,9%, 70%, 89,9% e 90%;
-- salto direto de 54% para 72%;
-- deduplicação de pré-alerta e continuação de checkpoint;
-- `stop_hook_active=true` não cria loop;
-- frase “Seguro dar `/clear`” marca `CLEAR_REQUIRED`;
-- verificação falhada não marca `CLEAR_REQUIRED`;
-- transcript ausente, JSON parcial, evento desconhecido e estado corrompido falham abertos;
-- sessões diferentes no mesmo `cwd` não compartilham estado;
-- nenhum conteúdo de prompt/transcript é persistido.
+### 4. Decisões por evento
 
-### Integração
+#### `Stop`
 
-- validar `hooks/hooks.json` e comandos resolvidos via `PLUGIN_ROOT`;
-- provar que hooks globais existentes continuam executando;
-- instalar cache novo do plugin e aprovar os hooks;
-- numa sessão Codex descartável, usar fixtures para forçar cada faixa e observar mensagens/decisões;
-- provar que o checkpoint verificado leva a `CLEAR_REQUIRED`;
-- executar `/clear` e provar novo `session_id` + reidratação de memória;
-- confirmar que `PreCompact` continua permitido;
-- validar Claude sem regressão e Kimi sem ativação acidental.
+- 55% a menos de 60%: pré-alerta único.
+- 60% ou mais sem checkpoint: uma continuação automática executa o checkpoint.
+- `stop_hook_active=true`: nunca cria segunda continuação.
+- handshake verificado: grava `checkpoint_verified` e apenas informa que a compactação está
+  liberada; não retorna `decision=block`.
 
-## Distribuição e escopo
+#### `UserPromptSubmit`
 
-- A entrega deve sair em release própria depois da `0.21.0`; não será misturada silenciosamente com
-  a configuração de statusline de `T-042`.
-- Modificar `orq/` exige bump coordenado de manifesto, marketplace, README e `memory/MEMORY.md`.
-- Publicação, atualização global do cache, alteração de `~/.codex/config.toml` e push permanecem em
-  gates separados do dono.
-- O guardião vem habilitado pelo plugin para Codex, mas a alteração do limite automático em
-  `config.toml` permanece opt-in.
+- antes do checkpoint, em emergência, bloqueia trabalho que não seja checkpoint/recuperação;
+- depois de `checkpoint_verified=true`, nunca bloqueia por causa do guardião, mesmo acima de 70%;
+- a compactação continua sendo decisão do núcleo ou do `/compact` nativo do App.
+
+#### `PreCompact`
+
+- nunca retorna `continue: false`;
+- não tenta executar checkpoint dentro do hook;
+- quando ainda não há checkpoint verificado, pode mostrar um aviso curto de que a retomada exigirá
+  checkpoint de recuperação.
+
+#### `PostCompact`
+
+- nunca bloqueia nem injeta uma segunda orientação longa;
+- deixa a reidratação para o `SessionStart(source="compact")`, evitando contexto duplicado.
+
+#### `SessionStart(source="compact")`
+
+- com checkpoint verificado: reinicia a máquina em `normal` e injeta leitura de
+  `memory/MEMORY.md`, `memory/wiki/KANBAN.md` e thread ativa;
+- sem checkpoint verificado: reinicia em `recovery_required` e ordena a mesma leitura seguida de
+  checkpoint de recuperação antes de trabalho novo;
+- nunca pede `/clear`.
+
+#### `SessionStart(source="clear")`
+
+Mantém compatibilidade com o CLI: reinicia o estado e injeta a reidratação atual. Isso não muda o
+contrato do Claude, porque o script Codex está isolado pelo gate de host.
+
+### 5. Documentação compartilhada sem regressão
+
+Os pontos vivos deixam explícito que a limpeza é por host:
+
+- `orq/commands/checkpoint.md`: formato final bifurcado por host;
+- `orq/skills/orq/SKILL.md`: Codex usa compactação reidratada; Claude preserva `/clear`;
+- `README.md`, `memory/wiki/arquitetura.md` e `memory/wiki/distribuicao.md`: contrato operacional e
+  teste dos dois hosts;
+- `orq/commands/instalar.md` e `orq/commands/stack.md`: smoke Codex verifica compactação, e o
+  smoke Claude verifica que o guardião não atua.
+
+## Configuração de compactação
+
+Esta correção usa a compactação já fornecida pelo Codex. Ela não grava silenciosamente
+`model_auto_compact_token_limit` nem altera `~/.codex/config.toml`. O backstop absoluto de 90%
+continua sendo configuração opt-in separada, porque depende da janela efetiva do modelo ativo.
+
+## Testes obrigatórios
+
+### RED/GREEN unitário
+
+1. checkpoint verificado não bloqueia o próximo `UserPromptSubmit`;
+2. a frase antiga migra para `checkpoint_verified` sem `clear_required`;
+3. estado legado `clear_required=true` migra sem bloqueio;
+4. `PreCompact(auto)` nunca impede a compactação;
+5. `PostCompact(auto)` não duplica a orientação;
+6. `SessionStart(compact)` com checkpoint reidrata e volta a `normal`;
+7. `SessionStart(compact)` sem checkpoint exige recuperação;
+8. ambiente somente `CLAUDE_*` retorna sem saída e não cria estado;
+9. ambiente Codex com `PLUGIN_*` continua executando;
+10. nenhum conteúdo da conversa aparece no JSON persistido.
+
+### Gates do repositório
+
+```bash
+python3 -m unittest orq/scripts/test_context_guard.py
+python3 -m py_compile orq/scripts/context-guard.py orq/scripts/test_context_guard.py
+claude plugin validate ./orq --strict
+python3 orq/scripts/lint-coerencia.py .
+git diff --check
+```
+
+### Painel e smokes
+
+- Opus 5 e Kimi K3 revisam o diff sanitizado em read-only;
+- smoke do cache Codex percorre checkpoint → prompt permitido → compact → reidratação;
+- smoke Claude usa somente `CLAUDE_*` e prova ausência de stdout/estado;
+- o Claude instalado permanece em `0.21.0` durante a validação desta correção;
+- o Codex local recebe a versão nova e é testado em chat novo.
+
+## Distribuição
+
+- release corretiva: `0.22.1`;
+- qualquer mudança em `orq/` atualiza os quatro lugares exigidos pelo projeto;
+- o cache Codex local pode ser atualizado depois dos gates e do painel;
+- o cache Claude não é atualizado nesta frente;
+- push e publicação no GitHub permanecem fora desta autorização.
 
 ## Critérios de aceitação
 
-1. Em uso normal, uma sessão não inicia trabalho novo após o primeiro valor observado `≥60%` sem
-   antes produzir checkpoint verificável.
-2. Após “Seguro dar `/clear`”, qualquer prompt de trabalho é bloqueado até o `/clear`.
-3. `/clear` cria chat novo e a retomada acontece apenas pelos artefatos duráveis.
-4. Saltos acima de 70% entram em contingência imediatamente.
-5. Erro de telemetria nunca trava o Codex nem desabilita sua compactação de segurança.
-6. O plugin não persiste conteúdo da conversa e não altera configuração global sem aprovação.
+1. Nenhum trabalho novo passa do primeiro valor observado em 60% sem checkpoint verificável.
+2. Depois do checkpoint verificado, o Codex não bloqueia prompts exigindo `/clear`.
+3. A compactação manual e automática nunca é impedida pelo guardião.
+4. Depois da compactação, a retomada recebe board, wiki e thread antes do trabalho.
+5. Compactação sem checkpoint produz recuperação durável, não um falso estado normal.
+6. Estado legado instalado não consegue recriar o deadlock `clear_required`.
+7. O Claude conserva o fluxo **Seguro dar `/clear`.** e o guardião Codex não atua nele.
+8. Nenhum conteúdo da conversa é persistido e nenhum erro impede a compactação.
+9. Testes, validadores, painel Opus 5 + Kimi K3 e smokes dos dois hosts fecham sem bloqueador.

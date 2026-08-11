@@ -8,8 +8,8 @@ checkpoint ao ultrapassar 60%, antes que saltos da statusline levem a sessão di
 
 ## Estado
 
-DEV_REVIEW. Implementação inline concluída no worktree; o dono autorizou em 2026-08-10 uma única
-nova tentativa sequencial e menor do Opus 5 e do Kimi K3.
+PLANNING. A validação real no Codex App reprovou a saída pós-checkpoint: o guardião exige
+`/clear`, mas esse comando pertence ao CLI e não existe na lista de slash commands do App.
 
 ## Perguntas da investigação
 
@@ -137,7 +137,13 @@ não aceita; isso não impediu os seis hooks confiados do plugin de rodarem.
 
 ## RETOMAR AQUI
 
-T-043 em VALIDATE. O dono testa em uma nova janela Codex o ciclo natural: pré-alerta ≥55%,
-checkpoint ≥60%, bloqueio depois de “Seguro dar `/clear`” e reidratação após `/clear`. O T-044
-carrega a corrida conservadora do marcador. Publicação, push, backstop global e atualização do
-Claude continuam em gates separados.
+T-043 voltou a PLANNING após validação reprovada no Codex App. Evidência do dono: depois de
+“Seguro dar `/clear`”, o hook bloqueou `/CLEAR`, `continue` e `allow`; como o App não expõe
+`/clear`, a conversa ficou sem saída e compactou. A documentação oficial distingue as superfícies:
+o CLI tem `/clear` e `/new`; o App cria transcript novo por **New chat** ou `Cmd+N`.
+
+Próximo gate: o dono decide se a conversa antiga deve permanecer bloqueada e o checkpoint deve
+ensinar **New chat / `Cmd+N`** no App (recomendação), ou se o guardião deve liberar a mesma conversa
+depois do checkpoint. A correção também deve reidratar um chat novo no App e provar que hooks
+Codex-only não alteram o Claude. Publicação, push, cache global, backstop de 90% e update do Claude
+continuam fora do gate.
