@@ -190,9 +190,13 @@ apenas faixa, percentual, timestamps e estado do checkpoint, isolados por `sessi
 - 55%: pré-alerta único;
 - primeiro valor observado ≥60%: `Stop` cria uma continuação única para o checkpoint;
 - ≥70%: trabalho novo é bloqueado, exceto recuperação/checkpoint;
-- **Seguro dar `/clear`.**: handshake que passa a sessão para `CLEAR_REQUIRED`;
-- `/clear`: sempre manual e seguido de reidratação por memória/board/thread;
-- compactação: contingência permitida pelo núcleo, nunca o fluxo normal.
+- **Codex — Checkpoint verificado; compactação liberada.**: handshake que grava
+  `checkpoint_verified` e libera trabalho/compactação sem exigir `/clear`;
+- `SessionStart(source=compact)`: reidrata memória, board e thread; sem checkpoint anterior, exige
+  checkpoint de recuperação antes de trabalho novo;
+- **Claude — Seguro dar `/clear`.**: contrato preservado, com `/clear` manual;
+- `PreCompact` e `PostCompact`: nunca bloqueiam o núcleo nem duplicam a reidratação.
 
 O transcript não é uma interface estável. Parser, estado e hooks falham abertos; nenhum erro do
-guardião pode impedir `PreCompact` ou persistir conteúdo da conversa.
+guardião pode impedir compactação nem persistir conteúdo da conversa. O script só atua no ambiente
+nativo `PLUGIN_ROOT` do Codex; variáveis somente `CLAUDE_*` não ativam o guardião.

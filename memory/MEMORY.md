@@ -4,16 +4,18 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.22.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.1 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-10 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
 
 **⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
 
-- **0.22.0 LOCAL — `T-043` em implementação/review:** guardião Codex empacotado em seis hooks,
-  parser/estado por sessão, faixas 55%/60%/70%, handshake “Seguro dar `/clear`” e backstop de 90%
-  documentado como opt-in. Testes e validadores locais passam; ainda faltam instalação Codex,
-  smoke externo, painel Opus 5 + Kimi K3 e gates de configuração/publicação.
+- **0.22.1 CANDIDATA — `T-043` em implementação/review:** estado v2 do guardião Codex migra o
+  `clear_required` legado para `checkpoint_verified`; checkpoint libera a compactação nativa e
+  `SessionStart(source=compact)` reidrata memória/board/thread. Compactação sem checkpoint exige
+  recuperação. O ambiente somente Claude é ignorado e o fluxo Claude `/clear` permanece intacto.
+  Testes locais passam; ainda faltam painel Opus 5 + Kimi K3, integração, instalação Codex e smoke
+  real. Sem push, publicação ou update do Claude.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
   sete camadas e memória legada diferenciada de projeto virgem. Runner Opus 5 comprovado em nova

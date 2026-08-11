@@ -372,7 +372,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.22.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.22.1` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
@@ -395,9 +395,11 @@ Implementer Terra/xhigh e painel Opus 5 + Kimi K3; diagnóstico separa plugin in
 skill carregada e smoke comportamental; painel do Kimi corrigido para a ordem de flags segura
 (`-m` antes, `-p` por último) ·
 **guardião preventivo do contexto Codex** (`T-043`): hooks empacotados observam a telemetria por
-sessão, pré-alertam em 55%, executam checkpoint obrigatório no primeiro valor observado ≥60% e
-bloqueiam trabalho novo até o `/clear` manual; compactação automática fica apenas como backstop
-opt-in em 90%, nunca como substituto do board/wiki ·
+sessão, pré-alertam em 55% e exigem checkpoint no primeiro valor observado ≥60%; depois do handshake
+`Checkpoint verificado; compactação liberada.`, a compactação nativa manual ou automática pode
+seguir e `SessionStart(source=compact)` reidrata memória, board e thread. Compactação sem checkpoint
+entra em recuperação; o backstop de 90% continua opt-in. No Claude, o contrato permanece checkpoint
+→ `Seguro dar /clear.` → `/clear` manual ·
 **statusline distribuída** (`T-036`): novo asset `orq/scripts/statusline.sh` — a barra completa do
 dono (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board),
 achando o `kanban-status.sh` por vizinhança em vez de caminho fixo e degradando para só o board sem

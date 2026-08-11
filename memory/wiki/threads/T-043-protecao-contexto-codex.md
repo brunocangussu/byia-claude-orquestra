@@ -137,13 +137,18 @@ não aceita; isso não impediu os seis hooks confiados do plugin de rodarem.
 
 ## RETOMAR AQUI
 
-T-043 voltou a PLANNING após validação reprovada no Codex App. Evidência do dono: depois de
-“Seguro dar `/clear`”, o hook bloqueou `/CLEAR`, `continue` e `allow`; como o App não expõe
-`/clear`, a conversa ficou sem saída e compactou. A documentação oficial distingue as superfícies:
-o CLI tem `/clear` e `/new`; o App cria transcript novo por **New chat** ou `Cmd+N`.
+O redesenho aprovado está implementado no worktree `feat/t043-compactacao-reidratada`:
 
-Próximo gate: o dono decide se a conversa antiga deve permanecer bloqueada e o checkpoint deve
-ensinar **New chat / `Cmd+N`** no App (recomendação), ou se o guardião deve liberar a mesma conversa
-depois do checkpoint. A correção também deve reidratar um chat novo no App e provar que hooks
-Codex-only não alteram o Claude. Publicação, push, cache global, backstop de 90% e update do Claude
-continuam fora do gate.
+- estado v2 com `checkpoint_verified` e `recovery_required`;
+- migração do `clear_required` legado sem recriar o deadlock;
+- prompt seguinte permitido após checkpoint, inclusive acima de 70%;
+- `PreCompact`/`PostCompact` nunca bloqueiam;
+- `SessionStart(source=compact)` reidrata memória, board e thread, ou exige recuperação quando a
+  compactação ocorreu antes do checkpoint;
+- ambiente somente `CLAUDE_*` sai sem stdout nem estado; o contrato Claude continua terminando em
+  `Seguro dar /clear.` e aguardando `/clear` manual.
+
+Evidência local antes do painel: 57 testes, `py_compile`, manifesto estrito, lint de coerência e
+`git diff --check` passaram. Próxima ação: executar os pareceres reais de Opus 5 e Kimi K3 sobre
+`1057b3c..HEAD`, reconciliar achados, integrar em `main`, instalar somente no Codex e rodar o smoke
+do cache `0.22.1`. Não fazer push, publicação, update do Claude nem alterar o backstop de 90%.

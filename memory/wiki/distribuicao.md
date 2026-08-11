@@ -118,10 +118,10 @@ portanto, parte do release, não um passo opcional depois dele.
 Codex por `codex plugin add orq@orquestra` (cache indexado por versão, mesmo gotcha do Claude);
 Kimi por **cópia** para `~/.agents/skills/orq/` + `~/.kimi-code/agents/` — snapshot **sem
 versionamento**, que envelhece em silêncio se `/orq:instalar` não for re-rodado a cada release.
-**Estado em 2026-08-09: Claude e Codex na 0.21.0**, caches byte-idênticos à fonte; smoke externo do
-painel Opus 5 + Kimi K3 aprovado. **GitHub também na 0.21.0**, com runner e contrato do Host Codex
-verificados após o push. O Kimi como host segue na cópia anterior; no smoke Codex ele respondeu
-como reviewer via CLI.
+**Estado da frente T-043:** Claude permanece na `0.21.0`; a candidata corretiva `0.22.1` é exclusiva
+do Codex e só pode atualizar o cache Codex depois dos gates e do painel Opus 5 + Kimi K3. GitHub e
+publicação não fazem parte desta implementação local. O Kimi participa apenas como revisor em clone
+descartável; sua instalação como host não é atualizada.
 
 ⚠️ **Gotcha do Codex, pago em 2026-08-08:** o marketplace `orquestra` dele aponta para **a pasta do projeto**, não para o GitHub. Então `codex plugin add` copia **o que estiver no disco naquele instante — inclusive trabalho não commitado e não revisado**. Foi assim que o Codex ficou rodando uma "0.20.0" tirada do meio de uma sessão, reprovada em três rodadas de painel. E como o cache é indexado **por versão**, atualizar depois **não troca nada**: mesmo rótulo, conteúdo velho. A saída é apagar `~/.codex/plugins/cache/orquestra/orq/<versão>/` e reinstalar.
 
@@ -136,7 +136,9 @@ card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) hoje confere os quatro.
 
 ## Hooks do guardião de contexto
 
-Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e precisa entrar no `diff -rq`. Instalação no
+Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e precisa entrar no `diff -rq`. Na `0.22.1`,
+o smoke exige `checkpoint_verified`, compactação não bloqueada e reidratação em
+`SessionStart(source=compact)`. Instalação no
 Codex só está validada quando `/hooks` mostra o bundle com confiança aprovada e uma sessão nova roda
 `SessionStart` sem erro. `plugin list` e presença no disco não provam hook ativo.
 

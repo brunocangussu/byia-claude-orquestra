@@ -1,5 +1,12 @@
 # Log de mudanças — append-only
 
+## [2026-08-10] fix | @frente-protecao-contexto · Codex compacta sem deadlock pós-checkpoint
+
+A candidata `0.22.1` troca o estado Codex pós-checkpoint por `checkpoint_verified`, libera a
+compactação manual/automática e reidrata memória, board e thread em `SessionStart(source=compact)`.
+Estado `clear_required` da `0.22.0` migra sem bloqueio; compactação antecipada exige recuperação.
+Ambiente somente `CLAUDE_*` fica sem efeito, preservando o contrato Claude com `/clear` manual.
+
 ## [2026-08-10] instalação local | T-043 · 0.22.0 ativa no Codex
 
 A `0.22.0` foi integrada por fast-forward em `main`, reinstalada pelo marketplace local e ficou
