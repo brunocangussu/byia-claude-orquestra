@@ -970,22 +970,30 @@ class ContextGuardDocumentationContractTest(unittest.TestCase):
     def test_guard_contract_is_present_in_live_instructions(self) -> None:
         required = {
             PLUGIN_ROOT / "commands" / "checkpoint.md": [
-                "CLEAR_REQUIRED",
-                "Seguro dar `/clear`",
+                "Checkpoint verificado; compactação liberada.",
+                "Seguro dar `/clear`.",
+                "Claude",
+                "Codex",
             ],
             PLUGIN_ROOT / "commands" / "stack.md": [
                 "model_auto_compact_token_limit",
                 "90%",
                 "opt-in",
+                "checkpoint_verified",
+                "compact",
             ],
             PLUGIN_ROOT / "commands" / "instalar.md": [
                 "/hooks",
                 "confiança",
+                "ambiente somente `CLAUDE_*`",
+                "sem efeito",
             ],
             PLUGIN_ROOT / "skills" / "orq" / "SKILL.md": [
                 "55%",
                 "60%",
                 "70%",
+                "SessionStart(source=compact)",
+                "Claude",
                 "/clear",
             ],
         }
@@ -997,6 +1005,12 @@ class ContextGuardDocumentationContractTest(unittest.TestCase):
                 missing[str(path.relative_to(PLUGIN_ROOT))] = absent
 
         self.assertEqual(missing, {})
+
+        live_text = "\n".join(
+            path.read_text(encoding="utf-8") for path in required
+        )
+        self.assertNotIn("CLEAR_REQUIRED", live_text)
+        self.assertNotIn("compactação detectada como contingência", live_text)
 
 
 if __name__ == "__main__":

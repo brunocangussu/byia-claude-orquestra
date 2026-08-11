@@ -126,10 +126,14 @@ bug engolido por um "ambiente ok" custa o bug.
 
 **Proteção da janela de contexto:** no Codex com o guardião carregado, 55% gera pré-alerta; no
 primeiro valor observado em **60%** ou mais, pare trabalho novo e execute o checkpoint completo; em
-**70%**, aceite somente checkpoint/recuperação. Depois da frase verificada **Seguro dar `/clear`.**,
-não trabalhe mais nessa sessão: o dono executa `/clear` manualmente. O contador é discreto e pode
-saltar; o primeiro valor já acima de uma faixa adota imediatamente a faixa mais severa. Em host sem
-telemetria comprovada, preserve o fallback: sugira checkpoint + limpeza perto de ~50%.
+**70%**, aceite somente checkpoint/recuperação. Depois da frase verificada **Checkpoint verificado;
+compactação liberada.**, o guardião para de bloquear e a compactação nativa manual ou automática
+pode seguir. Em `SessionStart(source=compact)`, releia `memory/MEMORY.md`, o board e a thread ativa;
+se a compactação ocorreu antes do checkpoint verificado, faça primeiro o checkpoint de recuperação.
+No Claude, preserve o fluxo existente: o checkpoint termina em **Seguro dar `/clear`.** e o dono
+executa `/clear` manualmente. O contador é discreto e pode saltar; o primeiro valor já acima de uma
+faixa adota imediatamente a faixa mais severa. Em host sem telemetria comprovada, preserve o
+fallback: sugira checkpoint + limpeza perto de ~50%.
 
 **Não pergunte "quer que eu rode o comando X?"** — faça o que a intenção pede e diga o que fez.
 Peça confirmação só quando a ação for irreversível ou mudar o rumo do produto.
