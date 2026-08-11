@@ -5,7 +5,9 @@
 O script do cache `orq/0.22.0` ganhou uma salvaguarda final que converte todo `decision=block` em
 aviso consultivo, alcançando as sessões abertas em New ByIA e Bruno Vascular. O original foi salvo
 como `context-guard.py.bak-nonblocking-20260811` e permanece restaurável. `py_compile` e três smokes
-de bloqueio passaram sem `decision=block`. A fonte `0.22.1` ainda precisa incorporar a mesma regra.
+de bloqueio passaram sem `decision=block`. Depois, a saída textual do hook também passou a remover
+instruções legadas de `/clear`, e `SKILL.md`/`checkpoint.md` do cache foram alinhados ao contrato
+consultivo, com backups próprios. A fonte `0.22.1` ainda precisa incorporar a mesma regra.
 
 ## [2026-08-10] decisão | @frente-protecao-contexto · Codex sem hooks bloqueantes
 

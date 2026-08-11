@@ -185,6 +185,13 @@ original foi preservado em `context-guard.py.bak-nonblocking-20260811` com SHA-2
 bloqueio. O hotfix é global para sessões que usam o cache `0.22.0`, incluindo New ByIA Project e
 Bruno Vascular; não apaga estado, transcript ou memória.
 
+Após evidência visual de que o modelo ainda insistia em `/clear`, a segunda camada também foi
+corrigida: a saída do hook agora sanitiza qualquer texto legado com `/clear`; a skill instalada diz
+explicitamente que a política Codex é consultiva mesmo acima de 70%; e `commands/checkpoint.md` foi
+atualizado para o handshake Codex de compactação liberada. Backups separados de `SKILL.md` e
+`checkpoint.md` foram criados com o sufixo `.bak-nonblocking-20260811`. `py_compile` e o teste do
+sanitizador passaram, sem `decision=block` nem `/clear` na saída Codex.
+
 ⏭️ RETOMAR AQUI: atualizar primeiro especificação/plano/testes para a invariável “zero
 `decision=block` no host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado
 legado. Implementar respostas consultivas na fonte, substituir o hotfix pela release `0.22.1` e
