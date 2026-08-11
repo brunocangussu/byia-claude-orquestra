@@ -1,5 +1,13 @@
 # Log de mudanças — append-only
 
+## [2026-08-10] review | @frente-protecao-contexto · Kimi aprova e Opus expira
+
+Kimi K3 revisou a candidata `eeb2899` em clone descartável, saiu `0` e devolveu
+`APROVADO_COM_RESSALVAS`, sem bloqueadores. Reproduziu que o estado de recuperação é ignorado quando
+o transcript pós-compactação ainda não tem telemetria e apontou risco de checkpoint obsoleto após
+trabalho novo. O runner iniciou Opus 5 com briefing de 15.280 bytes, mas terminou em `OPUS_TIMEOUT`
+após 240 s; não há parecer Opus válido e não houve retry automático.
+
 ## [2026-08-10] fix | @frente-protecao-contexto · Codex compacta sem deadlock pós-checkpoint
 
 A candidata `0.22.1` troca o estado Codex pós-checkpoint por `checkpoint_verified`, libera a

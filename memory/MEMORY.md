@@ -14,8 +14,10 @@
   `clear_required` legado para `checkpoint_verified`; checkpoint libera a compactação nativa e
   `SessionStart(source=compact)` reidrata memória/board/thread. Compactação sem checkpoint exige
   recuperação. O ambiente somente Claude é ignorado e o fluxo Claude `/clear` permanece intacto.
-  Testes locais passam; ainda faltam painel Opus 5 + Kimi K3, integração, instalação Codex e smoke
-  real. Sem push, publicação ou update do Claude.
+  Testes locais passam. Kimi K3 aprovou com ressalvas e reproduziu recuperação ignorada sem
+  telemetria; Opus 5 foi invocado mas expirou em 240 s, sem parecer. Próximo: RED/GREEN desse risco,
+  reconciliar checkpoint obsoleto/startup, obter review Opus válido, integrar, instalar no Codex e
+  fazer smoke real. Sem push, publicação ou update do Claude.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
   sete camadas e memória legada diferenciada de projeto virgem. Runner Opus 5 comprovado em nova

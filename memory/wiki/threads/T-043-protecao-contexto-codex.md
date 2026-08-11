@@ -149,6 +149,22 @@ O redesenho aprovado está implementado no worktree `feat/t043-compactacao-reidr
   `Seguro dar /clear.` e aguardando `/clear` manual.
 
 Evidência local antes do painel: 57 testes, `py_compile`, manifesto estrito, lint de coerência e
-`git diff --check` passaram. Próxima ação: executar os pareceres reais de Opus 5 e Kimi K3 sobre
-`1057b3c..HEAD`, reconciliar achados, integrar em `main`, instalar somente no Codex e rodar o smoke
-do cache `0.22.1`. Não fazer push, publicação, update do Claude nem alterar o backstop de 90%.
+`git diff --check` passaram.
+
+Painel da candidata `eeb2899`:
+
+- Opus 5 foi invocado de verdade pelo runner (`BRIEFING_BYTES=15280`), mas não devolveu parecer:
+  `OPUS_TIMEOUT` após 240 s. Não contar como aprovação e não repetir automaticamente.
+- Kimi K3 (`kimi-code/k3`) revisou no clone descartável `/tmp/orq-t043-kimi.Lgt8t6/repo`, exit 0,
+  sessão `session_48fe1cdc-382d-436d-b1c9-4d6b51b98870`: `APROVADO_COM_RESSALVAS`, sem
+  bloqueadores. Confirmou em runtime que `recovery_required` é ignorado quando o transcript ainda
+  não tem `token_count`; também apontou que `checkpoint_verified` pode ficar obsoleto após muito
+  trabalho novo antes da compactação. Outros riscos: startup/New chat sem reidratação explícita,
+  frase Claude aceita como compatibilidade no Codex e hooks Pre/PostCompact registrados como no-op.
+
+⏭️ RETOMAR AQUI: primeiro escrever teste RED para recuperação sem telemetria e corrigir o branch
+antes de `read_latest_usage`. Depois decidir tecnicamente como invalidar ou sinalizar checkpoint
+obsoleto sem recriar o deadlock do App; registrar a decisão sobre `SessionStart(startup)`. Rodar
+GREEN + gates, obter parecer Opus 5 válido (nova tentativa só com autorização/protocolo), reconciliar
+o painel, integrar em `main`, instalar somente no Codex e executar smoke do cache `0.22.1`. Não fazer
+push, publicação, update do Claude nem alterar o backstop de 90%.
