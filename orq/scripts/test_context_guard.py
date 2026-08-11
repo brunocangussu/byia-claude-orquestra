@@ -164,6 +164,55 @@ class ContextGuardStateTest(unittest.TestCase):
             with self.subTest(percent=percent):
                 self.assertEqual(guard.band_for(percent), expected)
 
+    def test_default_state_uses_version_two_checkpoint_fields(self) -> None:
+        state = guard.default_state()
+
+        self.assertEqual(state["state_version"], 2)
+        self.assertFalse(state["checkpoint_verified"])
+        self.assertFalse(state["recovery_required"])
+        self.assertNotIn("clear_required", state)
+
+    def test_legacy_clear_required_migrates_to_checkpoint_verified(self) -> None:
+        path = guard.state_path(self.data_dir, "session-a")
+        path.parent.mkdir(parents=True)
+        legacy = {
+            "phase": "clear_required",
+            "pre_alert_sent": True,
+            "checkpoint_started": True,
+            "clear_required": True,
+            "telemetry_warning_sent": False,
+            "last_percent": 67.1,
+            "updated_at": 1,
+        }
+        path.write_text(json.dumps(legacy), encoding="utf-8")
+
+        state = guard.load_state(self.data_dir, "session-a")
+
+        self.assertEqual(state["state_version"], 2)
+        self.assertEqual(state["phase"], "checkpoint_verified")
+        self.assertTrue(state["checkpoint_verified"])
+        self.assertFalse(state["checkpoint_started"])
+        self.assertNotIn("clear_required", state)
+
+    def test_inconsistent_legacy_clear_phase_is_normalized(self) -> None:
+        path = guard.state_path(self.data_dir, "session-a")
+        path.parent.mkdir(parents=True)
+        legacy = {
+            "phase": "clear_required",
+            "pre_alert_sent": False,
+            "checkpoint_started": False,
+            "clear_required": False,
+            "telemetry_warning_sent": False,
+            "last_percent": 63.0,
+            "updated_at": 1,
+        }
+        path.write_text(json.dumps(legacy), encoding="utf-8")
+
+        state = guard.load_state(self.data_dir, "session-a")
+
+        self.assertEqual(state["phase"], "checkpoint_required")
+        self.assertFalse(state["checkpoint_verified"])
+
     def test_state_round_trip_is_isolated_by_session(self) -> None:
         state_a = guard.load_state(self.data_dir, "session-a")
         state_a["checkpoint_started"] = True
@@ -195,7 +244,7 @@ class ContextGuardStateTest(unittest.TestCase):
         path = guard.state_path(self.data_dir, "session-a")
         path.parent.mkdir(parents=True)
         invalid = guard.default_state()
-        invalid["clear_required"] = "false"
+        invalid["checkpoint_verified"] = "false"
         invalid["last_percent"] = "63.0"
         path.write_text(json.dumps(invalid), encoding="utf-8")
 
@@ -301,7 +350,7 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
 
         self.assertIsNone(guard.handle_event(event, {}))
 
-    def test_claude_compat_plugin_environment_names_are_accepted(self) -> None:
+    def test_claude_only_plugin_environment_is_ignored(self) -> None:
         event = self.event("Stop", 60.0, stop_hook_active=False)
         compat_env = {
             "CLAUDE_PLUGIN_ROOT": self.env["PLUGIN_ROOT"],
@@ -309,6 +358,14 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
         }
 
         result = guard.handle_event(event, compat_env)
+
+        self.assertIsNone(result)
+        self.assertFalse(any(self.data_dir.rglob("*.json")))
+
+    def test_codex_native_plugin_environment_still_runs(self) -> None:
+        event = self.event("Stop", 60.0, stop_hook_active=False)
+
+        result = guard.handle_event(event, self.env)
 
         self.assertEqual(result["decision"], "block")
         self.assertIn("checkpoint", result["reason"].lower())
@@ -393,19 +450,68 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
         self.assertEqual(result["decision"], "block")
         self.assertEqual(state["phase"], "emergency")
 
-    def test_safe_checkpoint_phrase_marks_clear_required(self) -> None:
+    def test_codex_checkpoint_phrase_marks_checkpoint_verified(self) -> None:
         event = self.event(
             "Stop",
             63.0,
             stop_hook_active=True,
-            last_assistant_message="### ✅ Verificação\n**Seguro dar `/clear`.**",
+            last_assistant_message=(
+                "### ✅ Verificação\n"
+                "**Checkpoint verificado; compactação liberada.**"
+            ),
         )
 
         result = guard.handle_event(event, self.env)
         state = guard.load_state(self.data_dir, "session-a")
 
-        self.assertTrue(state["clear_required"])
-        self.assertIn("/clear", result["systemMessage"])
+        self.assertTrue(state["checkpoint_verified"])
+        self.assertFalse(state["checkpoint_started"])
+        self.assertEqual(state["phase"], "checkpoint_verified")
+        self.assertIn("compactação", result["systemMessage"].lower())
+
+    def test_verified_checkpoint_allows_next_prompt_in_codex_app(self) -> None:
+        guard.handle_event(
+            self.event(
+                "Stop",
+                72.0,
+                stop_hook_active=True,
+                last_assistant_message=(
+                    "Checkpoint verificado; compactação liberada."
+                ),
+            ),
+            self.env,
+        )
+
+        result = guard.handle_event(
+            self.event("UserPromptSubmit", 72.0, prompt="continue"),
+            self.env,
+        )
+
+        self.assertIsNone(result)
+        state = guard.load_state(self.data_dir, "session-a")
+        self.assertTrue(state["checkpoint_verified"])
+        self.assertEqual(state["phase"], "checkpoint_verified")
+
+    def test_legacy_safe_clear_phrase_allows_next_prompt(self) -> None:
+        guard.handle_event(
+            self.event(
+                "Stop",
+                72.0,
+                stop_hook_active=True,
+                last_assistant_message="### ✅ Verificação\n**Seguro dar `/clear`.**",
+            ),
+            self.env,
+        )
+
+        result = guard.handle_event(
+            self.event("UserPromptSubmit", 72.0, prompt="continue"),
+            self.env,
+        )
+
+        self.assertIsNone(result)
+        self.assertTrue(
+            guard.load_state(self.data_dir, "session-a")["checkpoint_verified"]
+        )
 
     def test_instruction_about_safe_phrase_does_not_complete_checkpoint(self) -> None:
         self.assertEqual(
@@ -424,10 +530,12 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
 
         result = guard.handle_event(event, self.env)
 
-        self.assertFalse(guard.load_state(self.data_dir, "session-a")["clear_required"])
+        self.assertFalse(
+            guard.load_state(self.data_dir, "session-a")["checkpoint_verified"]
+        )
         self.assertIn("frase contratual", result["systemMessage"].lower())
 
-    def test_failed_checkpoint_phrase_does_not_mark_clear_required(self) -> None:
+    def test_failed_checkpoint_phrase_does_not_mark_checkpoint_verified(self) -> None:
         started = self.event("Stop", 63.0, stop_hook_active=False)
         self.assertEqual(guard.handle_event(started, self.env)["decision"], "block")
         event = self.event(
@@ -440,7 +548,7 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
         guard.handle_event(event, self.env)
 
         self.assertFalse(
-            guard.load_state(self.data_dir, "session-a")["clear_required"]
+            guard.load_state(self.data_dir, "session-a")["checkpoint_verified"]
         )
 
         retry = guard.handle_event(
@@ -474,7 +582,7 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
         result = guard.handle_event(event, self.env)
         state = guard.load_state(self.data_dir, "session-a")
 
-        self.assertFalse(state["clear_required"])
+        self.assertFalse(state["checkpoint_verified"])
         self.assertFalse(state["checkpoint_started"])
         self.assertIn("não foi verificado", result["systemMessage"].lower())
 
@@ -497,7 +605,7 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
         )
 
         state = guard.load_state(self.data_dir, "session-a")
-        self.assertFalse(state["clear_required"])
+        self.assertFalse(state["checkpoint_verified"])
         self.assertFalse(state["checkpoint_started"])
         self.assertIn("frase contratual", result["systemMessage"].lower())
         retry = guard.handle_event(
@@ -515,16 +623,16 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
         self.assertEqual(output["hookEventName"], "PostToolUse")
         self.assertIn("checkpoint", output["additionalContext"].lower())
 
-    def test_user_prompt_is_blocked_after_safe_checkpoint(self) -> None:
+    def test_post_tool_use_is_silent_after_verified_checkpoint(self) -> None:
         state = guard.default_state()
-        state["clear_required"] = True
+        state["phase"] = "checkpoint_verified"
+        state["checkpoint_verified"] = True
         guard.save_state(self.data_dir, "session-a", state)
-        event = self.event("UserPromptSubmit", 63.0, prompt="continue implementando")
+        event = self.event("PostToolUse", 72.0)
 
         result = guard.handle_event(event, self.env)
 
-        self.assertEqual(result["decision"], "block")
-        self.assertIn("/clear", result["reason"])
+        self.assertIsNone(result)
 
     def test_checkpoint_prompt_is_allowed_during_emergency(self) -> None:
         event = self.event("UserPromptSubmit", 72.0, prompt="faça o checkpoint agora")
@@ -550,7 +658,8 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
     def test_session_start_clear_injects_memory_rehydration(self) -> None:
         state = guard.default_state()
         state["checkpoint_started"] = True
-        state["clear_required"] = True
+        state["checkpoint_verified"] = True
+        state["phase"] = "checkpoint_verified"
         guard.save_state(self.data_dir, "session-a", state)
         event = self.event("SessionStart", 10.0, source="clear")
 
@@ -567,8 +676,8 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
 
     def test_clear_during_lock_contention_resets_before_next_prompt(self) -> None:
         blocked = guard.default_state()
-        blocked["phase"] = "clear_required"
-        blocked["clear_required"] = True
+        blocked["phase"] = "checkpoint_verified"
+        blocked["checkpoint_verified"] = True
         self.assertTrue(guard.save_state(self.data_dir, "session-a", blocked))
         held_lock = guard._acquire_state_lock(self.data_dir, "session-a")
         self.assertIsNotNone(held_lock)
@@ -585,22 +694,41 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
             self.env,
         )
         self.assertNotEqual((next_prompt or {}).get("decision"), "block")
-        self.assertFalse(guard.load_state(self.data_dir, "session-a")["clear_required"])
+        self.assertFalse(
+            guard.load_state(self.data_dir, "session-a")["checkpoint_verified"]
+        )
         self.assertIn("falhou aberto", result["systemMessage"])
 
-    def test_session_start_compact_marks_recovery_mode(self) -> None:
+    def test_compact_without_checkpoint_requires_recovery(self) -> None:
         event = self.event("SessionStart", 20.0, source="compact")
 
         result = guard.handle_event(event, self.env)
+        state = guard.load_state(self.data_dir, "session-a")
 
         context = result["hookSpecificOutput"]["additionalContext"]
         self.assertIn("compactação", context.lower())
-        self.assertIn("checkpoint", context.lower())
+        self.assertIn("checkpoint de recuperação", context.lower())
+        self.assertEqual(state["phase"], "recovery_required")
+        self.assertTrue(state["recovery_required"])
 
-    def test_compact_after_verified_checkpoint_only_asks_for_clear(self) -> None:
+    def test_recovery_required_blocks_new_work_until_checkpoint(self) -> None:
+        guard.handle_event(
+            self.event("SessionStart", 20.0, source="compact"),
+            self.env,
+        )
+
+        result = guard.handle_event(
+            self.event("UserPromptSubmit", 20.0, prompt="continue o trabalho"),
+            self.env,
+        )
+
+        self.assertEqual(result["decision"], "block")
+        self.assertIn("recuperação", result["reason"].lower())
+
+    def test_compact_after_verified_checkpoint_rehydrates_and_resets(self) -> None:
         state = guard.default_state()
-        state["phase"] = "clear_required"
-        state["clear_required"] = True
+        state["phase"] = "checkpoint_verified"
+        state["checkpoint_verified"] = True
         self.assertTrue(guard.save_state(self.data_dir, "session-a", state))
 
         result = guard.handle_event(
@@ -609,15 +737,29 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
         )
 
         context = result["hookSpecificOutput"]["additionalContext"]
-        self.assertIn("/clear", context)
+        self.assertIn("memory/MEMORY.md", context)
+        self.assertIn("KANBAN", context)
         self.assertNotIn("checkpoint de recuperação", context.lower())
+        reset = guard.load_state(self.data_dir, "session-a")
+        self.assertEqual(reset["phase"], "normal")
+        self.assertFalse(reset["checkpoint_verified"])
+        self.assertFalse(reset["recovery_required"])
+        self.assertIsInstance(reset["updated_at"], int)
 
-    def test_precompact_never_returns_continue_false(self) -> None:
+    def test_precompact_auto_never_blocks(self) -> None:
         event = self.event("PreCompact", 91.0, trigger="auto")
 
         result = guard.handle_event(event, self.env)
 
         self.assertIsNot((result or {}).get("continue"), False)
+        self.assertNotEqual((result or {}).get("decision"), "block")
+
+    def test_postcompact_defers_rehydration_to_sessionstart(self) -> None:
+        event = self.event("PostCompact", 91.0, trigger="auto")
+
+        result = guard.handle_event(event, self.env)
+
+        self.assertIsNone(result)
 
     def test_state_never_persists_conversation_content(self) -> None:
         secret = "PACIENTE-NAO-PERSISTIR"
@@ -632,10 +774,12 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
 
         guard.handle_event(event, self.env)
         state_text = guard.state_path(self.data_dir, "session-a").read_text()
+        state = json.loads(state_text)
 
         self.assertNotIn(secret, state_text)
         self.assertNotIn("last_assistant_message", state_text)
         self.assertNotIn("tool_input", state_text)
+        self.assertEqual(set(state), set(guard.STATE_KEYS))
 
 
 @unittest.skipUnless(
