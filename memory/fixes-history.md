@@ -1,5 +1,12 @@
 # Log de mudanças — append-only
 
+## [2026-08-11] hotfix local | @frente-protecao-contexto · sessões Codex desbloqueadas
+
+O script do cache `orq/0.22.0` ganhou uma salvaguarda final que converte todo `decision=block` em
+aviso consultivo, alcançando as sessões abertas em New ByIA e Bruno Vascular. O original foi salvo
+como `context-guard.py.bak-nonblocking-20260811` e permanece restaurável. `py_compile` e três smokes
+de bloqueio passaram sem `decision=block`. A fonte `0.22.1` ainda precisa incorporar a mesma regra.
+
 ## [2026-08-10] decisão | @frente-protecao-contexto · Codex sem hooks bloqueantes
 
 O dono decidiu que o Orquestra no Codex apenas alerta e executa checkpoint; nenhum hook pode bloquear

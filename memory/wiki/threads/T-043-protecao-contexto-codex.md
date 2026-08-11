@@ -174,9 +174,20 @@ Esta decisão também resolve o risco de checkpoint obsoleto sem recriar deadloc
 escolha consciente e o próximo alerta/checkpoint pode rearmar de modo consultivo, nunca impeditivo.
 Compactação sem checkpoint injeta recuperação, mas não bloqueia trabalho.
 
+## Hotfix das sessões abertas
+
+O cache executado pelas sessões existentes foi corrigido diretamente em
+`~/.codex/plugins/cache/orquestra/orq/0.22.0/scripts/context-guard.py`. Antes da alteração, o arquivo
+original foi preservado em `context-guard.py.bak-nonblocking-20260811` com SHA-256
+`33f8f0a65381d7b1fbf287c6219462b44c238b8e14ce6d7e99bcc417e9b27551`. A salvaguarda final remove
+`decision=block`/`reason` de qualquer ramo legado e converte o resultado em aviso consultivo.
+`py_compile` passou; smokes de `clear_required`, prompt em 72% e `Stop` em 60% saíram sem decisão de
+bloqueio. O hotfix é global para sessões que usam o cache `0.22.0`, incluindo New ByIA Project e
+Bruno Vascular; não apaga estado, transcript ou memória.
+
 ⏭️ RETOMAR AQUI: atualizar primeiro especificação/plano/testes para a invariável “zero
 `decision=block` no host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado
-legado. Implementar somente respostas consultivas, hotfixar com backup o script do cache `0.22.0`
-para liberar as sessões já abertas e depois fechar a release `0.22.1`. Rodar GREEN + gates, obter
-parecer Opus 5 válido, reconciliar Kimi, integrar em `main`, instalar somente no Codex e executar
-smoke real. Não fazer push, publicação, update do Claude nem alterar o backstop de 90%.
+legado. Implementar respostas consultivas na fonte, substituir o hotfix pela release `0.22.1` e
+confirmar nas duas sessões reais. Rodar GREEN + gates, obter parecer Opus 5 válido, reconciliar Kimi,
+integrar em `main`, instalar somente no Codex e executar smoke real. Não fazer push, publicação,
+update do Claude nem alterar o backstop de 90%.

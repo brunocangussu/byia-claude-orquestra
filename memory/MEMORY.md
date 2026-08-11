@@ -15,9 +15,10 @@
   `SessionStart(source=compact)` reidrata memória/board/thread. Compactação sem checkpoint exige
   recuperação. O ambiente somente Claude é ignorado e o fluxo Claude `/clear` permanece intacto.
   **Decisão posterior do dono:** hooks Codex nunca bloqueiam; apenas alertam e solicitam checkpoint.
-  Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. Próximo: reescrever
-  RED/GREEN para zero `decision=block`, hotfixar com backup o cache `0.22.0` das sessões abertas,
-  obter review Opus válido, integrar, instalar no Codex e fazer smoke real. Claude mantém `/clear`.
+  Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. O cache `0.22.0` já
+  recebeu hotfix recuperável que remove `decision=block`, liberando as sessões abertas em New ByIA e
+  Bruno Vascular. Próximo: reescrever RED/GREEN para zero bloqueio na fonte, obter review Opus
+  válido, integrar, instalar a `0.22.1` no Codex e confirmar nas duas sessões. Claude mantém `/clear`.
   Sem push, publicação ou update do Claude.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
