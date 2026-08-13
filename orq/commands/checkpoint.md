@@ -72,13 +72,14 @@ conforme o host real:
 
 - **Claude:** termine com a frase exata **Seguro dar `/clear`.**. O dono executa `/clear`
   manualmente; este fluxo permanece inalterado.
-- **Codex:** termine com a frase exata **Checkpoint verificado; compactação liberada.**. O guardião
-  grava `checkpoint_verified`, deixa de bloquear trabalho novo e permite a compactação nativa,
-  manual ou automática. Depois de `SessionStart(source=compact)`, a sessão relê a memória, o board
-  e a thread ativa.
+- **Codex:** termine com a frase exata **Checkpoint verificado; conversa continua.**. O guardião
+  grava `checkpoint_verified` com caráter consultivo e a mesma conversa pode continuar; a
+  **compactação é sempre livre**, nativa, manual ou automática, sem obrigação de limpar a sessão. Depois de
+  `SessionStart(source=compact)`, a sessão relê a memória, o board e a thread ativa. Se a conversa
+  consumir mais 10 pontos percentuais, o próximo checkpoint é rearmado consultivamente.
 
 Nunca emita as duas frases na mesma resposta. Se uma verificação falhar, emita somente a frase
-negativa do contrato e corrija o sinal quebrado; texto equivalente não destrava o guardião.
+negativa do contrato e corrija o sinal quebrado; texto equivalente não registra `checkpoint_verified`.
 
 **Com board**, rode de novo `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` e confira:
 
@@ -102,9 +103,9 @@ tem (board, thread) não se verifica — e não bloqueia.
 
 ## 6. Confirmar — a audiência é o DONO, não o próximo assistente
 
-A instrução de retomada ("leia `memory/MEMORY.md` → thread X") é para a **próxima janela** — e ela
-**nunca lê esta tela**: o que ela lê é o `⏭️ RETOMAR AQUI` e o índice, que você acabou de escrever
-e verificar. Na tela, só o que serve ao dono.
+A instrução de retomada ("leia `memory/MEMORY.md` → thread X") protege uma **próxima janela**, caso
+ela exista; no Codex ela não obriga abandonar a conversa atual. Uma sessão compactada relê o
+`⏭️ RETOMAR AQUI` e o índice antes de continuar. Na tela, só o que serve ao dono.
 
 **Seções com título, uma por bloco, nesta ordem.** Duas são **sempre presentes** (`✅ Verificação` e
 o fecho `💡`); as outras aparecem **só quando têm conteúdo** — e `📋 Board` aparece sempre que o

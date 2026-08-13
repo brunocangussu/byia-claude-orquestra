@@ -213,3 +213,40 @@ host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado
 respostas consultivas na fonte `0.22.1`, rodar GREEN + gates, obter parecer Opus 5 válido,
 reconciliar Kimi, integrar em `main`, instalar somente no Codex e confirmar nas sessões New ByIA e
 Bruno Vascular. Não fazer push, publicação, update do Claude nem alterar o backstop de 90%.
+
+## Checkpoint de recuperação pós-compactação — 2026-08-13
+
+A conversa compactou antes do fluxo intencional, então o estado foi reidratado a partir de
+`memory/MEMORY.md`, `KANBAN.md`, desta thread e do Git. O card não mudou de coluna. O worktree está
+em `d081608` e contém oito arquivos modificados, 322 inserções e 147 remoções, sem erro em
+`git diff --check`. O conteúdo do diff converge com a decisão posterior do dono: remover bloqueios
+Codex, manter alertas/checkpoints consultivos e preservar o contrato Claude separado.
+
+Essas mudanças ainda não foram validadas nesta retomada nem commitadas. Elas devem ser tratadas como
+trabalho em curso possivelmente produzido por outra janela: não sobrescrever, não descartar e não
+atribuir autoria sem evidência.
+
+⏭️ RETOMAR AQUI: validar o diff existente com testes do guardião, `py_compile`, manifesto estrito,
+lint de coerência, identidade `AGENTS.md`/`CLAUDE.md` e buscas por qualquer `decision=block` ou
+instrução `/clear` no caminho Codex. Se passar, revisar os riscos Kimi, obter parecer Opus 5 válido e
+só depois decidir integração e instalação local da `0.22.1`. Não fazer push/publicação nem alterar
+o Claude.
+
+## Validação e painel final — 2026-08-13
+
+- recuperação sem `token_count`: reproduzida RED e corrigida antes da leitura da telemetria;
+- checkpoint obsoleto: reproduzido RED e corrigido com `checkpoint_percent` e rearme consultivo após
+  +10 pontos percentuais;
+- defesa anti-bloqueio: teste RED provou que `continue:false`, `stopReason`, `permissionDecision:deny`
+  e `reason` legado escapavam; `_persist_response` agora usa allowlist estrita;
+- frase `**Checkpoint verificado; conversa continua**.`: reproduzida RED e aceita;
+- Opus 5 real: `OPUS_MODEL=claude-opus-5`, 124,5 s, 6.367 bytes,
+  `APROVADO_COM_RESSALVAS`, sem bloqueadores;
+- Kimi K3 real: sessão `session_b48d9d4e-6539-4f6f-b599-275addecbcea`, diff completo,
+  `APROVADO_COM_RESSALVAS`, sem bloqueadores;
+- gates: 65 testes do guardião, 14 do runner, `py_compile`, manifesto estrito, lint, identidade
+  AGENTS/CLAUDE, `git diff --check` e higiene de `__pycache__` passaram.
+
+⏭️ RETOMAR AQUI: criar o commit estreito de T-043 no worktree, inspecionar o `main` sujo antes de
+integrar, preservar mudanças concorrentes, instalar `0.22.1` somente no Codex e executar smokes
+reais em New ByIA e Bruno Vascular. Não fazer push/publicação nem atualizar o Claude.

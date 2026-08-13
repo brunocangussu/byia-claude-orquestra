@@ -188,15 +188,20 @@ O pacote traz `hooks/hooks.json` e `scripts/context-guard.py`. O guardião lê s
 apenas faixa, percentual, timestamps e estado do checkpoint, isolados por `session_id`.
 
 - 55%: pré-alerta único;
-- primeiro valor observado ≥60%: `Stop` cria uma continuação única para o checkpoint;
-- ≥70%: trabalho novo é bloqueado, exceto recuperação/checkpoint;
-- **Codex — Checkpoint verificado; compactação liberada.**: handshake que grava
-  `checkpoint_verified` e libera trabalho/compactação sem exigir `/clear`;
+- primeiro valor observado ≥60%: `Stop` cria uma continuação única e consultiva para o checkpoint;
+- ≥70%: aviso consultivo reforçado; o guardião nunca bloqueia trabalho, `Stop`, compactação ou modo Goal;
+- **Codex — Checkpoint verificado; conversa continua.**: handshake que grava
+  `checkpoint_verified`; a mesma conversa continua e a compactação nativa substitui a obrigação de
+  limpar a sessão; após mais 10 pontos percentuais de uso, um novo checkpoint é rearmado de forma
+  consultiva; o estado legado `clear_required` migra sem reativar bloqueio;
 - `SessionStart(source=compact)`: reidrata memória, board e thread; sem checkpoint anterior, exige
-  checkpoint de recuperação antes de trabalho novo;
+  checkpoint de recuperação consultivo, sem impedir trabalho novo;
+- modo Goal: continuação normal do pedido, sem dependência de banco privado do App;
 - **Claude — Seguro dar `/clear`.**: contrato preservado, com `/clear` manual;
 - `PreCompact` e `PostCompact`: nunca bloqueiam o núcleo nem duplicam a reidratação.
 
 O transcript não é uma interface estável. Parser, estado e hooks falham abertos; nenhum erro do
-guardião pode impedir compactação nem persistir conteúdo da conversa. O script só atua no ambiente
+guardião ou falha de persistência pode impedir compactação nem persistir conteúdo da conversa. Em
+`UserPromptSubmit`, `additionalContext` reafirma a política consultiva para a conversa já carregada.
+O script só atua no ambiente
 nativo `PLUGIN_ROOT` do Codex; variáveis somente `CLAUDE_*` não ativam o guardião.

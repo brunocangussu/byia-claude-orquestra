@@ -17,8 +17,11 @@
   **Decisão posterior do dono:** hooks Codex nunca bloqueiam; apenas alertam e solicitam checkpoint.
   Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. O hotfix direto no
   cache `0.22.0` não foi durável: em 2026-08-13 o Codex voltou a expor o SHA original bloqueante
-  `33f8f0a…`, e `plugin list` ainda mostra `0.22.0`. Próximo: reescrever RED/GREEN para zero bloqueio
-  na fonte, obter review Opus válido, integrar, instalar a `0.22.1` no Codex e confirmar nas sessões
+  `33f8f0a…`, e `plugin list` ainda mostra `0.22.0`. **Estado validado em 2026-08-13:** a fonte
+  consultiva passou em 65 testes do guardião, 14 do runner e todos os gates; recuperação sem
+  telemetria, rearme após +10 p.p. e allowlist anti-bloqueio estão cobertos. Opus 5 real
+  (`claude-opus-5`, 124,5 s) e Kimi K3 real aprovaram com ressalvas, sem bloqueadores; as ressalvas
+  acionáveis foram corrigidas. Próximo: commit, integrar, instalar a `0.22.1` no Codex e confirmar nas sessões
   New ByIA e Bruno Vascular. Claude mantém `/clear`.
   Sem push, publicação ou update do Claude.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,

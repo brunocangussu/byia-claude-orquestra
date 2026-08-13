@@ -27,7 +27,7 @@ O plugin foi feito pra ser usado **conversando**. Você fala; o Claude reconhece
 | Você diz | Acontece |
 |---|---|
 | *"onde paramos?"* · *"o que falta?"* | mostra o board, começando pelo que espera você |
-| *"terminamos, pode limpar"* | salva tudo na memória e libera o `/clear` |
+| *"terminamos, pode limpar"* | salva tudo na memória e libera compactação nativa no Codex ou `/clear` no Claude |
 | *"vamos planejar isso"* | planeja e **para** pra você aprovar |
 | *"pode implementar"* · *"manda ver"* | implementa + revisa + documenta |
 | *"anota isso"* · *"não esquece disso"* | vira card no backlog |
@@ -94,7 +94,7 @@ exatamente isso. Elas não são requisito; são o que separa "funciona" de "rend
 | Camada | Ferramentas | O que muda |
 |---|---|---|
 | **Economia de contexto** | [`context-mode`](https://github.com/mksglu/context-mode) · [`rtk`](https://github.com/rtk-ai/rtk) | um `npm test` de 4.000 linhas entra como as 12 que interessam |
-| **Memória entre sessões** | [`claude-mem`](https://github.com/thedotmack/claude-mem) · [Supermemory](https://github.com/supermemoryai/supermemory) | é o que torna `checkpoint` + `/clear` seguro em vez de `/compact` encadeado |
+| **Memória entre sessões** | [`claude-mem`](https://github.com/thedotmack/claude-mem) · [Supermemory](https://github.com/supermemoryai/supermemory) | é o que torna checkpoint + compactação nativa segura no Codex e `/clear` manual seguro no Claude |
 | **Entender o código** | [`codebase-memory`](https://github.com/DeusData/codebase-memory-mcp) · [Serena](https://github.com/oraios/serena) | só valem em repo grande — ver a comparação abaixo |
 | **Revisão independente** | [`codex`](https://github.com/openai/codex) · [`kimi`](https://github.com/MoonshotAI/kimi-code) | fornecedores diferentes erram de forma menos correlacionada |
 
@@ -125,7 +125,7 @@ atuais e mostra a você o que pretende rodar antes de rodar.
 ```
   planejar  ──→  [ VOCÊ APROVA ]  ──→  implementar  ──→  [ VOCÊ VALIDA ]  ──→  feito
      ↑                                       │
-     └───────────  checkpoint + /clear  ←────┘
+     └── checkpoint + compactação nativa (Codex) / /clear (Claude) ←──┘
 ```
 
 | Comando | O que faz |
@@ -138,7 +138,7 @@ atuais e mostra a você o que pretende rodar antes de rodar.
 | `/orq:elenco` | Ver/trocar qual LLM toca cada papel |
 | `/orq:stack` | Detecta ferramentas de contexto/memória que faltam e instala o que você aprovar |
 | `/orq:quadro` | Mostra o board e o progresso |
-| `/orq:checkpoint` | Fecha o bloco de trabalho na memória (antes do `/clear`) |
+| `/orq:checkpoint` | Fecha o bloco de trabalho na memória; libera compactação nativa no Codex e antecede `/clear` no Claude |
 | `/orq:wiki-lint` | Health-check da wiki: contradições, órfãs, afirmações vencidas |
 | `/orq:lembrar` | Busca na memória de longo prazo (Supermemory) |
 | `/orq:dormir` | Modo noturno — adianta planejamento |
@@ -394,12 +394,17 @@ consumidores resolvem host→papel→executor; no Codex, Manager Sol/high, Plann
 Implementer Terra/xhigh e painel Opus 5 + Kimi K3; diagnóstico separa plugin instalado/habilitado,
 skill carregada e smoke comportamental; painel do Kimi corrigido para a ordem de flags segura
 (`-m` antes, `-p` por último) ·
-**guardião preventivo do contexto Codex** (`T-043`): hooks empacotados observam a telemetria por
-sessão, pré-alertam em 55% e exigem checkpoint no primeiro valor observado ≥60%; depois do handshake
-`Checkpoint verificado; compactação liberada.`, a compactação nativa manual ou automática pode
-seguir e `SessionStart(source=compact)` reidrata memória, board e thread. Compactação sem checkpoint
-entra em recuperação; o backstop de 90% continua opt-in. No Claude, o contrato permanece checkpoint
-→ `Seguro dar /clear.` → `/clear` manual ·
+**contratos de contexto para Claude Code e Codex** (`T-043`): no Codex, hooks empacotados observam a telemetria por
+sessão, pré-alertam em 55%, recomendam checkpoint durável em 60% e reforçam o alerta em 70%; são
+consultivos e nunca bloqueiam a continuação, inclusive no modo Goal; `additionalContext` reafirma
+essa regra nas conversas Codex já carregadas. Depois do handshake
+`Checkpoint verificado; conversa continua.`, a mesma conversa pode continuar e a **compactação é sempre livre**,
+manual ou automática; `SessionStart(source=compact)` reidrata memória, board e
+thread. Depois de mais 10 pontos percentuais de uso, outro checkpoint é rearmado consultivamente.
+O estado legado `clear_required` migra sem bloquear. Compactação sem checkpoint pede
+recuperação sem impedir trabalho, e o modo Goal não depende de banco privado do App; o backstop de
+90% continua opt-in. No Claude, o contrato permanece
+checkpoint → `Seguro dar /clear.` → `/clear` manual ·
 **statusline distribuída** (`T-036`): novo asset `orq/scripts/statusline.sh` — a barra completa do
 dono (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board),
 achando o `kanban-status.sh` por vizinhança em vez de caminho fixo e degradando para só o board sem

@@ -1,5 +1,25 @@
 # Log de mudanças — append-only
 
+## [2026-08-13] review+correção | @frente-protecao-contexto · painel real sem bloqueadores
+
+O runner comprovou `claude-opus-5` em 124,5 s com briefing de 6.367 bytes; Opus devolveu
+`APROVADO_COM_RESSALVAS`, sem bloqueadores. Kimi K3 revisou o diff completo no clone descartável
+`/tmp/orq-t043-kimi.pS81hx/repo`, executou os gates e também devolveu
+`APROVADO_COM_RESSALVAS`, sem bloqueadores (sessão
+`session_b48d9d4e-6539-4f6f-b599-275addecbcea`). As ressalvas verificáveis viraram testes/correções:
+recuperação sem `token_count`, rearme após +10 p.p., allowlist que elimina todo campo bloqueante,
+frase contratual com ponto fora do negrito, título público preciso e `__pycache__` ignorado. Resultado:
+65 testes do guardião + 14 do runner e todos os gates verdes.
+
+## [2026-08-13] checkpoint de recuperação | @frente-protecao-contexto · diff consultivo preservado
+
+Após compactação inesperada, memória, board, thread e Git foram recarregados no worktree
+`feat/t043-compactacao-reidratada`. O board não foi movido. Foram encontrados oito arquivos
+modificados e ainda não commitados (`AGENTS.md`, `CLAUDE.md`, `README.md`, arquitetura, comando de
+checkpoint, guardião, testes e skill) com a implementação Codex consultiva. O diff foi preservado
+sem assumir autoria; `git diff --check` passou. Próximo passo: validar mecanicamente esse estado,
+confirmar isolamento do fluxo Claude, obter parecer Opus 5 válido e só então integrar/instalar.
+
 ## [2026-08-13] checkpoint | @frente-protecao-contexto · cache hotfix revertido pelo Codex
 
 No checkpoint, `codex plugin list` ainda mostrou `orq@orquestra 0.22.0`, e o script ativo voltou ao
