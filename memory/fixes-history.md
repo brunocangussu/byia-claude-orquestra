@@ -1,5 +1,13 @@
 # Log de mudanças — append-only
 
+## [2026-08-13] checkpoint | @frente-protecao-contexto · cache hotfix revertido pelo Codex
+
+No checkpoint, `codex plugin list` ainda mostrou `orq@orquestra 0.22.0`, e o script ativo voltou ao
+SHA-256 original bloqueante `33f8f0a65381d7b1fbf287c6219462b44c238b8e14ce6d7e99bcc417e9b27551`.
+Logo, editar diretamente o cache não é solução durável: o Codex o restaura/reinstala. A correção
+consultiva precisa entrar na fonte, passar pelo painel e ser instalada como `0.22.1`. Main permanece
+11 commits à frente do remoto; worktree T-043 estava limpo antes deste checkpoint.
+
 ## [2026-08-11] hotfix local | @frente-protecao-contexto · sessões Codex desbloqueadas
 
 O script do cache `orq/0.22.0` ganhou uma salvaguarda final que converte todo `decision=block` em

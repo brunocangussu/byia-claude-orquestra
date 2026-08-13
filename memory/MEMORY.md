@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.22.1 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-10 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.1 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-13 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
 
@@ -15,10 +15,11 @@
   `SessionStart(source=compact)` reidrata memória/board/thread. Compactação sem checkpoint exige
   recuperação. O ambiente somente Claude é ignorado e o fluxo Claude `/clear` permanece intacto.
   **Decisão posterior do dono:** hooks Codex nunca bloqueiam; apenas alertam e solicitam checkpoint.
-  Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. O cache `0.22.0` já
-  recebeu hotfix recuperável que remove `decision=block`, liberando as sessões abertas em New ByIA e
-  Bruno Vascular. Próximo: reescrever RED/GREEN para zero bloqueio na fonte, obter review Opus
-  válido, integrar, instalar a `0.22.1` no Codex e confirmar nas duas sessões. Claude mantém `/clear`.
+  Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. O hotfix direto no
+  cache `0.22.0` não foi durável: em 2026-08-13 o Codex voltou a expor o SHA original bloqueante
+  `33f8f0a…`, e `plugin list` ainda mostra `0.22.0`. Próximo: reescrever RED/GREEN para zero bloqueio
+  na fonte, obter review Opus válido, integrar, instalar a `0.22.1` no Codex e confirmar nas sessões
+  New ByIA e Bruno Vascular. Claude mantém `/clear`.
   Sem push, publicação ou update do Claude.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em

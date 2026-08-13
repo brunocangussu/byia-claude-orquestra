@@ -200,9 +200,16 @@ atual, tratar checkpoint apenas como documentação e ignorar exigências anteri
 interrupção. Um smoke com estado `clear_required`, 80% e prompt “pode continuar daqui” confirmou a
 saída prioritária, sem `decision=block` e sem instrução de limpeza (`LIVE_PRIORITY_OVERRIDE=PASS`).
 
-⏭️ RETOMAR AQUI: atualizar primeiro especificação/plano/testes para a invariável “zero
-`decision=block` no host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado
-legado. Implementar respostas consultivas na fonte, substituir o hotfix pela release `0.22.1` e
-confirmar nas duas sessões reais. Rodar GREEN + gates, obter parecer Opus 5 válido, reconciliar Kimi,
-integrar em `main`, instalar somente no Codex e executar smoke real. Não fazer push, publicação,
-update do Claude nem alterar o backstop de 90%.
+## Checkpoint de 2026-08-13 — deriva confirmada
+
+O hotfix direto não sobreviveu ao gerenciamento do cache: `codex plugin list` continua em `0.22.0`
+e o `context-guard.py` ativo voltou ao SHA original bloqueante
+`33f8f0a65381d7b1fbf287c6219462b44c238b8e14ce6d7e99bcc417e9b27551`. Não presumir que New ByIA
+ou Bruno Vascular estão desbloqueados. A solução válida é somente release nova instalada a partir da
+fonte; repetir edição do cache criaria o mesmo resultado temporário.
+
+⏭️ RETOMAR AQUI: atualizar especificação/plano/testes para a invariável “zero `decision=block` no
+host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado legado. Implementar
+respostas consultivas na fonte `0.22.1`, rodar GREEN + gates, obter parecer Opus 5 válido,
+reconciliar Kimi, integrar em `main`, instalar somente no Codex e confirmar nas sessões New ByIA e
+Bruno Vascular. Não fazer push, publicação, update do Claude nem alterar o backstop de 90%.
