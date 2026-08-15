@@ -1,7 +1,7 @@
 # Bruno Brain — arquitetura de memória independente de LLM
 
-**Status:** aprovado pelo dono em 2026-08-15  
-**Escopo desta especificação:** fonte canônica, separação de dados, integração dos clientes e ordem de migração.  
+**Status:** aprovado pelo dono em 2026-08-15
+**Escopo desta especificação:** fonte canônica, separação de dados, integração dos clientes e ordem de migração.
 **Primeira implementação:** `T-037`, retirada do SuperMemory da Orquestra.
 
 ## Objetivo
@@ -125,4 +125,3 @@ Cada fase produz um resultado testável e pode ser interrompida sem deixar duas 
 - Toda memória compartilhada possui proveniência, escopo e data de atualização.
 - Toda escrita automática vira candidata revisável.
 - Cada projeto consegue retomar apenas com Orquestra + `MEMORY.md` + KANBAN, mesmo sem o Gateway.
-
