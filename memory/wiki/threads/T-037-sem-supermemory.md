@@ -356,9 +356,31 @@ e alterações globais continuam proibidos.
 - O painel externo continua **PARCIAL**: Kimi concluiu; Opus iniciou no modelo correto, mas não
   entregou parecer final. Pela regra do painel, não houve retry automático.
 
-## ⏭️ RETOMAR AQUI
+## ⏭️ RETOMAR AQUI — SUPERADO PELA AUTORIZAÇÃO DA FASE 5
 
 Apresentar ao dono o resultado e pedir autorização explícita para a Fase 5: definir a nova versão,
 fazer bump/commit/push, instalar a mesma versão no Codex e no Claude, comparar os caches e remover
 as instruções globais legadas de forma recuperável. **Ainda não pedir para reabrir a thread**; isso
 só acontece depois da instalação paritária e da validação dos hosts.
+
+## Fase 5 — integração e release autorizado
+
+O dono autorizou versão, push, instalação paritária e limpeza global recuperável. A auditoria
+encontrou três linhas concorrentes: T-037 sobre `0.22.0`, T-043 estável em `bbcc4cb`/`0.22.1` e a
+candidata T-044/`0.22.2` não commitada, ainda com corrida apontada pelo Opus.
+
+**Ruling:** publicar `0.22.3` combinando T-037 com o commit estável T-043 e deixar todo o working
+tree T-044 fora. Custo se errado: o Codex deixa de executar a candidata experimental `0.22.2`, mas
+preserva o guardião estável e não publica trabalho sem gate.
+
+O merge teve conflitos somente em `README.md`, `memory/MEMORY.md` e
+`orq/commands/checkpoint.md`; foram conciliados preservando o handshake por host e removendo toda
+gravação/referência ativa ao SuperMemory. O teste de coordenação revelou um quinto ponto de versão
+(`ContextGuardReleaseVersionTest`), atualizado e documentado. Resultado pré-commit: **79 testes
+verdes**, manifesto válido, lint verde, `py_compile` verde e ausência ativa confirmada.
+
+## ⏭️ RETOMAR AQUI
+
+Criar o commit combinado `0.22.3`, publicar em `origin/main`, instalar a mesma versão no Codex e no
+Claude sem remover caches ainda referenciados por tasks abertas, comparar os caches, quarentenar
+legados globais e rodar smokes em processos novos. Só então pedir ao dono para reabrir esta thread.

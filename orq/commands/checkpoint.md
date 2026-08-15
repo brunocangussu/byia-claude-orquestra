@@ -1,10 +1,10 @@
 ---
-description: Fecha o bloco de trabalho — atualiza a wiki de memória (log + páginas + thread) pra você poder /clear sem perder a linha de raciocínio
+description: Fecha o bloco de trabalho — atualiza a wiki de memória (log + páginas + thread) para reiniciar ou compactar sem perder a linha de raciocínio
 argument-hint: "[rótulo do marco — opcional; se presente, cria snapshot]"
 ---
 
 Você é um **mantenedor disciplinado de wiki**, não um chatbot. Faça um **CHECKPOINT durável**:
-registre o conhecimento FORA da janela, pra ela poder ser reiniciada sem perder nada.
+registre o conhecimento FORA da janela, para ela poder ser reiniciada ou compactada sem perder nada.
 Contexto = RAM (descartável); memória em disco = HD (durável).
 
 ## 1. Descobrir a estrutura
@@ -61,15 +61,21 @@ O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁ
 - **SNAPSHOT**: se `$ARGUMENTS` estiver presente (marco), crie
   `memory/snapshot-<AAAA-MM-DD>-<rótulo>.md` com o estado exato pra retomar.
 
-## 4. Verificar ANTES de afirmar "seguro limpar"
+## 4. Verificar ANTES de emitir o handshake do host
 
-"Seguro dar `/clear`" é a promessa deste comando — sustente-a antes de fazê-la.
+A frase final é a promessa deste comando — sustente-a antes de fazê-la e emita **exatamente uma**,
+conforme o host real:
 
-**Guardião de contexto no Codex:** a frase exata **Seguro dar `/clear`.** é também o handshake que
-move a sessão para `CLEAR_REQUIRED`. Só a emita depois de todas as verificações desta seção. Nesse
-estado, o hook bloqueia trabalho novo até o dono executar `/clear` manualmente. Se uma verificação
-falhar, preserve a frase negativa do contrato e corrija somente o sinal quebrado; nunca tente
-destravar o guardião por texto equivalente ou por compactação.
+- **Claude:** termine com a frase exata **Seguro dar `/clear`.**. O dono executa `/clear`
+  manualmente; este fluxo permanece inalterado.
+- **Codex:** termine com a frase exata **Checkpoint verificado; conversa continua.**. O guardião
+  grava `checkpoint_verified` com caráter consultivo e a mesma conversa pode continuar; a
+  **compactação é sempre livre**, nativa, manual ou automática, sem obrigação de limpar a sessão. Depois de
+  `SessionStart(source=compact)`, a sessão relê a memória, o board e a thread ativa. Se a conversa
+  consumir mais 10 pontos percentuais, o próximo checkpoint é rearmado consultivamente.
+
+Nunca emita as duas frases na mesma resposta. Se uma verificação falhar, emita somente a frase
+negativa do contrato e corrija o sinal quebrado; texto equivalente não registra `checkpoint_verified`.
 
 **Com board**, rode de novo `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` e confira:
 
@@ -85,7 +91,7 @@ sem ela — em card **`[!]`** com a pergunta escrita (decisão) ou **`[?]`** com
 São os dois estados que o `/orq:quadro` mostra como espera dele. Card em `[>]` ou `[~]` cai em
 "🟡 Fazendo", que a próxima janela lê como *trabalho em curso*, não como *aguardando o dono* — a
 pendência desaparece do lugar onde ele olha. Nesse caso, mova o card ou afirme apenas que é seguro dar
-`/clear`. Fechar a janela é irreversível: o transcript vai embora, e só o disco resta.
+o handshake do host. Fechar a janela é irreversível: o transcript vai embora, e só o disco resta.
 
 **Falhou qualquer um → corrija e verifique de novo; não afirme "seguro" por cima de verificação
 falhando.** Falha que não é sua (outra janela)? Reporte-a no lugar da afirmação. O que o projeto não
@@ -93,9 +99,9 @@ tem (board, thread) não se verifica — e não bloqueia.
 
 ## 5. Confirmar — a audiência é o DONO, não o próximo assistente
 
-A instrução de retomada ("leia `memory/MEMORY.md` → thread X") é para a **próxima janela** — e ela
-**nunca lê esta tela**: o que ela lê é o `⏭️ RETOMAR AQUI` e o índice, que você acabou de escrever
-e verificar. Na tela, só o que serve ao dono.
+A instrução de retomada ("leia `memory/MEMORY.md` → thread X") protege uma **próxima janela**, caso
+ela exista; no Codex ela não obriga abandonar a conversa atual. Uma sessão compactada relê o
+`⏭️ RETOMAR AQUI` e o índice antes de continuar. Na tela, só o que serve ao dono.
 
 **Seções com título, uma por bloco, nesta ordem.** Duas são **sempre presentes** (`✅ Verificação` e
 o fecho `💡`); as outras aparecem **só quando têm conteúdo** — e `📋 Board` aparece sempre que o
@@ -125,7 +131,7 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
 
     - <parser X/Y = contagem manual · sem ⚠ · thread ⏭️>
 
-    **Seguro dar `/clear`.**
+    **<handshake exato do host: Claude ou Codex>**
 
     ---
 
@@ -141,16 +147,16 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
   de parágrafo para explicar um item? Ele não pertence ao relatório: vira card, ou já mora na thread.
 - **A seção Verificação nunca desaparece, e carrega a evidência — nunca só o ✓.** Sem os números ela é
   indistinguível de um checkpoint que não rodou nada, que é o defeito do passo 4. Ela é também a única
-  que autoriza o `/clear`: suprimi-la deixa o dono sem resposta. **Rodou o `wiki-lint` por iniciativa
+  que autoriza o handshake: suprimi-la deixa o dono sem resposta. **Rodou o `wiki-lint` por iniciativa
   própria (N1) neste checkpoint?** O achado dele entra como bullet **aqui** — é evidência de verificação,
   não seção à parte, mas **não é sinal de verificação falhada**: o N1 só lê e nunca corrige (nem o
   trivial — ver skill `orq`), então o achado nunca troca o título para `⚠️ Verificação falhou` nem
-  impede "Seguro dar `/clear`.". Projeto sem board nem thread? Ela
+  impede o handshake do host. Projeto sem board nem thread? Ela
   aparece dizendo o que **não** havia a verificar, e autoriza:
 
       ### ✅ Verificação
       - projeto sem board nem thread — nada a verificar
-      **Seguro dar `/clear`.**
+      **<handshake exato do host: Claude ou Codex>**
 
 - **Falhou um sinal?** Título vira `### ⚠️ Verificação falhou`, diga **qual** sinal e **o que corrigir**,
   e troque a linha em negrito por esta — nunca a omita, senão o dono fica sem saber onde está (o
@@ -160,10 +166,9 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
       - <qual sinal> — <o que corrigir>
       **Gravado, mas NÃO afirmo que é seguro limpar.**
 
-- **"E fechar a janela" é acréscimo condicional, não parte do template.** Só some à linha
-  `**Seguro dar /clear.**` — virando `**Seguro dar /clear e fechar a janela.**` — quando o gate do
-  passo 4 permitir (pendência em card `[!]` ou `[?]`). **Nunca** escreva a condição na tela: o dono não
-  tem como resolver "quando o passo 4 permitir".
+- **"Pode fechar a janela" é informação separada, nunca mutação do handshake.** Quando o gate do
+  passo 4 permitir (pendência em card `[!]` ou `[?]`), acrescente outra frase ou bullet depois do
+  handshake. Nunca altere a frase exata do Claude ou do Codex e nunca escreva a condição na tela.
 - **Tudo que espera o dono fica na seção ⏸️** — inclusive card aguardando validação. "Não entrou"
   é só para o que **não** depende dele. Pendência espalhada em duas seções faz ele agir na primeira e
   não ver a segunda.

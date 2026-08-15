@@ -92,7 +92,7 @@ resolva o papel e só então aplique a célula da `## Matriz de invocação`. �
 | **"quero X" · "queria acrescentar Y" · "vamos fazer/criar/mudar Z" · "seria bom se" · "dá pra" · "tem um problema em W" · "isso está errado" · "não funciona" · "não gostei" · "precisa melhorar"** | **ROTEIA PELO CICLO** — é o caso mais comum e o mais fácil de errar. Cria o card, planeja, **para no gate**. Só implementa direto se for trivial pela escala acima |
 | "pode começar" · "siga" · "siga com suas recomendações" · "pode ir" · "aprovado" · "manda ver" · "vamos seguir" · "perfeito, segue" | **AVANÇA** o que está no gate — se havia plano aguardando, é aprovação: vá para a implementação. Se não havia, o "siga" se aplica ao que você acabou de propor |
 | "onde paramos?" · "o que falta?" · "cadê o board?" · "quais as pendências?" · "o que estamos fazendo?" · "o que preciso decidir?" | **Mostra o quadro** (`/orq:quadro`): esperando-ele primeiro, depois em curso e a validar |
-| "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" · "pode limpar" · "checkpoint" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board, **verifica o board** e só então avisa que é seguro dar `/clear` — e que dá pra **fechar a janela** se a pendência ficou registrada |
+| "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" · "pode limpar" · "checkpoint" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board e verifica o board; no Codex libera a compactação nativa e a mesma conversa pode continuar, enquanto no Claude avisa que é seguro dar `/clear` |
 | "vamos planejar X" · "próxima tarefa" · "o que vem agora?" | **Loop A** (`/orq:plan-next`) — e **pare** no gate pra ele aprovar |
 | "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
@@ -124,12 +124,20 @@ plano, não desfecho. Só encerre com "ambiente ok", sem card, quando a queixa e
 sobre ferramenta instalada. **Na dúvida, ciclo**: card desnecessário custa uma linha no board;
 bug engolido por um "ambiente ok" custa o bug.
 
-**Proteção da janela de contexto:** no Codex com o guardião carregado, 55% gera pré-alerta; no
-primeiro valor observado em **60%** ou mais, pare trabalho novo e execute o checkpoint completo; em
-**70%**, aceite somente checkpoint/recuperação. Depois da frase verificada **Seguro dar `/clear`.**,
-não trabalhe mais nessa sessão: o dono executa `/clear` manualmente. O contador é discreto e pode
-saltar; o primeiro valor já acima de uma faixa adota imediatamente a faixa mais severa. Em host sem
-telemetria comprovada, preserve o fallback: sugira checkpoint + limpeza perto de ~50%.
+**Proteção da janela de contexto:** no Codex com o guardião carregado, 55% gera pré-alerta, 60%
+recomenda checkpoint durável e 70% reforça o alerta. As três faixas têm caráter **consultivo**: o guardião
+**nunca bloqueia** prompt, ferramenta, `Stop`, compactação ou o modo Goal. O contexto prioritário
+`additionalContext` manda atender o pedido atual, e checkpoint/recuperação ficam registrados para o
+próximo ponto seguro. Depois da frase verificada **Checkpoint verificado; conversa continua.**, a
+mesma conversa pode continuar e a **compactação é sempre livre**, manual ou automática. Em
+`SessionStart(source=compact)`, releia `memory/MEMORY.md`, o board e a thread ativa; se a
+compactação ocorreu antes do checkpoint verificado, registre o checkpoint de recuperação sem impedir
+o trabalho. Se a mesma conversa consumir mais 10 pontos percentuais depois de um checkpoint, reative
+o aviso de checkpoint consultivamente. O modo Goal é continuação normal do pedido e não depende de banco privado do App. No
+Claude, preserve o fluxo existente: o checkpoint termina em **Seguro dar `/clear`.** e o dono executa
+`/clear` manualmente. O contador é discreto e pode saltar; o primeiro valor já acima de uma faixa
+adota imediatamente a faixa mais severa. Em host sem telemetria comprovada, preserve o fallback:
+sugira checkpoint + limpeza perto de ~50%.
 
 **Não pergunte "quer que eu rode o comando X?"** — faça o que a intenção pede e diga o que fez.
 Peça confirmação só quando a ação for irreversível ou mudar o rumo do produto.

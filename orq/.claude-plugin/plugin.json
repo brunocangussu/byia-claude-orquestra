@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "orq",
   "displayName": "Orquestra",
-  "version": "0.22.0",
+  "version": "0.22.3",
   "description": "Desenvolvimento orientado a board com time de agentes efemeros, memoria-wiki duravel, painel de revisores e modo noturno. Interface natural: voce conversa, o Claude executa.",
   "author": {
     "name": "Bruno Canguçu"

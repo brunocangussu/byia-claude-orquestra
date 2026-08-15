@@ -85,6 +85,13 @@ O bundle `hooks/hooks.json` é parte do pacote e pode pedir revisão de confian�
 quando mudar. Confirme em `/hooks`; não trate hook apenas presente no disco como ativo. A instalação
 não edita `~/.codex/config.toml`: o backstop de 90% é opt-in e entra por proposta nominal separada.
 
+No smoke do guardião, use uma conversa nova e confirme a sequência inteira: checkpoint completo →
+estado `checkpoint_verified` → prompt seguinte permitido → `PreCompact`/`PostCompact` sem bloqueio →
+`SessionStart(source=compact)` reidratando memória, board e thread. Rode também a prova negativa do
+outro host: com ambiente somente `CLAUDE_*`, `context-guard.py` deve sair `0`, sem stdout, sem estado
+e portanto **sem efeito**. Uma release exclusiva do Codex não atualiza nem reempacota o cache do
+Claude.
+
 Reversão (mecanismo comprovado limpo — instala, confere e remove sem sobra):
 `codex plugin remove orq@orquestra` + `codex plugin marketplace remove orquestra`.
 

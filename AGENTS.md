@@ -9,7 +9,7 @@ Este repositório **é** o plugin Orquestra. Ele também **usa** o Orquestra par
 ```
 planejar → [VOCÊ APROVA] → implementar → review → docs → [VOCÊ VALIDA] → feito
    ↑                                                          │
-   └──────────────  checkpoint + /clear  ←────────────────────┘
+   └── checkpoint + compactação nativa (Codex) / /clear (Claude) ←──┘
 ```
 
 O dono **não digita comandos** — ele conversa, e você reconhece a intenção. A tabela de gatilhos está

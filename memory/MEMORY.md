@@ -4,19 +4,31 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.22.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.3 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-15 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
 
 **⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
 
-- **`T-037` em implementação isolada:** arquitetura provider-neutral reconfirmada pelo dono em
-  2026-08-15; remoção do SuperMemory ocorre na branch `feat/t037-sem-supermemory`. O próximo gate é
-  review da fonte. Bump, publicação, caches globais, alteração do Claude e push continuam proibidos.
-- **0.22.0 LOCAL — `T-043` em implementação/review:** guardião Codex empacotado em seis hooks,
-  parser/estado por sessão, faixas 55%/60%/70%, handshake “Seguro dar `/clear`” e backstop de 90%
-  documentado como opt-in. Testes e validadores locais passam; ainda faltam instalação Codex,
-  smoke externo, painel Opus 5 + Kimi K3 e gates de configuração/publicação.
+- **`T-037` em release autorizado:** arquitetura provider-neutral reconfirmada pelo dono em
+  2026-08-15; remoção do SuperMemory revisada e integrada com o commit estável `bbcc4cb` da T-043.
+  A candidata não commitada T-044/`0.22.2` permanece fora do release combinado. Próximo: publicar e
+  instalar `0.22.3` nos dois hosts, preservar caches ainda referenciados e rodar smokes novos.
+- **0.22.1 ESTÁVEL LOCAL — `T-043` integrada no release combinado:** estado v2 do guardião Codex
+  migra o
+  `clear_required` legado para `checkpoint_verified`; checkpoint libera a compactação nativa e
+  `SessionStart(source=compact)` reidrata memória/board/thread. Compactação sem checkpoint exige
+  recuperação. O ambiente somente Claude é ignorado e o fluxo Claude `/clear` permanece intacto.
+  **Decisão posterior do dono:** hooks Codex nunca bloqueiam; apenas alertam e solicitam checkpoint.
+  Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. O hotfix direto no
+  cache `0.22.0` não foi durável: em 2026-08-13 o Codex voltou a expor o SHA original bloqueante
+  `33f8f0a…`, e `plugin list` ainda mostra `0.22.0`. **Estado validado em 2026-08-13:** a fonte
+  consultiva passou em 65 testes do guardião, 14 do runner e todos os gates; recuperação sem
+  telemetria, rearme após +10 p.p. e allowlist anti-bloqueio estão cobertos. Opus 5 real
+  (`claude-opus-5`, 124,5 s) e Kimi K3 real aprovaram com ressalvas, sem bloqueadores; as ressalvas
+  acionáveis foram corrigidas. O commit `bbcc4cb` e os smokes Codex em processos novos confirmaram
+   o comportamento consultivo; Claude mantém `/clear`. A publicação e a atualização do Claude
+   acontecem agora somente dentro do release combinado autorizado da T-037.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
   sete camadas e memória legada diferenciada de projeto virgem. Runner Opus 5 comprovado em nova

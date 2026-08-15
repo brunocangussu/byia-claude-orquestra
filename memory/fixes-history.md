@@ -1,5 +1,69 @@
 # Log de mudanças — append-only
 
+## [2026-08-13] review+correção | @frente-protecao-contexto · painel real sem bloqueadores
+
+O runner comprovou `claude-opus-5` em 124,5 s com briefing de 6.367 bytes; Opus devolveu
+`APROVADO_COM_RESSALVAS`, sem bloqueadores. Kimi K3 revisou o diff completo no clone descartável
+`/tmp/orq-t043-kimi.pS81hx/repo`, executou os gates e também devolveu
+`APROVADO_COM_RESSALVAS`, sem bloqueadores (sessão
+`session_b48d9d4e-6539-4f6f-b599-275addecbcea`). As ressalvas verificáveis viraram testes/correções:
+recuperação sem `token_count`, rearme após +10 p.p., allowlist que elimina todo campo bloqueante,
+frase contratual com ponto fora do negrito, título público preciso e `__pycache__` ignorado. Resultado:
+65 testes do guardião + 14 do runner e todos os gates verdes.
+
+## [2026-08-13] checkpoint de recuperação | @frente-protecao-contexto · diff consultivo preservado
+
+Após compactação inesperada, memória, board, thread e Git foram recarregados no worktree
+`feat/t043-compactacao-reidratada`. O board não foi movido. Foram encontrados oito arquivos
+modificados e ainda não commitados (`AGENTS.md`, `CLAUDE.md`, `README.md`, arquitetura, comando de
+checkpoint, guardião, testes e skill) com a implementação Codex consultiva. O diff foi preservado
+sem assumir autoria; `git diff --check` passou. Próximo passo: validar mecanicamente esse estado,
+confirmar isolamento do fluxo Claude, obter parecer Opus 5 válido e só então integrar/instalar.
+
+## [2026-08-13] checkpoint | @frente-protecao-contexto · cache hotfix revertido pelo Codex
+
+No checkpoint, `codex plugin list` ainda mostrou `orq@orquestra 0.22.0`, e o script ativo voltou ao
+SHA-256 original bloqueante `33f8f0a65381d7b1fbf287c6219462b44c238b8e14ce6d7e99bcc417e9b27551`.
+Logo, editar diretamente o cache não é solução durável: o Codex o restaura/reinstala. A correção
+consultiva precisa entrar na fonte, passar pelo painel e ser instalada como `0.22.1`. Main permanece
+11 commits à frente do remoto; worktree T-043 estava limpo antes deste checkpoint.
+
+## [2026-08-11] hotfix local | @frente-protecao-contexto · sessões Codex desbloqueadas
+
+O script do cache `orq/0.22.0` ganhou uma salvaguarda final que converte todo `decision=block` em
+aviso consultivo, alcançando as sessões abertas em New ByIA e Bruno Vascular. O original foi salvo
+como `context-guard.py.bak-nonblocking-20260811` e permanece restaurável. `py_compile` e três smokes
+de bloqueio passaram sem `decision=block`. Depois, a saída textual do hook também passou a remover
+instruções legadas de `/clear`, e `SKILL.md`/`checkpoint.md` do cache foram alinhados ao contrato
+consultivo, com backups próprios. A fonte `0.22.1` ainda precisa incorporar a mesma regra.
+
+O primeiro hotfix ainda deixava o modelo preso ao contrato já carregado porque usava somente
+`systemMessage`. O entrypoint passou então a injetar uma regra prioritária consultiva em todo
+`UserPromptSubmit`. O smoke realista em 80% com `clear_required` passou como
+`LIVE_PRIORITY_OVERRIDE=PASS`: continuação explícita, sem decisão de bloqueio nem limpeza manual.
+
+## [2026-08-10] decisão | @frente-protecao-contexto · Codex sem hooks bloqueantes
+
+O dono decidiu que o Orquestra no Codex apenas alerta e executa checkpoint; nenhum hook pode bloquear
+prompt, ferramenta, `Stop` ou compactação. Depois do checkpoint, continuar, abrir conversa/task nova
+ou aguardar compactação são escolhas válidas. O Claude preserva o fluxo `/clear`. A implementação
+deve incluir hotfix recuperável do cache `0.22.0` para liberar sessões já abertas.
+
+## [2026-08-10] review | @frente-protecao-contexto · Kimi aprova e Opus expira
+
+Kimi K3 revisou a candidata `eeb2899` em clone descartável, saiu `0` e devolveu
+`APROVADO_COM_RESSALVAS`, sem bloqueadores. Reproduziu que o estado de recuperação é ignorado quando
+o transcript pós-compactação ainda não tem telemetria e apontou risco de checkpoint obsoleto após
+trabalho novo. O runner iniciou Opus 5 com briefing de 15.280 bytes, mas terminou em `OPUS_TIMEOUT`
+após 240 s; não há parecer Opus válido e não houve retry automático.
+
+## [2026-08-10] fix | @frente-protecao-contexto · Codex compacta sem deadlock pós-checkpoint
+
+A candidata `0.22.1` troca o estado Codex pós-checkpoint por `checkpoint_verified`, libera a
+compactação manual/automática e reidrata memória, board e thread em `SessionStart(source=compact)`.
+Estado `clear_required` da `0.22.0` migra sem bloqueio; compactação antecipada exige recuperação.
+Ambiente somente `CLAUDE_*` fica sem efeito, preservando o contrato Claude com `/clear` manual.
+
 ## [2026-08-10] instalação local | T-043 · 0.22.0 ativa no Codex
 
 A `0.22.0` foi integrada por fast-forward em `main`, reinstalada pelo marketplace local e ficou

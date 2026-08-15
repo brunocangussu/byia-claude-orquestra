@@ -249,7 +249,7 @@ publicar, atualizar cache global nem push.
 - Consumes: review aprovado, ordem de release compatível com `T-043` e autorização de publicação.
 - Produces: mesma versão instalada em Codex e Claude, sem referências globais ativas.
 
-- [ ] **Step 1: Parar no gate de release**
+- [x] **Step 1: Parar no gate de release**
 
 Apresentar ao dono: resultado dos 63 testes, validação do plugin, lint, review, diff e colisões de
 versão. Não escolher versão nem publicar antes da resposta.

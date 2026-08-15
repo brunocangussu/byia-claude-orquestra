@@ -26,12 +26,16 @@ except ImportError:  # pragma: no cover - fallback para Windows
 DEFAULT_TAIL_BYTES = 4 * 1024 * 1024
 MAX_TAIL_BYTES = 32 * 1024 * 1024
 STATE_LOCK_WAIT_SECONDS = 0.75
+STATE_VERSION = 2
+CHECKPOINT_REARM_DELTA = 10.0
 STATE_KEYS = (
+    "state_version",
     "phase",
     "pre_alert_sent",
     "checkpoint_started",
-    "clear_required",
-    "telemetry_warning_sent",
+    "checkpoint_verified",
+    "checkpoint_percent",
+    "recovery_required",
     "last_percent",
     "updated_at",
 )
@@ -135,11 +139,13 @@ def band_for(percent: float) -> str:
 
 def default_state() -> dict:
     return {
+        "state_version": STATE_VERSION,
         "phase": "normal",
         "pre_alert_sent": False,
         "checkpoint_started": False,
-        "clear_required": False,
-        "telemetry_warning_sent": False,
+        "checkpoint_verified": False,
+        "checkpoint_percent": None,
+        "recovery_required": False,
         "last_percent": None,
         "updated_at": None,
     }
@@ -257,23 +263,34 @@ def _recovered_state(warning: str) -> dict:
 
 
 def _has_valid_state_types(raw: dict) -> bool:
-    phases = {"normal", "pre_alert", "checkpoint_required", "emergency", "clear_required"}
+    legacy = "state_version" not in raw
+    if not legacy and raw.get("state_version") != STATE_VERSION:
+        return False
+    phases = {
+        "normal",
+        "pre_alert",
+        "checkpoint_required",
+        "emergency",
+        "clear_required" if legacy else "checkpoint_verified",
+        "recovery_required" if not legacy else "normal",
+    }
     if "phase" in raw and raw["phase"] not in phases:
         return False
-    for key in (
-        "pre_alert_sent",
-        "checkpoint_started",
-        "clear_required",
-        "telemetry_warning_sent",
-    ):
+    bool_keys = ["pre_alert_sent", "checkpoint_started"]
+    if legacy:
+        bool_keys.extend(["clear_required", "telemetry_warning_sent"])
+    else:
+        bool_keys.extend(["checkpoint_verified", "recovery_required"])
+    for key in bool_keys:
         if key in raw and not isinstance(raw[key], bool):
             return False
-    if "last_percent" in raw and raw["last_percent"] is not None:
-        value = raw["last_percent"]
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            return False
-        if not math.isfinite(value) or value < 0:
-            return False
+    for key in ("last_percent", "checkpoint_percent"):
+        if key in raw and raw[key] is not None:
+            value = raw[key]
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                return False
+            if not math.isfinite(value) or value < 0:
+                return False
     if "updated_at" in raw and raw["updated_at"] is not None:
         if not _is_positive_int(raw["updated_at"]):
             return False
@@ -297,6 +314,33 @@ def load_state(data_dir: Path, session_id: str) -> dict:
             "Estado do guardião inválido; foi isolado e reiniciado."
         )
     state = default_state()
+    if "state_version" not in raw:
+        checkpoint_verified = bool(raw.get("clear_required", False))
+        legacy_phase = raw.get("phase", "normal")
+        if legacy_phase == "clear_required":
+            legacy_phase = "checkpoint_required"
+        state.update(
+            {
+                "phase": (
+                    "checkpoint_verified"
+                    if checkpoint_verified
+                    else legacy_phase
+                ),
+                "pre_alert_sent": raw.get("pre_alert_sent", False),
+                "checkpoint_started": (
+                    False
+                    if checkpoint_verified
+                    else raw.get("checkpoint_started", False)
+                ),
+                "checkpoint_verified": checkpoint_verified,
+                "checkpoint_percent": (
+                    raw.get("last_percent") if checkpoint_verified else None
+                ),
+                "last_percent": raw.get("last_percent"),
+                "updated_at": raw.get("updated_at"),
+            }
+        )
+        return state
     state.update({key: raw[key] for key in STATE_KEYS if key in raw})
     return state
 
@@ -341,8 +385,22 @@ def _persist_response(
     saved = save_state(data_dir, session_id, state)
     if saved:
         _finish_pending_reset(data_dir, session_id)
+    source = dict(response or {})
+    result: dict = {}
+    system_message = source.get("systemMessage")
+    if isinstance(system_message, str) and system_message:
+        result["systemMessage"] = system_message
+    hook_output = source.get("hookSpecificOutput")
+    if isinstance(hook_output, dict):
+        clean_hook_output = {
+            key: hook_output[key]
+            for key in ("hookEventName", "additionalContext")
+            if isinstance(hook_output.get(key), str)
+        }
+        if clean_hook_output:
+            result["hookSpecificOutput"] = clean_hook_output
     if saved and not state_warning:
-        return response
+        return result or None
     warnings: list[str] = []
     if isinstance(state_warning, str):
         warnings.append(f"Orquestra: {state_warning}")
@@ -351,9 +409,6 @@ def _persist_response(
             "Orquestra: telemetria de contexto indisponível; o hook falhou aberto e não "
             "bloqueará esta ação."
         )
-    result = dict(response or {})
-    result.pop("decision", None)
-    result.pop("reason", None)
     previous = result.get("systemMessage")
     warning = " ".join(warnings)
     result["systemMessage"] = f"{previous} {warning}" if previous else warning
@@ -367,6 +422,17 @@ def _additional_context(event_name: str, text: str) -> dict:
             "additionalContext": text,
         }
     }
+
+
+def _continuation_context(event_name: str, percent: float, advice: str) -> dict:
+    return _additional_context(
+        event_name,
+        (
+            "Atenda o pedido atual e mantenha a mesma conversa, inclusive no modo Goal. "
+            "Não abandone nem interrompa a solicitação. "
+            f"Contexto em {percent:.1f}%. {advice}"
+        ),
+    )
 
 
 def _normalize_text(value: object) -> str:
@@ -391,17 +457,15 @@ def _is_checkpoint_intent(prompt: object) -> bool:
     )
 
 
-def _has_safe_clear_phrase(message: object) -> bool:
+def _has_verified_checkpoint_phrase(message: object) -> bool:
     if not isinstance(message, str):
         return False
-    return (
-        re.search(
-            r"^\s*(?:\*\*)?seguro dar\s+[`\"']?/clear[`\"']?\s*\.\s*(?:\*\*)?\s*$",
-            message,
-            re.I | re.M,
-        )
-        is not None
+    patterns = (
+        r"^\s*(?:\*\*)?checkpoint verificado;\s*conversa continua(?:\.\s*(?:\*\*)?|(?:\*\*)?\s*\.)\s*$",
+        r"^\s*(?:\*\*)?checkpoint verificado;\s*compactação liberada\.\s*(?:\*\*)?\s*$",
+        r"^\s*(?:\*\*)?seguro dar\s+[`\"']?/clear[`\"']?\s*\.\s*(?:\*\*)?\s*$",
     )
+    return any(re.search(pattern, message, re.I | re.M) is not None for pattern in patterns)
 
 
 def _has_failed_checkpoint_phrase(message: object) -> bool:
@@ -409,7 +473,12 @@ def _has_failed_checkpoint_phrase(message: object) -> bool:
     return "nao afirmo que e seguro limpar" in normalized
 
 
-def _session_context(event_name: str, source: object) -> dict | None:
+def _session_context(
+    event_name: str,
+    source: object,
+    *,
+    checkpoint_verified: bool = False,
+) -> dict | None:
     if source == "clear":
         return _additional_context(
             event_name,
@@ -417,10 +486,18 @@ def _session_context(event_name: str, source: object) -> dict | None:
             "memory/wiki/KANBAN.md e a thread ativa; confirme o contexto carregado.",
         )
     if source == "compact":
+        if checkpoint_verified:
+            return _additional_context(
+                event_name,
+                "Compactação concluída depois de checkpoint verificado. Antes de continuar, "
+                "releia memory/MEMORY.md, memory/wiki/KANBAN.md e a thread ativa; confirme "
+                "o contexto carregado.",
+            )
         return _additional_context(
             event_name,
-            "Houve compactação em vez do fluxo checkpoint → /clear. Recarregue board/wiki/memória "
-            "e execute um checkpoint de recuperação antes de iniciar trabalho novo.",
+            "Houve compactação sem checkpoint verificado. Releia memory/MEMORY.md, "
+            "memory/wiki/KANBAN.md e a thread ativa; mantenha o pedido atual e registre um "
+            "checkpoint de recuperação no próximo ponto seguro.",
         )
     return None
 
@@ -433,7 +510,7 @@ def _plugin_env(env: Mapping[str, str], name: str) -> str | None:
 def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
     """Converte um evento Codex numa decisão curta de hook, sempre fail-open."""
 
-    if not isinstance(event, dict) or _plugin_env(env, "PLUGIN_ROOT") is None:
+    if not isinstance(event, dict) or not env.get("PLUGIN_ROOT"):
         return None
     event_name = event.get("hook_event_name")
     if not isinstance(event_name, str):
@@ -456,20 +533,28 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
             and isinstance(session_id, str)
             and session_id
             and isinstance(plugin_data, str)
-            and load_state(Path(plugin_data), session_id).get("clear_required")
         ):
-            return _additional_context(
-                event_name,
-                "Checkpoint já verificado antes da compactação. Não inicie recuperação nem "
-                "trabalho novo; execute /clear manualmente.",
+            data_dir = Path(plugin_data)
+            previous = load_state(data_dir, session_id)
+            checkpoint_verified = bool(previous.get("checkpoint_verified"))
+            next_state = default_state()
+            if not checkpoint_verified:
+                next_state["phase"] = "recovery_required"
+                next_state["recovery_required"] = True
+            next_state["updated_at"] = int(time.time())
+            return _persist_response(
+                data_dir,
+                session_id,
+                next_state,
+                _session_context(
+                    event_name,
+                    source,
+                    checkpoint_verified=checkpoint_verified,
+                ),
             )
         return _session_context(event_name, source)
     if event_name in {"PreCompact", "PostCompact"}:
-        return {
-            "systemMessage": (
-                "Orquestra: compactação detectada como contingência; não substitui checkpoint + /clear."
-            )
-        }
+        return None
 
     session_id = event.get("session_id")
     transcript_path = event.get("transcript_path")
@@ -486,7 +571,8 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
         event.get("last_assistant_message")
     ):
         state["checkpoint_started"] = False
-        state["clear_required"] = False
+        state["checkpoint_verified"] = False
+        state["checkpoint_percent"] = None
         state["updated_at"] = int(time.time())
         return _persist_response(
             data_dir,
@@ -494,14 +580,19 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
             state,
             {
                 "systemMessage": (
-                    "Checkpoint não foi verificado. Corrija o sinal quebrado; uma nova tentativa "
-                    "será exigida antes de /clear."
+                    "Checkpoint não foi verificado. Corrija o sinal quebrado e registre uma nova "
+                    "tentativa no próximo ponto seguro; a conversa continua."
                 )
             },
         )
-    if event_name == "Stop" and _has_safe_clear_phrase(event.get("last_assistant_message")):
-        state["phase"] = "clear_required"
-        state["clear_required"] = True
+    if event_name == "Stop" and _has_verified_checkpoint_phrase(
+        event.get("last_assistant_message")
+    ):
+        state["phase"] = "checkpoint_verified"
+        state["checkpoint_started"] = False
+        state["checkpoint_verified"] = True
+        state["checkpoint_percent"] = state.get("last_percent")
+        state["recovery_required"] = False
         state["updated_at"] = int(time.time())
         return _persist_response(
             data_dir,
@@ -509,7 +600,7 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
             state,
             {
                 "systemMessage": (
-                    "Checkpoint verificado. Não inicie trabalho novo nesta sessão; execute /clear."
+                    "Checkpoint verificado; conversa continua."
                 )
             },
         )
@@ -521,7 +612,8 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
         and event.get("last_assistant_message")
     ):
         state["checkpoint_started"] = False
-        state["clear_required"] = False
+        state["checkpoint_verified"] = False
+        state["checkpoint_percent"] = None
         state["updated_at"] = int(time.time())
         return _persist_response(
             data_dir,
@@ -530,9 +622,50 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
             {
                 "systemMessage": (
                     "Checkpoint terminou sem a frase contratual de verificação. Corrija o sinal; "
-                    "uma nova tentativa será exigida antes de /clear."
+                    "registre uma nova tentativa no próximo ponto seguro; a conversa continua."
                 )
             },
+        )
+
+    if state.get("recovery_required") and event_name == "UserPromptSubmit":
+        if _is_checkpoint_intent(event.get("prompt")):
+            state["checkpoint_started"] = True
+            advice = (
+                "A sessão foi compactada sem checkpoint verificado; execute agora o "
+                "checkpoint de recuperação solicitado."
+            )
+        elif state.get("checkpoint_started"):
+            return _persist_response(data_dir, session_id, state, None)
+        else:
+            state["checkpoint_started"] = True
+            advice = (
+                "A sessão foi compactada sem checkpoint verificado; registre o checkpoint de "
+                "recuperação no próximo ponto seguro."
+            )
+        return _persist_response(
+            data_dir,
+            session_id,
+            state,
+            _additional_context(
+                event_name,
+                "Atenda o pedido atual e mantenha a mesma conversa, inclusive no modo Goal. "
+                f"Não abandone nem interrompa a solicitação. {advice}",
+            ),
+        )
+
+    if state.get("recovery_required") and event_name == "PostToolUse":
+        if state.get("checkpoint_started"):
+            return _persist_response(data_dir, session_id, state, None)
+        state["checkpoint_started"] = True
+        return _persist_response(
+            data_dir,
+            session_id,
+            state,
+            _additional_context(
+                event_name,
+                "Mantenha o pedido atual; registre o checkpoint de recuperação no próximo "
+                "ponto seguro.",
+            ),
         )
 
     snapshot = read_latest_usage(Path(transcript_path))
@@ -540,45 +673,36 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
         return None
     percent = snapshot.percent
     band = band_for(percent)
+    checkpoint_percent = state.get("checkpoint_percent")
+    if state.get("checkpoint_verified"):
+        if checkpoint_percent is None:
+            state["checkpoint_percent"] = round(percent, 2)
+        elif percent - checkpoint_percent >= CHECKPOINT_REARM_DELTA:
+            state["phase"] = band
+            state["checkpoint_started"] = False
+            state["checkpoint_verified"] = False
+            state["checkpoint_percent"] = None
     state["last_percent"] = round(percent, 2)
     state["updated_at"] = int(time.time())
-    if not state.get("clear_required"):
+    if not state.get("checkpoint_verified") and not state.get("recovery_required"):
         state["phase"] = band
 
     if event_name == "UserPromptSubmit":
-        if state.get("clear_required"):
-            return _persist_response(
-                data_dir,
-                session_id,
-                state,
-                {
-                    "decision": "block",
-                    "reason": "Checkpoint já verificado. Execute /clear antes de iniciar trabalho novo.",
-                },
-            )
-        if band == "emergency" and not _is_checkpoint_intent(event.get("prompt")):
-            return _persist_response(
-                data_dir,
-                session_id,
-                state,
-                {
-                    "decision": "block",
-                    "reason": (
-                        f"Contexto em {percent:.1f}%. Peça o checkpoint agora; trabalho novo está bloqueado "
-                        "até ser seguro executar /clear."
-                    ),
-                },
-            )
+        if state.get("checkpoint_verified"):
+            return _persist_response(data_dir, session_id, state, None)
         if band in {"checkpoint_required", "emergency"}:
+            if state.get("checkpoint_started"):
+                return _persist_response(data_dir, session_id, state, None)
             state["checkpoint_started"] = True
             return _persist_response(
                 data_dir,
                 session_id,
                 state,
-                _additional_context(
+                _continuation_context(
                     event_name,
-                    f"Contexto em {percent:.1f}%. Antes de atender trabalho novo, execute somente o "
-                    "checkpoint do Orquestra e finalize com a verificação para /clear.",
+                    percent,
+                    "Registre o checkpoint durável ao concluir a unidade atual e confirme a "
+                    "compactação quando estiver verificado.",
                 ),
             )
         if band == "pre_alert" and not state.get("pre_alert_sent"):
@@ -587,21 +711,28 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
                 data_dir,
                 session_id,
                 state,
-                _additional_context(
+                _continuation_context(
                     event_name,
-                    f"Contexto em {percent:.1f}%: conclua apenas a unidade atômica atual e prepare checkpoint.",
+                    percent,
+                    "Conclua a unidade atômica atual e prepare o checkpoint durável.",
                 ),
             )
 
     if event_name == "PostToolUse":
+        if state.get("checkpoint_verified"):
+            return _persist_response(data_dir, session_id, state, None)
         if band in {"checkpoint_required", "emergency"}:
+            if state.get("checkpoint_started"):
+                return _persist_response(data_dir, session_id, state, None)
+            state["checkpoint_started"] = True
             return _persist_response(
                 data_dir,
                 session_id,
                 state,
                 _additional_context(
                     event_name,
-                    f"Contexto em {percent:.1f}%. Pare antes de outra ferramenta e execute o checkpoint.",
+                    f"Contexto em {percent:.1f}%. Mantenha o pedido atual e registre o checkpoint "
+                    "no próximo ponto seguro.",
                 ),
             )
         if band == "pre_alert" and not state.get("pre_alert_sent"):
@@ -617,12 +748,23 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
             )
 
     if event_name == "Stop":
-        if state.get("clear_required"):
+        if state.get("checkpoint_verified"):
+            return _persist_response(data_dir, session_id, state, None)
+        if state.get("recovery_required"):
+            if state.get("checkpoint_started"):
+                return _persist_response(data_dir, session_id, state, None)
+            state["checkpoint_started"] = True
             return _persist_response(
                 data_dir,
                 session_id,
                 state,
-                {"systemMessage": "Checkpoint concluído; execute /clear."},
+                {
+                    "systemMessage": (
+                        "Orquestra: a sessão foi compactada sem checkpoint verificado; "
+                        "mantenha o pedido atual e registre o checkpoint de recuperação no próximo "
+                        "ponto seguro. A mesma conversa pode continuar."
+                    )
+                },
             )
         if band == "pre_alert" and not state.get("pre_alert_sent"):
             state["pre_alert_sent"] = True
@@ -637,28 +779,19 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
                 },
             )
         if band in {"checkpoint_required", "emergency"}:
-            if event.get("stop_hook_active") or state.get("checkpoint_started"):
-                return _persist_response(
-                    data_dir,
-                    session_id,
-                    state,
-                    {
-                        "systemMessage": (
-                            f"Orquestra: contexto em {percent:.1f}%; checkpoint continua obrigatório."
-                        )
-                    },
-                )
+            if state.get("checkpoint_started"):
+                return _persist_response(data_dir, session_id, state, None)
             state["checkpoint_started"] = True
             return _persist_response(
                 data_dir,
                 session_id,
                 state,
                 {
-                    "decision": "block",
-                    "reason": (
-                        f"Contexto em {percent:.1f}%. Execute agora o checkpoint completo do Orquestra; "
-                        "não faça trabalho novo e emita a frase contratual somente após verificar o board."
-                    ),
+                    "systemMessage": (
+                        f"Orquestra: contexto em {percent:.1f}%; registre o checkpoint completo "
+                        "ao concluir a unidade atual e emita a frase contratual somente após "
+                        "verificar o board. A mesma conversa pode continuar."
+                    )
                 },
             )
 
@@ -668,7 +801,7 @@ def _handle_event_unlocked(event: dict, env: Mapping[str, str]) -> dict | None:
 def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
     """Serializa a transação de estado por sessão e falha aberto se o lock não vier."""
 
-    if not isinstance(event, dict) or _plugin_env(env, "PLUGIN_ROOT") is None:
+    if not isinstance(event, dict) or not env.get("PLUGIN_ROOT"):
         return None
     event_name = event.get("hook_event_name")
     if event_name in {"PreCompact", "PostCompact"}:

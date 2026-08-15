@@ -137,13 +137,116 @@ não aceita; isso não impediu os seis hooks confiados do plugin de rodarem.
 
 ## RETOMAR AQUI
 
-T-043 voltou a PLANNING após validação reprovada no Codex App. Evidência do dono: depois de
-“Seguro dar `/clear`”, o hook bloqueou `/CLEAR`, `continue` e `allow`; como o App não expõe
-`/clear`, a conversa ficou sem saída e compactou. A documentação oficial distingue as superfícies:
-o CLI tem `/clear` e `/new`; o App cria transcript novo por **New chat** ou `Cmd+N`.
+O redesenho aprovado está implementado no worktree `feat/t043-compactacao-reidratada`:
 
-Próximo gate: o dono decide se a conversa antiga deve permanecer bloqueada e o checkpoint deve
-ensinar **New chat / `Cmd+N`** no App (recomendação), ou se o guardião deve liberar a mesma conversa
-depois do checkpoint. A correção também deve reidratar um chat novo no App e provar que hooks
-Codex-only não alteram o Claude. Publicação, push, cache global, backstop de 90% e update do Claude
-continuam fora do gate.
+- estado v2 com `checkpoint_verified` e `recovery_required`;
+- migração do `clear_required` legado sem recriar o deadlock;
+- prompt seguinte permitido após checkpoint, inclusive acima de 70%;
+- `PreCompact`/`PostCompact` nunca bloqueiam;
+- `SessionStart(source=compact)` reidrata memória, board e thread, ou exige recuperação quando a
+  compactação ocorreu antes do checkpoint;
+- ambiente somente `CLAUDE_*` sai sem stdout nem estado; o contrato Claude continua terminando em
+  `Seguro dar /clear.` e aguardando `/clear` manual.
+
+Evidência local antes do painel: 57 testes, `py_compile`, manifesto estrito, lint de coerência e
+`git diff --check` passaram.
+
+Painel da candidata `eeb2899`:
+
+- Opus 5 foi invocado de verdade pelo runner (`BRIEFING_BYTES=15280`), mas não devolveu parecer:
+  `OPUS_TIMEOUT` após 240 s. Não contar como aprovação e não repetir automaticamente.
+- Kimi K3 (`kimi-code/k3`) revisou no clone descartável `/tmp/orq-t043-kimi.Lgt8t6/repo`, exit 0,
+  sessão `session_48fe1cdc-382d-436d-b1c9-4d6b51b98870`: `APROVADO_COM_RESSALVAS`, sem
+  bloqueadores. Confirmou em runtime que `recovery_required` é ignorado quando o transcript ainda
+  não tem `token_count`; também apontou que `checkpoint_verified` pode ficar obsoleto após muito
+  trabalho novo antes da compactação. Outros riscos: startup/New chat sem reidratação explícita,
+  frase Claude aceita como compatibilidade no Codex e hooks Pre/PostCompact registrados como no-op.
+
+## Decisão do dono — guardião Codex nunca bloqueia
+
+Em 2026-08-10, o dono substituiu explicitamente o requisito de enforcement: no framework do Codex,
+nenhum hook do Orquestra pode bloquear prompt, ferramenta, `Stop` ou compactação. As faixas continuam
+observando a telemetria e solicitando o checkpoint durável; depois dele, a pessoa escolhe continuar,
+abrir outra conversa/task ou deixar a compactação nativa acontecer. O Claude mantém o contrato
+próprio com `/clear`; esta mudança é Codex-only.
+
+Esta decisão também resolve o risco de checkpoint obsoleto sem recriar deadlock: continuar é uma
+escolha consciente e o próximo alerta/checkpoint pode rearmar de modo consultivo, nunca impeditivo.
+Compactação sem checkpoint injeta recuperação, mas não bloqueia trabalho.
+
+## Hotfix das sessões abertas
+
+O cache executado pelas sessões existentes foi corrigido diretamente em
+`~/.codex/plugins/cache/orquestra/orq/0.22.0/scripts/context-guard.py`. Antes da alteração, o arquivo
+original foi preservado em `context-guard.py.bak-nonblocking-20260811` com SHA-256
+`33f8f0a65381d7b1fbf287c6219462b44c238b8e14ce6d7e99bcc417e9b27551`. A salvaguarda final remove
+`decision=block`/`reason` de qualquer ramo legado e converte o resultado em aviso consultivo.
+`py_compile` passou; smokes de `clear_required`, prompt em 72% e `Stop` em 60% saíram sem decisão de
+bloqueio. O hotfix é global para sessões que usam o cache `0.22.0`, incluindo New ByIA Project e
+Bruno Vascular; não apaga estado, transcript ou memória.
+
+Após evidência visual de que o modelo ainda insistia em `/clear`, a segunda camada também foi
+corrigida: a saída do hook agora sanitiza qualquer texto legado com `/clear`; a skill instalada diz
+explicitamente que a política Codex é consultiva mesmo acima de 70%; e `commands/checkpoint.md` foi
+atualizado para o handshake Codex de compactação liberada. Backups separados de `SKILL.md` e
+`checkpoint.md` foram criados com o sufixo `.bak-nonblocking-20260811`. `py_compile` e o teste do
+sanitizador passaram, sem `decision=block` nem `/clear` na saída Codex.
+
+A segunda tentativa visual ainda falhou porque o hotfix devolvia apenas `systemMessage`: isso remove
+o bloqueio técnico, mas não injeta uma instrução prioritária no contexto do modelo, que continuava
+obedecendo ao contrato antigo já carregado. A causa raiz foi corrigida no entrypoint do cache: todo
+`UserPromptSubmit` agora produz `hookSpecificOutput.additionalContext` mandando atender o pedido
+atual, tratar checkpoint apenas como documentação e ignorar exigências anteriores de limpeza ou
+interrupção. Um smoke com estado `clear_required`, 80% e prompt “pode continuar daqui” confirmou a
+saída prioritária, sem `decision=block` e sem instrução de limpeza (`LIVE_PRIORITY_OVERRIDE=PASS`).
+
+## Checkpoint de 2026-08-13 — deriva confirmada
+
+O hotfix direto não sobreviveu ao gerenciamento do cache: `codex plugin list` continua em `0.22.0`
+e o `context-guard.py` ativo voltou ao SHA original bloqueante
+`33f8f0a65381d7b1fbf287c6219462b44c238b8e14ce6d7e99bcc417e9b27551`. Não presumir que New ByIA
+ou Bruno Vascular estão desbloqueados. A solução válida é somente release nova instalada a partir da
+fonte; repetir edição do cache criaria o mesmo resultado temporário.
+
+⏭️ RETOMAR AQUI: atualizar especificação/plano/testes para a invariável “zero `decision=block` no
+host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado legado. Implementar
+respostas consultivas na fonte `0.22.1`, rodar GREEN + gates, obter parecer Opus 5 válido,
+reconciliar Kimi, integrar em `main`, instalar somente no Codex e confirmar nas sessões New ByIA e
+Bruno Vascular. Não fazer push, publicação, update do Claude nem alterar o backstop de 90%.
+
+## Checkpoint de recuperação pós-compactação — 2026-08-13
+
+A conversa compactou antes do fluxo intencional, então o estado foi reidratado a partir de
+`memory/MEMORY.md`, `KANBAN.md`, desta thread e do Git. O card não mudou de coluna. O worktree está
+em `d081608` e contém oito arquivos modificados, 322 inserções e 147 remoções, sem erro em
+`git diff --check`. O conteúdo do diff converge com a decisão posterior do dono: remover bloqueios
+Codex, manter alertas/checkpoints consultivos e preservar o contrato Claude separado.
+
+Essas mudanças ainda não foram validadas nesta retomada nem commitadas. Elas devem ser tratadas como
+trabalho em curso possivelmente produzido por outra janela: não sobrescrever, não descartar e não
+atribuir autoria sem evidência.
+
+⏭️ RETOMAR AQUI: validar o diff existente com testes do guardião, `py_compile`, manifesto estrito,
+lint de coerência, identidade `AGENTS.md`/`CLAUDE.md` e buscas por qualquer `decision=block` ou
+instrução `/clear` no caminho Codex. Se passar, revisar os riscos Kimi, obter parecer Opus 5 válido e
+só depois decidir integração e instalação local da `0.22.1`. Não fazer push/publicação nem alterar
+o Claude.
+
+## Validação e painel final — 2026-08-13
+
+- recuperação sem `token_count`: reproduzida RED e corrigida antes da leitura da telemetria;
+- checkpoint obsoleto: reproduzido RED e corrigido com `checkpoint_percent` e rearme consultivo após
+  +10 pontos percentuais;
+- defesa anti-bloqueio: teste RED provou que `continue:false`, `stopReason`, `permissionDecision:deny`
+  e `reason` legado escapavam; `_persist_response` agora usa allowlist estrita;
+- frase `**Checkpoint verificado; conversa continua**.`: reproduzida RED e aceita;
+- Opus 5 real: `OPUS_MODEL=claude-opus-5`, 124,5 s, 6.367 bytes,
+  `APROVADO_COM_RESSALVAS`, sem bloqueadores;
+- Kimi K3 real: sessão `session_b48d9d4e-6539-4f6f-b599-275addecbcea`, diff completo,
+  `APROVADO_COM_RESSALVAS`, sem bloqueadores;
+- gates: 65 testes do guardião, 14 do runner, `py_compile`, manifesto estrito, lint, identidade
+  AGENTS/CLAUDE, `git diff --check` e higiene de `__pycache__` passaram.
+
+⏭️ RETOMAR AQUI: criar o commit estreito de T-043 no worktree, inspecionar o `main` sujo antes de
+integrar, preservar mudanças concorrentes, instalar `0.22.1` somente no Codex e executar smokes
+reais em New ByIA e Bruno Vascular. Não fazer push/publicação nem atualizar o Claude.

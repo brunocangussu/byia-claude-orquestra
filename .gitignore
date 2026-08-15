@@ -5,3 +5,7 @@
 
 # worktrees isoladas de implementação
 .worktrees/
+
+# bytecode Python gerado por testes e validações locais
+__pycache__/
+*.py[cod]
