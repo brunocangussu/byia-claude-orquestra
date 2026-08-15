@@ -32,7 +32,7 @@ O plugin foi feito pra ser usado **conversando**. Você fala; o Claude reconhece
 | *"pode implementar"* · *"manda ver"* | implementa + revisa + documenta |
 | *"anota isso"* · *"não esquece disso"* | vira card no backlog |
 | *"revisa isso aí"* | painel de revisores (Claude + Codex + Kimi) |
-| *"lembra o que decidimos sobre X?"* | busca na memória de longo prazo |
+| *"lembra o que decidimos sobre X?"* | busca primeiro na wiki e complementa só com memória elegível do host |
 | *"vou dormir, adianta o que der"* | modo noturno |
 | *"bom dia"* | relatório do que rodou à noite |
 | *"tá lento"* · *"o que falta instalar?"* | detecta a stack que falta e instala o que você aprovar |
@@ -361,7 +361,7 @@ orq/
 ├── agents/                       o time
 ├── skills/orq/SKILL.md           a disciplina (gatilhos naturais + regras)
 ├── stack.md                      catálogo da stack complementar (lido por IA)
-└── scripts/                      helpers (lint de coerência, busca na memória, board)
+└── scripts/                      helpers (lint de coerência, guardiões, runners, board)
 ```
 
 A **skill** é onde se mexe no comportamento geral (quando agir, o que é inviolável). Os **commands**

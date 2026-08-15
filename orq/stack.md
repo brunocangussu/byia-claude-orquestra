@@ -74,6 +74,9 @@ falhar, você instalou o errado.
 Atacam a perda ao trocar de janela. **É a camada mais alinhada com o Orquestra:** a wiki `memory/`
 resolve *"o que estamos construindo"*; estas resolvem *"o que já tentamos, e por quê"*.
 
+Esta camada é opcional e **resolvida por host**. Não recomende plugin exclusivo de outro cliente e
+nunca trate memória externa como requisito para o checkpoint.
+
 ### `claude-mem` — captura a sessão e reinjeta na próxima
 
 📦 [`thedotmack/claude-mem`](https://github.com/thedotmack/claude-mem) · plugin do Claude Code
@@ -192,9 +195,11 @@ externo de memória nem arrasta a camada 3.
 
 | Perfil | Acrescenta |
 |---|---|
-| **Mínimo** (qualquer projeto) | `context-mode` + `claude-mem` |
+| **Mínimo** (qualquer host) | ferramentas compatíveis da Camada 1; nenhuma memória externa obrigatória |
+| **Claude Code, memória de conversa** | `claude-mem` (opcional; não propor em Codex/Kimi) |
 | **Repo grande** (≳50 arquivos) | `codebase-memory` e/ou Serena |
 | **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | `codex` no painel |
+
 Depois de instalar: **presuma restart** — não testado por componente para instalação de ferramenta
 nova. O `claude plugin update --help` diz "(restart required to apply)"; trate como **aviso
 conservador**, não como prova — para **skill**, esse mesmo tipo de aviso já foi desmentido 1× (a

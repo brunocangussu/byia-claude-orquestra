@@ -172,7 +172,7 @@ git diff --exit-code -- memory/fixes-history.md memory/gotchas.md memory/wiki/th
 
 Expected: exit `0`, sem diff.
 
-- [ ] **Step 5: Commitar a atualização de governança**
+- [x] **Step 5: Commitar a atualização de governança**
 
 ```bash
 git add memory/MEMORY.md memory/wiki/KANBAN.md memory/wiki/_stack.md memory/wiki/distribuicao.md memory/wiki/threads/T-037-sem-supermemory.md docs/superpowers
@@ -190,7 +190,7 @@ git commit -m "docs: record provider-neutral memory architecture"
 - Consumes: Tasks 1–3 concluídas.
 - Produces: evidência mecânica para o painel e para o gate de release.
 
-- [ ] **Step 1: Rodar todos os testes locais relevantes**
+- [x] **Step 1: Rodar todos os testes locais relevantes**
 
 Run:
 
@@ -200,7 +200,7 @@ python3 -m unittest orq.scripts.test_run_opus_reviewer orq.scripts.test_context_
 
 Expected: `Ran 63 tests` e `OK`.
 
-- [ ] **Step 2: Validar manifesto e coerência**
+- [x] **Step 2: Validar manifesto e coerência**
 
 Run:
 
@@ -212,7 +212,7 @@ python3 orq/scripts/lint-coerencia.py .
 Expected: manifesto válido. Antes do bump, o único achado tolerável é a guarda que detecta versão
 já instalada com conteúdo diferente; qualquer outro achado bloqueia o review.
 
-- [ ] **Step 3: Confirmar ausência ativa e história preservada**
+- [x] **Step 3: Confirmar ausência ativa e história preservada**
 
 Run:
 
@@ -226,9 +226,9 @@ rg -ni "Supermemory" memory/wiki/_stack.md
 Expected: o primeiro comando não retorna ocorrências; os dois `test` retornam `0`; `_stack.md`
 contém somente a entrada de “Dispensadas”.
 
-- [ ] **Step 4: Revisar diff e encaminhar ao gate**
+- [x] **Step 4: Revisar diff e encaminhar ao gate**
 
-Run: `git diff --check HEAD~2..HEAD && git status --short`
+Run: `git diff --check 008fbc9..HEAD && git status --short`
 
 Expected: sem whitespace errors e worktree limpo. Solicitar review; não fazer bump, instalar,
 publicar, atualizar cache global nem push.

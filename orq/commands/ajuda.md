@@ -19,7 +19,7 @@ Uma tabela ou lista curta, **por situação**, não por comando:
 | "revisa isso" · "valida isso" | Painel de revisores — Claude + externos ativos (`/orq:revisar`) |
 | "quem tá revisando" · "troca o modelo do planner" · "tô com pouco crédito, modo economia" | Mostra ou ajusta o elenco de LLMs — inclusive troca o **time inteiro** por contexto de crédito (`/orq:elenco`) |
 | "anota isso" · "isso vira card" | Cria o card no backlog, sem tirar você do que está fazendo — planejamento fica pra quando você pedir (aí sim entra o `/orq:plan-next`) |
-| "lembra quando a gente…" | Busca primeiro na wiki e depois na memória confiável realmente disponível no host |
+| "lembra quando a gente…" | Busca primeiro na wiki e depois só em memória confiável do host que não esteja marcada como Dispensada no projeto |
 | "tá lento" · "o que falta instalar" | Detecta a stack que falta e instala só o que você aprovar (`/orq:stack`) |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" | Diagnóstico do ferramental — plugin, escopo, PATH (`/orq:stack --verificar`) |
 | "tem um comando pra instalar o Orquestra no Codex/no Kimi?" · "quero testar o Orquestra em outras LLMs" | Instala o próprio Orquestra nos hosts alternativos, escopo de usuário (`/orq:instalar`) |

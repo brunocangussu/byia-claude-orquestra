@@ -66,9 +66,12 @@ O primeiro contrato será somente leitura:
 
 - `memory_search(query, project?, tags?, limit?)`;
 - `memory_get(id)`;
-- `project_context(project)`;
-- `memory_propose_candidate(content, provenance, scope)` grava apenas numa fila de candidatas e
-  sempre exige revisão humana antes de promoção.
+- `project_context(project)`.
+
+Um segundo contrato, posterior e explicitamente mutável, poderá oferecer
+`memory_propose_candidate(content, provenance, scope)`. Ele grava apenas numa fila de candidatas,
+exige autenticação, auditoria, limites, idempotência e revisão humana antes de qualquer promoção ao
+corpus canônico. Ele não faz parte do gateway read-only inicial.
 
 O gateway deve aplicar allowlist de diretórios, negar caminhos clínicos/privados, registrar
 proveniência e nunca devolver segredos. A instância remota recebe somente a réplica sanitizada.
@@ -109,8 +112,8 @@ checkpoint local registrar a migração e a sessão tiver sido reaberta.
 2. Paridade de release: instalar uma única versão no Codex e no Claude e limpar instruções globais
    antigas.
 3. Vault: separar a zona compartilhável da zona privada e normalizar metadados/links.
-4. Gateway: implementar MCP somente leitura sobre a zona sanitizada.
-5. Hermes: conectar leitura e fila de candidatas.
+4. Gateway: implementar MCP estritamente somente leitura sobre a zona sanitizada.
+5. Hermes: conectar a leitura; depois, em gate separado, habilitar a fila mutável de candidatas.
 6. Projetos: migrar, um por vez, os repositórios que possuem KANBAN.
 7. ChatGPT: publicar/conectar o MCP remoto conforme o plano disponível e validar permissões.
 

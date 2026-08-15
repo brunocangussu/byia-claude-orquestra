@@ -132,6 +132,8 @@ sintoma relatado for revisor mudo, ou quando o dono pedir.
 Não proponha a lista inteira. Corte pelo projeto:
 
 - **Menos de ~50 arquivos** → camada 3 (Serena / codebase-memory) não se paga. Não proponha.
+- **Incompatível com o host atual** → não proponha. Plugin exclusivo do Claude Code não entra em
+  recomendação para Codex/Kimi, e o inverso também vale.
 - **Camada 4 (revisor externo) não se filtra por tamanho** — o critério é **criticidade**. Projeto
   pequeno que mexe com dinheiro, dados de terceiros ou segurança merece painel; projeto grande e
   descartável, não.

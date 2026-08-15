@@ -1,6 +1,6 @@
 # T-037 — Tirar o Supermemory do sistema de desenvolvimento
 
-> **Frente:** @sem-supermemory · **Status:** PLANNING — aguardando gate do dono.
+> **Frente:** @sem-supermemory · **Status:** AWAITING_OWNER — gate da Fase 5.
 > Pedido verbatim (2026-08-07): *"eu queria que removesse a questão de avaliação do SuperMemory do
 > nosso projeto. SuperMemory está dando muito problema de conexão, e eu quero retirá-lo do sistema
 > de desenvolvimento."*
@@ -269,7 +269,7 @@ release (Fase 5, pelo Manager, com ok do dono).
 5. O mapeamento foi por grep case-insensitive de `supermemory|sm-search|lembrar` em `.md/.py/.json`
    — menção com grafia exótica ("super memory") ou em outro tipo de arquivo teria escapado.
 
-## ⏭️ RETOMAR AQUI
+## ⏭️ RETOMAR AQUI — SUPERADO EM 2026-08-15
 
 **Próxima ação:** levar as 4 decisões ao dono (gate `PLANNING → READY`). Aprovado o desenho, o
 implementer executa as Fases 1–3 na ordem, roda os aceites 1–6 (tolerando só o guarda de cache no
@@ -312,7 +312,7 @@ Os três cenários foram repetidos em contextos novos e read-only:
 
 Resultado: GREEN nos três comportamentos que falharam no baseline.
 
-## ⏭️ RETOMAR AQUI — 2026-08-15
+## ⏭️ RETOMAR AQUI — SUPERADO PELO CHECKPOINT ABAIXO
 
 Executar a remoção na branch `feat/t037-sem-supermemory`, repetir os três cenários, rodar os gates e
 parar antes de bump, publicação, cache global, alteração do Claude ou push.
@@ -327,7 +327,38 @@ ficou limpo e o histórico append-only permaneceu intacto.
 
 ### ⏭️ RETOMAR AQUI — checkpoint atual
 
-Solicitar review read-only do intervalo `008fbc9..df856c8` e corrigir somente achados concretos.
+Solicitar review read-only do intervalo `008fbc9..HEAD` e corrigir somente achados concretos.
 Depois do review, parar no gate do dono: **sem bump, publicação, push, alteração global, atualização
 dos caches Codex/Claude ou orientação para reabrir a thread**. A reabertura só será pedida depois de
 uma versão nova ser instalada e validada nos hosts.
+
+## Revisão — rodada 1
+
+- Revisor interno: quatro achados importantes sobre compatibilidade por host, provider dispensado,
+  separação entre gateway read-only e fila mutável, e rastreamento desatualizado.
+- Kimi K3: `APROVADO_COM_RESSALVAS`; confirmou remoção, 63 testes e gates, e encontrou resíduos de
+  prosa/estado no README, plano e thread.
+- Opus 5: chamada iniciada no modelo correto, mas sem parecer final no formato contratado; painel
+  registrado como **PARCIAL**, sem retry automático.
+
+Correções em andamento. Após aplicá-las: repetir o cenário “provider exposto, mas Dispensado”,
+rodar novamente testes, validate, lint e aceites mecânicos; então pedir re-review read-only. Release
+e alterações globais continuam proibidos.
+
+### Resultado das correções e rodada 2
+
+- O cenário “provider exposto, mas Dispensado” ficou GREEN: wiki primeiro, nenhuma consulta ou
+  sugestão do provider e declaração de cobertura limitada ao conteúdo elegível.
+- Os 63 testes passaram novamente; manifesto, lint, ausência ativa, arquivos deletados,
+  `git diff --check` e preservação do histórico ficaram verdes.
+- A rodada 2 do revisor não encontrou achado técnico restante. O único ajuste pedido foi encerrar
+  esta thread com o estado atual, feito neste bloco.
+- O painel externo continua **PARCIAL**: Kimi concluiu; Opus iniciou no modelo correto, mas não
+  entregou parecer final. Pela regra do painel, não houve retry automático.
+
+## ⏭️ RETOMAR AQUI
+
+Apresentar ao dono o resultado e pedir autorização explícita para a Fase 5: definir a nova versão,
+fazer bump/commit/push, instalar a mesma versão no Codex e no Claude, comparar os caches e remover
+as instruções globais legadas de forma recuperável. **Ainda não pedir para reabrir a thread**; isso
+só acontece depois da instalação paritária e da validação dos hosts.
