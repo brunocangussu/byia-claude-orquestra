@@ -87,25 +87,6 @@ o tom da decisão). Sem ele o `/clear` continua seguro, mas mais seco.
 
 **Detectar:** marketplace `thedotmack` registrado. **Custo:** roda um worker local.
 
-### Supermemory — fatos de longo prazo, entre projetos
-
-📦 [`supermemoryai/supermemory`](https://github.com/supermemoryai/supermemory) · MCP em
-[`supermemoryai/supermemory-mcp`](https://github.com/supermemoryai/supermemory-mcp)
-
-Memória que atravessa repositórios: decisões que valem além de um projeto ("por que abandonamos X").
-
-**Por que importa no Orquestra:** a wiki é por projeto. Quem trabalha em vários repos acaba
-redecidindo a mesma coisa em cada um.
-
-**Detectar:** MCP `api-supermemory-ai` configurado. **Custo:** **serviço externo — os dados saem da
-máquina, e exige conta e chave.** Precisa de consentimento informado, não só um "pode instalar".
-
-⚠️ **Gotcha conhecido:** a busca via MCP oficial devolve 0 resultados — o endpoint de busca ignora o
-header de escopo do projeto. A **gravação funciona**. O `/orq:lembrar` contorna via
-`orq/scripts/sm-search.py`. Se a busca vier vazia, **não é falta de dados**.
-
----
-
 ## Camada 3 — Entender o código
 
 Só valem em repositório grande. Em projeto pequeno o custo de indexar não se paga.
@@ -205,16 +186,15 @@ esperando stdin e você concluiria "quebrado" por engano.
 
 ## Perfis sugeridos
 
-**Os perfis não são cumulativos** — combine só o que se aplica. Um dono com cinco repositórios de 20
-arquivos é "mínimo + Supermemory", **não** arrasta a camada 3.
+**Os perfis não são cumulativos** — combine só o que se aplica. Um dono com cinco repositórios
+pequenos continua no perfil mínimo; quantidade de repositórios, sozinha, não justifica serviço
+externo de memória nem arrasta a camada 3.
 
 | Perfil | Acrescenta |
 |---|---|
 | **Mínimo** (qualquer projeto) | `context-mode` + `claude-mem` |
 | **Repo grande** (≳50 arquivos) | `codebase-memory` e/ou Serena |
 | **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | `codex` no painel |
-| **Multi-projeto** | Supermemory |
-
 Depois de instalar: **presuma restart** — não testado por componente para instalação de ferramenta
 nova. O `claude plugin update --help` diz "(restart required to apply)"; trate como **aviso
 conservador**, não como prova — para **skill**, esse mesmo tipo de aviso já foi desmentido 1× (a

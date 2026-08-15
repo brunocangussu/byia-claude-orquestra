@@ -33,7 +33,7 @@ disco pode ter mudado desde que você o leu.
 - **Releia `KANBAN.md`, o log e as páginas que você vai tocar — agora**, mesmo que já estejam no seu
   contexto. A cópia que você tem pode estar velha.
 - **Ao reler o board, rode** `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` **e guarde a
-  saída**: é a âncora da seção `📋 Board` do relatório final (passo 6). **Não** a chame de "antes" —
+  saída**: é a âncora da seção `📋 Board` do relatório final (passo 5). **Não** a chame de "antes" —
   ela já contém o que esta sessão moveu antes do checkpoint.
 - **Altere apenas as linhas que são suas.** Nunca reescreva o `KANBAN.md` inteiro a partir da versão
   que você leu no começo da sessão: é isso que apaga o trabalho das outras janelas.
@@ -61,11 +61,7 @@ O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁ
 - **SNAPSHOT**: se `$ARGUMENTS` estiver presente (marco), crie
   `memory/snapshot-<AAAA-MM-DD>-<rótulo>.md` com o estado exato pra retomar.
 
-## 4. Supermemory
-Se a MCP `api-supermemory-ai` existir, `addMemory` com o resumo (tema + feito + próximo passo +
-gotchas). Se falhar ou não existir, siga sem erro e avise que pulou.
-
-## 5. Verificar ANTES de afirmar "seguro limpar"
+## 4. Verificar ANTES de afirmar "seguro limpar"
 
 "Seguro dar `/clear`" é a promessa deste comando — sustente-a antes de fazê-la.
 
@@ -95,7 +91,7 @@ pendência desaparece do lugar onde ele olha. Nesse caso, mova o card ou afirme 
 falhando.** Falha que não é sua (outra janela)? Reporte-a no lugar da afirmação. O que o projeto não
 tem (board, thread) não se verifica — e não bloqueia.
 
-## 6. Confirmar — a audiência é o DONO, não o próximo assistente
+## 5. Confirmar — a audiência é o DONO, não o próximo assistente
 
 A instrução de retomada ("leia `memory/MEMORY.md` → thread X") é para a **próxima janela** — e ela
 **nunca lê esta tela**: o que ela lê é o `⏭️ RETOMAR AQUI` e o índice, que você acabou de escrever
@@ -144,7 +140,7 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
 - **Bullet de uma linha, não parágrafo.** Não há teto de linhas — há teto de **densidade**. Precisou
   de parágrafo para explicar um item? Ele não pertence ao relatório: vira card, ou já mora na thread.
 - **A seção Verificação nunca desaparece, e carrega a evidência — nunca só o ✓.** Sem os números ela é
-  indistinguível de um checkpoint que não rodou nada, que é o defeito do passo 5. Ela é também a única
+  indistinguível de um checkpoint que não rodou nada, que é o defeito do passo 4. Ela é também a única
   que autoriza o `/clear`: suprimi-la deixa o dono sem resposta. **Rodou o `wiki-lint` por iniciativa
   própria (N1) neste checkpoint?** O achado dele entra como bullet **aqui** — é evidência de verificação,
   não seção à parte, mas **não é sinal de verificação falhada**: o N1 só lê e nunca corrige (nem o
@@ -166,8 +162,8 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
 
 - **"E fechar a janela" é acréscimo condicional, não parte do template.** Só some à linha
   `**Seguro dar /clear.**` — virando `**Seguro dar /clear e fechar a janela.**` — quando o gate do
-  passo 5 permitir (pendência em card `[!]` ou `[?]`). **Nunca** escreva a condição na tela: o dono não
-  tem como resolver "quando o passo 5 permitir".
+  passo 4 permitir (pendência em card `[!]` ou `[?]`). **Nunca** escreva a condição na tela: o dono não
+  tem como resolver "quando o passo 4 permitir".
 - **Tudo que espera o dono fica na seção ⏸️** — inclusive card aguardando validação. "Não entrou"
   é só para o que **não** depende dele. Pendência espalhada em duas seções faz ele agir na primeira e
   não ver a segunda.

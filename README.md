@@ -74,7 +74,7 @@ Ele **se adapta ao projeto** — não despeja estrutura genérica:
 1. **Investiga** (agentes em paralelo): stack, domínio, convenções, o que quebra o deploy, docs que
    já existem, TODO/FIXME espalhados, testes quebrados.
 2. **Detecta o ferramental real**: MCPs conectados, se o repo já está indexado para busca semântica,
-   se há claude-mem / context-mode / Supermemory.
+   se há claude-mem / context-mode.
 3. **Decide o time sob medida** — *"tem 90 migrations e RLS → vale um agente de dados"*. Se o projeto
    já tem agentes bons, **reaproveita** em vez de duplicar.
 4. **Propõe e espera** sua aprovação. Nada é escrito antes.
@@ -94,7 +94,7 @@ exatamente isso. Elas não são requisito; são o que separa "funciona" de "rend
 | Camada | Ferramentas | O que muda |
 |---|---|---|
 | **Economia de contexto** | [`context-mode`](https://github.com/mksglu/context-mode) · [`rtk`](https://github.com/rtk-ai/rtk) | um `npm test` de 4.000 linhas entra como as 12 que interessam |
-| **Memória entre sessões** | [`claude-mem`](https://github.com/thedotmack/claude-mem) · [Supermemory](https://github.com/supermemoryai/supermemory) | é o que torna `checkpoint` + `/clear` seguro em vez de `/compact` encadeado |
+| **Memória entre sessões** | [`claude-mem`](https://github.com/thedotmack/claude-mem) | complementa a wiki ao reinjetar contexto de conversa; `checkpoint` continua canônico e independente dela |
 | **Entender o código** | [`codebase-memory`](https://github.com/DeusData/codebase-memory-mcp) · [Serena](https://github.com/oraios/serena) | só valem em repo grande — ver a comparação abaixo |
 | **Revisão independente** | [`codex`](https://github.com/openai/codex) · [`kimi`](https://github.com/MoonshotAI/kimi-code) | fornecedores diferentes erram de forma menos correlacionada |
 
@@ -140,7 +140,6 @@ atuais e mostra a você o que pretende rodar antes de rodar.
 | `/orq:quadro` | Mostra o board e o progresso |
 | `/orq:checkpoint` | Fecha o bloco de trabalho na memória (antes do `/clear`) |
 | `/orq:wiki-lint` | Health-check da wiki: contradições, órfãs, afirmações vencidas |
-| `/orq:lembrar` | Busca na memória de longo prazo (Supermemory) |
 | `/orq:dormir` | Modo noturno — adianta planejamento |
 | `/orq:acordar` | Relatório do modo noturno |
 | `/orq:ajuda` | Cardápio por situação — o que dizer pra cada coisa acontecer |

@@ -98,7 +98,7 @@ resolva o papel e só então aplique a célula da `## Matriz de invocação`. �
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
 | "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Painel de revisores** (`/orq:revisar`) — o revisor interno + os externos **ativos no `_elenco.md`**, em paralelo, achados reconciliados |
 | "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" · "tô com pouco crédito" · "acabando os créditos" · "final do ciclo semanal" · "modo economia" · e qualquer pedido de sair do perfil ou voltar ao time normal | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel; frase de contexto de crédito troca o **time inteiro** pelo perfil nomeado (`perfil economia` / `perfil padrao`), anunciando o que muda, **o que se perde** e **como reverter** — sem depender de uma frase fixa de volta, que ele pede naturalmente quando o crédito voltar |
-| "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória** (`/orq:lembrar`) + cruza com a wiki |
+| "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória disponível**: wiki do projeto primeiro; depois, somente se o host expuser uma busca de memória confiável, consulte-a. Se não houver, declare que a cobertura ficou limitada à wiki |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" — queixa sobre o **ferramental** (plugin, revisor, statusline, MCP, PATH), nunca sobre o que o produto faz | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado (versão **e** conteúdo), escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
 | "quais as possibilidades" · "o que dá pra fazer" | **Cardápio por situação** (`/orq:ajuda`) — frases naturais em primeiro plano, comando entre parênteses. Nunca ensine o dono a digitar comando como resposta |
@@ -310,9 +310,8 @@ responder "como isso funciona?" volta a exigir arqueologia.
 
 1. **Código atual** → busca semântica (Serena / codebase-memory) antes de `Read` de arquivo inteiro.
 2. **Saída grande** (logs, testes, git) → context-mode, pra não entupir a janela.
-3. **Contexto de sessões passadas** → claude-mem (automático) + a wiki.
-4. **Decisão antiga** → memória de longo prazo (Supermemory), se configurada.
-5. **Estado real** (banco, deploy) → MCP do serviço, sempre leitura primeiro.
+3. **Contexto de sessões passadas e decisão antiga** → wiki do projeto + memória local/confiável realmente disponível no host.
+4. **Estado real** (banco, deploy) → MCP do serviço, sempre leitura primeiro.
 
 **Nenhuma delas é dependência** — o Orquestra funciona sozinho. Se alguma faltar e fizer diferença
 *neste* projeto, o catálogo com ganho, custo e **o repositório oficial** está em `stack.md` (raiz do
