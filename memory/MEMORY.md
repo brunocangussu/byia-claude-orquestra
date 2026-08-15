@@ -3,34 +3,29 @@
 > **Leia esta página primeiro ao retomar.** Cada linha diz onde a verdade mora.
 > Contexto é descartável; isto aqui não é.
 
-**Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
+**Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
 **Versão:** 0.22.3 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-15 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
-## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
+## 🟡 Trabalho atual (2026-08-15) — @frente-paridade-codex
 
-**⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
+**⚡ ESTADO EM 2026-08-15 — leia isto primeiro:**
 
-- **`T-037` em release autorizado:** arquitetura provider-neutral reconfirmada pelo dono em
-  2026-08-15; remoção do SuperMemory revisada e integrada com o commit estável `bbcc4cb` da T-043.
-  A candidata não commitada T-044/`0.22.2` permanece fora do release combinado. A revisão final
-  encontrou prosa Codex bloqueante e gates de upgrade/documentação incompletos; as correções estão
-  verdes em 113 testes, com parecer final aprovado; aguardam commit/push. Depois: instalar `0.22.3` nos dois hosts,
-  preservar caches ainda referenciados e rodar smokes novos.
-- **0.22.1 ESTÁVEL LOCAL — `T-043` integrada no release combinado:** estado v2 do guardião Codex
-  migra o
+- **`T-037` em VALIDATE — `0.22.3` publicada e instalada:** arquitetura provider-neutral
+  reconfirmada pelo dono; remoção do SuperMemory integrada com o guardião estável da T-043 e
+  publicada em `origin/main` no commit `3bb1a24`. Codex e Claude estão na mesma `0.22.3`; Kimi recebeu
+  o mesmo snapshot. Não há SuperMemory, `sm-search` ou `/orq:lembrar` ativos no produto nem nas
+  instruções globais; os resíduos foram preservados em backup recuperável. A suíte de 113 testes,
+  gates, comparação dos caches e smokes em processos novos passaram. A candidata T-044/`0.22.2`
+  permanece fora. Falta somente a validação prática do dono após reabrir a task.
+- **0.22.3 PUBLICADA — `T-043` em VALIDATE:** estado v2 do guardião Codex migra o
   `clear_required` legado para `checkpoint_verified`; checkpoint libera a compactação nativa e
   `SessionStart(source=compact)` reidrata memória/board/thread. Compactação sem checkpoint exige
-  recuperação. O ambiente somente Claude é ignorado e o fluxo Claude `/clear` permanece intacto.
-  **Decisão posterior do dono:** hooks Codex nunca bloqueiam; apenas alertam e solicitam checkpoint.
-  Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. O hotfix direto no
-  cache `0.22.0` não foi durável: em 2026-08-13 o Codex voltou a expor o SHA original bloqueante
-  `33f8f0a…`, e `plugin list` ainda mostra `0.22.0`. **Estado validado em 2026-08-13:** a fonte
-  consultiva passou em 65 testes do guardião, 14 do runner e todos os gates; recuperação sem
-  telemetria, rearme após +10 p.p. e allowlist anti-bloqueio estão cobertos. Opus 5 real
-  (`claude-opus-5`, 124,5 s) e Kimi K3 real aprovaram com ressalvas, sem bloqueadores; as ressalvas
-  acionáveis foram corrigidas. O commit `bbcc4cb` e os smokes Codex em processos novos confirmaram
-   o comportamento consultivo; Claude mantém `/clear`. A publicação e a atualização do Claude
-   acontecem agora somente dentro do release combinado autorizado da T-037.
+  recuperação. Hooks Codex nunca bloqueiam: alertam e solicitam checkpoint, após o qual a pessoa
+  pode continuar, abrir task nova ou compactar. O ambiente somente Claude é ignorado e o fluxo
+  Claude `/clear` permanece intacto. O commit estável `bbcc4cb` foi incorporado à release publicada;
+  smoke Codex em processo novo confirmou comportamento consultivo e o smoke Claude-only confirmou
+  fail-open. A task atual ainda referenciava o cache `0.22.2`; ele foi restaurado do backup sem
+  alterar a `0.22.3`. Falta a validação prática do dono em task reaberta.
 - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
   sete camadas e memória legada diferenciada de projeto virgem. Runner Opus 5 comprovado em nova

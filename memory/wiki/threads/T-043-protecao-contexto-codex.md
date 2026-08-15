@@ -262,3 +262,13 @@ referenciados preservados; o Kimi recebe o mesmo snapshot no ciclo de instalaç�
 ⏭️ RETOMAR AQUI: corrigir os achados finais da revisão da `0.22.3`, repetir gates e obter re-review
 limpo; depois publicar, instalar nos dois hosts, comparar o cache novo, provar o fail-open no Claude
 e os smokes do guardião em processo Codex novo. A validação do dono continua sendo o gate de fecho.
+
+## Publicação e smokes finais — 2026-08-15
+
+A `0.22.3` foi publicada em `origin/main` no commit `3bb1a24`, instalada no Codex e no Claude e
+espelhada no Kimi. A suíte combinada fechou em 113 testes. Em processo Codex novo, o guardião foi
+consultivo e encontrou `memory/MEMORY.md`; em ambiente somente Claude, o hook saiu fail-open sem
+stdout nem estado e o contrato `/clear` permaneceu. Os caches novos bateram com a fonte remota.
+
+⏭️ RETOMAR AQUI — VALIDATE: o dono deve reabrir a task e confirmar o comportamento real. O warning
+global `_managedBy` é preexistente e continua em follow-up separado; não bloqueia esta validação.

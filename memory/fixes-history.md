@@ -1,5 +1,20 @@
 # Log de mudanças — append-only
 
+## [2026-08-15] release+instalação | @frente-supermemory · 0.22.3 provider-neutral nos três hosts
+
+A release combinada T-037/T-043 foi aprovada, publicada em `origin/main` no commit `3bb1a24` e
+instalada com a mesma versão no Codex e no Claude; o Kimi recebeu o mesmo snapshot de skill e
+agentes. A suíte de 113 testes, `py_compile`, manifesto estrito, lint de coerência, identidade
+AGENTS/CLAUDE, `git diff --check`, comparações de cache e smokes em processos novos passaram. A
+configuração global deixou de ativar SuperMemory, `sm-search` e `/orq:lembrar`; scripts, credencial
+não lida e caches foram preservados de forma recuperável em
+`~/.codex/backups/orquestra-0.22.3-b84bc51`.
+
+Uma task viva ainda tentou executar `0.22.2/scripts/context-guard.py` após o upgrade. O cache antigo
+foi restaurado byte a byte do backup e recebeu somente o marcador vazio `.in_use` (0644); a
+`0.22.3` permaneceu intacta. O warning global `~/.codex/hooks.json: unknown field _managedBy` é
+preexistente, não bloqueou os smokes e continua como follow-up separado.
+
 ## [2026-08-13] review+correção | @frente-protecao-contexto · painel real sem bloqueadores
 
 O runner comprovou `claude-opus-5` em 124,5 s com briefing de 6.367 bytes; Opus devolveu

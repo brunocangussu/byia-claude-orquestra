@@ -34,7 +34,7 @@ diff -rq ~/.claude/plugins/cache/orquestra/orq/$V/ ./orq/   # TEM que voltar vaz
 **não testados** — presuma restart. Novo dado atualiza uma célula da tabela do README ("Problemas
 conhecidos"), nunca vira regra binária de novo.
 
-⚠️ **O marketplace aponta pro diretório deste repo, mas isso NÃO significa que editar já vale.**
+⚠️ **Um marketplace local pode apontar para o diretório deste repo, mas isso NÃO significa que editar já vale.**
 O plugin em uso é uma **cópia em cache** (`~/.claude/plugins/cache/orquestra/orq/<versão>/`). Sem os
 dois comandos de update, a máquina continua rodando a versão antiga — foi assim que ficou presa na
 0.4.0 por sete releases, sem nenhum sinal.
@@ -118,10 +118,13 @@ portanto, parte do release, não um passo opcional depois dele.
 Codex por `codex plugin add orq@orquestra` (cache indexado por versão, mesmo gotcha do Claude);
 Kimi por **cópia** para `~/.agents/skills/orq/` + `~/.kimi-code/agents/` — snapshot **sem
 versionamento**, que envelhece em silêncio se `/orq:instalar` não for re-rodado a cada release.
-**Estado da release combinada T-037 + T-043:** a fonte autorizada é `0.22.3`, com a remoção
-provider-neutral do SuperMemory e o guardião consultivo estável de `bbcc4cb`. A candidata T-044
-não commitada/`0.22.2` fica fora. A publicação deve atualizar Codex e Claude para a mesma `0.22.3` e
-o snapshot Kimi no mesmo ciclo, preservando caches antigos ainda referenciados por tasks abertas.
+**Estado da release combinada T-037 + T-043:** a `0.22.3` foi publicada em `origin/main` no commit
+`3bb1a24e9c06e483cc987b2b34bff9a2fac6858c`, instalada no Codex e no Claude a partir do marketplace
+GitHub nominal e espelhada no Kimi no mesmo ciclo. Os caches novos bateram com a fonte remota limpa;
+os antigos ainda referenciados por tasks abertas foram preservados. A candidata T-044/`0.22.2`
+ficou fora. Esta task provou um detalhe operacional adicional: enquanto uma sessão viva ainda cita
+um cache antigo, esse diretório precisa continuar existente e marcado com `.in_use`; a restauração
+do `0.22.2` resolveu o hook sem modificar a `0.22.3`.
 
 ⚠️ **Gotcha do Codex, pago em 2026-08-08:** marketplace apontando para pasta local copia inclusive
 trabalho não commitado e não revisado. Foi assim que o Codex rodou uma "0.20.0" tirada do meio de uma

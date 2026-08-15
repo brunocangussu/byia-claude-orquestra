@@ -670,6 +670,21 @@ ou imperativo), sem acusar relato passado incidental. Os dois probes entraram na
 Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
 reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.
 
+## Checkpoint de recuperação pós-compactação — 2026-08-15, pós-instalação
+
+Contexto reidratado de `memory/MEMORY.md`, `memory/wiki/KANBAN.md` e desta thread. A release
+`0.22.3` já foi publicada em `origin/main` no commit
+`3bb1a24e9c06e483cc987b2b34bff9a2fac6858c`, instalada nos hosts Codex e Claude e espelhada para o
+Kimi. Os smokes em processos novos passaram. O erro desta task veio de uma sessão ainda presa ao
+cache `0.22.2`; esse cache foi restaurado byte a byte a partir do backup e recebeu somente o marcador
+de uso suportado, sem alterar a `0.22.3`.
+
+### ⏭️ RETOMAR AQUI — checkpoint de recuperação atual
+
+Atualizar board, memória, distribuição, histórico e as threads T-037/T-043 para o estado real de
+VALIDATE; repetir os gates, commitar e publicar apenas a documentação. Depois avisar o dono para
+reabrir esta task e carregar integralmente a `0.22.3`.
+
 ## Re-review da release — rodada 21
 
 Parecer: **REPROVADO** porque `backup do checkpoint` ainda era classificado pela presença do
@@ -785,3 +800,19 @@ dono, não como política do guardião. Três probes materiais foram cobertos em
 
 Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
 reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.
+
+## Release publicada e instalação paritária — 2026-08-15
+
+- `origin/main`: `3bb1a24e9c06e483cc987b2b34bff9a2fac6858c`;
+- Codex e Claude instalados em `0.22.3` a partir do marketplace GitHub nominal;
+- Kimi atualizado com o mesmo snapshot de skill, comandos e agentes;
+- SuperMemory, `sm-search` e `/orq:lembrar` retirados do produto e das instruções globais;
+- resíduos e caches preservados no backup `~/.codex/backups/orquestra-0.22.3-b84bc51`;
+- 113 testes e gates verdes, caches novos idênticos à fonte remota limpa e smokes frescos em
+  Codex, Claude e Kimi;
+- cache `0.22.2` restaurado somente para esta task ainda viva, sem tocar na `0.22.3`.
+
+### ⏭️ RETOMAR AQUI — VALIDATE
+
+T-037 está em VALIDATE. O único gate restante é o dono reabrir a task, usar o Orquestra normalmente
+e confirmar o comportamento prático; só essa confirmação move o card para DONE. T-044 continua fora.
