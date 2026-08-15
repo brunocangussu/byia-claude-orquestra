@@ -11,7 +11,6 @@
 | `rtk` | `0.42.4` via Homebrew (há `0.44.0` disponível) | proxy CLI, economia nas operações de git/dev |
 | `context-mode` | plugin, marketplace `mksglu/context-mode` | mantém saída grande de ferramenta fora da janela |
 | `claude-mem` | plugin, marketplace `thedotmack/claude-mem` | captura a sessão e reinjeta na seguinte |
-| Supermemory | MCP HTTP `api.supermemory.ai/mcp` | fatos de longo prazo entre projetos |
 | Serena | MCP stdio via `uvx` (repo `oraios/serena`) | LSP: símbolo exato + edição cirúrgica |
 | codebase-memory | binário em `~/.local/bin/` (~255 MB) | grafo de relações: quem chama o quê, impacto |
 | `codex` | CLI em `/usr/local/bin/codex` | GPT-5.6 Sol no painel de revisores, `--effort xhigh` |
@@ -20,6 +19,7 @@
 
 | Ferramenta | Quando | Motivo |
 |---|---|---|
+| SuperMemory | 2026-08-15 | conexão/autenticação recorrente; retirado por decisão do dono no `T-037`. Não repropor no init nem no stack |
 | indexação semântica **deste** repo | 2026-07-26 | 24 arquivos de markdown — `grep` resolve e a indexação não se paga. Vale nos projetos-alvo, não aqui |
 
 ## Bloqueadas

@@ -11,7 +11,7 @@ orq/
 ├── commands/                     os /orq:* — um arquivo por passo do fluxo
 ├── agents/                       o time — frontmatter define tools e o model padrão
 ├── skills/orq/SKILL.md           a disciplina: gatilhos naturais + regras invioláveis
-└── scripts/                      kanban-status.sh · lint-coerencia.py · sm-search.py
+└── scripts/                      kanban-status.sh · lint-coerencia.py · guardiões e runners testados
 ```
 
 **Onde mexer em quê:** comportamento geral e gatilhos → a **skill**. Um passo do fluxo → o **command**.

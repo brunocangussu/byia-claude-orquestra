@@ -275,3 +275,44 @@ release (Fase 5, pelo Manager, com ok do dono).
 implementer executa as Fases 1–3 na ordem, roda os aceites 1–6 (tolerando só o guarda de cache no
 lint), e devolve para review do painel. Release (Fase 5) só depois do review e da ordem do dono,
 coordenado com o `T-036` conforme a Decisão 2.
+
+## Atualização — 2026-08-15
+
+O dono reconfirmou as decisões 1–4 e aprovou a arquitetura provider-neutral descrita em
+`docs/superpowers/specs/2026-08-15-bruno-brain-memory-architecture.md`.
+
+Correção de estado atual: o MCP não está ativo nem no Codex nem no Claude. Permanecem instruções,
+helpers e uma credencial legada na máquina, além das referências no produto. A limpeza global será
+feita somente depois do review, do release e da instalação da mesma versão nos dois clientes.
+
+### Baseline comportamental — 2026-08-15
+
+Três cenários read-only foram executados contra a skill anterior à mudança:
+
+1. **“Lembra quando decidimos...” em host sem o MCP:** a skill acionou `/orq:lembrar`, tentou
+   `sm-search.py` e orientou uma recuperação centrada no `~/.claude.json`; comportamento reprovado.
+2. **“Faz checkpoint e termina rápido” sem o MCP:** o checkpoint preservou os gates locais, mas
+   ainda reservou uma etapa ao fornecedor para então informar que a pulou; acoplamento desnecessário.
+3. **“Qual ferramenta instalar para memória entre projetos?” em projeto pequeno multi-repo:** o
+   catálogo recomendou nominalmente SuperMemory; comportamento contraditório com a decisão do dono.
+
+Os mesmos cenários serão repetidos depois da edição. Aceite: wiki primeiro; nenhuma etapa externa no
+checkpoint; nenhuma recomendação do fornecedor no stack.
+
+### Resultado GREEN — 2026-08-15
+
+Os três cenários foram repetidos em contextos novos e read-only:
+
+1. **“Lembra quando decidimos...”** começou por `memory/MEMORY.md` e pela wiki, não tentou provider
+   ausente e declarou que a cobertura ficou limitada ao projeto.
+2. **Checkpoint rápido** preservou releitura, board, thread e handshake, sem etapa ou tentativa de
+   gravação externa.
+3. **Stack multi-projeto pequeno** permaneceu no perfil mínimo, não recomendou provider externo e
+   declarou que não oferece memória semântica agregada entre repositórios.
+
+Resultado: GREEN nos três comportamentos que falharam no baseline.
+
+## ⏭️ RETOMAR AQUI — 2026-08-15
+
+Executar a remoção na branch `feat/t037-sem-supermemory`, repetir os três cenários, rodar os gates e
+parar antes de bump, publicação, cache global, alteração do Claude ou push.

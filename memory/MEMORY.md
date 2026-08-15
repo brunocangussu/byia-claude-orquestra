@@ -10,6 +10,9 @@
 
 **⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
 
+- **`T-037` em implementação isolada:** arquitetura provider-neutral reconfirmada pelo dono em
+  2026-08-15; remoção do SuperMemory ocorre na branch `feat/t037-sem-supermemory`. O próximo gate é
+  review da fonte. Bump, publicação, caches globais, alteração do Claude e push continuam proibidos.
 - **0.22.0 LOCAL — `T-043` em implementação/review:** guardião Codex empacotado em seis hooks,
   parser/estado por sessão, faixas 55%/60%/70%, handshake “Seguro dar `/clear`” e backstop de 90%
   documentado como opt-in. Testes e validadores locais passam; ainda faltam instalação Codex,
