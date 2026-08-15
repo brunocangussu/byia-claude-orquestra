@@ -316,3 +316,18 @@ Resultado: GREEN nos três comportamentos que falharam no baseline.
 
 Executar a remoção na branch `feat/t037-sem-supermemory`, repetir os três cenários, rodar os gates e
 parar antes de bump, publicação, cache global, alteração do Claude ou push.
+
+## Checkpoint de recuperação pós-compactação — 2026-08-15
+
+Contexto reidratado a partir de `memory/MEMORY.md`, `memory/wiki/KANBAN.md` e desta thread. A
+implementação e a documentação estão commitadas em `103b4f7`, `1cfdec2` e `df856c8`; o worktree
+estava limpo antes deste checkpoint. Os três cenários comportamentais ficaram GREEN, os 63 testes
+passaram, `claude plugin validate ./orq --strict` e `lint-coerencia.py` passaram, o aceite mecânico
+ficou limpo e o histórico append-only permaneceu intacto.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Solicitar review read-only do intervalo `008fbc9..df856c8` e corrigir somente achados concretos.
+Depois do review, parar no gate do dono: **sem bump, publicação, push, alteração global, atualização
+dos caches Codex/Claude ou orientação para reabrir a thread**. A reabertura só será pedida depois de
+uma versão nova ser instalada e validada nos hosts.
