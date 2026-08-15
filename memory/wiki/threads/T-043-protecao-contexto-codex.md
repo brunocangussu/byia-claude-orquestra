@@ -247,6 +247,18 @@ o Claude.
 - gates: 65 testes do guardião, 14 do runner, `py_compile`, manifesto estrito, lint, identidade
   AGENTS/CLAUDE, `git diff --check` e higiene de `__pycache__` passaram.
 
-⏭️ RETOMAR AQUI: criar o commit estreito de T-043 no worktree, inspecionar o `main` sujo antes de
-integrar, preservar mudanças concorrentes, instalar `0.22.1` somente no Codex e executar smokes
-reais em New ByIA e Bruno Vascular. Não fazer push/publicação nem atualizar o Claude.
+⏭️ RETOMAR AQUI — SUPERADO PELA RELEASE COMBINADA T-037/T-043: criar o commit estreito de T-043 no
+worktree, inspecionar o `main` sujo antes de integrar, preservar mudanças concorrentes, instalar
+`0.22.1` somente no Codex e executar smokes reais em New ByIA e Bruno Vascular. Não fazer
+push/publicação nem atualizar o Claude.
+
+## Integração na release `0.22.3` — 2026-08-15
+
+O commit estável `bbcc4cb` foi integrado ao commit combinado `b84bc51` da T-037. O merge preservou o
+guardião consultivo e deixou integralmente fora a candidata T-044/`0.22.2` não commitada. Por decisão
+do dono, a publicação passa a ser paritária: `0.22.3` no Codex e no Claude, com caches antigos ainda
+referenciados preservados; o Kimi recebe o mesmo snapshot no ciclo de instalação.
+
+⏭️ RETOMAR AQUI: corrigir os achados finais da revisão da `0.22.3`, repetir gates e obter re-review
+limpo; depois publicar, instalar nos dois hosts, comparar o cache novo, provar o fail-open no Claude
+e os smokes do guardião em processo Codex novo. A validação do dono continua sendo o gate de fecho.

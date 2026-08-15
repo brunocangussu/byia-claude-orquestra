@@ -12,8 +12,10 @@
 
 - **`T-037` em release autorizado:** arquitetura provider-neutral reconfirmada pelo dono em
   2026-08-15; remoção do SuperMemory revisada e integrada com o commit estável `bbcc4cb` da T-043.
-  A candidata não commitada T-044/`0.22.2` permanece fora do release combinado. Próximo: publicar e
-  instalar `0.22.3` nos dois hosts, preservar caches ainda referenciados e rodar smokes novos.
+  A candidata não commitada T-044/`0.22.2` permanece fora do release combinado. A revisão final
+  encontrou prosa Codex bloqueante e gates de upgrade/documentação incompletos; as correções estão
+  verdes em 113 testes, com parecer final aprovado; aguardam commit/push. Depois: instalar `0.22.3` nos dois hosts,
+  preservar caches ainda referenciados e rodar smokes novos.
 - **0.22.1 ESTÁVEL LOCAL — `T-043` integrada no release combinado:** estado v2 do guardião Codex
   migra o
   `clear_required` legado para `checkpoint_verified`; checkpoint libera a compactação nativa e

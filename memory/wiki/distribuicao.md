@@ -118,12 +118,17 @@ portanto, parte do release, não um passo opcional depois dele.
 Codex por `codex plugin add orq@orquestra` (cache indexado por versão, mesmo gotcha do Claude);
 Kimi por **cópia** para `~/.agents/skills/orq/` + `~/.kimi-code/agents/` — snapshot **sem
 versionamento**, que envelhece em silêncio se `/orq:instalar` não for re-rodado a cada release.
-**Estado da frente T-043:** Claude permanece na `0.21.0`; a candidata corretiva `0.22.1` é exclusiva
-do Codex e só pode atualizar o cache Codex depois dos gates e do painel Opus 5 + Kimi K3. GitHub e
-publicação não fazem parte desta implementação local. O Kimi participa apenas como revisor em clone
-descartável; sua instalação como host não é atualizada.
+**Estado da release combinada T-037 + T-043:** a fonte autorizada é `0.22.3`, com a remoção
+provider-neutral do SuperMemory e o guardião consultivo estável de `bbcc4cb`. A candidata T-044
+não commitada/`0.22.2` fica fora. A publicação deve atualizar Codex e Claude para a mesma `0.22.3` e
+o snapshot Kimi no mesmo ciclo, preservando caches antigos ainda referenciados por tasks abertas.
 
-⚠️ **Gotcha do Codex, pago em 2026-08-08:** o marketplace `orquestra` dele aponta para **a pasta do projeto**, não para o GitHub. Então `codex plugin add` copia **o que estiver no disco naquele instante — inclusive trabalho não commitado e não revisado**. Foi assim que o Codex ficou rodando uma "0.20.0" tirada do meio de uma sessão, reprovada em três rodadas de painel. E como o cache é indexado **por versão**, atualizar depois **não troca nada**: mesmo rótulo, conteúdo velho. A saída é apagar `~/.codex/plugins/cache/orquestra/orq/<versão>/` e reinstalar.
+⚠️ **Gotcha do Codex, pago em 2026-08-08:** marketplace apontando para pasta local copia inclusive
+trabalho não commitado e não revisado. Foi assim que o Codex rodou uma "0.20.0" tirada do meio de uma
+sessão. Registre o marketplace no GitHub depois do push e sempre use versão nova. Não apague caches
+antigos: antes do upgrade, inventarie os caminhos ainda citados em `~/.codex/sessions/` e
+`~/.codex/archived_sessions/`, faça backup e restaure qualquer diretório referenciado que o
+instalador remova. Compare com a fonte somente o cache da versão recém-instalada.
 
 **Convenção de commit** (do `git log`): `feat(0.X.0): descrição em minúscula, sem acento no assunto`,
 travessão para o subtítulo. A versão vive em **cinco** lugares e os cinco andam juntos no mesmo
@@ -131,7 +136,8 @@ commit: `orq/.claude-plugin/plugin.json` · a seção **Status** do `README.md` 
 `.claude-plugin/marketplace.json` · a constante `expected` de
 `ContextGuardReleaseVersionTest`. **Esta página já disse "dois" e isso custou caro:** o
 `marketplace.json` ficou declarando `0.4.0` por **sete releases** sem ninguém notar — é a origem do
-card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) hoje confere os quatro.
+card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) confere os quatro pontos declarativos e a
+suíte automatizada confere também a constante `expected`.
 
 **Nunca commitar nem publicar sem o ok do dono.**
 

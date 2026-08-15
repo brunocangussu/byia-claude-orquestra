@@ -44,9 +44,10 @@ fecha em VALIDATE e o dono confirma usando o produto.
 
 ## Convenções deste projeto
 
-**Não há build nem teste automatizado.** A verificação são dois comandos, **os dois obrigatórios**:
+**Não há build.** A verificação automatizada tem três comandos, **os três obrigatórios**:
 
 ```bash
+python3 -m unittest orq.scripts.test_context_guard orq.scripts.test_run_opus_reviewer
 claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruções
 ```
@@ -66,9 +67,9 @@ extintos ao descrever bugs passados.
 
 - **Commit:** `feat(0.X.0): descrição em minúscula, sem acento no assunto` — travessão pro subtítulo.
 - **Versão:** mexeu em `orq/` → o mesmo commit bumpa `orq/.claude-plugin/plugin.json`, a seção
-  Status do README, o `memory/MEMORY.md` **e** o `.claude-plugin/marketplace.json` (são quatro). O
-  cache é indexado por versão: **editar sem bump não muda o que roda** e nada acusa — o lint tem um
-  guarda pra isso.
+  Status do README, o `memory/MEMORY.md`, o `.claude-plugin/marketplace.json` **e** a constante
+  `expected` de `ContextGuardReleaseVersionTest` (são cinco). O cache é indexado por versão:
+  **editar sem bump não muda o que roda** e nada acusa — lint e suíte têm guardas pra isso.
 - **Nunca** `git push`, publicar ou bumpar versão sem o ok do dono.
 
 ## O produto aqui são instruções, não código

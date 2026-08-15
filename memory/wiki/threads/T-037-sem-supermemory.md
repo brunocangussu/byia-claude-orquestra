@@ -1,6 +1,6 @@
 # T-037 — Tirar o Supermemory do sistema de desenvolvimento
 
-> **Frente:** @sem-supermemory · **Status:** AWAITING_OWNER — gate da Fase 5.
+> **Frente:** @sem-supermemory · **Status:** RELEASE 0.22.3 — correções finais antes do push.
 > Pedido verbatim (2026-08-07): *"eu queria que removesse a questão de avaliação do SuperMemory do
 > nosso projeto. SuperMemory está dando muito problema de conexão, e eu quero retirá-lo do sistema
 > de desenvolvimento."*
@@ -325,7 +325,7 @@ estava limpo antes deste checkpoint. Os três cenários comportamentais ficaram 
 passaram, `claude plugin validate ./orq --strict` e `lint-coerencia.py` passaram, o aceite mecânico
 ficou limpo e o histórico append-only permaneceu intacto.
 
-### ⏭️ RETOMAR AQUI — checkpoint atual
+### ⏭️ RETOMAR AQUI — SUPERADO PELAS CORREÇÕES ABAIXO
 
 Solicitar review read-only do intervalo `008fbc9..HEAD` e corrigir somente achados concretos.
 Depois do review, parar no gate do dono: **sem bump, publicação, push, alteração global, atualização
@@ -379,8 +379,409 @@ gravação/referência ativa ao SuperMemory. O teste de coordenação revelou um
 (`ContextGuardReleaseVersionTest`), atualizado e documentado. Resultado pré-commit: **79 testes
 verdes**, manifesto válido, lint verde, `py_compile` verde e ausência ativa confirmada.
 
-## ⏭️ RETOMAR AQUI
+## ⏭️ RETOMAR AQUI — SUPERADO PELO CHECKPOINT DE RECUPERAÇÃO ABAIXO
 
 Criar o commit combinado `0.22.3`, publicar em `origin/main`, instalar a mesma versão no Codex e no
 Claude sem remover caches ainda referenciados por tasks abertas, comparar os caches, quarentenar
 legados globais e rodar smokes em processos novos. Só então pedir ao dono para reabrir esta thread.
+
+## Checkpoint de recuperação pós-compactação — 2026-08-15, Fase 5
+
+Contexto reidratado a partir de `memory/MEMORY.md`, `memory/wiki/KANBAN.md` e desta thread. O commit
+combinado já existe: `b84bc51` integra T-037 com o T-043 estável `bbcc4cb`, mantém a candidata
+T-044/`0.22.2` fora e fixa a release em `0.22.3`. O backup recuperável anterior a qualquer operação
+global está em `~/.codex/backups/orquestra-0.22.3-b84bc51/`. Ainda não houve push nem atualização
+global nesta retomada.
+
+A revisão final da release encontrou contratos residuais a corrigir antes da publicação: linguagem
+bloqueante em `commands/stack.md`, ajuda sem distinção Codex/Claude, rastreamento durável atrasado,
+documentação raiz ainda falando em quatro pontos de versão e instalação sem gate explícito de
+preservação dos caches antigos. Esses achados são o escopo corrente.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA SEGUNDA RE-REVISÃO
+
+Adicionar primeiro uma regressão executável para impedir semântica bloqueante no Codex; corrigir os
+cinco grupos de achados; repetir suíte, validate, lint e aceites; obter re-review limpo. Só depois:
+push em `origin/main`, instalação paritária `0.22.3`, restauração de qualquer cache ainda referenciado,
+quarentena dos legados globais e smokes em processos novos. A frase para reabrir a thread continua
+proibida até os dois hosts carregarem e validarem a mesma versão.
+
+## Correções da revisão final — 2026-08-15
+
+- Regressão RED→GREEN adicionada ao lint: prosa viva não pode declarar checkpoint obrigatório,
+  trabalho bloqueado ou interrupção da sessão no caminho Codex.
+- `commands/stack.md` passou a refletir exatamente o guardião consultivo; `commands/ajuda.md`
+  distingue continuação/compactação no Codex de `/clear` no Claude.
+- `commands/instalar.md` ganhou preflight, backup e restauração seletiva dos caches Codex ainda
+  referenciados, sem comparar versões antigas com a release nova.
+- `AGENTS.md` e `CLAUDE.md` permanecem byte-idênticos e agora documentam a suíte automatizada e os
+  cinco pontos de versão. `distribuicao.md`, a T-043, o índice e o board refletem a `0.22.3`.
+- Evidência: **82 testes**, `py_compile`, manifesto estrito, lint, identidade dos arquivos raiz e
+  `git diff --check` verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA PRIMEIRA RE-REVISÃO
+
+Executar os aceites mecânicos e obter re-review read-only limpo sobre o diff pós-`b84bc51`. Com o
+parecer limpo, criar o commit corretivo e publicar `HEAD` em `origin/main`; só então registrar os
+marketplaces no GitHub, instalar `0.22.3` nos três hosts, preservar caches, quarentenar os legados e
+rodar smokes novos. Não orientar reabertura antes da validação paritária Codex/Claude.
+
+## Re-review da release — rodada 1
+
+Parecer: **REPROVADO** por dois cenários concretos. Uma `Directory` local ainda podia servir de fonte
+de release e fazer o `diff` validar a própria fonte errada; além disso, o lint consultivo cobria só
+arquivos escolhidos e não pegava “é obrigatório fazer checkpoint; pare o trabalho”.
+
+Correções RED→GREEN: o instalador agora proíbe `Directory` em release, exige `HEAD` limpo igual ao
+SHA remoto por `git ls-remote` e usa clone limpo desse SHA. O lint passou a varrer todo Markdown vivo,
+acompanhar seção Codex e reconhecer ordem/paráfrases de obrigação, bloqueio e interrupção. O probe
+adversarial em `commands/implement-next.md` virou teste. Resultado: **82 testes** e todos os gates
+verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA TERCEIRA RE-REVISÃO
+
+Pedir nova re-revisão read-only do diff completo pós-`b84bc51`. Se aprovada, criar o commit corretivo,
+confirmar novamente que `origin/main` é ancestral e publicar. Instalação global e frase de reabertura
+continuam condicionadas ao GitHub no mesmo SHA e aos smokes Codex/Claude da `0.22.3`.
+
+## Re-review da release — rodada 2
+
+Parecer: **REPROVADO** por dois probes adicionais. A prova de SHA usava o diretório corrente do
+projeto consumidor em vez do repo Orquestra; e as negações “não/nunca/jamais é obrigatório” podiam
+virar falso positivo no lint.
+
+Correções RED→GREEN: `ORQ_RELEASE_REPO` agora é um caminho nominal e todo `rev-parse`/`status` usa
+`git -C`; o SHA resultante continua tendo que ser idêntico ao `main` remoto. O lint passa a avaliar
+uma janela antes do match e aceita negações explícitas de obrigação/interrupção sem enfraquecer os
+casos positivos. Os dois probes entraram na suíte. Resultado: **83 testes**, manifesto, lint,
+identidade raiz, `py_compile` e `diff --check` verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA QUARTA RE-REVISÃO
+
+Pedir a terceira re-revisão read-only. Só um parecer limpo autoriza o commit corretivo e o push já
+aprovado; instalação global e pedido de reabertura continuam posteriores à igualdade de SHA e aos
+smokes novos nos dois hosts.
+
+## Re-review da release — rodada 3
+
+Parecer: **REPROVADO** por uma combinação: negação válida e ordem bloqueante posterior no mesmo
+parágrafo eram consumidas por um match guloso e descartadas juntas.
+
+Correção RED→GREEN: o lint mantém o contexto Codex do bloco, mas avalia cada sentença/cláusula
+separadamente. Assim, “checkpoint não é obrigatório em teste. Em produção, checkpoint é
+obrigatório” acusa a segunda frase; o mesmo vale para trabalho não bloqueado seguido de trabalho
+bloqueado. Os dois contraexemplos entraram na suíte. Resultado: **84 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA QUINTA RE-REVISÃO
+
+Pedir nova re-revisão read-only. Com aprovação, commit corretivo + push; sem aprovação, nenhuma
+instalação. A orientação de reabrir continua reservada ao fim dos smokes paritários.
+
+## Re-review da release — rodada 4
+
+Parecer: **REPROVADO** porque contrastes por vírgula/travessão ainda permitiam que uma negação do
+Claude ou de ambiente de teste mascarasse uma obrigação Codex posterior.
+
+Correções RED→GREEN: além de pontuação forte, o lint agora separa vírgula, travessão e conectores
+`mas`/`porém`/`contudo`/`entretanto`, mantendo estado de host entre cláusulas. Os dois probes do
+revisor e o inverso — bloqueio legítimo no Claude sem contaminar o Codex — entraram na suíte.
+Resultado: **86 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA SEXTA RE-REVISÃO
+
+Pedir re-review final read-only. Sem `APROVADO`, não commitar/pushar; com aprovação, seguir para o
+commit corretivo, publicação e instalação presa ao SHA remoto. Reabertura só depois dos smokes.
+
+## Re-review da release — rodada 5
+
+Parecer: **REPROVADO** porque uma cláusula compartilhada “Codex e Claude” herdava somente o último
+host citado e podia ocultar uma obrigação dirigida também ao Codex.
+
+Correção RED→GREEN: quando uma cláusula cita ambos os hosts, a presença do Codex prevalece para o
+gate consultivo, independentemente da ordem dos nomes. As duas ordens entraram na suíte. Resultado:
+**87 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA SÉTIMA RE-REVISÃO
+
+Pedir re-review final read-only. APROVADO → commit/push e instalação; REPROVADO → voltar ao probe.
+Não orientar reabertura antes da instalação e validação paritária.
+
+## Re-review da release — rodada 6
+
+Parecer: **REPROVADO** porque duas regras rotuladas na mesma cláusula — `Claude: ... e Codex: ...`
+ou `enquanto` — eram tratadas como sujeito compartilhado, causando falso negativo num sentido e
+falso positivo no inverso.
+
+Correção RED→GREEN: `e/enquanto` só viram separadores quando há regra rotulada por host nos dois
+lados. `Codex e Claude: ...` continua compartilhado; `Claude: ... e Codex: ...` vira duas regras
+independentes. Quatro combinações entraram na suíte. Resultado: **88 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA OITAVA RE-REVISÃO
+
+Pedir re-review final read-only. Só `APROVADO` libera commit/push; a instalação e a reabertura seguem
+condicionadas aos smokes da versão publicada.
+
+## Re-review da release — rodada 7
+
+Parecer: **REPROVADO** por dois grupos: troca de host sem `:` mascarada por negação do Claude e
+checkpoint imposto como pré-condição sem usar “obrigatório” (`deve`, `só continue`, `requisito`).
+
+Correções RED→GREEN: regras `no/para o <host>` agora são separadas mesmo sem `:`; o lint também
+rejeita modalidades e condicionais de continuidade (`deve`, `precisa`, `necessário`, `exigido`,
+`requisito`, `condição`, `só continue`, `antes de continuar`). Os quatro probes entraram na suíte.
+Resultado: **90 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA NONA RE-REVISÃO
+
+Pedir re-review final read-only. Só `APROVADO` libera o commit corretivo e a publicação autorizada;
+instalação/reabertura permanecem posteriores aos smokes.
+
+## Re-review da release — rodada 8
+
+Parecer: **REPROVADO** por três interações: vírgula destacava o sujeito `checkpoint`, voz passiva
+“só é permitido continuar” escapava e menção incidental ao Codex dentro de regra Claude mudava o
+escopo.
+
+Correções RED→GREEN: vírgula só separa regras quando há rótulos de host dos dois lados; o host passa
+a vir do rótulo inicial/heading, não de menção incidental; a negação de “obrigatório” é local; e a
+condicional passiva entrou no padrão. Os três probes entraram na suíte. Resultado: **93 testes** e
+gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA DÉCIMA RE-REVISÃO
+
+Pedir re-review final read-only. `APROVADO` libera commit/push; instalação e reabertura continuam
+dependentes da versão publicada e dos smokes.
+
+## Re-review da release — rodada 9
+
+Parecer: **REPROVADO** porque negações com auxiliares (`não deve ser`, `jamais será`) viravam falso
+positivo e duas regras do mesmo Codex ligadas por `e/enquanto` ainda podiam se mascarar.
+
+Correções RED→GREEN: a negação local reconhece somente auxiliares pertinentes antes de
+“obrigatório”; `e/enquanto` separam afirmações por padrão e só deixam de separar quando unem
+exclusivamente os nomes do sujeito compartilhado `Codex e Claude:`. Os quatro probes entraram na
+suíte. Resultado: **95 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA DÉCIMA PRIMEIRA RE-REVISÃO
+
+Pedir re-review final read-only. APROVADO → commit/push; qualquer probe material → corrigir antes.
+Instalação e reabertura seguem bloqueadas até publicação e smokes.
+
+## Re-review da release — rodada 10
+
+Parecer: **REPROVADO** porque sujeitos compartilhados com preposição dependiam da ordem e separar
+todo `e` destacava o sujeito de um predicado composto.
+
+Correções RED→GREEN: o sujeito compartilhado aceita `Para o/No <host> e o/no <host>` em qualquer
+ordem; `e/enquanto` só separam quando ambos os lados contêm afirmação de checkpoint ou quando há
+nova regra rotulada. Predicados compostos preservam o sujeito. Três probes entraram na suíte.
+Resultado: **97 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA DÉCIMA SEGUNDA RE-REVISÃO
+
+Pedir re-review final read-only. Só `APROVADO` libera o commit/push; instalação e reabertura seguem
+posteriores à publicação e aos smokes.
+
+## Re-review da release — rodada 11
+
+Parecer: **REPROVADO** porque o sujeito implícito numa segunda obrigação do mesmo Codex ainda era
+mascarado e o sujeito compartilhado com `ou` dependia da ordem.
+
+Correções RED→GREEN: cada ocorrência de “obrigatório” agora é avaliada individualmente; apenas uma
+negação auxiliar imediatamente ligada àquela ocorrência a neutraliza. O sujeito compartilhado
+aceita `e/ou` em qualquer ordem. Quatro probes entraram na suíte. Resultado: **99 testes** e gates
+verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA DÉCIMA TERCEIRA RE-REVISÃO
+
+Pedir re-review final read-only. Só `APROVADO` libera commit/push e a fase de instalação.
+
+## Re-review da release — rodada 12
+
+Parecer: **REPROVADO** porque uma obrigação de sujeito alheio (`o backup`) na mesma cláusula era
+atribuída ao checkpoint e o literal `e/ou` compartilhado dependia da ordem.
+
+Correções RED→GREEN: após conector, sujeito nominal explícito diferente de `checkpoint` encerra a
+herança; sujeito ausente mantém o checkpoint implícito. O compartilhamento aceita `e`, `ou` e
+`e/ou` em qualquer ordem. Quatro probes entraram na suíte. Resultado: **101 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — SUPERADO PELA DÉCIMA QUARTA RE-REVISÃO
+
+Pedir re-review final read-only. `APROVADO` libera commit/push; instalação e reabertura continuam
+posteriores aos smokes.
+
+## Re-review da release — rodada 13
+
+Parecer: **REPROVADO** porque gates legítimos do dono no mesmo bloco eram tratados como bloqueio de
+checkpoint e sujeitos alheios sem artigo ou em crases ainda herdavam “checkpoint”.
+
+Correções RED→GREEN: bloqueio/interrupção só são acusados quando a própria cláusula contém
+`checkpoint`; após conector, qualquer sujeito explícito fora das preposições/adverbiais conhecidas
+encerra a herança, inclusive `backup` e ``git status``. Quatro probes entraram na suíte. Resultado:
+**103 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir re-review final read-only. APROVADO → commit/push; instalação/reabertura só depois dos smokes.
+
+## Re-review da release — rodada 14
+
+Parecer: **REPROVADO** porque “mesma cláusula” ainda não provava causalidade, adjunto adverbial
+ocultava sujeito alheio e “isso” não retomava checkpoint.
+
+Correções RED→GREEN: bloqueio/interrupção exigem ligação temporal explícita com checkpoint;
+adjuntos iniciais são removidos antes de classificar sujeito; `isso/isto/essa regra/esta regra`
+preservam a retomada. O rótulo de host também é removido antes da análise de sujeito. Quatro probes
+entraram na suíte. Resultado: **106 testes** e gates verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir re-review final read-only. Só `APROVADO` libera commit/push; instalação e reabertura continuam
+depois da publicação e dos smokes.
+
+## Checkpoint de recuperação pós-compactação — 2026-08-15
+
+Contexto reidratado a partir de `memory/MEMORY.md`, `memory/wiki/KANBAN.md` e desta thread, sem
+alterar o escopo autorizado. A release continua sendo `0.22.3` = T-037 + commit estável T-043
+`bbcc4cb`; T-044 permanece excluída. O último ponto técnico é a rodada 15: dois probes foram
+adicionados para correferência por `concluí-lo` e para não confundir narrativa passada do dono com
+política ativa. A correção do linter já está no worktree, mas ainda precisa passar RED→GREEN, suíte
+completa, gates e novo parecer adversarial antes de commit/push. Instalação global e aviso para
+reabrir a task permanecem posteriores à publicação e aos smokes novos em Codex e Claude.
+
+### ⏭️ RETOMAR AQUI — checkpoint de recuperação atual
+
+Rodar os dois probes da rodada 15; depois suíte/gates completos. Registrar a rodada e solicitar
+novo re-review read-only. Somente `APROVADO` libera commit/push e instalação paritária.
+
+## Re-review da release — rodada 15
+
+Parecer: **REPROVADO** porque a correferência por `concluí-lo` rompia o vínculo causal do
+checkpoint, enquanto uma narrativa passada — `foi bloqueado pelo dono` — era confundida com uma
+política ativa do Codex.
+
+Correções RED→GREEN: o vínculo temporal reconhece `checkpoint`, `concluí-lo` e `concluir o
+checkpoint`; bloqueio declarativo exige estado ou ordem ativa (`fica`, `está`, `permanece`, `será`
+ou imperativo), sem acusar relato passado incidental. Os dois probes entraram na suíte. Resultado:
+**108 testes** e todos os gates verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
+reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.
+
+## Re-review da release — rodada 21
+
+Parecer: **REPROVADO** porque `backup do checkpoint` ainda era classificado pela presença do
+adjunto, ações coordenadas escondiam o objeto mais recente e a narrativa dependia de uma whitelist
+incompleta de verbos comunicativos.
+
+Correções RED→GREEN: sujeito e objeto agora classificam o núcleo antes de adjunto preposicional;
+coordenação encerra o primeiro objeto para que ações posteriores também sejam candidatas; a
+exceção narrativa deixou de enumerar verbos e compara diretamente a posição da relação temporal
+com o verbo de bloqueio, aceitando como causal a relação anterior ao bloqueio ou terminal. Quatro
+probes novos foram incorporados aos testes existentes. Resultado: **113 testes** e todos os gates
+verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir parecer final read-only sobre o diff vivo e o corpus representativo. `APROVADO` libera
+commit/push; instalação e aviso de reabertura continuam posteriores à publicação e aos smokes.
+
+## Parecer final da release — APROVADO
+
+O revisor adversarial aprovou o diff vivo e o corpus representativo: classe consultiva 34/34,
+suíte 113/113, lint, manifesto estrito, `git diff --check` e identidade AGENTS/CLAUDE verdes. Não
+restou contradição Codex/Claude nem violação material de fonte/SHA/caches, cinco pontos de versão,
+exclusão T-044 ou remoção do SuperMemory.
+
+### ⏭️ RETOMAR AQUI — gate de publicação aberto
+
+Repetir verificação fresca, commit das correções, confirmar `origin/main` como ancestral imutável e
+publicar `HEAD:main`. Depois instalar e validar `0.22.3` em Codex/Claude/Kimi, quarentenar resíduos
+globais do SuperMemory e executar smokes novos antes de avisar a reabertura.
+
+## Re-review da release — rodada 20
+
+Parecer: **REPROVADO** porque um adjunto temporal dentro do complemento fazia `checkpoint`
+sobrescrever o núcleo `backup`; além disso, `depois do checkpoint, informe...` era lido como duração
+do bloqueio narrado.
+
+Correções RED→GREEN: objetos de ação agora capturam somente o núcleo nominal antes de adjuntos e
+a presença literal de checkpoint só vale como fallback quando não há candidato semântico mais
+específico. Relações temporais seguidas por verbo comunicativo são classificadas como ação
+posterior, não como causa do bloqueio. Dois probes novos foram incorporados aos testes existentes.
+Resultado: **113 testes** e todos os gates verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
+reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.
+
+## Re-review da release — rodada 19
+
+Parecer: **REPROVADO** porque objetos recentes introduzidos por imperativo (`faça o backup`,
+`inicie a revisão`) ainda não substituíam o antecedente checkpoint; a exceção narrativa também
+ignorava relação temporal colocada entre `explique por que` e o verbo de bloqueio.
+
+Correções RED→GREEN: o tracker agora escolhe o candidato semântico mais recente por posição,
+incluindo sujeitos com cópula/modal e objetos de ações executáveis; cláusulas comunicativas
+incidentais continuam sem apagar o antecedente. A exceção narrativa procura causalidade temporal
+depois do verbo explicador, cobrindo tanto a posição anterior quanto posterior ao bloqueio. Três
+probes novos foram incorporados aos testes existentes. Resultado: **113 testes** e todos os gates
+verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
+reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.
+
+## Re-review da release — rodada 18
+
+Parecer: **REPROVADO** porque uma cláusula incidental apagava o antecedente checkpoint, o sujeito
+mais recente dentro da mesma cláusula não o substituía e a exceção narrativa ainda escondia uma
+causa temporal posta depois do bloqueio.
+
+Correções RED→GREEN: o antecedente persiste por cláusulas sem novo sujeito explícito; o último
+sujeito nominal com predicado vence dentro da cláusula; a exceção narrativa só neutraliza o alerta
+quando não existe relação temporal com checkpoint depois do verbo de bloqueio. Três probes novos
+foram incorporados. Resultado: **113 testes** e todos os gates verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
+reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.
+
+## Re-review da release — rodada 17
+
+Parecer: **REPROVADO** porque a exceção ampla para `bloqueado pelo dono` ocultava causalidade
+explícita do checkpoint e as elipses novas retomavam qualquer antecedente, inclusive revisão e
+backup.
+
+Correções RED→GREEN: elipse agora só retoma checkpoint da cláusula imediatamente anterior;
+`concluir` sem objeto só é correferência quando termina antes de pontuação; cláusula intermediária
+sem checkpoint quebra a retomada. A exceção do dono foi estreitada para linguagem narrativa
+explícita (`explique/descreva/registre/documente/informe por que`), mantendo detectável
+`até concluir o checkpoint, o trabalho fica bloqueado pelo dono`. Cinco probes materiais ficam
+cobertos. Resultado: **111 testes** e todos os gates verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
+reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.
+
+## Re-review da release — rodada 16
+
+Parecer: **REPROVADO** porque `até concluir` e `até fazê-lo` ainda rompiam a correferência natural
+com o checkpoint; além disso, `está bloqueado pelo dono` era confundido com bloqueio causado pelo
+checkpoint.
+
+Correções RED→GREEN: as duas retomadas elípticas passaram a integrar o vínculo causal quando o
+bloco já estabelece checkpoint; bloqueio atribuído explicitamente ao dono é tratado como gate do
+dono, não como política do guardião. Três probes materiais foram cobertos em dois testes. Resultado:
+**109 testes** e todos os gates verdes.
+
+### ⏭️ RETOMAR AQUI — checkpoint atual
+
+Pedir novo re-review final read-only. Somente `APROVADO` libera commit/push; instalação e aviso de
+reabertura continuam posteriores à publicação e aos smokes novos em Codex e Claude.

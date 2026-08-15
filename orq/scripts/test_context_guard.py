@@ -1180,6 +1180,647 @@ class ContextGuardHookLintTest(unittest.TestCase):
         self.assertEqual(lint_module.validate_hooks(self.root, self.plugin), [])
 
 
+class ContextGuardConsultiveLanguageLintTest(unittest.TestCase):
+    """Impede que a prosa distribuída volte a contradizer os hooks consultivos."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory(prefix="orq-consultive-lint-test-")
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.plugin = self.root / "orq"
+        (self.plugin / "commands").mkdir(parents=True)
+
+    def test_reports_blocking_codex_checkpoint_language(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        stack.write_text(
+            "No Codex, o checkpoint é obrigatório aos 60%. "
+            "Até concluir o checkpoint, o trabalho novo fica bloqueado.\n",
+            encoding="utf-8",
+        )
+
+        problems = lint_module.validate_codex_consultive_language(
+            self.root,
+            self.plugin,
+        )
+
+        messages = [item[2] for item in problems]
+        self.assertTrue(any("checkpoint obrigatório" in item for item in messages))
+        self.assertTrue(any("trabalho bloqueado" in item for item in messages))
+
+    def test_reports_paraphrase_in_any_live_command(self) -> None:
+        command = self.plugin / "commands" / "implement-next.md"
+        command.write_text(
+            "No Codex, é obrigatório fazer checkpoint; "
+            "pare o trabalho até concluir o checkpoint.\n",
+            encoding="utf-8",
+        )
+
+        problems = lint_module.validate_codex_consultive_language(
+            self.root,
+            self.plugin,
+        )
+
+        self.assertTrue(
+            any(item[0] == Path("orq/commands/implement-next.md") for item in problems)
+        )
+        messages = [item[2] for item in problems]
+        self.assertTrue(any("checkpoint obrigatório" in item for item in messages))
+        self.assertTrue(any("trabalho interrompido" in item for item in messages))
+
+    def test_accepts_consultive_codex_checkpoint_language(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, 60% recomenda checkpoint; o pedido atual continua e nada é bloqueado.\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(
+            lint_module.validate_codex_consultive_language(self.root, self.plugin),
+            [],
+        )
+
+    def test_accepts_explicit_negative_blocking_phrases(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, não é obrigatório fazer checkpoint; não interrompa o trabalho.\n",
+            "No Codex, nunca é obrigatório fazer checkpoint; jamais interrompa o trabalho.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_negative_clause_does_not_mask_later_blocking_clause(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        probes = (
+            (
+                "No Codex, checkpoint não é obrigatório em teste. "
+                "Em produção, checkpoint é obrigatório.\n",
+                "checkpoint obrigatório",
+            ),
+            (
+                "No Codex, o trabalho não é bloqueado em teste. "
+                "Em produção, o trabalho fica bloqueado até checkpoint.\n",
+                "trabalho bloqueado",
+            ),
+        )
+        for phrase, expected in probes:
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(any(expected in item for item in messages))
+
+    def test_contrast_and_host_switch_do_not_mask_codex_blocking_clause(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        probes = (
+            "No Codex, checkpoint não é obrigatório em teste, "
+            "mas em produção checkpoint é obrigatório.\n",
+            "Claude: checkpoint não é obrigatório — "
+            "Codex: checkpoint é obrigatório.\n",
+        )
+        for phrase in probes:
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+
+    def test_claude_blocking_contract_does_not_contaminate_codex(self) -> None:
+        (self.plugin / "commands" / "checkpoint.md").write_text(
+            "Claude: checkpoint é obrigatório antes do clear — "
+            "Codex: checkpoint não é obrigatório.\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(
+            lint_module.validate_codex_consultive_language(self.root, self.plugin),
+            [],
+        )
+
+    def test_shared_host_clause_is_codex_contract_in_any_order(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for hosts in ("Codex e Claude", "Claude e Codex"):
+            with self.subTest(hosts=hosts):
+                stack.write_text(
+                    f"{hosts}: checkpoint é obrigatório antes do clear.\n",
+                    encoding="utf-8",
+                )
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+
+    def test_labeled_host_rules_split_on_conjunction(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for connector in ("e", "enquanto"):
+            with self.subTest(connector=connector, direction="codex_positive"):
+                stack.write_text(
+                    "Claude: checkpoint não é obrigatório "
+                    f"{connector} Codex: checkpoint é obrigatório.\n",
+                    encoding="utf-8",
+                )
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+            with self.subTest(connector=connector, direction="claude_positive"):
+                stack.write_text(
+                    "Claude: checkpoint é obrigatório "
+                    f"{connector} Codex: checkpoint é apenas recomendado.\n",
+                    encoding="utf-8",
+                )
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_unpunctuated_host_switch_does_not_mask_codex_rule(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Claude checkpoint não é obrigatório e "
+            "no Codex checkpoint é obrigatório.\n",
+            encoding="utf-8",
+        )
+
+        messages = [
+            item[2]
+            for item in lint_module.validate_codex_consultive_language(
+                self.root,
+                self.plugin,
+            )
+        ]
+        self.assertTrue(any("checkpoint obrigatório" in item for item in messages))
+
+    def test_reports_checkpoint_as_precondition_to_continue(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        probes = (
+            "No Codex, deve-se fazer checkpoint antes de continuar o trabalho.\n",
+            "No Codex, só continue o trabalho depois do checkpoint.\n",
+            "No Codex, checkpoint é requisito para prosseguir o pedido.\n",
+        )
+        for phrase in probes:
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("continuidade condicionada" in item for item in messages)
+                )
+
+    def test_comma_does_not_detach_checkpoint_subject(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, checkpoint não é opcional, "
+            "é obrigatório antes de continuar o trabalho.\n",
+            encoding="utf-8",
+        )
+
+        messages = [
+            item[2]
+            for item in lint_module.validate_codex_consultive_language(
+                self.root,
+                self.plugin,
+            )
+        ]
+        self.assertTrue(any("checkpoint obrigatório" in item for item in messages))
+
+    def test_reports_passive_checkpoint_precondition(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, só é permitido continuar o trabalho depois do checkpoint.\n",
+            encoding="utf-8",
+        )
+
+        messages = [
+            item[2]
+            for item in lint_module.validate_codex_consultive_language(
+                self.root,
+                self.plugin,
+            )
+        ]
+        self.assertTrue(any("continuidade condicionada" in item for item in messages))
+
+    def test_incidental_codex_mention_keeps_claude_scope(self) -> None:
+        (self.plugin / "commands" / "checkpoint.md").write_text(
+            "Claude: checkpoint é obrigatório porque o Codex não oferece /clear.\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(
+            lint_module.validate_codex_consultive_language(self.root, self.plugin),
+            [],
+        )
+
+    def test_accepts_negation_with_auxiliary_before_mandatory(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, checkpoint não deve ser obrigatório.\n",
+            "No Codex, checkpoint jamais será obrigatório.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_same_host_conjunction_does_not_mask_later_positive(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for connector in ("e", "enquanto"):
+            with self.subTest(connector=connector):
+                stack.write_text(
+                    "No Codex, checkpoint não é obrigatório em teste "
+                    f"{connector} em produção checkpoint é obrigatório.\n",
+                    encoding="utf-8",
+                )
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+
+    def test_shared_host_subject_with_prepositions_is_codex_contract(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "Para o Claude e o Codex, checkpoint é obrigatório.\n",
+            "No Codex e no Claude, checkpoint é obrigatório.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+
+    def test_compound_predicate_keeps_checkpoint_subject(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, checkpoint é requisito de segurança "
+            "e condição para continuar o trabalho.\n",
+            encoding="utf-8",
+        )
+
+        messages = [
+            item[2]
+            for item in lint_module.validate_codex_consultive_language(
+                self.root,
+                self.plugin,
+            )
+        ]
+        self.assertTrue(any("continuidade condicionada" in item for item in messages))
+
+    def test_implicit_checkpoint_subject_does_not_mask_later_positive(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for connector in ("e", "enquanto"):
+            with self.subTest(connector=connector):
+                stack.write_text(
+                    "No Codex, checkpoint não é obrigatório em teste "
+                    f"{connector} é obrigatório em produção.\n",
+                    encoding="utf-8",
+                )
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+
+    def test_shared_host_subject_with_or_is_codex_contract(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for hosts in ("Claude ou Codex", "Codex ou Claude"):
+            with self.subTest(hosts=hosts):
+                stack.write_text(
+                    f"{hosts}: checkpoint é obrigatório.\n",
+                    encoding="utf-8",
+                )
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+
+    def test_unrelated_explicit_subject_is_not_checkpoint_obligation(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, checkpoint é recomendado e o backup é obrigatório.\n",
+            "No Codex, checkpoint não é obrigatório e o backup é obrigatório.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_shared_host_subject_with_literal_and_or_is_codex_contract(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for hosts in ("Claude e/ou Codex", "Codex e/ou Claude"):
+            with self.subTest(hosts=hosts):
+                stack.write_text(
+                    f"{hosts}: checkpoint é obrigatório.\n",
+                    encoding="utf-8",
+                )
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(
+                    any("checkpoint obrigatório" in item for item in messages)
+                )
+
+    def test_owner_gate_is_not_checkpoint_blocking(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, checkpoint é recomendado; "
+            "o pedido fica bloqueado até aprovação do dono.\n",
+            "No Codex, checkpoint é recomendado; "
+            "pare o trabalho apenas se o dono negar aprovação.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_unrelated_subject_without_article_is_not_checkpoint_obligation(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, checkpoint é recomendado e backup é obrigatório.\n",
+            "No Codex, checkpoint é recomendado e `git status` é obrigatório.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_owner_gate_in_same_clause_is_not_checkpoint_blocking(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, checkpoint é recomendado e "
+            "o pedido fica bloqueado até aprovação do dono.\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(
+            lint_module.validate_codex_consultive_language(self.root, self.plugin),
+            [],
+        )
+
+    def test_adverbial_does_not_hide_unrelated_subject(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, checkpoint é recomendado e "
+            "em produção o backup é obrigatório.\n",
+            encoding="utf-8",
+        )
+
+        self.assertEqual(
+            lint_module.validate_codex_consultive_language(self.root, self.plugin),
+            [],
+        )
+
+    def test_demonstrative_resumes_checkpoint_subject(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, checkpoint deve ser feito e isso é obrigatório.\n",
+            encoding="utf-8",
+        )
+
+        messages = [
+            item[2]
+            for item in lint_module.validate_codex_consultive_language(
+                self.root,
+                self.plugin,
+            )
+        ]
+        self.assertTrue(any("checkpoint obrigatório" in item for item in messages))
+
+    def test_checkpoint_clitic_keeps_causal_blocking_link(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        probes = (
+            (
+                "No Codex, checkpoint é recomendado; "
+                "até concluí-lo, o trabalho fica bloqueado.\n",
+                "trabalho bloqueado",
+            ),
+            (
+                "No Codex, checkpoint é recomendado; "
+                "pare o trabalho até concluí-lo.\n",
+                "trabalho interrompido",
+            ),
+        )
+        for phrase, expected in probes:
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(any(expected in item for item in messages))
+
+    def test_checkpoint_elliptical_reference_keeps_causal_blocking_link(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        probes = (
+            (
+                "No Codex, checkpoint é recomendado; "
+                "até concluir, o trabalho fica bloqueado.\n",
+                "trabalho bloqueado",
+            ),
+            (
+                "No Codex, checkpoint é recomendado; "
+                "pare o trabalho até fazê-lo.\n",
+                "trabalho interrompido",
+            ),
+        )
+        for phrase, expected in probes:
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(any(expected in item for item in messages))
+
+    def test_checkpoint_ellipsis_does_not_resume_unrelated_subject(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, checkpoint é recomendado; até concluir a revisão, "
+            "o trabalho fica bloqueado pela CI.\n",
+            "No Codex, checkpoint é recomendado; o backup é exigido; "
+            "pare o trabalho até fazê-lo.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_checkpoint_ellipsis_survives_incidental_clause(self) -> None:
+        (self.plugin / "commands" / "stack.md").write_text(
+            "No Codex, checkpoint é recomendado; avise o dono; "
+            "até concluí-lo, o trabalho fica bloqueado.\n",
+            encoding="utf-8",
+        )
+
+        messages = [
+            item[2]
+            for item in lint_module.validate_codex_consultive_language(
+                self.root,
+                self.plugin,
+            )
+        ]
+        self.assertTrue(any("trabalho bloqueado" in item for item in messages))
+
+    def test_closest_explicit_subject_replaces_checkpoint_antecedent(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, checkpoint é recomendado e o backup é exigido; "
+            "pare o trabalho até fazê-lo.\n",
+            "No Codex, checkpoint é recomendado; faça o backup; "
+            "pare o trabalho até fazê-lo.\n",
+            "No Codex, checkpoint é recomendado; inicie a revisão; "
+            "até concluir, o trabalho fica bloqueado pela CI.\n",
+            "No Codex, checkpoint é recomendado; faça o backup antes do checkpoint; "
+            "pare o trabalho até fazê-lo.\n",
+            "No Codex, checkpoint é recomendado; o backup do checkpoint é exigido; "
+            "pare o trabalho até fazê-lo.\n",
+            "No Codex, checkpoint é recomendado; faça o checkpoint e envie o backup; "
+            "pare o trabalho até fazê-lo.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+    def test_owner_attribution_does_not_hide_explicit_checkpoint_condition(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, até concluir o checkpoint, "
+            "o trabalho fica bloqueado pelo dono.\n",
+            "No Codex, explique por que o trabalho fica bloqueado pelo dono "
+            "até concluir o checkpoint.\n",
+            "No Codex, explique por que, até concluir o checkpoint, "
+            "o trabalho fica bloqueado pelo dono.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                messages = [
+                    item[2]
+                    for item in lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    )
+                ]
+                self.assertTrue(any("trabalho bloqueado" in item for item in messages))
+
+    def test_narrative_owner_block_is_not_checkpoint_policy(self) -> None:
+        stack = self.plugin / "commands" / "stack.md"
+        for phrase in (
+            "No Codex, antes do checkpoint, explique por que "
+            "o pedido foi bloqueado pelo dono.\n",
+            "No Codex, antes do checkpoint, explique por que "
+            "o pedido está bloqueado pelo dono.\n",
+            "No Codex, explique por que o pedido está bloqueado pelo dono "
+            "e, depois do checkpoint, informe a decisão.\n",
+            "No Codex, explique por que o pedido está bloqueado pelo dono "
+            "e, depois do checkpoint, apresente a decisão.\n",
+            "No Codex, explique por que o pedido está bloqueado pelo dono e, "
+            "depois do checkpoint, então informe a decisão.\n",
+        ):
+            with self.subTest(phrase=phrase):
+                stack.write_text(phrase, encoding="utf-8")
+                self.assertEqual(
+                    lint_module.validate_codex_consultive_language(
+                        self.root,
+                        self.plugin,
+                    ),
+                    [],
+                )
+
+
 class ContextGuardReleaseVersionTest(unittest.TestCase):
     def test_release_version_is_coordinated(self) -> None:
         repo_root = PLUGIN_ROOT.parent
@@ -1239,6 +1880,10 @@ class ContextGuardDocumentationContractTest(unittest.TestCase):
                 "confiança",
                 "ambiente somente `CLAUDE_*`",
                 "sem efeito",
+                "`Directory` é proibida como fonte de release",
+                "`git ls-remote`",
+                "`HEAD` publicado",
+                "`<fonte-local>` vem de clone limpo no mesmo SHA",
             ],
             PLUGIN_ROOT / "skills" / "orq" / "SKILL.md": [
                 "55%",

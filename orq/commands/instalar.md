@@ -19,26 +19,31 @@ hosts e proponha; com um host nomeado, vá direto nele.
 claude plugin marketplace list
 ```
 
-Ache a linha do marketplace `orquestra` e leia a `Source`:
-- `Directory (<caminho>)` → clone local de desenvolvimento; use esse caminho como `<fonte>` **e**
-  como `<fonte-local>` abaixo — já é um diretório real, serve pra tudo.
-- referência remota (ex.: `brunocangussu/byia-claude-orquestra`) → use essa referência como
-  `<fonte>` só onde for pedida literalmente (`codex plugin marketplace add <fonte>` aceita a
-  referência como está). **Não é caminho de filesystem** — os passos que leem arquivo do disco (as
-  cópias do Kimi, e a conferência `diff -rq` do Codex) precisam de um diretório real: resolva
-  `<fonte-local>` antes de chegar neles, nesta ordem:
-  1. O Claude **já baixou** o conteúdo do plugin — `ls ~/.claude/plugins/cache/orquestra/orq/` e
-     cruze com `claude plugin list` (mostra a versão **de fato** instalada) antes de escolher a
-     pasta: o cache pode ter mais de uma versão coexistindo, algumas órfãs (`.orphaned_at`), e o
-     `ls` sozinho não distingue qual está ativa. Esse caminho **já É** a pasta `orq/` (o cache
-     guarda só o conteúdo do plugin, sem repositório em volta) — use-o como `<fonte-local>/orq`
-     diretamente, **sem** acrescentar outro `/orq`, em todo comando abaixo.
-  2. Sem esse cache nesta máquina (nunca foi instalado por aqui): clone a referência para um
-     diretório temporário — `git clone https://github.com/<referência> <tmp>` — e use `<tmp>` como
-     `<fonte-local>` (aí `<fonte-local>/orq` existe, igual ao caso `Directory`).
+Ache a linha do marketplace `orquestra` e leia a `Source`. `Directory` serve somente para iteração
+local explicitamente não publicável: **`Directory` é proibida como fonte de release**. Ela pode
+conter working tree sujo, outra branch ou uma candidata sem gate, e um `diff` contra a mesma pasta
+errada produziria um falso verde.
 
-A fonte que o Claude já usa é a única verdade disponível sobre onde este plugin vive nesta máquina —
-não presuma um caminho.
+Em release, `<fonte>` tem que ser a referência GitHub aprovada e o commit remoto precisa ser o mesmo
+commit local já revisado. Antes de remover ou registrar marketplace, prove o `HEAD` publicado com
+`git ls-remote`:
+
+```bash
+ORQ_RELEASE_REPO="<diretório-do-repo-orquestra-revisado>"
+ORQ_RELEASE_SHA="$(git -C "$ORQ_RELEASE_REPO" rev-parse HEAD)"
+ORQ_REMOTE_SHA="$(git ls-remote https://github.com/<referência-remota>.git refs/heads/main | awk '{print $1}')"
+test -z "$(git -C "$ORQ_RELEASE_REPO" status --porcelain)"
+test "$ORQ_RELEASE_SHA" = "$ORQ_REMOTE_SHA"
+```
+
+Qualquer falha para aqui: não instale de `Directory`, não use cache antigo como substituto e não
+compare duas cópias da mesma fonte não comprovada. `ORQ_RELEASE_REPO` é nominal e obrigatório: não
+rode `git rev-parse` ou `git status` no diretório corrente de um projeto consumidor. Depois da igualdade, registre
+`<referência-remota>` como `<fonte>`. Para os passos de filesystem, **`<fonte-local>` vem de clone limpo no mesmo SHA**:
+clone a referência remota em diretório temporário, faça checkout detached de
+`ORQ_RELEASE_SHA`, confirme `git status --porcelain` vazio e use a raiz desse clone. O cache do
+Claude só pode substituir esse clone depois que `claude plugin list` mostrar a versão alvo e o
+manifesto do cache declarar a mesma versão; ele nunca valida o commit remoto sozinho.
 
 ## Claude — já instalado, só confere
 
@@ -52,6 +57,24 @@ cache está em dia, e não deve ser duplicada aqui.
 
 ## Codex
 
+Antes de `add`/`update`, preserve os caches que tasks existentes ainda podem carregar pelo caminho
+absoluto. Este preflight é obrigatório em upgrade — uma versão antiga referenciada não é lixo:
+
+```bash
+ORQ_CACHE_ROOT="$HOME/.codex/plugins/cache/orquestra/orq"
+ORQ_CACHE_BACKUP="$(mktemp -d "${TMPDIR:-/tmp}/codex-plugin-cache.XXXXXX")"
+ORQ_REFERENCED="$ORQ_CACHE_BACKUP/referenced-caches.txt"
+rg -o --no-filename "$ORQ_CACHE_ROOT/[0-9]+\.[0-9]+\.[0-9]+" \
+  "$HOME/.codex/sessions" "$HOME/.codex/archived_sessions" 2>/dev/null \
+  | sort -u > "$ORQ_REFERENCED" || true
+test ! -d "$ORQ_CACHE_ROOT" || cp -a "$ORQ_CACHE_ROOT/." "$ORQ_CACHE_BACKUP/"
+```
+
+Não apague nem sobrescreva em massa `ORQ_CACHE_ROOT`. Depois da instalação, restaure do backup
+somente qualquer diretório listado em `ORQ_REFERENCED` que tenha desaparecido e confirme, em cada
+um, que `scripts/context-guard.py` continua presente e executável. Esses diretórios antigos são
+compatibilidade para tasks já abertas; não devem ser comparados com a versão nova.
+
 ```bash
 codex plugin marketplace add <fonte>
 codex plugin add orq@orquestra
@@ -62,6 +85,10 @@ Verificação:
 codex plugin list                                                            # orq: installed, enabled
 diff -rq ~/.codex/plugins/cache/orquestra/orq/<versão>/ <fonte-local>/orq/    # tem que voltar vazio
 ```
+
+O `diff -rq` vale **somente** para `<versão>` recém-instalada. Se o instalador removeu um cache
+referenciado, recupere o diretório homônimo de `ORQ_CACHE_BACKUP` sem substituir a versão nova;
+falha nessa restauração deixa o host **instalado, não validado**.
 
 O diagnóstico do Codex tem **nove camadas independentes** — não pule da primeira para a última:
 

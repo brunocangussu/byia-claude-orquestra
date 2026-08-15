@@ -76,11 +76,12 @@ model_auto_compact_token_limit_scope = "total"
 ```
 
 Essa configuração é **opt-in**: nomeie o arquivo e o valor, faça backup e só escreva após aprovação
-explícita. Ela não substitui o guardião: aos 55% há pré-alerta, a partir de 60% o checkpoint é
-obrigatório e em 70% trabalho novo fica bloqueado até a verificação. No estado
-`checkpoint_verified`, `compact` é uma transição normal do Codex: a compactação manual ou automática
-fica liberada e a retomada reidrata memória, board e thread. O limite de 90% continua sendo apenas o
-backstop nativo opt-in; o diagnóstico nunca escreve essa configuração sem autorização.
+explícita. Ela não substitui o guardião: aos 55% há pré-alerta, a partir de 60% ele recomenda um
+checkpoint e em 70% reforça o alerta. Nenhuma faixa bloqueia trabalho ou compactação; o pedido atual
+continua e o checkpoint entra no próximo ponto seguro. No estado `checkpoint_verified`, `compact` é
+uma transição normal do Codex: a compactação manual ou automática segue disponível e a retomada
+reidrata memória, board e thread. O limite de 90% continua sendo apenas o backstop nativo opt-in; o
+diagnóstico nunca escreve essa configuração sem autorização.
 
 Com `--verificar`: mostre o diagnóstico dos dois blocos e **pare aqui** — não proponha instalação.
 Para cada problema, diga **o comando que corrige**, não só que está errado — com duas exceções:

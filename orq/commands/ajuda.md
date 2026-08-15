@@ -15,7 +15,7 @@ Uma tabela ou lista curta, **por situação**, não por comando:
 | "quero X" · "tem um problema em Y" · "não gostei de Z" · "não funciona" | Cria o card, planeja, **para pra você aprovar** (`/orq:plan-next`) |
 | "pode implementar" · "manda ver" · "aprovado" | Implementa + revisa + documenta (`/orq:implement-next`) |
 | "onde paramos" · "o que falta" · "o que preciso decidir" | Mostra o board, começando pelo que espera você (`/orq:quadro`) |
-| "terminamos" · "salva aí" · "checkpoint" | Grava tudo na memória e libera o `/clear` (`/orq:checkpoint`) |
+| "terminamos" · "salva aí" · "checkpoint" | Grava o estado durável; no Codex a conversa continua e a compactação fica disponível, no Claude libera o `/clear` (`/orq:checkpoint`) |
 | "revisa isso" · "valida isso" | Painel de revisores — Claude + externos ativos (`/orq:revisar`) |
 | "quem tá revisando" · "troca o modelo do planner" · "tô com pouco crédito, modo economia" | Mostra ou ajusta o elenco de LLMs — inclusive troca o **time inteiro** por contexto de crédito (`/orq:elenco`) |
 | "anota isso" · "isso vira card" | Cria o card no backlog, sem tirar você do que está fazendo — planejamento fica pra quando você pedir (aí sim entra o `/orq:plan-next`) |

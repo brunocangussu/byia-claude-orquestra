@@ -102,6 +102,390 @@ def validate_hooks(raiz: Path, plugin: Path) -> list[tuple[Path, int, str]]:
     return problemas
 
 
+def validate_codex_consultive_language(
+    raiz: Path,
+    plugin: Path,
+) -> list[tuple[Path, int, str]]:
+    """Rejeita instruções vivas que transformem o guardião Codex em bloqueio."""
+
+    def atualiza_referente_checkpoint(clausula: str, anterior: bool) -> bool:
+        """Mantém elipse incidental, mas deixa o sujeito explícito mais recente vencer."""
+
+        def nucleo_e_checkpoint(sintagma: str) -> bool:
+            sem_adjunto = re.split(
+                r"\b(?:do|da|dos|das|de|no|na|nos|nas|em|com|sem|para)\b",
+                sintagma,
+                maxsplit=1,
+                flags=re.IGNORECASE,
+            )[0]
+            return bool(re.search(r"\bcheckpoint\b", sem_adjunto, re.IGNORECASE))
+
+        sem_host = re.sub(
+            r"^\s*(?:(?:no|para\s+o)\s+)?(?:Codex|Claude)\s*[:,]?\s*",
+            "",
+            clausula,
+            flags=re.IGNORECASE,
+        )
+        candidatos: list[tuple[int, bool]] = []
+        sujeitos = list(
+            re.finditer(
+                r"(?:^|\b(?:e|mas|porém|contudo|entretanto|enquanto)\b)\s*"
+                r"(?P<sujeito>(?:(?:o|a|os|as)\s+)?"
+                r"(?:`[^`]+`|[\wÀ-ÿ-]+(?:\s+[\wÀ-ÿ-]+){0,3}))\s+"
+                r"(?:é|são|foi|está|fica|permanece|será|deve|precisa)\b",
+                sem_host,
+                re.IGNORECASE,
+            )
+        )
+        candidatos.extend(
+            (
+                sujeito.start("sujeito"),
+                nucleo_e_checkpoint(sujeito.group("sujeito")),
+            )
+            for sujeito in sujeitos
+        )
+        for acao in re.finditer(
+            r"\b(?:faça|execute|inicie|realize|rode|crie|gere|conclua|revise|"
+            r"valide|atualize|salve|envie)\s+"
+            r"(?P<objeto>(?:(?:o|a|os|as|um|uma)\s+)?"
+            r"(?:`[^`]+`|[\wÀ-ÿ-]+(?:\s+"
+            r"(?!(?:e|ou|antes|depois|após|sem|com|para|do|da|de|no|na|em)\b)"
+            r"[\wÀ-ÿ-]+){0,2}))",
+            sem_host,
+            re.IGNORECASE,
+        ):
+            candidatos.append(
+                (
+                    acao.start("objeto"),
+                    nucleo_e_checkpoint(acao.group("objeto")),
+                )
+            )
+        if candidatos:
+            return max(candidatos, key=lambda item: item[0])[1]
+        if "checkpoint" in sem_host.casefold():
+            return True
+        return anterior
+
+    padroes = (
+        (
+            re.compile(
+                r"(?:"
+                r"(?:até|sem|antes|depois|após).{0,45}"
+                r"(?:checkpoint|concluir\s+o\s+checkpoint).{0,90}"
+                r"(?:trabalho|pedido|sessão).{0,30}"
+                r"(?:fica|está|permanece|será)\s+"
+                r"(?:bloquead|impedid|interrompid|recusad)\w*|"
+                r"(?:trabalho|pedido|sessão).{0,30}"
+                r"(?:fica|está|permanece|será)\s+"
+                r"(?:bloquead|impedid|interrompid|recusad)\w*.{0,60}"
+                r"(?:até|sem|antes|depois|após).{0,45}"
+                r"(?:checkpoint|concluir\s+o\s+checkpoint)"
+                r")",
+                re.IGNORECASE | re.DOTALL,
+            ),
+            "contrato Codex inválido: trabalho bloqueado",
+            re.compile(
+                r"\b(?:não|nada|nenhum(?:a)?|sem)\b.{0,40}"
+                r"\b(?:bloquead|impedid|interrompid|recusad)",
+                re.IGNORECASE | re.DOTALL,
+            ),
+        ),
+        (
+            re.compile(
+                r"(?:"
+                r"\b(?:pare|interrompa|suspenda)\s+(?:o\s+)?"
+                r"(?:trabalho|pedido|sessão).{0,80}"
+                r"(?:checkpoint|concluir\s+o\s+checkpoint)|"
+                r"(?:checkpoint|concluir\s+o\s+checkpoint).{0,80}"
+                r"\b(?:pare|interrompa|suspenda)\s+(?:o\s+)?"
+                r"(?:trabalho|pedido|sessão)|"
+                r"\bnão\s+(?:continue|prossiga|trabalhe)\b.{0,80}"
+                r"(?:checkpoint|concluir\s+o\s+checkpoint)"
+                r")",
+                re.IGNORECASE | re.DOTALL,
+            ),
+            "contrato Codex inválido: trabalho interrompido",
+            re.compile(
+                r"\b(?:não|nunca|jamais)\s+(?:pare|interrompa|suspenda)\b",
+                re.IGNORECASE,
+            ),
+        ),
+        (
+            re.compile(
+                r"(?:"
+                r"(?:deve(?:-se)?|precisa(?:-se)?|necessár\w*|exigid\w*|"
+                r"requisit\w*|condiç\w*).{0,90}checkpoint.{0,90}"
+                r"(?:continu\w*|pross\w*|trabalh\w*|pedido)|"
+                r"checkpoint.{0,90}(?:deve(?:-se)?|precisa(?:-se)?|necessár\w*|"
+                r"exigid\w*|requisit\w*|condiç\w*).{0,90}"
+                r"(?:continu\w*|pross\w*|trabalh\w*|pedido)|"
+                r"\bsó\s+(?:continue|prossiga|trabalhe).{0,90}checkpoint|"
+                r"\b(?:só|somente)\s+(?:é\s+)?permitid\w*.{0,90}"
+                r"(?:continu\w*|pross\w*|trabalh\w*).{0,90}checkpoint|"
+                r"checkpoint.{0,90}(?:antes\s+de|pré-condiç\w*).{0,90}"
+                r"(?:continu\w*|pross\w*|trabalh\w*|pedido)"
+                r")",
+                re.IGNORECASE | re.DOTALL,
+            ),
+            "contrato Codex inválido: continuidade condicionada ao checkpoint",
+            re.compile(
+                r"\b(?:não|nunca|jamais)\b.{0,45}"
+                r"(?:deve|precisa|necessár|exigid|requisit|condiç|só)",
+                re.IGNORECASE | re.DOTALL,
+            ),
+        ),
+    )
+
+    problemas: list[tuple[Path, int, str]] = []
+    for arq in arquivos_a_varrer(raiz, plugin):
+        if not arq.is_file():
+            continue
+        texto = arq.read_text(encoding="utf-8")
+        headings: list[tuple[int, str]] = []
+        heading_matches = list(re.finditer(r"(?m)^(#{1,6})\s+(.+)$", texto))
+        for bloco_match in re.finditer(
+            r"(?s)(?:\A|\n[ \t]*\n)(.*?)(?=\n[ \t]*\n|\Z)",
+            texto,
+        ):
+            bloco = bloco_match.group(1)
+            inicio = bloco_match.start(1)
+            headings.clear()
+            for heading in heading_matches:
+                if heading.start() >= inicio:
+                    break
+                nivel = len(heading.group(1))
+                headings[:] = [item for item in headings if item[0] < nivel]
+                headings.append((nivel, heading.group(2)))
+            contexto_codex = "codex" in bloco.casefold() or any(
+                "codex" in titulo.casefold() for _, titulo in headings
+            )
+            if not contexto_codex or "checkpoint" not in bloco.casefold():
+                continue
+            host_atual = (
+                "codex"
+                if any("codex" in titulo.casefold() for _, titulo in headings)
+                else None
+            )
+            separadores = re.compile(
+                r"[.!?;\n—]+|\b(?:mas|porém|contudo|entretanto)\b",
+                re.IGNORECASE,
+            )
+            marcadores = list(separadores.finditer(bloco))
+            for conector in re.finditer(
+                r",|\b(?:e|enquanto)\b",
+                bloco,
+                re.IGNORECASE,
+            ):
+                esquerda = bloco[max(0, conector.start() - 240) : conector.start()]
+                direita = bloco[conector.end() :]
+                regra_rotulada_antes = re.search(
+                    r"(?:\b(?:Codex|Claude)\s*:|"
+                    r"\b(?:no|para\s+o)\s+(?:Codex|Claude)\b)[^.!?;—\n]*$",
+                    esquerda,
+                    re.IGNORECASE,
+                )
+                regra_rotulada_depois = re.match(
+                    r"\s*(?:(?:Codex|Claude)\s*:|"
+                    r"(?:no|para\s+o)\s+(?:Codex|Claude)\b)",
+                    direita,
+                    re.IGNORECASE,
+                )
+                sujeito_compartilhado = re.search(
+                    r"\b(?:Codex|Claude)\s*$",
+                    esquerda,
+                    re.IGNORECASE,
+                ) and re.match(
+                    r"\s*(?:(?:no|o|para\s+o)\s+)?(?:Codex|Claude)\b\s*[:,]",
+                    direita,
+                    re.IGNORECASE,
+                )
+                if conector.group(0) == ",":
+                    if regra_rotulada_antes and regra_rotulada_depois:
+                        marcadores.append(conector)
+                elif not sujeito_compartilhado and (
+                    (regra_rotulada_antes and regra_rotulada_depois)
+                    or (
+                        "checkpoint" in esquerda.casefold()
+                        and "checkpoint" in direita[:240].casefold()
+                    )
+                ):
+                    marcadores.append(conector)
+            marcadores.sort(key=lambda item: item.start())
+            cursor = 0
+            intervalos: list[tuple[int, int]] = []
+            for separador in marcadores:
+                intervalos.append((cursor, separador.start()))
+                cursor = separador.end()
+            intervalos.append((cursor, len(bloco)))
+            referente_checkpoint = False
+            for inicio_clausula, fim_clausula in intervalos:
+                clausula = bloco[inicio_clausula:fim_clausula]
+                compartilhado = re.match(
+                    r"\s*(?:(?:no|para\s+o)\s+)?(Codex|Claude)\s+"
+                    r"(?:e/ou|e|ou)\s+"
+                    r"(?:(?:no|o|para\s+o)\s+)?(Codex|Claude)\b",
+                    clausula,
+                    re.IGNORECASE,
+                )
+                rotulado = re.match(
+                    r"\s*(?:(?:no|para\s+o)\s+)?(Codex|Claude)\b",
+                    clausula,
+                    re.IGNORECASE,
+                )
+                if compartilhado:
+                    citados = {
+                        compartilhado.group(1).casefold(),
+                        compartilhado.group(2).casefold(),
+                    }
+                    host_atual = "codex" if "codex" in citados else "claude"
+                elif rotulado:
+                    host_atual = rotulado.group(1).casefold()
+                retoma_checkpoint = referente_checkpoint
+                referente_checkpoint = atualiza_referente_checkpoint(
+                    clausula,
+                    referente_checkpoint,
+                )
+                if host_atual != "codex":
+                    continue
+                clausula_padroes = clausula
+                if retoma_checkpoint:
+                    clausula_padroes = re.sub(
+                        r"\b(?:concluí-lo|fazê-lo)\b|"
+                        r"\bconcluir\b(?=\s*[,.;:!?]|\s*$)",
+                        "checkpoint",
+                        clausula_padroes,
+                        flags=re.IGNORECASE,
+                    )
+                if "checkpoint" in clausula.casefold():
+                    for obrigatorio in re.finditer(
+                        r"\bobrigat\w*\b",
+                        clausula,
+                        re.IGNORECASE,
+                    ):
+                        prefixo_completo = clausula[: obrigatorio.start()]
+                        conectores_anteriores = list(
+                            re.finditer(
+                                r"\b(?:e|enquanto|mas|porém|contudo|entretanto)\b",
+                                prefixo_completo,
+                                re.IGNORECASE,
+                            )
+                        )
+                        inicio_escopo = (
+                            conectores_anteriores[-1].end()
+                            if conectores_anteriores
+                            else 0
+                        )
+                        escopo_sujeito = prefixo_completo[inicio_escopo:]
+                        candidato_sujeito = re.search(
+                            r"(?P<sujeito>.+?)\s+(?:é|são|será|deve|precisa)\s*$",
+                            escopo_sujeito,
+                            re.IGNORECASE,
+                        )
+                        sujeito_explicito_alheio = False
+                        if (
+                            "checkpoint" not in escopo_sujeito.casefold()
+                            and candidato_sujeito
+                        ):
+                            sujeito = candidato_sujeito.group("sujeito").strip(" `*_\t")
+                            sujeito = re.sub(
+                                r"^(?:(?:no|para\s+o)\s+)?(?:Codex|Claude)\s*[:,]?\s*",
+                                "",
+                                sujeito,
+                                flags=re.IGNORECASE,
+                            )
+                            sujeito = re.sub(
+                                r"^(?:(?:em|no|na|nos|nas)\s+[\wÀ-ÿ-]+\s+)+",
+                                "",
+                                sujeito,
+                                flags=re.IGNORECASE,
+                            )
+                            retomadas = {"isso", "isto", "essa regra", "esta regra"}
+                            sujeito_explicito_alheio = bool(sujeito) and (
+                                sujeito.casefold() not in retomadas
+                            )
+                        if sujeito_explicito_alheio:
+                            continue
+                        prefixo_obrigatorio = clausula[
+                            max(0, obrigatorio.start() - 70) : obrigatorio.start()
+                        ]
+                        negado = re.search(
+                            r"\b(?:não|nunca|jamais)\s+"
+                            r"(?:(?:deve|deveria|deverá|ser|será|é|foi|pode)\s+){0,3}$",
+                            prefixo_obrigatorio,
+                            re.IGNORECASE,
+                        )
+                        if negado:
+                            continue
+                        posicao = inicio + inicio_clausula + obrigatorio.start()
+                        linha = texto.count("\n", 0, posicao) + 1
+                        problemas.append(
+                            (
+                                arq.relative_to(raiz),
+                                linha,
+                                "contrato Codex inválido: checkpoint obrigatório",
+                            )
+                        )
+                for regex, mensagem, negacao in padroes:
+                    if mensagem in {
+                        "contrato Codex inválido: trabalho bloqueado",
+                        "contrato Codex inválido: trabalho interrompido",
+                    } and not re.search(
+                        r"checkpoint|concluir\s+o\s+checkpoint",
+                        clausula_padroes,
+                        re.IGNORECASE,
+                    ):
+                        continue
+                    for match in regex.finditer(clausula_padroes):
+                        janela = clausula_padroes[
+                            max(0, match.start() - 80) : min(len(clausula_padroes), match.end() + 50)
+                        ]
+                        if mensagem == "contrato Codex inválido: trabalho bloqueado":
+                            narrativa_dono = re.search(
+                                r"\b(?:explique|descreva|registre|documente|informe)\b.{0,80}"
+                                r"\bpor\s+que\b.{0,80}"
+                                r"(?P<bloqueio>(?:bloquead|impedid|interrompid|recusad)\w*)\s+"
+                                r"(?:pelo|pela|por)\s+(?:(?:o|a)\s+)?dono\b",
+                                janela,
+                                re.IGNORECASE | re.DOTALL,
+                            )
+                            if narrativa_dono:
+                                depois_explicador = janela[narrativa_dono.start() :]
+                                relacoes_temporais = list(re.finditer(
+                                    r"(?:até|sem|antes|depois|após).{0,45}"
+                                    r"(?:checkpoint|concluir\s+o\s+checkpoint)",
+                                    depois_explicador,
+                                    re.IGNORECASE | re.DOTALL,
+                                ))
+                                bloqueio_relativo = (
+                                    narrativa_dono.start("bloqueio")
+                                    - narrativa_dono.start()
+                                )
+                                causa_checkpoint_depois = any(
+                                    relacao.start() < bloqueio_relativo
+                                    or not re.search(
+                                        r"[\wÀ-ÿ]",
+                                        depois_explicador[relacao.end() :],
+                                        re.IGNORECASE,
+                                    )
+                                    for relacao in relacoes_temporais
+                                )
+                                if not causa_checkpoint_depois:
+                                    continue
+                        if negacao is not None and negacao.search(janela):
+                            continue
+                        prefixo = clausula_padroes[max(0, match.start() - 20) : match.start()]
+                        if re.search(
+                            r"\b(?:não|nunca|jamais)\s*$",
+                            prefixo,
+                            re.IGNORECASE,
+                        ):
+                            continue
+                        posicao = inicio + inicio_clausula + match.start()
+                        linha = texto.count("\n", 0, posicao) + 1
+                        problemas.append((arq.relative_to(raiz), linha, mensagem))
+    return problemas
+
+
 def main() -> int:
     raiz = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     plugin = raiz / "orq"
@@ -112,6 +496,7 @@ def main() -> int:
     conhecidos = universos(plugin)
     problemas = []
     problemas.extend(validate_hooks(raiz, plugin))
+    problemas.extend(validate_codex_consultive_language(raiz, plugin))
 
     for arq in arquivos_a_varrer(raiz, plugin):
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):
