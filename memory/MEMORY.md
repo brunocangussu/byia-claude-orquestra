@@ -10,15 +10,14 @@
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
 
-- **`T-046` IMPLEMENTADA EM CANDIDATA LOCAL `0.22.4`, ainda sem release:** o lint de coerência
-  confundia `.in_use/<PID>` do cache Claude com edição sem bump. O RED reproduziu os formatos
-  diretório/PID e arquivo legado; a correção ignora `.in_use` somente no cache runtime, sem ocultar
-  arquivo homônimo no fonte, arquivo extra real ou bytes divergentes. Passaram 105 testes do
-  guardião, 14 do runner Opus, Ruff e lint de coerência. Os PIDs Claude `20472` e `30288`
-  permaneceram vivos e seus marcadores não foram tocados. **Próximo passo:** revisão do diff e
-  fechamento da candidata; Opus 5 fechou seu bloqueador de evidência na segunda rodada e Kimi K3
-  aprovou sem bloqueadores. **Gate atual:** decidir commit, publicação e instalação; `T-044`
-  continua fora até esse gate.
+- **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de
+  `.in_use/<PID>` entrou em `origin/main` no commit de produto `676846a`. Claude e Codex registram
+  `orq@orquestra 0.22.4` habilitado; os 29 arquivos do pacote são byte-idênticos nos dois caches e o
+  lint real passou com dois marcadores `.in_use` ativos no Claude. O upgrade Codex abriu uma janela
+  em que a sessão atual ainda procurava a `0.22.3`; ela foi restaurada do backup e permanece ao lado
+  da `0.22.4`. Versões `0.18.0`–`0.22.2` referenciadas por sessões antigas já estavam ausentes antes
+  do upgrade e viraram a T-047 — não tratá-las como recuperadas. **Próximo passo:** retomar T-044
+  sobre a base publicada `0.22.4`.
 
 - **`T-037` em VALIDATE — `0.22.3` publicada e instalada:** arquitetura provider-neutral
   reconfirmada pelo dono; remoção do SuperMemory integrada com o guardião estável da T-043 e

@@ -1,5 +1,15 @@
 # Log de mudanças — append-only
 
+## [2026-08-17] release+instalação | @frente-protecao-contexto · 0.22.4 no Claude e Codex
+
+O conserto da T-046 foi publicado em `origin/main` no commit de produto `676846a` e instalado como
+`orq@orquestra 0.22.4` habilitado nos dois hosts. Comparação por SHA-256 confirmou os 29 arquivos do
+pacote sem ausências, extras ou bytes divergentes, desconsiderando apenas `.in_use` do Claude e o
+artefato migrado `.codex-plugin` do Codex. O lint real passou com dois marcadores `.in_use` ativos.
+Durante o upgrade Codex, uma sessão ainda referenciou a `0.22.3`; esse cache foi restaurado do backup
+e validado sem alterar a `0.22.4`. Referências a `0.18.0`–`0.22.2` já estavam sem cache antes da
+operação e foram registradas separadamente na T-047.
+
 ## [2026-08-17] fix candidato | @frente-protecao-contexto · lint separa `.in_use` de divergência real
 
 Reprodução isolada provou que o cache byte-idêntico passava, mas `.in_use/<PID>` fazia a 0.22.3

@@ -2,8 +2,8 @@
 
 ## Estado
 
-CANDIDATA `0.22.4` IMPLEMENTADA E REVISADA no worktree `codex/t044-reset-concurrency-0223`, base
-`0ad1deb`. Release e instalação ainda não executadas.
+FECHADA. A `0.22.4` foi publicada em `origin/main` no commit de produto `676846a` e instalada no
+Claude e no Codex. Os caches reais foram comparados ao pacote publicado sem divergências.
 
 ## Causa raiz comprovada
 
@@ -31,8 +31,21 @@ Na máquina real, os marcadores `20472` e `30288` pertencem a processos Claude v
 - GREEN selecionado e suíte completa de `test_context_guard.py`.
 - `lint-coerencia.py`, `test_run_opus_reviewer.py`, `cmp AGENTS.md CLAUDE.md` e `git diff --check` verdes.
 - Marcadores de PIDs vivos preservados.
+- `orq@orquestra 0.22.4` aparece habilitado nos dois hosts.
+- Os 29 arquivos distribuídos são byte-idênticos nos dois caches; metadados próprios do host foram
+  classificados separadamente.
+- O lint real passou com dois marcadores `.in_use` ativos no Claude.
+- O cache `0.22.3` foi preservado/restaurado para sessões já abertas.
+
+## Checkpoint de recuperação pós-compactação — 2026-08-17
+
+- Pedido atual preservado: concluir publicação/instalação da `0.22.4` e fechar a T-046.
+- Código já publicado em `origin/main` no commit `676846a`.
+- Claude e Codex já apontam para `0.22.4`; o cache Codex `0.22.3` foi restaurado após a janela de upgrade para não quebrar sessões que ainda o referenciam.
+- Próximo ponto seguro: comparar os bytes instalados com o pacote publicado, ignorando somente metadados gerados pelo host; depois atualizar board, memória e histórico.
+- T-044 continua fora desta mudança e só será retomada depois do fechamento verificável da T-046.
 
 ## RETOMAR AQUI
 
-Esperar o dono autorizar commit, publicação em `origin/main` e instalação segura da 0.22.4 no
-Claude/Codex. Só depois do release validado retomar T-044 sobre a nova base; T-044 continua fora.
+T-046 fechada. Retomar T-044 sobre a base publicada `0.22.4`; tratar a recuperação durável de
+caches `0.18.0`–`0.22.2` somente pela T-047, sem sobrescrever as versões atuais.
