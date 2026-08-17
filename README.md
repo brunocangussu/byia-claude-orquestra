@@ -371,7 +371,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.22.3` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.22.4` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por

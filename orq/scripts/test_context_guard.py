@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1824,7 +1826,7 @@ class ContextGuardConsultiveLanguageLintTest(unittest.TestCase):
 class ContextGuardReleaseVersionTest(unittest.TestCase):
     def test_release_version_is_coordinated(self) -> None:
         repo_root = PLUGIN_ROOT.parent
-        expected = "0.22.3"
+        expected = "0.22.4"
         manifest = json.loads(
             (PLUGIN_ROOT / ".claude-plugin" / "plugin.json").read_text()
         )
@@ -1932,6 +1934,133 @@ class ContextGuardDocumentationContractTest(unittest.TestCase):
         self.assertNotIn("trabalho novo é bloqueado", live_text)
         self.assertNotIn("compactação liberada", live_text)
         self.assertNotIn("não destrava", live_text)
+
+
+class ContextGuardCacheComparisonTest(unittest.TestCase):
+    """Metadados do runtime não podem mascarar divergência real do plugin."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory(prefix="orq-cache-lint-test-")
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+
+    def make_pair(self, name: str) -> tuple[Path, Path]:
+        case = self.root / name
+        cache = case / "cache"
+        plugin = case / "plugin"
+        cache.mkdir(parents=True)
+        plugin.mkdir(parents=True)
+        for base in (cache, plugin):
+            (base / "same.txt").write_text("same\n", encoding="utf-8")
+        return cache, plugin
+
+    def make_installed_cache(self, name: str) -> tuple[Path, Path]:
+        manifest = json.loads(
+            (PLUGIN_ROOT / ".claude-plugin" / "plugin.json").read_text()
+        )
+        home = self.root / name / "home"
+        cache = (
+            home
+            / ".claude"
+            / "plugins"
+            / "cache"
+            / "orquestra"
+            / "orq"
+            / manifest["version"]
+        )
+        shutil.copytree(PLUGIN_ROOT, cache)
+        return home, cache
+
+    def run_lint_main(self, home: Path) -> tuple[int, str]:
+        output = io.StringIO()
+        argv = [str(LINT_PATH), str(PLUGIN_ROOT.parent)]
+        with (
+            mock.patch.object(Path, "home", return_value=home),
+            mock.patch.object(sys, "argv", argv),
+            mock.patch("sys.stdout", output),
+        ):
+            result = lint_module.main()
+        return result, output.getvalue()
+
+    def test_cache_in_use_metadata_is_ignored(self) -> None:
+        cache_dir, plugin_dir = self.make_pair("pid-directory")
+        (cache_dir / ".in_use").mkdir()
+        (cache_dir / ".in_use" / "4242").write_text("", encoding="utf-8")
+
+        cache_file, plugin_file = self.make_pair("legacy-file")
+        (cache_file / ".in_use").write_text("", encoding="utf-8")
+
+        for cache, plugin in (
+            (cache_dir, plugin_dir),
+            (cache_file, plugin_file),
+        ):
+            with self.subTest(cache=cache.parent.name):
+                self.assertEqual(
+                    lint_module.find_cache_divergences(cache, plugin),
+                    [],
+                )
+
+    def test_real_cache_divergence_is_still_reported(self) -> None:
+        extra_cache, extra_plugin = self.make_pair("extra-file")
+        (extra_cache / "real-extra.txt").write_text("extra\n", encoding="utf-8")
+
+        changed_cache, changed_plugin = self.make_pair("changed-content")
+        (changed_cache / "same.txt").write_text("changed\n", encoding="utf-8")
+
+        cases = (
+            (extra_cache, extra_plugin, ["real-extra.txt"]),
+            (changed_cache, changed_plugin, ["same.txt"]),
+        )
+        for cache, plugin, expected in cases:
+            with self.subTest(cache=cache.parent.name):
+                self.assertEqual(
+                    lint_module.find_cache_divergences(cache, plugin),
+                    expected,
+                )
+
+    def test_repository_in_use_file_is_not_ignored(self) -> None:
+        cache, plugin = self.make_pair("source-in-use")
+        (plugin / ".in_use").write_text("produto\n", encoding="utf-8")
+
+        self.assertEqual(
+            lint_module.find_cache_divergences(cache, plugin),
+            [".in_use"],
+        )
+
+    def test_nested_cache_in_use_is_not_ignored(self) -> None:
+        cache, plugin = self.make_pair("nested-in-use")
+        marker = cache / "nested" / ".in_use" / "4242"
+        marker.parent.mkdir(parents=True)
+        marker.write_text("", encoding="utf-8")
+
+        self.assertEqual(
+            lint_module.find_cache_divergences(cache, plugin),
+            ["nested/.in_use/4242"],
+        )
+
+    def test_main_ignores_in_use_in_installed_cache(self) -> None:
+        home, cache = self.make_installed_cache("main-in-use")
+        marker = cache / ".in_use" / "4242"
+        marker.parent.mkdir()
+        marker.write_text("", encoding="utf-8")
+
+        result, output = self.run_lint_main(home)
+
+        self.assertEqual(result, 0)
+        self.assertIn("coerência interna ok", output)
+
+    def test_main_reports_real_extra_alongside_in_use(self) -> None:
+        home, cache = self.make_installed_cache("main-combined")
+        marker = cache / ".in_use" / "4242"
+        marker.parent.mkdir()
+        marker.write_text("", encoding="utf-8")
+        (cache / "real-extra.txt").write_text("extra\n", encoding="utf-8")
+
+        result, output = self.run_lint_main(home)
+
+        self.assertEqual(result, 1)
+        self.assertIn("real-extra.txt", output)
+        self.assertNotIn(".in_use/4242", output)
 
 
 if __name__ == "__main__":

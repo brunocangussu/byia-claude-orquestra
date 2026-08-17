@@ -1,5 +1,14 @@
 # Log de mudanças — append-only
 
+## [2026-08-17] fix candidato | @frente-protecao-contexto · lint separa `.in_use` de divergência real
+
+Reprodução isolada provou que o cache byte-idêntico passava, mas `.in_use/<PID>` fazia a 0.22.3
+falhar como se houvesse edição sem bump. A candidata 0.22.4 filtra `.in_use` apenas do lado do cache
+runtime; arquivo extra, conteúdo divergente e `.in_use` no fonte continuam falhando. RED observado,
+105 testes do guardião + 14 do runner Opus, Ruff e lint verdes. Kimi K3 aprovou sem bloqueadores;
+Opus 5 fechou seu bloqueador de evidência na segunda rodada. Nenhum cache ativo foi alterado;
+release, instalação e publicação permanecem pendentes de autorização do dono.
+
 ## [2026-08-15] release+instalação | @frente-supermemory · 0.22.3 provider-neutral nos três hosts
 
 A release combinada T-037/T-043 foi aprovada, publicada em `origin/main` no commit `3bb1a24` e

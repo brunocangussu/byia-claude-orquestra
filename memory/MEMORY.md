@@ -4,11 +4,21 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.22.3 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-15 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.4 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-17 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
-## 🟡 Trabalho atual (2026-08-15) — @frente-paridade-codex
+## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
 
-**⚡ ESTADO EM 2026-08-15 — leia isto primeiro:**
+**⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
+
+- **`T-046` IMPLEMENTADA EM CANDIDATA LOCAL `0.22.4`, ainda sem release:** o lint de coerência
+  confundia `.in_use/<PID>` do cache Claude com edição sem bump. O RED reproduziu os formatos
+  diretório/PID e arquivo legado; a correção ignora `.in_use` somente no cache runtime, sem ocultar
+  arquivo homônimo no fonte, arquivo extra real ou bytes divergentes. Passaram 105 testes do
+  guardião, 14 do runner Opus, Ruff e lint de coerência. Os PIDs Claude `20472` e `30288`
+  permaneceram vivos e seus marcadores não foram tocados. **Próximo passo:** revisão do diff e
+  fechamento da candidata; Opus 5 fechou seu bloqueador de evidência na segunda rodada e Kimi K3
+  aprovou sem bloqueadores. **Gate atual:** decidir commit, publicação e instalação; `T-044`
+  continua fora até esse gate.
 
 - **`T-037` em VALIDATE — `0.22.3` publicada e instalada:** arquitetura provider-neutral
   reconfirmada pelo dono; remoção do SuperMemory integrada com o guardião estável da T-043 e

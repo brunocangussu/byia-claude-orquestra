@@ -9,7 +9,7 @@
       "source": "./orq",
       "displayName": "Orquestra",
       "description": "Desenvolvimento orientado a board: time de agentes efemeros, memoria-wiki, painel de revisores e gates humanos. Interface natural — voce conversa, ele executa.",
-      "version": "0.22.3",
+      "version": "0.22.4",
       "category": "workflow",
       "keywords": [
         "kanban",

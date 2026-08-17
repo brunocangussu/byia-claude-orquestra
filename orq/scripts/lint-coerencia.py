@@ -486,6 +486,31 @@ def validate_codex_consultive_language(
     return problemas
 
 
+CACHE_METADATA_NAMES = {".DS_Store", ".orphaned_at"}
+
+
+def find_cache_divergences(cache: Path, plugin: Path) -> list[str]:
+    """Lista diferenças de produto entre um cache instalado e o plugin fonte."""
+
+    def files(base: Path, *, runtime_cache: bool) -> set[Path]:
+        found: set[Path] = set()
+        for path in base.rglob("*"):
+            relative = path.relative_to(base)
+            if runtime_cache and relative.parts[0] == ".in_use":
+                continue
+            if path.is_file() and path.name not in CACHE_METADATA_NAMES:
+                found.add(relative)
+        return found
+
+    in_cache = files(cache, runtime_cache=True)
+    in_repo = files(plugin, runtime_cache=False)
+    return sorted(str(path) for path in in_cache ^ in_repo) or sorted(
+        str(path)
+        for path in in_cache & in_repo
+        if (cache / path).read_bytes() != (plugin / path).read_bytes()
+    )
+
+
 def main() -> int:
     raiz = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     plugin = raiz / "orq"
@@ -816,25 +841,11 @@ def main() -> int:
     # filecmp raso acusaria divergência falsa em release limpo.
     cache = Path.home() / ".claude" / "plugins" / "cache" / "orquestra" / "orq" / versao
     if cache.is_dir():
-        # .orphaned_at é escrito pela CLI no cache quando uma versão deixa de
-        # ser a instalada — existe em 8 diretórios de cache do orq nesta
-        # máquina. Sem ignorá-lo, fazer checkout de uma tag antiga para
-        # investigar um bug acusa "edição sem bump" que nunca houve.
-        IGNORAR = {".DS_Store", ".orphaned_at"}
-
-        def _arquivos(base: Path):
-            return {
-                p.relative_to(base)
-                for p in base.rglob("*")
-                if p.is_file() and p.name not in IGNORAR
-            }
-
-        no_cache, no_repo = _arquivos(cache), _arquivos(plugin)
-        divergentes = sorted(str(p) for p in no_cache ^ no_repo) or sorted(
-            str(p)
-            for p in no_cache & no_repo
-            if (cache / p).read_bytes() != (plugin / p).read_bytes()
-        )
+        # .orphaned_at é escrito pela CLI quando uma versão deixa de ser a
+        # instalada. .in_use e seus PIDs protegem caches de sessões Claude
+        # vivas. O helper ignora esses metadados somente no lado do cache; um
+        # caminho homônimo no fonte continua sendo divergência de produto.
+        divergentes = find_cache_divergences(cache, plugin)
         if divergentes:
             problemas.append(
                 (
