@@ -4,11 +4,18 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.22.5 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-29 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono; release ainda candidata).
+**Versão:** 0.22.6 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono; release ainda candidata).
 
 ## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
+
+- **`T-050` AWAITING_OWNER — timeout operacional do Opus:** uma sonda mínima comprovou CLI,
+  autenticação e `claude-opus-5` em 6,0s; o briefing real T-102 terminou em 267,1s com exit 0 quando
+  executado com teto de 600s, provando que o default de 240s matava resposta válida. A candidata
+  0.22.6 aumenta somente o default para 600s e preserva `--timeout`, limite de 16 KiB, kill do grupo,
+  comprovação de modelo e fail-closed. Gates frescos fecharam em 185 testes e smoke real pelo default;
+  commit, push e instalação local aguardam autorização nominal. Thread: `wiki/threads/T-050-opus-timeout.md`.
 
 - **`T-048` FECHADA — 0.22.5 publicada e instalada:** auditores nativos de remoção e adoção graph-first
   aprovados pelo dono. O núcleo offline comum aos três hosts está no worktree isolado; os falsos

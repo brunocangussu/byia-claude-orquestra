@@ -50,7 +50,8 @@ mas não conta como parecer.
 
 O reviewer Opus não é uma chamada `claude -p` crua. `orq/scripts/run-opus-reviewer.py` recebe o
 briefing sanitizado pelo stdin, limita cada lote a 16 KiB, anuncia o início e aplica timeout de
-240s; só libera a saída quando `modelUsage` comprova `claude-opus-5`. Diff maior é dividido por arquivo/hunk, cobrindo
+600s; só libera a saída quando `modelUsage` comprova `claude-opus-5`. O teto foi ampliado após uma
+resposta válida levar 267,1s e ser morta pelo limite anterior de 240s. Diff maior é dividido por arquivo/hunk, cobrindo
 todos os lotes sem truncamento; falha em qualquer lote produz painel parcial com diagnóstico.
 
 ## Máquina de estados

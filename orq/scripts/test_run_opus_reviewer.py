@@ -108,6 +108,11 @@ class OpusReviewerRunnerTest(unittest.TestCase):
         self.assertIn("OPUS_STARTED", result.stderr)
         self.assertIn("OPUS_MODEL=claude-opus-5", result.stderr)
 
+    def test_default_timeout_accommodates_real_opus_review_latency(self) -> None:
+        result = self.run_runner()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("TIMEOUT=600s", result.stderr)
+
     def test_rejects_alias_resolving_to_a_different_model(self) -> None:
         result = self.run_runner(FAKE_MODEL="claude-opus-4-1")
         self.assertEqual(result.returncode, 7)

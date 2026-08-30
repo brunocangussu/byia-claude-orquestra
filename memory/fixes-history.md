@@ -1,5 +1,21 @@
 # Log de mudanças — append-only
 
+## [2026-08-30] checkpoint de recuperação | @frente-opus-timeout · T-050
+
+Após compactação, memória, board, thread, diff e gates foram reconciliados no worktree isolado.
+A candidata 0.22.6 passou 185 testes, lint de coerência, diff-check, py_compile e smoke real sem
+override, que anunciou `TIMEOUT=600s` e comprovou `claude-opus-5`. O runtime instalado permanece
+0.22.5/240s; commit, push e instalação aguardam autorização nominal e nenhum cache foi editado.
+
+## [2026-08-30] fix candidato 0.22.6 | @frente-opus-timeout · T-050
+
+No CRM T-102, dois briefings Opus de 8.849 e 5.558 bytes foram encerrados exatamente aos 240s. A
+sonda mínima passou em 6,0s com `claude-opus-5`, descartando CLI, autenticação e alias. O mesmo
+briefing de 5.558 bytes, sem mudança, terminou com exit 0 e modelo comprovado em 267,1s ao receber
+`--timeout 600`; causa raiz: teto padrão curto, não travamento. Teste RED exigiu `TIMEOUT=600s` e
+falhou observando 240s; mudança mínima no default ficou GREEN com 15 testes do runner. Release,
+instalação, commit e push permanecem em gates separados.
+
 ## [2026-08-29] release 0.22.5 | @frente-auditoria-nativa · T-048
 
 Commit `0cefa97` publicado em `origin/main`. A 0.22.5 foi instalada e habilitada no Codex e Claude,

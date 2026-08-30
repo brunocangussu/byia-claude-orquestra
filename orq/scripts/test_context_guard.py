@@ -1826,7 +1826,7 @@ class ContextGuardConsultiveLanguageLintTest(unittest.TestCase):
 class ContextGuardReleaseVersionTest(unittest.TestCase):
     def test_release_version_is_coordinated(self) -> None:
         repo_root = PLUGIN_ROOT.parent
-        expected = "0.22.5"
+        expected = "0.22.6"
         manifest = json.loads(
             (PLUGIN_ROOT / ".claude-plugin" / "plugin.json").read_text()
         )

@@ -87,7 +87,9 @@ KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
 "$KIMI" -m kimi-code/k3 --output-format text -p "<briefing>" < /dev/null
 ```
 
-O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 240s. A validação
+O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 600s. Esse teto
+acomoda a latência real observada de 267,1s em revisão arquitetural, sem remover a proteção contra
+processo órfão. A validação
 de tamanho ocorre antes do anúncio: `BRIEFING_TOO_LARGE` significa que nenhuma chamada começou;
 redivida o lote e execute, sem contar isso como retry. O runner exige
 `claude-opus-5` no `modelUsage` JSON e não imprime parecer em modelo errado, timeout, erro ou saída
