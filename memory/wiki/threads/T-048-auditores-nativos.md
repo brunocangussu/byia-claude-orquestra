@@ -1,6 +1,6 @@
 # T-048 — auditores nativos de remoção e adoção
 
-**Estado:** commit autorizado · aguardando instalação · **frente:** `@frente-auditoria-nativa` · **release candidata:** 0.22.5.
+**Estado:** concluído · **frente:** `@frente-auditoria-nativa` · **release:** 0.22.5.
 
 ## Decisão aprovada
 
@@ -108,6 +108,6 @@ repetido do zero com zero falhas. Nenhum projeto real, cache, hook ou estado ext
 
 ## ⏭️ RETOMAR AQUI
 
-A validação prática passou e o dono autorizou o commit local da candidata 0.22.5. Após criar e
-verificar o commit, parar na pergunta: autoriza instalar localmente a 0.22.5 nos hosts Codex,
-Claude e Kimi? Push/publicação continuam em gate separado.
+T-048 concluída. A 0.22.5 está em `origin/main` no commit `0cefa97` e instalada em Codex, Claude e
+Kimi. Smokes read-only em processos novos dos três hosts carregaram a skill e retomaram o estado.
+O achado não bloqueante sobre `.in_use`/`.codex-plugin` virou T-049; não corrigi fora do card.

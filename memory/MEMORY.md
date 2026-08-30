@@ -10,14 +10,16 @@
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
 
-- **`T-048` COMMIT AUTORIZADO, AGUARDANDO INSTALAÇÃO — candidata 0.22.5:** auditores nativos de remoção e adoção graph-first
+- **`T-048` FECHADA — 0.22.5 publicada e instalada:** auditores nativos de remoção e adoção graph-first
   aprovados pelo dono. O núcleo offline comum aos três hosts está no worktree isolado; os falsos
   verdes de adoção e remoção viraram testes e a suíte chegou a 184 testes verdes. Opus 5 e Kimi K3
   fecharam GO nos dois auditores. O último achado Kimi — path com surrogate quebrando a escrita
   JSON — foi reproduzido em RED, corrigido e revisto em GO. Gates completos e a validação prática
   autorizada passaram: scan/verify e graph-first/direct-first deram os quatro resultados esperados.
-  O dono autorizou o commit local neste gate. Instalação nos hosts e push/publicação permanecem
-  gates separados; nenhum hook, cache, instalação, push ou publicação foi alterado. Retomar em
+  A release entrou em `origin/main` no commit `0cefa97` e foi instalada em Codex, Claude e Kimi.
+  Smokes read-only em processos novos dos três hosts carregaram a skill e retomaram memória/board.
+  Caches antigos foram preservados e nenhum hook protegido mudou. O único achado novo do instalador
+  virou T-049: allowlist estrita para `.in_use` e `.codex-plugin`. Histórico em
   `wiki/threads/T-048-auditores-nativos.md`.
 
 - **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de

@@ -4,6 +4,14 @@
 
 ---
 
+### `diff -rq` cru acusa artefatos corretos gerados pelo host
+
+Na instalação da 0.22.5, o núcleo dos caches bateu byte a byte com o clone limpo, mas o Claude
+criou `.in_use` e o Codex criou `.codex-plugin/migrated-command-skills/`. O comando literal do
+`instalar.md` acusou divergência mesmo com o pacote correto. Não ignore extras genericamente: a
+correção futura (T-049) deve allowlistar somente esses caminhos de runtime e continuar falhando para
+qualquer outro arquivo extra ou byte divergente.
+
 ### Revisor externo em foreground morre no teto de 10 min do shell — e parece falha do revisor
 
 Em 2026-08-07 o painel dos três foi disparado assim, e Codex e Kimi voltaram **os dois** com

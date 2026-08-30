@@ -92,5 +92,5 @@ guardião; não instalar, publicar, commitar ou enviar ao GitHub sem autorizaç�
 - [x] Kimi K3 retornou GO para adoção e remoção nos bytes finais; o bloqueador de surrogate foi
   reproduzido, corrigido em TDD e revisado novamente.
 - [x] Gate do dono para commit local.
-- [ ] Gate separado do dono para instalação nos hosts.
-- [ ] Gate separado do dono para push/publicação.
+- [x] Gate separado do dono para instalação nos hosts; Codex, Claude e Kimi verificados.
+- [x] Gate separado do dono para push/publicação; `origin/main` em `0cefa97`.

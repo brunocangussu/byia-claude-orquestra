@@ -1,5 +1,14 @@
 # Log de mudanças — append-only
 
+## [2026-08-29] release 0.22.5 | @frente-auditoria-nativa · T-048
+
+Commit `0cefa97` publicado em `origin/main`. A 0.22.5 foi instalada e habilitada no Codex e Claude,
+e copiada byte a byte para skill/commands/scripts/agentes do Kimi. Smokes reais em processos novos
+de Codex, Claude Opus e Kimi K3 carregaram o Orquestra, leram memória/board e identificaram a T-048.
+O upgrade Codex removeu o cache 0.22.4 ainda referenciado; o backup obrigatório o restaurou antes de
+continuar. Caches anteriores permanecem. O diff do núcleo é limpo; `.in_use` e `.codex-plugin` são
+extras gerados pelos hosts e viraram T-049, sem afrouxamento silencioso do verificador.
+
 ## [2026-08-29] commit local autorizado | @frente-auditoria-nativa · T-048
 
 O dono autorizou integrar a candidata 0.22.5 em um commit local após painel, gates e validação
