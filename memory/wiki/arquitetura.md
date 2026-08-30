@@ -105,8 +105,10 @@ Nenhuma delas **impede** nada — todas só relatam. Bloquear de verdade continu
 **O cache é indexado por versão.** `~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/` — editar `orq/`
 sem bumpar **não muda o que roda**, e o `claude plugin list` continua dizendo que está tudo certo.
 Aconteceu no `5b75296` e invalidou retroativamente todo teste comportamental feito depois. Por isso
-o guarda no lint e o `diff -rq` como fecho do ciclo de release: **versão igual não prova conteúdo
-igual**. Comparar versão é fonte única, e fonte única foi o padrão de erro mais caro deste projeto.
+o guarda no lint e `orq/scripts/verify_installed_cache.py` como fecho do ciclo: **versão igual não
+prova conteúdo igual**. O comparador é compartilhado pelo lint, diagnóstico e instalador, aplica
+allowlist por host somente ao cache instalado e mantém extras, ausências, tipos e bytes estritos.
+Comparar versão é fonte única, e fonte única foi o padrão de erro mais caro deste projeto.
 
 **Só o Codex tem sandbox.** `codex exec -s read-only` é garantia; o Kimi **não tem flag equivalente**
 e o prompt "não edite nada" é pedido, não ACL — ele rodou `git checkout -- .` numa revisão read-only

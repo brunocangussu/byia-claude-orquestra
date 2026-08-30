@@ -111,3 +111,8 @@ repetido do zero com zero falhas. Nenhum projeto real, cache, hook ou estado ext
 T-048 concluída. A 0.22.5 está em `origin/main` no commit `0cefa97` e instalada em Codex, Claude e
 Kimi. Smokes read-only em processos novos dos três hosts carregaram a skill e retomaram o estado.
 O achado não bloqueante sobre `.in_use`/`.codex-plugin` virou T-049; não corrigi fora do card.
+
+Checkpoint de recuperação em 2026-08-30: `origin/main` e o worktree estão em `986a45d`; Codex e
+Claude seguem habilitados em 0.22.5 e a cópia Kimi continua byte-idêntica. O cache Codex 0.22.4 não
+está mais no disco; reabrir somente eventual sessão antiga que ainda referencie esse caminho. A
+próxima mudança recomendada permanece T-049, começando por plano e gate do dono.

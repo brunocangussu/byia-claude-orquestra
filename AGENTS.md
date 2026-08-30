@@ -47,15 +47,23 @@ fecha em VALIDATE e o dono confirma usando o produto.
 **Não há build.** A verificação automatizada tem três comandos, **os três obrigatórios**:
 
 ```bash
-python3 -m unittest orq.scripts.test_context_guard orq.scripts.test_run_opus_reviewer
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest orq.scripts.test_verify_installed_cache orq.scripts.test_context_guard orq.scripts.test_run_opus_reviewer
 claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruções
 ```
 
-...seguidos de **teste comportamental** — que só vale depois do release completo:
-`claude plugin marketplace update orquestra` + `claude plugin update orq@orquestra` + **reiniciar a
-sessão** + `diff -rq ~/.claude/plugins/cache/orquestra/orq/<versão>/ ./orq/` voltando **vazio**.
-Só então conversar em português natural para ver se a intenção é reconhecida sem comando digitado.
+...seguidos de **teste comportamental** — que só vale depois do release completo. `<clean-source>`
+é checkout detached do SHA remoto aprovado, com `git status --porcelain` vazio; nunca cache de host
+nem working tree em uso. Depois do update e restart, rode o comando do host validado:
+
+```bash
+python3 <clean-source>/orq/scripts/verify_installed_cache.py --host claude --source <clean-source>/orq --installed ~/.claude/plugins/cache/orquestra/orq/<versão>/
+python3 <clean-source>/orq/scripts/verify_installed_cache.py --host codex  --source <clean-source>/orq --installed ~/.codex/plugins/cache/orquestra/orq/<versão>/
+```
+
+Cada comando executado deve sair `0`; Kimi usa o contrato de cópia seletiva de
+`memory/wiki/distribuicao.md`. Só então conversar em português natural para ver se a intenção é
+reconhecida sem comando digitado.
 Para iterar numa **skill**, `/reload-plugins` comprovadamente aplica o update na sessão viva
 (2026-07-29) — serve para experimentar, **não** para fechar card: comando e agente seguem sem teste.
 
@@ -64,6 +72,9 @@ rodar comando inexistente — foi assim que `/orquestra:*` sobreviveu a três re
 renomeação para `orq`. O lint cobre esse buraco: comando, agente, skill e `${CLAUDE_PLUGIN_ROOT}/…`
 citados têm que existir. Ele **ignora `memory/` de propósito** — o log é append-only e cita nomes
 extintos ao descrever bugs passados.
+
+O verificador de cache deve vir da fonte limpa. Não crie exclusões ad hoc: as únicas normalizações
+são as allowlists instaladas-only e host-aware codificadas em `verify_installed_cache.py`.
 
 - **Commit:** `feat(0.X.0): descrição em minúscula, sem acento no assunto` — travessão pro subtítulo.
 - **Versão:** mexeu em `orq/` → o mesmo commit bumpa `orq/.claude-plugin/plugin.json`, a seção

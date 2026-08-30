@@ -1826,7 +1826,7 @@ class ContextGuardConsultiveLanguageLintTest(unittest.TestCase):
 class ContextGuardReleaseVersionTest(unittest.TestCase):
     def test_release_version_is_coordinated(self) -> None:
         repo_root = PLUGIN_ROOT.parent
-        expected = "0.22.6"
+        expected = "0.22.7"
         manifest = json.loads(
             (PLUGIN_ROOT / ".claude-plugin" / "plugin.json").read_text()
         )
@@ -1840,7 +1840,10 @@ class ContextGuardReleaseVersionTest(unittest.TestCase):
         self.assertEqual(manifest["version"], expected)
         self.assertEqual(entry["version"], expected)
         self.assertIn(f"## Status\n\n`{expected}`", readme)
-        self.assertIn(f"**Versão:** {expected} ·", memory)
+        self.assertIn(
+            f"**Versão:** {expected} (candidata não publicada) ·",
+            memory,
+        )
 
         board = (repo_root / "memory" / "wiki" / "KANBAN.md").read_text()
         t042_line = next(
@@ -1982,62 +1985,6 @@ class ContextGuardCacheComparisonTest(unittest.TestCase):
             result = lint_module.main()
         return result, output.getvalue()
 
-    def test_cache_in_use_metadata_is_ignored(self) -> None:
-        cache_dir, plugin_dir = self.make_pair("pid-directory")
-        (cache_dir / ".in_use").mkdir()
-        (cache_dir / ".in_use" / "4242").write_text("", encoding="utf-8")
-
-        cache_file, plugin_file = self.make_pair("legacy-file")
-        (cache_file / ".in_use").write_text("", encoding="utf-8")
-
-        for cache, plugin in (
-            (cache_dir, plugin_dir),
-            (cache_file, plugin_file),
-        ):
-            with self.subTest(cache=cache.parent.name):
-                self.assertEqual(
-                    lint_module.find_cache_divergences(cache, plugin),
-                    [],
-                )
-
-    def test_real_cache_divergence_is_still_reported(self) -> None:
-        extra_cache, extra_plugin = self.make_pair("extra-file")
-        (extra_cache / "real-extra.txt").write_text("extra\n", encoding="utf-8")
-
-        changed_cache, changed_plugin = self.make_pair("changed-content")
-        (changed_cache / "same.txt").write_text("changed\n", encoding="utf-8")
-
-        cases = (
-            (extra_cache, extra_plugin, ["real-extra.txt"]),
-            (changed_cache, changed_plugin, ["same.txt"]),
-        )
-        for cache, plugin, expected in cases:
-            with self.subTest(cache=cache.parent.name):
-                self.assertEqual(
-                    lint_module.find_cache_divergences(cache, plugin),
-                    expected,
-                )
-
-    def test_repository_in_use_file_is_not_ignored(self) -> None:
-        cache, plugin = self.make_pair("source-in-use")
-        (plugin / ".in_use").write_text("produto\n", encoding="utf-8")
-
-        self.assertEqual(
-            lint_module.find_cache_divergences(cache, plugin),
-            [".in_use"],
-        )
-
-    def test_nested_cache_in_use_is_not_ignored(self) -> None:
-        cache, plugin = self.make_pair("nested-in-use")
-        marker = cache / "nested" / ".in_use" / "4242"
-        marker.parent.mkdir(parents=True)
-        marker.write_text("", encoding="utf-8")
-
-        self.assertEqual(
-            lint_module.find_cache_divergences(cache, plugin),
-            ["nested/.in_use/4242"],
-        )
-
     def test_main_ignores_in_use_in_installed_cache(self) -> None:
         home, cache = self.make_installed_cache("main-in-use")
         marker = cache / ".in_use" / "4242"
@@ -2048,6 +1995,26 @@ class ContextGuardCacheComparisonTest(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertIn("coerência interna ok", output)
+
+    def test_main_ignores_top_level_orphaned_at_in_installed_cache(self) -> None:
+        home, cache = self.make_installed_cache("main-orphaned")
+        (cache / ".orphaned_at").write_text("2026-08-30\n", encoding="utf-8")
+
+        result, output = self.run_lint_main(home)
+
+        self.assertEqual(result, 0)
+        self.assertIn("coerência interna ok", output)
+
+    def test_main_reports_ds_store_as_real_extra(self) -> None:
+        home, cache = self.make_installed_cache("main-ds-store")
+        (cache / ".DS_Store").write_text("finder\n", encoding="utf-8")
+
+        result, output = self.run_lint_main(home)
+
+        self.assertEqual(result, 1)
+        self.assertIn("extra:.DS_Store", output)
+        self.assertIn("corrija a árvore instalada ou a fonte", output)
+        self.assertNotIn("bumpe a versão", output)
 
     def test_main_reports_real_extra_alongside_in_use(self) -> None:
         home, cache = self.make_installed_cache("main-combined")

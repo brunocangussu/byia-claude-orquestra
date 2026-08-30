@@ -372,7 +372,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.22.6` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.22.7` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
 auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
@@ -429,13 +429,18 @@ diretório local: o que roda é uma cópia em `~/.claude/plugins/cache/`. Feche 
 claude plugin marketplace update <marketplace>
 claude plugin update <plugin>@<marketplace>
 claude plugin list          # confirme versão E escopo
-diff -rq ~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/ <dir-fonte-do-plugin>/   # TEM que voltar vazio
+python3 <clean-source>/orq/scripts/verify_installed_cache.py \
+  --host claude --source <clean-source>/orq \
+  --installed ~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/   # exit 0
 ```
 
 `claude plugin list` compara **versão**, e o cache é indexado por versão: **versão igual não prova
 conteúdo igual** — quem edita sem bumpar deixa o cache stale com o `list` dizendo que está tudo
 certo. Com marketplace local (`Source: Directory`, visível em `claude plugin marketplace list`), o
-`diff` fecha esse buraco: não-vazio = bump e repita o ciclo.
+verificador fecha esse buraco com allowlists nominais: exit `1` exige ler `tipo:caminho` e corrigir
+a fonte ou a árvore instalada — **não** implica bump automático; exit `2` = raiz/host/leitura
+inválidos, portanto instalação não validada. `<clean-source>` é checkout detached do SHA remoto
+aprovado, com `git status --porcelain` vazio; nunca é cache de host nem working tree com artefatos.
 
 O que o `/reload-plugins` aplica numa sessão viva, por componente — a doc já errou aqui nos dois
 sentidos (0.10.0 afirmou demais, 0.11.0 negou demais), então o vocabulário é de evidência, não de
@@ -449,7 +454,7 @@ regra:
 | arquivo lido em runtime (`stack.md`, `scripts/`) | ❓ **não testado** — presuma restart |
 
 **A regra operacional não muda:** teste comportamental que fecha card só vale após **restart** +
-`diff` vazio — enquanto comando e agente não forem testados, a sessão pós-reload pode estar mista
+verificador com exit `0` — enquanto comando e agente não forem testados, a sessão pós-reload pode estar mista
 (skill nova, resto indeterminado). Novo dado? Atualize **uma célula** desta tabela, não a regra
 inteira. Um plugin em **escopo `project`** não vale nos outros projetos: reinstale com escopo de
 usuário.

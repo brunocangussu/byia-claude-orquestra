@@ -1,5 +1,13 @@
 # Log de mudanças — append-only
 
+## [2026-08-30] reconciliação | T-049 promovida para 0.22.7 sobre T-050
+
+Com autorização do dono, a branch T-049 foi rebaseada sobre `origin/main`, preservando os commits
+T-050 `fbaff1c` e `bc060b3`. Os conflitos de memória, histórico e board foram combinados sem apagar
+nenhuma frente; os cinco anchors passaram a 0.22.7. A árvore combinada passou 201 testes, validate,
+Ruff, lint, identidade AGENTS/CLAUDE, diff-check e varredura de marcadores. Push, reinstalação,
+publicação e restart continuam sem autorização.
+
 ## [2026-08-30] release+instalação 0.22.6 | @frente-opus-timeout · T-050
 
 O dono autorizou commit, push e instalação local. O commit `fbaff1c` foi publicado por fast-forward
@@ -23,6 +31,85 @@ briefing de 5.558 bytes, sem mudança, terminou com exit 0 e modelo comprovado e
 `--timeout 600`; causa raiz: teto padrão curto, não travamento. Teste RED exigiu `TIMEOUT=600s` e
 falhou observando 240s; mudança mínima no default ficou GREEN com 15 testes do runner. Release,
 instalação, commit e push permanecem em gates separados.
+
+## [2026-08-30] bloqueio | T-049 colidiu com a 0.22.6 publicada pela T-050
+
+`origin/main` avançou em paralelo com `fbaff1c` e `bc060b3`, publicando e instalando outra 0.22.6.
+A branch T-049 ficou 1 commit à frente e 2 atrás, com nove arquivos sobrepostos. Isso explica os
+caches divergentes: não eram a instalação do verificador. O protocolo novo impediu reinstalação a
+partir de SHA somente local. A recomendação é reconciliar a T-050, promover T-049 para 0.22.7,
+repetir gates e só então pedir push e reinstalação a partir de clone remoto detached.
+
+## [2026-08-30] alerta | caches externos 0.22.6 divergentes após o commit T-049
+
+O check pós-commit detectou caches 0.22.6 criados externamente em Claude e Codex às 17:09. Ambos
+carregam o mesmo `commands/instalar.md` antigo, divergem em sete arquivos e não contêm os dois novos
+arquivos do verificador. Esta task não executou instalação nem sobrescreveu os caches. O lint passou
+antes do surgimento desses caches e agora reprova corretamente a divergência. Reinstalação, push,
+publicação e restart continuam sem autorização.
+
+## [2026-08-30] commit | T-049 candidata 0.22.6 registrada localmente
+
+O dono autorizou o commit local após a dispensa específica do Kimi e os gates verdes. A candidata
+foi registrada na branch `codex/t046-auditores-nativos` com a mensagem
+`feat(orq): verify installed caches across hosts`. A árvore ficou limpa; push, integração,
+instalação, publicação e restart permanecem sem autorização.
+
+## [2026-08-30] gate | T-049 segue sem Kimi por dispensa explícita do dono
+
+Depois de duas chamadas Kimi isoladas falharem com `403` e nenhum veredito, o dono autorizou seguir
+sem esse parecer especificamente na T-049. O review fecha com GO real do Opus 5; não foi registrado
+GO fictício do Kimi nem alterada a política padrão das outras tasks. Os gates foram repetidos com
+200 testes verdes, plugin validate, Ruff, lint, AGENTS/CLAUDE, cinco anchors e diff aprovados. A
+candidata 0.22.6 para no gate de commit local; nenhuma instalação, push, publicação ou restart foi
+executado.
+
+## [2026-08-30] checkpoint | T-049 segunda chamada Kimi bloqueada pela mesma cota
+
+Após compactação, memória, board, thread, branch e worktree foram reconciliados. A nova chamada Kimi
+K3 autorizada pelo dono foi executada uma única vez em clone descartável; retornou `rc=1`, stderr
+`403 weekly usage limit`, stdout vazio e nenhum veredito. Não houve novo retry, parecer simulado,
+commit, instalação, push, publicação ou restart. A candidata 0.22.6 continua aguardando a cota e
+uma autorização futura para fechar o painel obrigatório.
+
+## [2026-08-30] review | T-049 candidata pronta, painel parcial por cota Kimi
+
+O verificador cross-host, CLI, lint, comandos, documentação e candidata 0.22.6 chegaram a 200 testes
+e gates completos. Opus 5 real emitiu GO final nos recortes de produção, testes, integração e
+contrato; seus NO-GO intermediários viraram contraprovas e correções. Kimi K3 foi invocado em clone
+descartável, mas a API terminou com `403 weekly usage limit` antes do veredito; não houve retry nem
+parecer simulado. Nenhum commit, instalação, push, publicação ou restart foi executado.
+
+## [2026-08-30] checkpoint | T-049 recuperada após compactação
+
+Memória, board, thread, branch e worktree foram reconciliados. A implementação TDD do verificador
+cross-host e a candidata 0.22.6 estão presentes; a suíte completa registrou 197 testes verdes e os
+gates estáticos passaram. O painel real Opus 5 + Kimi K3 permanece como próximo passo. Nenhum
+commit, instalação, push, publicação ou restart foi executado.
+
+## [2026-08-30] processo | @frente-auditoria-nativa · T-049 Task 1 e checkpoint
+
+Os três gates do dono foram aprovados. A primeira matriz TDD falhou 9/9 pela API ausente e passou
+9/9 após o comparador mínimo: allowlists por host somente no instalado, tipos/diretórios vazios,
+bytes e symlinks sem follow. `py_compile` e Ruff passaram. O próximo ponto é o CLI; nenhum cache,
+hook, instalação, commit, push, publicação ou restart mudou.
+
+## [2026-08-30] plan | @frente-auditoria-nativa · T-049 no gate e checkpoint de recuperação
+
+Após compactação, memória, board e thread foram relidos antes de continuar. O Planner real
+`gpt-5.6-sol@ultra`, read-only em clone descartável, confirmou a causa raiz: `diff -rq` bruto e um
+helper parcial/Claude-only não formam um verificador cross-host. Foi registrado o plano para um
+comparador tipado + CLI compartilhados por lint, instalador e diagnóstico, com contraprovas de
+allowlist assimétrica. T-049 aguarda três decisões do dono; produto, caches, hooks, versão instalada,
+commit, push e publicação permaneceram intocados.
+
+## [2026-08-30] processo | @frente-auditoria-nativa · checkpoint de recuperação pós-compactação
+
+Estado vivo reconciliado sem alterar o produto: `origin/main` e o worktree apontam para `986a45d`,
+Codex e Claude registram Orquestra 0.22.5 habilitado e a instalação Kimi permanece byte-idêntica.
+O cache Codex 0.22.4 já não existe; processos novos seguem íntegros em 0.22.5, enquanto eventual
+sessão antiga que ainda referencie o caminho removido precisa ser reaberta. T-048 continua fechada
+e T-049 permanece no backlog como próximo endurecimento recomendado.
 
 ## [2026-08-29] release 0.22.5 | @frente-auditoria-nativa · T-048
 

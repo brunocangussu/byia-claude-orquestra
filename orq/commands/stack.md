@@ -101,11 +101,12 @@ versão igual NÃO implica conteúdo igual — quem editou a fonte sem bumpar de
    - versão do `list` ≠ versão do manifesto na fonte → **desatualizado**: corrige com
      `claude plugin marketplace update <mkt>` + `claude plugin update <plugin>@<mkt>` + reiniciar
      a sessão;
-   - `Source: Directory (<dir>)` → compare o conteúdo:
-     `diff -rq ~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/ <dir>/<subdir-do-plugin>/`.
-     Diff **não-vazio com versão igual** → **cache stale por edição sem bump**: corrige com bump
-     da versão na fonte + os dois updates + reiniciar. Com diff não-vazio, "atualizado ✓" é
-     conclusão **proibida**;
+   - `Source: Directory (<dir>)` → execute o verificador **a partir da fonte**:
+     `python3 <dir>/<subdir-do-plugin>/scripts/verify_installed_cache.py --host claude --source <dir>/<subdir-do-plugin> --installed ~/.claude/plugins/cache/<mkt>/<plugin>/<versão>/`.
+     Exit `1` com versão igual → leia `tipo:caminho`: pode ser produto alterado ou contaminação
+     instalada; corrija a fonte/cache e repita o update, sem bump automático. Exit `2` → host,
+     raiz ou leitura inválidos; reporte **instalação não validada**. Com divergência,
+     "atualizado ✓" é conclusão **proibida**;
    - `Source` remota (Git/GitHub) → não há fonte local para comparar: reporte
      **"versão confere; conteúdo não verificável daqui — indeterminado"**, nunca "✓".
 

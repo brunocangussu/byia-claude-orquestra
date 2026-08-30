@@ -25,9 +25,27 @@ python3 orq/scripts/lint-coerencia.py .        # coerência
 claude plugin marketplace update orquestra     # relê o marketplace local
 claude plugin update orq@orquestra             # copia para o cache — teste válido só após restart
 claude plugin list                             # confirma versão e escopo
-V=$(python3 -c "import json;print(json.load(open('orq/.claude-plugin/plugin.json'))['version'])")
-diff -rq ~/.claude/plugins/cache/orquestra/orq/$V/ ./orq/   # TEM que voltar vazio
+ORQ_CLEAN_SOURCE="<clean-source>"
+test -z "$(git -C "$ORQ_CLEAN_SOURCE" status --porcelain)"
+V=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' \
+  "$ORQ_CLEAN_SOURCE/orq/.claude-plugin/plugin.json")
+python3 "$ORQ_CLEAN_SOURCE/orq/scripts/verify_installed_cache.py" \
+  --host claude --source "$ORQ_CLEAN_SOURCE/orq" \
+  --installed ~/.claude/plugins/cache/orquestra/orq/$V/     # exit 0
 ```
+
+`<clean-source>` é checkout detached do SHA remoto aprovado, com `git status --porcelain` vazio;
+cache de host, working tree com artefatos e cópia derivada de cache não são fonte. O verificador
+compara entrada, tipo e bytes. No lado instalado, Claude permite
+somente `.in_use` (arquivo legado ou diretório no topo) e `.orphaned_at` (arquivo no topo); Codex
+permite somente `.codex-plugin/migrated-command-skills/`. A fonte não recebe exceção, `.DS_Store`
+falha e qualquer outro extra, ausência, mudança de tipo ou byte drift sai `1`; leia `tipo:caminho`
+e corrija a fonte/cache sem bump automático. Erro operacional sai `2`. Kimi continua com os diffs
+seletivos porque não possui cache de bundle equivalente.
+
+Esse fecho pós-release só vale quando o marketplace/update resolve o **mesmo SHA** de
+`ORQ_CLEAN_SOURCE`. Marketplace `Directory` é iteração local, não prova publicação nem pode ser
+misturado com clone remoto para declarar o cache validado.
 
 **Reload vs restart, por componente (medido em 2026-07-29):** `/reload-plugins` na sessão viva
 **aplica** o update para **skill** (a 0.11.0 foi servida sem restart). Comando, agente, hook e MCP:
@@ -40,8 +58,8 @@ dois comandos de update, a máquina continua rodando a versão antiga — foi as
 0.4.0 por sete releases, sem nenhum sinal.
 
 **Versão igual não prova conteúdo igual.** O cache é indexado por versão: editar sem bump não muda
-o que roda e o `list` segue dizendo que está tudo certo (aconteceu no `5b75296`). O `diff` é o fecho
-do ciclo — não-vazio depois do update = o release não aconteceu; bumpa e repete.
+o que roda e o `list` segue dizendo que está tudo certo (aconteceu no `5b75296`). O verificador é o
+fecho do ciclo: exit `1` exige reconciliar `tipo:caminho`; não autoriza bump automático.
 
 **Consequência prática:** o teste comportamental que **fecha card** só é válido depois do update **e
 do restart** — reload basta para experimentar skill, não para validar.

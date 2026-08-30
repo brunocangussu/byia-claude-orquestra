@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.22.6 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono; release ainda candidata).
+**Versão:** 0.22.7 (candidata não publicada) · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
 
@@ -27,9 +27,27 @@
   autorizada passaram: scan/verify e graph-first/direct-first deram os quatro resultados esperados.
   A release entrou em `origin/main` no commit `0cefa97` e foi instalada em Codex, Claude e Kimi.
   Smokes read-only em processos novos dos três hosts carregaram a skill e retomaram memória/board.
-  Caches antigos foram preservados e nenhum hook protegido mudou. O único achado novo do instalador
+  Caches antigos foram preservados no fechamento e nenhum hook protegido mudou. Na reconciliação de
+  30/ago, Codex e Claude continuavam habilitados em 0.22.5 e a cópia Kimi seguia byte-idêntica; o
+  cache Codex 0.22.4 já não estava no disco, então sessão antiga que o tenha carregado deve ser
+  reaberta. O único achado novo do instalador
   virou T-049: allowlist estrita para `.in_use` e `.codex-plugin`. Histórico em
   `wiki/threads/T-048-auditores-nativos.md`.
+
+- **`T-049` RECONCILIADA — candidata 0.22.7:** o dono aprovou comparador compartilhado + CLI,
+  `.orphaned_at` somente no cache Claude instalado, `.DS_Store` estrito e a promoção para `0.22.7`.
+  Implementação TDD concluída no worktree isolado: comparador cross-host, integração no lint,
+  comandos/documentação e bump nos cinco anchors. Antes da reconciliação, 200 testes, Ruff, validate,
+  lint, identidade AGENTS/CLAUDE e `git diff --check` passaram. Opus 5 real deu GO final em todos os
+  recortes. Duas chamadas Kimi K3 isoladas encerraram com `403 weekly usage limit`, sem veredito; o
+  dono dispensou explicitamente esse parecer somente para T-049, sem registrar GO fictício. A suíte
+  completa de 200 testes e todos os gates de pré-release foram repetidos com sucesso. O commit local
+  foi autorizado e criado na branch `codex/t046-auditores-nativos`. Depois disso foram detectados
+  caches externos `0.22.6` em Claude e Codex, ambos divergentes e sem os dois novos arquivos do
+  verificador; esta task não os instalou. `origin/main` avançou com a T-050 e publicou outra 0.22.6,
+  explicando os caches. O rebase sobre `origin/main` preservou a T-050, promoveu a candidata para
+  0.22.7 e passou em 201 testes e todos os gates. A branch está um commit à frente e limpa; o próximo
+  gate é push fast-forward. Reinstalação e publicação continuam separados.
 
 - **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de
   `.in_use/<PID>` entrou em `origin/main` no commit de produto `676846a`. Claude e Codex registram

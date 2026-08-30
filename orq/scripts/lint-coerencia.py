@@ -19,6 +19,16 @@ import re
 import sys
 from pathlib import Path
 
+# O lint importa o comparador antes de comparar fonte e cache. Sem esta guarda,
+# Python pode criar scripts/__pycache__ no próprio lado comparado e produzir um
+# falso vermelho autoinfligido em runtimes cujo pycache_prefix é local.
+sys.dont_write_bytecode = True
+
+try:
+    from orq.scripts.verify_installed_cache import find_installation_divergences
+except ModuleNotFoundError:  # execução direta a partir do cache instalado
+    from verify_installed_cache import find_installation_divergences
+
 # `memory/` é deliberadamente excluído: o log é append-only e o gotchas.md citam
 # nomes de comandos QUE DEIXARAM DE EXISTIR, de propósito, ao descrever bugs
 # passados. Varrer memory/ produz falso positivo em todo checkpoint — e lint que
@@ -486,31 +496,6 @@ def validate_codex_consultive_language(
     return problemas
 
 
-CACHE_METADATA_NAMES = {".DS_Store", ".orphaned_at"}
-
-
-def find_cache_divergences(cache: Path, plugin: Path) -> list[str]:
-    """Lista diferenças de produto entre um cache instalado e o plugin fonte."""
-
-    def files(base: Path, *, runtime_cache: bool) -> set[Path]:
-        found: set[Path] = set()
-        for path in base.rglob("*"):
-            relative = path.relative_to(base)
-            if runtime_cache and relative.parts[0] == ".in_use":
-                continue
-            if path.is_file() and path.name not in CACHE_METADATA_NAMES:
-                found.add(relative)
-        return found
-
-    in_cache = files(cache, runtime_cache=True)
-    in_repo = files(plugin, runtime_cache=False)
-    return sorted(str(path) for path in in_cache ^ in_repo) or sorted(
-        str(path)
-        for path in in_cache & in_repo
-        if (cache / path).read_bytes() != (plugin / path).read_bytes()
-    )
-
-
 def main() -> int:
     raiz = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     plugin = raiz / "orq"
@@ -845,16 +830,27 @@ def main() -> int:
         # instalada. .in_use e seus PIDs protegem caches de sessões Claude
         # vivas. O helper ignora esses metadados somente no lado do cache; um
         # caminho homônimo no fonte continua sendo divergência de produto.
-        divergentes = find_cache_divergences(cache, plugin)
+        try:
+            divergentes = find_installation_divergences(
+                source=plugin,
+                installed=cache,
+                host="claude",
+            )
+        except OSError as exc:
+            problemas.append(
+                (Path("orq"), 0, f"não foi possível comparar o cache instalado: {exc}")
+            )
+            divergentes = []
         if divergentes:
+            primeira = divergentes[0]
             problemas.append(
                 (
                     Path("orq"),
                     0,
-                    f"versão {versao} já existe no cache com conteúdo diferente "
-                    f"(ex.: {divergentes[0]}) — o que roda não é o que você "
-                    f"editou. Antes do release: bumpe a versão; se já bumpou e "
-                    f"instalou para testar, repita o `plugin update`",
+                    f"versão {versao} diverge do cache instalado "
+                    f"({primeira.kind}:{primeira.path}) — corrija a árvore "
+                    "instalada ou a fonte; depois reinstale a candidata e repita "
+                    "o verificador",
                 )
             )
 

@@ -41,9 +41,9 @@ compare duas cópias da mesma fonte não comprovada. `ORQ_RELEASE_REPO` é nomin
 rode `git rev-parse` ou `git status` no diretório corrente de um projeto consumidor. Depois da igualdade, registre
 `<referência-remota>` como `<fonte>`. Para os passos de filesystem, **`<fonte-local>` vem de clone limpo no mesmo SHA**:
 clone a referência remota em diretório temporário, faça checkout detached de
-`ORQ_RELEASE_SHA`, confirme `git status --porcelain` vazio e use a raiz desse clone. O cache do
-Claude só pode substituir esse clone depois que `claude plugin list` mostrar a versão alvo e o
-manifesto do cache declarar a mesma versão; ele nunca valida o commit remoto sozinho.
+`ORQ_RELEASE_SHA`, confirme `git status --porcelain` vazio e use a raiz desse clone. Cache de host
+nunca substitui esse clone: contém metadados runtime e não prova o commit remoto. Sem clone limpo,
+a instalação para como **fonte não validada**.
 
 ## Claude — já instalado, só confere
 
@@ -83,10 +83,19 @@ codex plugin add orq@orquestra
 Verificação:
 ```bash
 codex plugin list                                                            # orq: installed, enabled
-diff -rq ~/.codex/plugins/cache/orquestra/orq/<versão>/ <fonte-local>/orq/    # tem que voltar vazio
+python3 <fonte-local>/orq/scripts/verify_installed_cache.py \
+  --host codex \
+  --source <fonte-local>/orq \
+  --installed ~/.codex/plugins/cache/orquestra/orq/<versão>/                  # exit 0
 ```
 
-O `diff -rq` vale **somente** para `<versão>` recém-instalada. Se o instalador removeu um cache
+O verificador deve vir da **fonte limpa**, nunca do cache que está sendo verificado. Ele normaliza
+somente `.codex-plugin/migrated-command-skills/` no lado instalado e falha para qualquer outro
+extra, ausência, mudança de tipo ou byte drift. Use-o **somente** para `<versão>` recém-instalada.
+Exit `1` exige ler `tipo:caminho`: corrija a árvore instalada ou a fonte e reinstale a candidata;
+não faça bump automático. Exit `2` é erro de host, raiz ou leitura e deixa a instalação não
+validada.
+Se o instalador removeu um cache
 referenciado, recupere o diretório homônimo de `ORQ_CACHE_BACKUP` sem substituir a versão nova;
 falha nessa restauração deixa o host **instalado, não validado**.
 
@@ -196,11 +205,10 @@ bumpar não muda o que roda, e nenhum `plugin list` acusa. **Release novo → ro
 novo** em todo host onde o Orquestra já estiver instalado. No Kimi a cópia é um snapshot sem
 versionamento — sem re-rodar depois de um release, ela fica velha e nada avisa.
 
-⚠️ **Ordem de precedência quando `<fonte-local>` veio do cache do Claude (fonte remota, passo 0):**
-se o `diff -rq` do Codex ou do Kimi não bater, confira **primeiro** se esse cache está desatualizado
-— rode a seção "Claude" acima de novo antes de suspeitar do host que você acabou de instalar; o
-desatualizado costuma ser a referência velha, não o host novo corrompido, e presumir "corrompido"
-leva a reinstalar em loop atrás da referência errada.
+⚠️ **Ordem de precedência:** `<fonte-local>` é sempre o clone detached e limpo do SHA remoto
+aprovado no passo 0. Se o verificador do Codex ou os diffs seletivos do Kimi não baterem, leia o
+`tipo:caminho` e reconcilie contra esse clone; nunca troque a referência por cache Claude, nunca
+presuma corrupção do host e nunca faça bump apenas porque o exit foi `1`.
 
 ## Registrar
 
