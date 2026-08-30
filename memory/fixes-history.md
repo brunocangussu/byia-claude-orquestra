@@ -1,5 +1,14 @@
 # Log de mudanças — append-only
 
+## [2026-08-30] publicação | T-049 0.22.7 em origin/main
+
+O dono autorizou o push e o commit de produto `deabd4d` chegou a `origin/main` por fast-forward,
+sem force. A T-050/0.22.6 foi preservada no histórico e a T-049/0.22.7 permanece com 201 testes e
+gates verdes. Nenhum cache, Kimi ou sessão foi alterado; reinstalação Claude/Codex continua como
+gate separado e deve usar clone detached do SHA remoto final. O registro verdadeiro "publicada,
+ainda não reinstalada" revelou um teste acoplado ao rótulo transitório "candidata não publicada";
+o RED foi preservado e a asserção passou a validar a versão sem congelar o estado operacional.
+
 ## [2026-08-30] reconciliação | T-049 promovida para 0.22.7 sobre T-050
 
 Com autorização do dono, a branch T-049 foi rebaseada sobre `origin/main`, preservando os commits

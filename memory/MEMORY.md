@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.22.7 (candidata não publicada) · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.7 publicada, ainda não reinstalada · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
 
@@ -46,8 +46,9 @@
   caches externos `0.22.6` em Claude e Codex, ambos divergentes e sem os dois novos arquivos do
   verificador; esta task não os instalou. `origin/main` avançou com a T-050 e publicou outra 0.22.6,
   explicando os caches. O rebase sobre `origin/main` preservou a T-050, promoveu a candidata para
-  0.22.7 e passou em 201 testes e todos os gates. A branch está um commit à frente e limpa; o próximo
-  gate é push fast-forward. Reinstalação e publicação continuam separados.
+  0.22.7 e passou em 201 testes e todos os gates. O push fast-forward autorizado publicou `deabd4d`
+  em `origin/main`. O próximo gate é reinstalação Claude/Codex a partir de clone remoto detached;
+  Kimi e restart permanecem separados.
 
 - **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de
   `.in_use/<PID>` entrou em `origin/main` no commit de produto `676846a`. Claude e Codex registram

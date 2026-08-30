@@ -1840,10 +1840,7 @@ class ContextGuardReleaseVersionTest(unittest.TestCase):
         self.assertEqual(manifest["version"], expected)
         self.assertEqual(entry["version"], expected)
         self.assertIn(f"## Status\n\n`{expected}`", readme)
-        self.assertIn(
-            f"**Versão:** {expected} (candidata não publicada) ·",
-            memory,
-        )
+        self.assertIn(f"**Versão:** {expected} ", memory)
 
         board = (repo_root / "memory" / "wiki" / "KANBAN.md").read_text()
         t042_line = next(

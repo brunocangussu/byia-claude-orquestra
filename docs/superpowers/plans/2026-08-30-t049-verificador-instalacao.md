@@ -231,6 +231,10 @@ Reconciliation note (2026-08-30): T-050 published a different 0.22.6 first. The 
 rebase onto `origin/main` and promotion of T-049 to 0.22.7. The combined tree preserved T-050 and
 passed 201 tests plus all pre-release gates; push and installation remain separate gates.
 
+Publication note (2026-08-30): the owner authorized a fast-forward push and product commit
+`deabd4d` reached `origin/main`. Installation remains a separate gate and must use a detached clone
+of the final remote SHA.
+
 ### Task 5: Post-release validation behind separate authorization
 
 **Files:**

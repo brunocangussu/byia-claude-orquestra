@@ -1,6 +1,6 @@
 # T-049 — verificador de instalação cross-host
 
-**Estado:** candidata 0.22.7 reconciliada; aguardando push · **frente:** `@frente-auditoria-nativa`.
+**Estado:** 0.22.7 publicada; aguardando reinstalação Claude/Codex · **frente:** `@frente-auditoria-nativa`.
 
 ## Objetivo
 
@@ -95,10 +95,11 @@ push, publicação e restart continuam gates separados.
 - ✅ Reconciliação autorizada e concluída: rebase sobre `origin/main`, T-050 preservada, cinco
   anchors promovidos para 0.22.7 e nenhuma marca de conflito restante. A suíte combinada passou em
   201 testes, seguida de validate, Ruff, lint, identidade AGENTS/CLAUDE e `git diff --check` verdes.
+- ✅ Push fast-forward autorizado e verificado: `deabd4d` chegou a `origin/main` sem force. Nenhum
+  cache, marketplace local, Kimi ou sessão foi alterado durante o push.
 
 ## ⏭️ RETOMAR AQUI
 
-A candidata 0.22.7 está reconciliada e validada na branch `codex/t046-auditores-nativos`, um commit
-à frente de `origin/main`. Aguardar autorização explícita para push fast-forward. Depois do push,
-resolver um clone detached do SHA remoto e só então pedir o gate de reinstalação Claude/Codex. Não
-publicar, instalar ou reiniciar hosts sem autorização.
+A 0.22.7 está publicada em `origin/main`. Aguardar autorização explícita para criar clone remoto
+detached do SHA publicado, preservar caches referenciados e reinstalar somente Claude e Codex.
+Depois executar o verificador nos dois hosts. Não tocar no Kimi nem reiniciar sessões sem autorização.
