@@ -1,5 +1,13 @@
 # Log de mudanças — append-only
 
+## [2026-08-30] release+instalação 0.22.6 | @frente-opus-timeout · T-050
+
+O dono autorizou commit, push e instalação local. O commit `fbaff1c` foi publicado por fast-forward
+em `origin/main`; Codex e Claude registram `orq@orquestra 0.22.6` habilitada, com 35/35 arquivos
+byte-idênticos ao pacote. O upgrade Codex removeu temporariamente a 0.22.5 referenciada pela sessão;
+o backup preventivo foi restaurado antes de continuar, mantendo as duas versões lado a lado. Smoke
+do runner instalado, sem override, anunciou `TIMEOUT=600s`, comprovou `claude-opus-5` e saiu 0.
+
 ## [2026-08-30] checkpoint de recuperação | @frente-opus-timeout · T-050
 
 Após compactação, memória, board, thread, diff e gates foram reconciliados no worktree isolado.

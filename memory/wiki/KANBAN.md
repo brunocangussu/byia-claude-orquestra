@@ -18,11 +18,13 @@
 
 ## 🟡 Fazendo
 
-- [!] `T-050` Timeout padrão do runner Opus mata parecer válido — causa raiz comprovada no T-102:
+- [?] `T-050` Timeout padrão do runner Opus mata parecer válido — **0.22.6 PUBLICADA E INSTALADA**:
   sonda mínima `claude-opus-5` em 6,0s; revisão real exit 0 em 267,1s com teto 600s; o default 240s
   encerrava 27,1s antes. Candidata 0.22.6 em TDD aumenta só o default para 600s, atualiza contrato e
   preserva todas as travas. Gates frescos: 185 testes, coerência, diff-check, py_compile e smoke real
-  pelo default verdes. **AWAITING_OWNER:** commit, push e instalação local continuam sem autorização.
+  pelo default verdes. Commit `fbaff1c` em `origin/main`; Codex e Claude 0.22.6 habilitados e
+  byte-idênticos; smoke do cache instalado comprovou `TIMEOUT=600s` e `claude-opus-5`. A 0.22.5 foi
+  preservada para sessões antigas. Aguarda somente smoke natural numa sessão nova.
   `memory/wiki/threads/T-050-opus-timeout.md`.
 
 - [~] `T-040` Paridade operacional do Orquestra no Codex — coordena `T-041` (core `0.21.0`), `T-043` (guardião `0.22.3`, agora em VALIDATE) e `T-042` (statusline opt-in `0.23.0`). A `0.22.3` foi publicada e instalada com paridade em Codex, Claude e Kimi; esta frente continua aberta para a validação prática do dono e a futura `T-042`. @frente-paridade-codex

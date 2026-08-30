@@ -10,12 +10,14 @@
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
 
-- **`T-050` AWAITING_OWNER — timeout operacional do Opus:** uma sonda mínima comprovou CLI,
+- **`T-050` EM VALIDATE — 0.22.6 publicada e instalada:** uma sonda mínima comprovou CLI,
   autenticação e `claude-opus-5` em 6,0s; o briefing real T-102 terminou em 267,1s com exit 0 quando
   executado com teto de 600s, provando que o default de 240s matava resposta válida. A candidata
   0.22.6 aumenta somente o default para 600s e preserva `--timeout`, limite de 16 KiB, kill do grupo,
-  comprovação de modelo e fail-closed. Gates frescos fecharam em 185 testes e smoke real pelo default;
-  commit, push e instalação local aguardam autorização nominal. Thread: `wiki/threads/T-050-opus-timeout.md`.
+  comprovação de modelo e fail-closed. Gates fecharam em 185 testes; commit `fbaff1c` chegou a
+  `origin/main`; Codex e Claude registram 0.22.6 habilitada e byte-idêntica. O smoke do cache instalado
+  anunciou `TIMEOUT=600s` e comprovou Opus 5. A 0.22.5 foi preservada para sessões antigas; falta só
+  validar o carregamento natural numa sessão nova. Thread: `wiki/threads/T-050-opus-timeout.md`.
 
 - **`T-048` FECHADA — 0.22.5 publicada e instalada:** auditores nativos de remoção e adoção graph-first
   aprovados pelo dono. O núcleo offline comum aos três hosts está no worktree isolado; os falsos

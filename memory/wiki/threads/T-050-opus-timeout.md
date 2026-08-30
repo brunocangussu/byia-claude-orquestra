@@ -37,6 +37,12 @@ escopo funcional permanece mínimo: somente o default 240 → 600; override, lim
 comprovação do modelo, fail-closed e kill do grupo foram preservados.
 
 O parecer recuperado do T-102 foi registrado no projeto de produto como `REPROVADO` e permanece
-pendente de verificação contra o código antes de alterar o plano. **Próximo gate:** autorização
-nominal do dono para commit, push e instalação local da 0.22.6. Até lá, o runtime instalado continua
-na 0.22.5 com default de 240s; nenhum cache foi editado diretamente.
+pendente de verificação contra o código antes de alterar o plano.
+
+Release autorizada e concluída no commit `fbaff1c`, publicado por fast-forward em `origin/main`.
+Codex e Claude registram `orq@orquestra 0.22.6` habilitada; os dois caches têm 35/35 arquivos
+byte-idênticos ao pacote. O instalador removeu a 0.22.5 ainda referenciada por esta sessão durante o
+upgrade, mas o backup preventivo foi restaurado antes de continuar, preservando 0.22.5 e 0.22.6 lado
+a lado. O smoke pelo runner instalado do Codex, sem `--timeout`, anunciou `TIMEOUT=600s`, comprovou
+`claude-opus-5` e concluiu em 5,3s com exit 0. **Próximo passo:** abrir uma nova sessão para ela
+carregar naturalmente a 0.22.6; esta sessão permanece presa ao cache 0.22.5 por desenho do host.
