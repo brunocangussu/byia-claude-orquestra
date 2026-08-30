@@ -135,6 +135,7 @@ atuais e mostra a você o que pretende rodar antes de rodar.
 | `/orq:plan-next` | **Loop A** — planeja o próximo card e para no gate |
 | `/orq:implement-next` | **Loop B** — implementa + painel de revisão + documentação |
 | `/orq:revisar` | Painel de revisores sobre a mudança atual |
+| `/orq:auditar` | Ledger de remoção ou prova graph-first a partir de trace explícito, offline e sem hooks |
 | `/orq:elenco` | Ver/trocar qual LLM toca cada papel |
 | `/orq:stack` | Detecta ferramentas de contexto/memória que faltam e instala o que você aprovar |
 | `/orq:quadro` | Mostra o board e o progresso |
@@ -371,9 +372,9 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.22.4` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.22.5` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
-auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
+auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
 corpus real (não inventados) · cardápio por situação (`/orq:ajuda`) · política de iniciativa própria em
 **três níveis** (age e relata · propõe, nunca insiste · sempre pergunta) · **perfis de elenco** (`padrao` ·

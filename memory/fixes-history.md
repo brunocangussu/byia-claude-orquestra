@@ -1,5 +1,56 @@
 # Log de mudanças — append-only
 
+## [2026-08-29] commit local autorizado | @frente-auditoria-nativa · T-048
+
+O dono autorizou integrar a candidata 0.22.5 em um commit local após painel, gates e validação
+prática verdes. Instalação nos hosts e push/publicação permanecem atrás de gates separados.
+
+## [2026-08-29] validação prática | @frente-auditoria-nativa · T-048
+
+Em repositório autoral temporário, 10/10 checks passaram: scan detectou alvo e saiu 1; verify após
+remoção gravou recibo e saiu 0; graph-first passou; direct-first falhou. O primeiro harness usou uma
+chave de recibo errada, foi corrigido e repetido do zero. T-048 aguarda autorização para commit
+local; instalação, push e publicação seguem separados. Nenhum projeto real ou cache foi alterado.
+
+## [2026-08-29] validate candidato | @frente-auditoria-nativa · T-048
+
+A cota do Kimi K3 resetou e o painel foi concluído com invocações reais, read-only e isoladas.
+Adoção retornou GO. Remoção encontrou um crash de JSON para path com surrogate; o contracaso ficou
+RED, `write_json` passou a serialização ASCII-safe, o teste ficou GREEN e a revisão repetida retornou
+GO. Gates finais: 184 testes, Ruff, py_compile, coerência, manifesto, schemas/versão, diff e escopo
+proibido verdes. T-048 foi para VALIDATE; sem commit, cache, instalação, push ou publicação.
+
+## [2026-08-29] review+hardening candidato | @frente-auditoria-nativa · T-048
+
+O painel adversarial encontrou falsos verdes reais nos dois auditores. A adoção agora rejeita campo
+canônico malformado/lista vazia de ferramenta e shell não tokenizável nunca vira grafo. A remoção
+não bloqueia em FIFO, reconhece UTF-16/32 sem BOM e streaming, registra ilegíveis, contém o ledger
+na raiz, rejeita recibos duplicados e preserva tombstones. Opus 5 fechou GO nos caminhos críticos;
+183 testes, Ruff, py_compile, lint, manifesto, schemas e diff proibido passaram. A confirmação Kimi
+K3 ficou pendente por `403` de cota; nenhum cache, instalação, commit, push ou publicação mudou.
+
+## [2026-08-29] checkpoint de recuperação | @frente-auditoria-nativa · T-048 pós-compactação
+
+Memória, board, plano, diff e thread foram reconciliados novamente no worktree isolado. Os cinco
+falsos verdes do auditor de adoção já estão cobertos por TDD; a suíte chegou a 175 testes verdes e
+o lote B do Opus retornou GO. Restam reconciliar Opus A/Kimi, revisar o auditor de remoção em fatias
+e repetir os gates. Nenhum hook, cache, instalação, commit, push ou publicação foi alterado.
+
+## [2026-08-29] checkpoint de recuperação | @frente-auditoria-nativa · T-048
+
+Após compactação sem checkpoint verificado, memória, board e thread foram reconciliados no worktree
+isolado. A suíte tinha chegado a 151 testes verdes, mas o Opus manteve NO-GO por cinco falsos verdes
+no auditor de adoção: shell multilinha, redirecionamento, wrappers encadeados, grafo sem procedência
+e evento fora das formas canônicas. O card permanece em implementação; nenhum hook, cache,
+instalação, commit, push ou publicação foi alterado.
+
+## [2026-08-29] feat candidata | @frente-auditoria-nativa · T-048 auditores offline
+
+Desenho aprovado e implementação TDD iniciada no worktree isolado baseado em `origin/main`. A
+candidata 0.22.5 adiciona ledger de remoção e verificador de trace graph-first, com núcleo único para
+Claude/Codex/Kimi. RED foi observado; 11 testes novos passam. A fase não toca hooks ou guardião e
+não instala, publica, commita ou envia ao GitHub antes dos gates finais e autorização do dono.
+
 ## [2026-08-17] release+instalação | @frente-protecao-contexto · 0.22.4 no Claude e Codex
 
 O conserto da T-046 foi publicado em `origin/main` no commit de produto `676846a` e instalado como

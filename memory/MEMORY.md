@@ -4,11 +4,21 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.22.4 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-17 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.5 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-29 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono; release ainda candidata).
 
 ## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
+
+- **`T-048` COMMIT AUTORIZADO, AGUARDANDO INSTALAÇÃO — candidata 0.22.5:** auditores nativos de remoção e adoção graph-first
+  aprovados pelo dono. O núcleo offline comum aos três hosts está no worktree isolado; os falsos
+  verdes de adoção e remoção viraram testes e a suíte chegou a 184 testes verdes. Opus 5 e Kimi K3
+  fecharam GO nos dois auditores. O último achado Kimi — path com surrogate quebrando a escrita
+  JSON — foi reproduzido em RED, corrigido e revisto em GO. Gates completos e a validação prática
+  autorizada passaram: scan/verify e graph-first/direct-first deram os quatro resultados esperados.
+  O dono autorizou o commit local neste gate. Instalação nos hosts e push/publicação permanecem
+  gates separados; nenhum hook, cache, instalação, push ou publicação foi alterado. Retomar em
+  `wiki/threads/T-048-auditores-nativos.md`.
 
 - **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de
   `.in_use/<PID>` entrou em `origin/main` no commit de produto `676846a`. Claude e Codex registram

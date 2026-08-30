@@ -4,7 +4,8 @@ description: >
   Use when a project contains `memory/wiki/KANBAN.md` and the user requests any work change,
   implementation, fix, improvement, refactor, review, validation, or continuation. Also use for
   project status and resumption, recording decisions/cards, checkpoints and context cleanup, model
-  roster or LLM-credit changes, memory recall, tool/setup diagnosis, capability discovery, and
+  roster or LLM-credit changes, memory recall, removal/adoption audits, tool/setup diagnosis,
+  capability discovery, and
   night-mode delegation. Trigger from natural language such as "quero", "vamos mudar", "tem um
   problema", "pode seguir", "onde paramos", "anota isso", "revisa", "quem está revisando",
   "lembra quando", "o que falta instalar", "vou dormir", "voltei" or equivalent phrasing, even
@@ -97,6 +98,7 @@ resolva o papel e só então aplique a célula da `## Matriz de invocação`. �
 | "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
 | "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Painel de revisores** (`/orq:revisar`) — o revisor interno + os externos **ativos no `_elenco.md`**, em paralelo, achados reconciliados |
+| "audite a remoção de X" · "prove que X saiu" · "verifique se começamos pelo grafo" | **Auditoria explícita e offline** (`/orq:auditar`) — ledger de remoção ou análise de trace graph-first; sem hook, captura viva ou bloqueio |
 | "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" · "tô com pouco crédito" · "acabando os créditos" · "final do ciclo semanal" · "modo economia" · e qualquer pedido de sair do perfil ou voltar ao time normal | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel; frase de contexto de crédito troca o **time inteiro** pelo perfil nomeado (`perfil economia` / `perfil padrao`), anunciando o que muda, **o que se perde** e **como reverter** — sem depender de uma frase fixa de volta, que ele pede naturalmente quando o crédito voltar |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória elegível**: wiki do projeto primeiro; depois, somente se o host expuser uma busca confiável **e ela não estiver em `memory/wiki/_stack.md` como Dispensada**, consulte-a. Provider dispensado nunca vira fallback só por estar conectado. Se não houver busca elegível, declare que a cobertura ficou limitada à wiki |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |

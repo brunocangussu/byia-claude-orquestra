@@ -17,6 +17,7 @@ Uma tabela ou lista curta, **por situação**, não por comando:
 | "onde paramos" · "o que falta" · "o que preciso decidir" | Mostra o board, começando pelo que espera você (`/orq:quadro`) |
 | "terminamos" · "salva aí" · "checkpoint" | Grava o estado durável; no Codex a conversa continua e a compactação fica disponível, no Claude libera o `/clear` (`/orq:checkpoint`) |
 | "revisa isso" · "valida isso" | Painel de revisores — Claude + externos ativos (`/orq:revisar`) |
+| "audite a remoção de X" · "prove que X saiu" · "começamos pelo grafo?" | Produz ledger de remoção ou verifica um trace graph-first, offline e sem hooks (`/orq:auditar`) |
 | "quem tá revisando" · "troca o modelo do planner" · "tô com pouco crédito, modo economia" | Mostra ou ajusta o elenco de LLMs — inclusive troca o **time inteiro** por contexto de crédito (`/orq:elenco`) |
 | "anota isso" · "isso vira card" | Cria o card no backlog, sem tirar você do que está fazendo — planejamento fica pra quando você pedir (aí sim entra o `/orq:plan-next`) |
 | "lembra quando a gente…" | Busca primeiro na wiki e depois só em memória confiável do host que não esteja marcada como Dispensada no projeto |

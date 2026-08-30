@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orquestra.local/schemas/audit-ledger-v1.json",
+  "title": "Orquestra removal audit ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "audit",
+    "createdAt",
+    "updatedAt",
+    "target",
+    "repository",
+    "exclusions",
+    "retainedPaths",
+    "criticalAnchors",
+    "requiredValidations",
+    "validationReceipts",
+    "graphReceipts",
+    "evidence",
+    "verification"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "orq.audit-removal.v1" },
+    "audit": { "const": "removal" },
+    "createdAt": { "type": "string" },
+    "updatedAt": { "type": "string" },
+    "target": {
+      "type": "object",
+      "required": ["raw", "variants"],
+      "properties": {
+        "raw": { "type": "string", "minLength": 1 },
+        "variants": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "required": ["root", "commit", "dirty"],
+      "properties": {
+        "root": { "type": "string", "minLength": 1 },
+        "commit": { "type": ["string", "null"] },
+        "dirty": { "type": ["boolean", "null"] }
+      }
+    },
+    "exclusions": { "type": "array", "items": { "type": "string" } },
+    "retainedPaths": { "type": "array", "items": { "type": "string" } },
+    "criticalAnchors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "exists"],
+        "properties": { "path": { "type": "string" }, "exists": { "type": "boolean" } }
+      }
+    },
+    "requiredValidations": { "type": "array", "items": { "type": "string" } },
+    "validationReceipts": { "type": "array", "items": { "type": "object" } },
+    "graphReceipts": { "type": "array", "items": { "type": "object" } },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "line", "column", "match", "class", "status"],
+        "properties": {
+          "path": { "type": "string" },
+          "line": { "type": ["integer", "null"] },
+          "column": { "type": ["integer", "null"] },
+          "match": { "type": "string" },
+          "class": { "type": "string" },
+          "status": {
+            "enum": ["active", "retained-historical", "removed", "ambiguous"]
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["status", "checkedAt", "blockingEvidence", "missingCriticalAnchors", "missingReceipts"],
+      "properties": {
+        "status": { "enum": ["needs-removal", "needs-verification", "pass", "fail"] },
+        "checkedAt": { "type": "string" },
+        "blockingEvidence": { "type": "integer", "minimum": 0 },
+        "missingCriticalAnchors": { "type": "array", "items": { "type": "string" } },
+        "missingReceipts": { "type": "array", "items": { "type": "string" } },
+        "failedReceipts": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
