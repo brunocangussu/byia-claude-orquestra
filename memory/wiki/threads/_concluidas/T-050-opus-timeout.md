@@ -1,5 +1,7 @@
 # Thread — Timeout operacional do runner Opus (`T-050`)
 
+**Estado:** validada pelo dono e fechada em 2026-08-31.
+
 ## Pedido do dono
 
 Investigar por que o reviewer Opus do Orquestra expirava e resolver a causa, sem mascarar falha de
@@ -27,7 +29,7 @@ resposta válida chegou 27,1s depois do encerramento imposto pelo runner.
 - comando, arquitetura e lint passam a exigir 600s;
 - teste RED→GREEN prova o novo default.
 
-## ⏭️ RETOMAR AQUI
+## ✅ Validação final
 
 Checkpoint de recuperação após compactação, 30-Ago-2026. Os gates da candidata 0.22.6 foram
 repetidos no worktree isolado `codex/t050-opus-timeout`: 185 testes verdes, lint de coerência com
@@ -44,5 +46,10 @@ Codex e Claude registram `orq@orquestra 0.22.6` habilitada; os dois caches têm 
 byte-idênticos ao pacote. O instalador removeu a 0.22.5 ainda referenciada por esta sessão durante o
 upgrade, mas o backup preventivo foi restaurado antes de continuar, preservando 0.22.5 e 0.22.6 lado
 a lado. O smoke pelo runner instalado do Codex, sem `--timeout`, anunciou `TIMEOUT=600s`, comprovou
-`claude-opus-5` e concluiu em 5,3s com exit 0. **Próximo passo:** abrir uma nova sessão para ela
-carregar naturalmente a 0.22.6; esta sessão permanece presa ao cache 0.22.5 por desenho do host.
+`claude-opus-5` e concluiu em 5,3s com exit 0.
+
+Em 31-Ago-2026, uma task Codex nova carregou naturalmente a 0.22.7, release que preserva o default
+de 600s. A fonte e o cache instalado mantêm `DEFAULT_TIMEOUT_SECONDS = 600.0`, e o pacote `orq/`
+permanece sem diff no SHA `41ed5da`. O dono confirmou explicitamente que a T-050 está resolvida.
+Não houve nova chamada Opus: o parecer real de 267,1s sob o teto de 600s e o smoke do runner
+instalado já provavam o caminho comportamental. O fechamento não incluiu commit, push ou restart.

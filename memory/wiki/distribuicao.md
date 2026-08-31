@@ -47,6 +47,16 @@ Esse fecho pós-release só vale quando o marketplace/update resolve o **mesmo S
 `ORQ_CLEAN_SOURCE`. Marketplace `Directory` é iteração local, não prova publicação nem pode ser
 misturado com clone remoto para declarar o cache validado.
 
+Evidência operacional de 2026-08-30: a fonte remota final `41ed5da` foi clonada em detached e limpa;
+os caches 0.22.7 de Claude e Codex passaram com `rc=0`. A mesma ferramenta rejeitou com `rc=1` um
+`unexpected-extra.txt` inserido somente em cópias descartáveis. Se os caches reais já estiverem
+instalados, habilitados e coerentes, não repita o instalador apenas para produzir movimento.
+
+Validação natural de 2026-08-31: uma task Codex nova carregou a skill 0.22.7 pela frase *"onde
+paramos?"* e retomou `memory/MEMORY.md` antes do board e da thread ativa. Isso fecha o smoke Codex
+da T-049. O smoke Claude permanece separado e exige restart explicitamente autorizado; nunca use o
+fechamento do Codex como autorização implícita para reiniciar outro host.
+
 **Reload vs restart, por componente (medido em 2026-07-29):** `/reload-plugins` na sessão viva
 **aplica** o update para **skill** (a 0.11.0 foi servida sem restart). Comando, agente, hook e MCP:
 **não testados** — presuma restart. Novo dado atualiza uma célula da tabela do README ("Problemas

@@ -1,6 +1,6 @@
 # T-049 — verificador de instalação cross-host
 
-**Estado:** 0.22.7 publicada; aguardando reinstalação Claude/Codex · **frente:** `@frente-auditoria-nativa`.
+**Estado:** validada e fechada em 2026-08-31 · **frente:** `@frente-auditoria-nativa`.
 
 ## Objetivo
 
@@ -98,8 +98,20 @@ push, publicação e restart continuam gates separados.
 - ✅ Push fast-forward autorizado e verificado: `deabd4d` chegou a `origin/main` sem force. Nenhum
   cache, marketplace local, Kimi ou sessão foi alterado durante o push.
 
-## ⏭️ RETOMAR AQUI
+## ✅ Validação final
 
-A 0.22.7 está publicada em `origin/main`. Aguardar autorização explícita para criar clone remoto
-detached do SHA publicado, preservar caches referenciados e reinstalar somente Claude e Codex.
-Depois executar o verificador nos dois hosts. Não tocar no Kimi nem reiniciar sessões sem autorização.
+Gate autorizado e verificação concluída em 2026-08-30. O SHA remoto final `41ed5da` foi clonado em
+detached com `git status --porcelain` vazio e versão 0.22.7. Claude e Codex já apareciam instalados e
+habilitados em 0.22.7 antes da mutação; seus caches reais passaram no verificador da fonte limpa com
+`rc=0`. Em cópias descartáveis, `unexpected-extra.txt` produziu `extra` e `rc=1` nos dois hosts.
+Não houve reinstalação redundante, alteração do Kimi nem restart.
+
+Em 2026-08-31, o dono abriu a task Codex de validação com a frase natural *"onde paramos?"*. A
+skill carregada veio do cache 0.22.7, e o Manager releu sequencialmente `memory/MEMORY.md`,
+`memory/wiki/KANBAN.md` e esta thread antes de fechar o card. Na mesma task, os verificadores dos
+caches reais Codex e Claude foram repetidos contra o pacote `orq/` sem diff no SHA `41ed5da`; ambos
+retornaram `ok`/`rc=0`, e os dois hosts reportaram 0.22.7 habilitada.
+
+O dono delegou explicitamente a conclusão da T-049 e manteve commit, push e restart fora do escopo.
+Nenhum deles foi executado. O smoke Claude não é pendência deste card: continua condicionado a um
+restart futuro em gate próprio. Não há `RETOMAR AQUI` ativo para a T-049.

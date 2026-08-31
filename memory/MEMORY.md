@@ -4,20 +4,23 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.22.7 publicada, ainda não reinstalada · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.7 instalada e verificada em Claude/Codex; Kimi não atualizado · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-31 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
 
-- **`T-050` EM VALIDATE — 0.22.6 publicada e instalada:** uma sonda mínima comprovou CLI,
+- **`T-050` FECHADA — timeout de 600s validado pelo dono:** uma sonda mínima comprovou CLI,
   autenticação e `claude-opus-5` em 6,0s; o briefing real T-102 terminou em 267,1s com exit 0 quando
   executado com teto de 600s, provando que o default de 240s matava resposta válida. A candidata
   0.22.6 aumenta somente o default para 600s e preserva `--timeout`, limite de 16 KiB, kill do grupo,
   comprovação de modelo e fail-closed. Gates fecharam em 185 testes; commit `fbaff1c` chegou a
   `origin/main`; Codex e Claude registram 0.22.6 habilitada e byte-idêntica. O smoke do cache instalado
-  anunciou `TIMEOUT=600s` e comprovou Opus 5. A 0.22.5 foi preservada para sessões antigas; falta só
-  validar o carregamento natural numa sessão nova. Thread: `wiki/threads/T-050-opus-timeout.md`.
+  anunciou `TIMEOUT=600s` e comprovou Opus 5. A 0.22.5 foi preservada para sessões antigas. Em
+  2026-08-31, uma task Codex nova carregou naturalmente a 0.22.7, que preserva o default de 600s, e
+  o dono confirmou explicitamente que a T-050 estava resolvida. Nenhuma nova chamada Opus foi feita:
+  a revisão real de 267,1s e o smoke do runner instalado já cobriam o comportamento. Histórico:
+  `wiki/threads/_concluidas/T-050-opus-timeout.md`.
 
 - **`T-048` FECHADA — 0.22.5 publicada e instalada:** auditores nativos de remoção e adoção graph-first
   aprovados pelo dono. O núcleo offline comum aos três hosts está no worktree isolado; os falsos
@@ -34,7 +37,7 @@
   virou T-049: allowlist estrita para `.in_use` e `.codex-plugin`. Histórico em
   `wiki/threads/T-048-auditores-nativos.md`.
 
-- **`T-049` RECONCILIADA — candidata 0.22.7:** o dono aprovou comparador compartilhado + CLI,
+- **`T-049` FECHADA — 0.22.7 instalada e verificada em Claude/Codex:** o dono aprovou comparador compartilhado + CLI,
   `.orphaned_at` somente no cache Claude instalado, `.DS_Store` estrito e a promoção para `0.22.7`.
   Implementação TDD concluída no worktree isolado: comparador cross-host, integração no lint,
   comandos/documentação e bump nos cinco anchors. Antes da reconciliação, 200 testes, Ruff, validate,
@@ -47,8 +50,15 @@
   verificador; esta task não os instalou. `origin/main` avançou com a T-050 e publicou outra 0.22.6,
   explicando os caches. O rebase sobre `origin/main` preservou a T-050, promoveu a candidata para
   0.22.7 e passou em 201 testes e todos os gates. O push fast-forward autorizado publicou `deabd4d`
-  em `origin/main`. O próximo gate é reinstalação Claude/Codex a partir de clone remoto detached;
-  Kimi e restart permanecem separados.
+  em `origin/main`. No gate pós-release, o SHA remoto final `41ed5da` foi clonado em detached com
+  árvore limpa. Claude e Codex já registravam a 0.22.7 instalada e habilitada; ambos os caches reais
+  passaram no verificador da fonte com `rc=0`. Cópias descartáveis com um extra inesperado foram
+  rejeitadas com `rc=1`, provando o fail-closed sem tocar nos caches reais. A reinstalação redundante
+  foi evitada; Kimi e restart permaneceram fora. Em 2026-08-31, uma task Codex nova carregou a skill
+  0.22.7 pela frase natural *"onde paramos?"* e retomou na ordem `memory/MEMORY.md` → board →
+  thread T-049. O dono delegou a conclusão da validação sem autorizar commit, push ou restart;
+  o smoke Claude permanece separado e condicionado a um restart futuro explicitamente autorizado.
+  Histórico: `wiki/threads/_concluidas/T-049-verificador-instalacao.md`.
 
 - **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de
   `.in_use/<PID>` entrou em `origin/main` no commit de produto `676846a`. Claude e Codex registram

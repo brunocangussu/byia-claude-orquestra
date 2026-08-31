@@ -1,5 +1,31 @@
 # Log de mudanças — append-only
 
+## [2026-08-31] processo | @frente-opus-timeout · T-050 fechada
+
+Após uma compactação sem checkpoint verificado, o estado foi reconstruído na worktree isolada pela
+ordem índice → board → thread. Uma task Codex nova carregou naturalmente o Orquestra 0.22.7, que
+preserva `DEFAULT_TIMEOUT_SECONDS = 600.0`, e o dono confirmou explicitamente: *"T-050 resolvido"*.
+A evidência comportamental anterior permanece suficiente: revisão real de 267,1s com exit 0 e smoke
+do runner instalado anunciando `TIMEOUT=600s` com `claude-opus-5`. A chamada Opus não foi repetida;
+nenhum commit, push, restart ou alteração no checkout compartilhado foi executado.
+
+## [2026-08-31] processo | @frente-auditoria-nativa · T-049 fechada
+
+Em uma task Codex nova, a frase *"onde paramos?"* carregou a skill Orquestra 0.22.7 e a retomada foi
+confirmada na ordem `memory/MEMORY.md` → board → thread T-049. Os verificadores foram repetidos
+contra o pacote `orq/` sem diff no SHA `41ed5da`: caches reais Codex e Claude retornaram `ok`/`rc=0`,
+e os dois hosts reportaram 0.22.7 habilitada. O dono delegou o fechamento da T-049; nenhum commit,
+push ou restart foi executado. O smoke Claude permanece condicionado a um restart futuro em gate
+próprio e não bloqueia mais este card.
+
+## [2026-08-30] instalação validada | T-049 0.22.7 em Claude/Codex
+
+O dono autorizou reinstalar Claude e Codex a partir de clone remoto detached e executar o
+verificador cross-host. O SHA final `41ed5da` foi clonado com árvore limpa; no preflight, os dois
+hosts já registravam 0.22.7 instalada e habilitada. Os caches reais passaram com `rc=0`, e cópias
+descartáveis contendo `unexpected-extra.txt` falharam com `extra`/`rc=1`. A reinstalação redundante
+foi evitada. Kimi, restart, push e os caches reais fora da comparação não foram alterados.
+
 ## [2026-08-30] publicação | T-049 0.22.7 em origin/main
 
 O dono autorizou o push e o commit de produto `deabd4d` chegou a `origin/main` por fast-forward,
