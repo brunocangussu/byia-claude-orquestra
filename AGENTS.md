@@ -74,20 +74,21 @@ extintos ao descrever bugs passados.
 ## O produto aqui são instruções, não código
 
 Isso muda o que o review procura. Não há null pointer nem race condition — há **ambiguidade**,
-**contradição entre arquivos** e **referência a algo que não existe**. Ao spawnar o `orq-reviewer`
-neste repo, inclua no briefing:
+**contradição entre arquivos** e **referência a algo que não existe**. Ao briefar o revisor deste
+repo, inclua:
 
 > Leia como um modelo hostil leria. Onde esta instrução admite duas interpretações? Ela contradiz
 > alguma regra em outro arquivo do plugin? Cita comando, skill ou agente que não existe?
 
-## Se você é um revisor externo entrando pelo painel
+## Se você é o revisor entrando pelo `/orq:revisar`
 
-Você entra pelo `/orq:revisar`, ao lado do revisor interno. Duas coisas:
+Você é o **único** revisor, e é sempre de vendor oposto ao host — não há revisor interno ao seu
+lado. Duas coisas:
 
 - **Read-only.** Aponte, não corrija. Quem implementou aplica.
 - **O produto são instruções, não código** — vale a mesma pergunta da seção acima ("O produto aqui
   são instruções, não código"). Um achado sem cenário de falha concreto é opinião de estilo e será
-  descartado na reconciliação.
+  descartado na auditoria do Manager.
 
 ## Idioma
 

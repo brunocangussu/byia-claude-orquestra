@@ -4,13 +4,14 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.22.0 na `main` · **`0.24.0` pronta e aprovada na branch `feat/t051-elenco-por-tarefa`, aguardando ordem de release** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.24.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟢 Trabalho mais recente (2026-09-01) — @frente-elenco · `T-051`
 
-**Pronto para release, esperando o dono.** Implementação + **7 rodadas de review externo** (25
-bloqueadores, contagem 5→8→4→5→2→1→**0 APROVADO**). Branch `feat/t051-elenco-por-tarefa`, 18
-arquivos, `0.24.0` nos quatro lugares, gates verdes. **Sem commit, sem push, sem publicação.**
+**RELEASADA em 2026-09-01, aguardando o teste comportamental do dono.** Implementação + **7 rodadas
+de review externo** (25 bloqueadores, contagem 5→8→4→5→2→1→**0 APROVADO**). 18 arquivos, `0.24.0`
+nos quatro lugares, gates verdes conferidos pelo Manager. Merge de `feat/t051-elenco-por-tarefa` na
+`main`, commitada e **com push feito** — quem instalar do GitHub recebe a 0.24.0.
 
 **O que a 0.24.0 muda, em uma frase cada:**
 - **Elenco em dois eixos** — `trilha` (`interface`|`sistema`) escolhe o **vendor de quem pensa**;

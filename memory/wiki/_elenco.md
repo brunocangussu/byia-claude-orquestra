@@ -5,101 +5,108 @@
 > `/orq:elenco <papel> <modelo>`, ou troque o **time inteiro** com `/orq:elenco perfil <nome>` —
 > ou fale naturalmente: *"quero o Fable planejando"*, *"tô com pouco crédito"*, *"modo economia"*.
 
-> **Este arquivo vale nos três hosts (Claude, Codex, Kimi) — mas nem toda seção vale igual em
-> todos.** A tabela `## Papéis`, a linha `Perfil ativo`, a lista `Valores aceitos` e a seção
-> `## Perfis` (perfis de crédito, `padrao`/`economia`), logo abaixo, são o **estado do host
-> Claude**. Rodando noutro host, seu time é a tabela do **SEU** host em `## Times por host` —
-> **resolvido na leitura, sem ativação** — `## Times por host` não é preset ativável, então nenhum
-> comando o reescreve e nenhuma janela troca o time de outra por ali. **O que ainda escreve neste
-> arquivo é o `/orq:elenco`, e ele só pode escrever a tabela do host Claude** (`## Papéis`,
-> `Perfil ativo`, `## Perfis`). Rodando noutro host, **não use o comando**: mudar o time é edição
-> manual desta seção, com o dono — usá-lo ali reescreveria o time do Claude no meio de uma janela
-> Claude paralela.
+> **Onde o modelo é resolvido — a única frase normativa:** identifique o host, leia a tabela DELE
+> em `## Times por host`, e aplique a célula da `## Matriz de invocação`. **Não existe outra tabela
+> ativa.** Vale para ler e para gravar: o `/orq:elenco` escreve na seção do host onde está rodando,
+> nunca numa tabela compartilhada — é o que impede uma janela Codex de trocar, em silêncio, o time
+> de uma janela Claude aberta no mesmo repositório.
+>
+> **Presets (`## Perfis`) são por host.** Os desta página valem para o host Claude; o host Codex
+> ainda não tem presets — lá o ajuste é papel a papel, e criar um preset é pedido do dono.
 
-**Perfil ativo:** `padrao` — desde 2026-07-28, sem desvio.
-*(Trocar o perfil reescreve a tabela "Papéis" abaixo e vale a partir do **próximo spawn, em todas
-as janelas** — crédito é da conta, não da frente. Agente já em execução termina no modelo antigo;
-não se refaz nada. Ajuste papel a papel que diverge do preset ativo — inclusive com `padrao`
-ativo — vira `padrao · desvio: papel→modelo`; devolvido ao preset, remove-se o desvio. Ver passo 3
-de "Com argumento — ajustar" em `/orq:elenco`.)*
+## A regra em uma frase (decisão do dono, 2026-09-01)
 
-## Papéis (tabela ativa — é ESTA que os comandos leem)
+**Domínio decide quem pensa; host decide quem escreve.** Dois eixos independentes:
 
-| Papel | Modelo | Por quê |
-|---|---|---|
-| `manager` | *sessão principal* | definido pelo `/model` — **não é spawn, não se configura aqui** |
-| `planner` | `fable` | achar causa raiz e desenhar solução é o trabalho mais difícil — **escolha do dono em 2026-07-28** |
-| `implementer` | `sonnet` | executar plano já aprovado é trabalho dirigido — **escolha do dono em 2026-07-28** |
-| `reviewer` | `opus` | revisão adversarial exige raciocínio forte |
-| `docs` | `sonnet` | escrita objetiva sobre código já pronto |
-| `scout` | `sonnet` | leitura ampla e barata |
+- **Trilha** (`interface` | `sistema`) — escolhe o **vendor do planner**. Critério de aceite
+  **perceptual** (o dono valida olhando/usando) → Anthropic; critério **comportamental** (valida-se
+  verificando) → OpenAI. Card misto ou ambíguo → `sistema`. Não é frontend/backend: um CLI é
+  `sistema`, um brand book é `interface`.
+- **Faixa** (`pesada` | `normal` | `leve`) — escolhe o **degrau do implementer**, sempre no vendor
+  do host. `pesada` = alto risco **ou** desenho ainda por decidir; `leve` = resultado determinado e
+  verificação mecânica; senão `normal`. **Card Trivial não tem faixa** (não há implementer: o
+  Manager escreve).
+  ⛔ **Reavaliada no gate, com piso: card Alto risco continua `pesada` mesmo com o plano fechado.**
+  Só rebaixa a `pesada` que veio **exclusivamente** de desenho aberto, e só depois que o plano
+  fechou esse desenho — o plano muda a incerteza, não a consequência do erro. Rebaixar um card de
+  schema ou segurança mandaria a mudança mais perigosa do board para o modelo mais fraco.
 
-Valores aceitos **na tabela ativa do host Claude**: `opus` · `sonnet` · `haiku` · `fable` ·
-`inherit` · ou um id específico (`claude-opus-5`). Modelos de outros vendors (`gpt-5.6-sol`,
-`kimi-code/k3`, ...) existem em `## Times por host` e na `## Matriz de invocação` — pô-los num
-papel **desta** tabela é o `T-021`, ainda não decidido; até lá, este arquivo não os aceita aqui.
+O Manager grava `trilha: … · faixa: …` na nota do card. **Card sem registro → `sistema · normal`.**
+A definição canônica das duas réguas mora no produto (`orq/commands/elenco.md`, seção "As duas
+réguas") — aqui ela é resumida, não redefinida.
+
+**Quem pode vir de outro vendor:** só **`planner`** (pelo domínio) e **`reviewer`** (pela
+independência, e obrigatoriamente do vendor oposto). Aceitam qualquer vendor com célula na
+`## Matriz de invocação`, **desde que o mecanismo daquela célula execute aquele modelo** — a
+célula Anthropic×Codex é o runner de Opus fixo, então lá só entra `opus`. **`implementer`, `docs`
+e `scout` ficam no vendor do host**: os dois primeiros porque escrevem; o `scout` porque leitura
+ampla e barata não compra aptidão de domínio e ainda pagaria transferência para terceiro.
+Scout cross-vendor é recusa com motivo. A metade de **escrita** cross-vendor do `T-021` segue fora do
+desenho; a metade **read-only** foi decidida aqui.
 
 ## Revisores externos
+
+**Não é composição de painel** — o revisor é **um só**, resolvido pela tabela do host. Esta seção é
+o **registro de capacidade das vias cross-vendor**: por onde um papel read-only alcança o vendor
+oposto, com o que foi comprovado e quando.
 
 Regras, cada uma escrita 1×:
 
 - **Nunca dependa de default de config de terceiro** — declare o modelo aqui, não confie no que o
-  binário do vendor assume sozinho. Foi assim que o painel rodou `kimi-code/k3` por acidente em
-  2026-08-05: o `default_model` do `~/.kimi-code/config.toml` decidiu por omissão.
-- **O vendor do host nunca é externo de si mesmo.** Rodando noutro host, pule a linha do SEU
-  vendor — seu painel fresco (mesmo modelo, sessão nova) entra pela `## Matriz de invocação`, não
-  por aqui.
-- **Toda invocação por CLI exige `< /dev/null`** — sem TTY, os três CLIs (Codex, Kimi e o
-  `claude -p` cross-vendor) bloqueiam lendo stdin e travam até o timeout.
+  binário do vendor assume sozinho. Já custou um parecer rodado no modelo errado em 2026-08-05,
+  decidido por omissão pelo `default_model` de um config de terceiro.
+- **O vendor do host nunca revisa a si mesmo.** É a razão de existir da via: no host Claude o
+  revisor é OpenAI; no host Codex, Anthropic.
+- **Toda invocação por CLI exige `< /dev/null`** — sem TTY, os CLIs bloqueiam lendo stdin e travam
+  até o timeout.
 
-| Revisor | Estado | Config |
-|---|---|---|
-| codex | **ativo** | binário `/usr/local/bin/codex` (`codex` no PATH) · modelo `gpt-5.6-sol` @ `xhigh` · comando completo: ver **Matriz de invocação** |
-| kimi | **ativo** | `KIMI=$(command -v kimi \|\| echo "$HOME/.kimi-code/bin/kimi")` · modelo `kimi-code/k3` · v0.29.2, OAuth, symlink em `~/.local/bin/kimi` (2026-07-28) · comando completo: ver **Matriz de invocação** |
+| Via | Vendor | Consumida por | Estado | Registro |
+|---|---|---|---|---|
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | binário `/usr/local/bin/codex` (`codex` no PATH) · modelo `gpt-5.6-sol` @ `xhigh` · comando completo: ver **Matriz de invocação** |
+| runner-opus | Anthropic | **host Codex**: `planner·interface` e `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py` · comprova `claude-opus-5` · 16 KiB por lote · timeout 240s · sonda real em repo + diretório externo passou em 2026-08-09 |
+
+A coluna **Consumida por** existe para o efeito de ligar/desligar ser anunciável sem chute: a via
+só afeta os papéis listados, nos hosts listados.
 
 **Ativo é política habilitada, não capacidade comprovada.** O Manager confirma binário,
-autenticação, modelo e saída em cada parecer; falha vira `PAINEL PARCIAL`, sem substituição
-silenciosa. Nesta máquina, as evidências de capacidade e sua data estão na coluna Config.
+autenticação, modelo e saída em cada parecer. Falha **não autoriza trocar de vendor**: vira
+`REVISÃO DEGRADADA`, com a ausência nomeada, e o card não avança sozinho.
 
-**Nenhum dos dois recebe dado sensível** (ver a regra em `/orq:revisar`, passo 1b).
+**A via nunca recebe dado sensível** (regra em `/orq:revisar`, passo 1b). Diff com dado sensível →
+**não há revisor nenhum**: o Manager audita ele mesmo e declara "sem revisão independente por
+restrição de dados". **Proibido** spawnar revisor do mesmo vendor do host para tapar o buraco —
+decisão do dono em 2026-09-01, contra a recomendação do planner, com o custo lido e aceito.
 
-O Kimi **não tem flag de sandbox**. Não passar `-y`/`--yolo` nem `--auto`; reforçar "não edite
-arquivo" no prompt. Garantia dura só em worktree descartável.
+**Não há linha `claude` nesta tabela — de propósito:** uma via `claude -p` no host Claude produziria
+um revisor Anthropic revisando trabalho Anthropic, que é exatamente o que o desenho recusa. O
+caminho do `opus` como revisor existe só em host que **não** é Claude: time do host
+(`## Times por host`) → papel `reviewer` → célula Anthropic×host da `## Matriz de invocação`.
 
-**Não há linha `claude` nesta tabela — de propósito:** o catch-all do `revisar.md` dispara tudo que
-estiver "ativo" aqui, e uma linha `claude` faria o host Claude spawnar um segundo revisor Anthropic
-via `claude -p` — que não lê arquivos sozinho. O caminho do `opus` de fora, em host que não é
-Claude, é outro: time do host (`## Times por host`) → papel `reviewer` = `opus` → célula
-Anthropic×host da `## Matriz de invocação`.
-
-**Honestidade sobre o interno, dita com todas as letras (decisão do dono, 2026-08-05):** o papel
-`reviewer` (`opus`, nativo no host Claude) **fica** como reconciliador do painel, mas **não conta
-como "outra LLM"** para a diversidade que os dois revisores acima entregam — ele roda no mesmo
-vendor do host. A diversidade real, no host Claude, vem só desta tabela (codex + kimi).
+**O que se perdeu ao virar N=1, dito com todas as letras:** "confirmado por 2+" deixou de existir —
+todo achado é solitário **por construção**. Sem interseção, o erro do revisor único não tem
+contrapeso: a **auditoria do Manager contra o código** é a única defesa, e "segundo parecer sob
+demanda do dono" é válvula, nunca padrão — **e obedece à mesma regra de vendor**: o parecer extra
+também vem do vendor oposto ao host, nunca do vendor do host com o rótulo de "avulso".
 
 ## Matriz de invocação
 
-**Origem:** a regra que gera esta tabela mora na skill `orq` (`SKILL.md`, parágrafo "Onde houver
-equivalente…"), instalada nos três hosts pela 0.18.0. **Aqui moram só os templates** — esta seção
-não reescreve a regra, materializa-a.
+**Origem:** a regra que gera esta tabela mora na skill do plugin (`SKILL.md`, parágrafo "Onde houver
+equivalente…"). **Aqui moram só os templates** — esta seção não reescreve a regra, materializa-a.
 
-**Ordem das flags — regra por CLI, não generalizável** (a mesma família de erro derrubou o painel
+**Ordem das flags — regra por CLI, não generalizável** (a mesma família de erro derrubou a revisão
 duas vezes em 2026-08-05, por causas opostas — ver `gotchas.md`):
 - **`claude`:** prompt **antes** das flags — a `--tools` é variádica e engole o que vem depois dela.
-- **`kimi`:** configuração primeiro, `-p` **por último** — o `-p` aceita valor, e com o `-m` vindo
-  depois dele o Kimi consome o nome do modelo como se fosse o próprio briefing: não roda e devolve
-  saída vazia em silêncio.
-- **`codex`:** prompt posicional no fim (`codex exec ... "<briefing>"`) — ordem já em uso no painel.
+- **`codex`:** prompt posicional no fim (`codex exec ... "<briefing>"`) — ordem já em uso.
 
-**`< /dev/null` em TODA invocação por CLI** — sem TTY, os três bloqueiam lendo stdin e travam até
+**`< /dev/null` em TODA invocação por CLI** — sem TTY, os dois bloqueiam lendo stdin e travam até
 o timeout.
 
-**Briefing:** `codex exec` e `kimi` **leem o repositório sozinhos** → isolamento em worktree/clone
-descartável (nunca diretório vazio — repo ausente faz o briefing explodir; nunca o repo vivo —
-dano sem contenção) + briefing curto + `git add -N .` antes de gerar o patch, para arquivo novo
-não sumir do diff. `claude -p` invocado de dentro de outro agente **não lê arquivos** → o briefing
-carrega o conteúdo **verbatim, numerado por linha**; o parecer é sobre o texto colado, e quem
-reconcilia declara essa natureza.
+**Briefing:** `codex exec` **lê o repositório sozinho** → isolamento em worktree/clone descartável
+(nunca diretório vazio — repo ausente faz o briefing explodir; nunca o repo vivo — dano sem
+contenção) + briefing curto + `git add -N .` antes de gerar o patch, para arquivo novo não sumir do
+diff. `claude -p` invocado de dentro de outro agente **não lê arquivos** → o briefing carrega o
+conteúdo **verbatim, numerado por linha**; o parecer é sobre o texto colado, e quem audita declara
+essa natureza.
 
 **Saída conferida antes de virar parecer** (tamanho + formato) — 51 bytes não é parecer, é revisor
 que não rodou.
@@ -107,32 +114,52 @@ que não rodou.
 **Procedência por célula:** `comprovado` (testado de ponta a ponta) · `observado 1×` (funcionou
 uma vez, não repetido) · `não testado`.
 
-| Vendor do modelo | host Claude | host Codex | host Kimi |
-|---|---|---|---|
-| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"` — comprova `claude-opus-5`, limita 16 KiB/lote e aplica timeout; sonda real em repo + diretório externo passou em 2026-08-09 | mesmo runner; scripts são copiados pelo instalador Kimi |
-| **OpenAI** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=<e> -s read-only "<briefing>" < /dev/null` — comprovado no painel; escrita cross-vendor: fora do desenho (regra do dono) | a primitiva exposta nesta sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos. `gpt-5.6-sol@ultra` e `gpt-5.6-terra@xhigh` são o time aprovado | como coluna Claude — não testado |
-| **Moonshot** | `"$KIMI" -m kimi-code/k3 --output-format text -p "<briefing>" < /dev/null` — **forma segura do `gotchas.md`: `-m` antes, `-p` por último**; comprovado no painel (a ordem inversa, `-m` depois do `-p`, NÃO roda) | idem — observado 1× | **CLI** (`kimi -m kimi-code/k3 … -p`): **comprovado 2026-08-07** — instalado no host e, num worktree, `"onde paramos?"` invocou a skill sozinho, leu o `MEMORY.md` antes do board e não tocou em arquivo. **Sub-agent nativo: NÃO testado** — os cinco `orq-*.md` foram copiados para `~/.kimi-code/agents/` e o diretório os aceitou, mas copiar não é invocar. Até alguém exercitar, use a CLI. |
+| Vendor do modelo | host Claude | host Codex |
+|---|---|---|
+| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"` — comprova `claude-opus-5`, limita 16 KiB/lote e aplica timeout; sonda real em repo + diretório externo passou em 2026-08-09. **Só comprova `claude-opus-5`:** a trilha `interface` no Codex pensa com Opus, não com Fable |
+| **OpenAI** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=<e> -s read-only "<briefing>" < /dev/null` — **comprovado como revisor**; **como planner, não exercitado** (o primeiro Loop A de trilha `sistema` no host Claude é o teste real). Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
 
 ## Times por host
 
-**Os times abaixo não são perfis.** Nenhum comando os ativa — `/orq:elenco perfil <nome>` só lê a
-seção `## Perfis`, mais abaixo, e o nome de um time de host ali cai sozinho em "perfil
-inexistente" (`elenco.md:59-60`). Cada host resolve o próprio time **na leitura** desta seção, sem
-escrever nada e sem tocar no `## Papéis`/`Perfil ativo` de ninguém — é assim que uma janela Codex e
-uma janela Claude convivem no mesmo repositório sem uma pisar no time da outra.
+**Esta é a fonte ativa do elenco** — a única. Cada host resolve o próprio time lendo a seção dele,
+e o `/orq:elenco` grava **na seção do host onde está rodando**: uma janela Codex nunca toca na
+tabela do Claude, e vice-versa. É assim que as duas convivem no mesmo repositório sem uma pisar no
+time da outra.
 
 **Princípios, escritos 1× — valem para os dois times abaixo:**
 
-1. **Regra do dono:** manager, planner e implementer sempre no modelo principal do host; só o
-   revisor vem de fora.
-2. **Revisor de fora é `opus`** quando o host não é Claude (decisão 10) — via a forma-que-funcionou:
-   parecer sobre conteúdo verbatim, e o reconciliador declara essa natureza (`gotchas.md`,
-   2026-08-05).
-3. **A composição é específica do host** — no Codex são exatamente Opus 5 + Kimi K3 e o Manager só
-   reconcilia; no Kimi, o vendor Moonshot entra por mecanismo fresco na diagonal da Matriz. Nunca
-   acrescente um terceiro parecer OpenAI ao painel Codex.
-4. **Docs e scout seguem o vendor do host** — derivado da regra 1 (papel de leitura autônoma fica
-   na assinatura principal); composição confirmada pelo dono junto com os times.
+1. **Domínio decide quem pensa; host decide quem escreve.** O `planner` segue a trilha do card
+   (pode cruzar vendor, é read-only); `implementer` e `docs` ficam no vendor do host.
+2. **O `reviewer` é único e sempre do vendor oposto ao host** — sem contingência interna, sem
+   exceção. Ausência se declara, não se substitui.
+3. **A comprovação do alias `opus`** (que ele resolve para Opus 5) é obrigatória antes de todo
+   parecer que dependa dele; sem comprovação, trate como ausente e não troque de modelo.
+4. **Docs e scout seguem o vendor do host**, no degrau barato — leitura/escrita objetiva não se
+   paga em domínio.
+
+### Host Claude
+
+| Papel | Modelo | Por quê |
+|---|---|---|
+| manager | modelo da sessão (`/model`) | sessão principal; só o dono troca |
+| planner·interface | `fable` | spawn nativo, read-only |
+| planner·sistema | `gpt-5.6-sol@ultra` | `codex exec … -s read-only`; mecanismo comprovado como revisor, não como planner |
+| implementer·pesada | `opus` | worktree dedicado, writer único |
+| implementer·normal | `sonnet` | worktree dedicado, writer único |
+| implementer·leve | `haiku` | worktree quando houver trabalho paralelo |
+| reviewer | `gpt-5.6-sol@xhigh` | vendor oposto ao host; `codex exec … -s read-only` |
+| docs | `sonnet` | arquivos de documentação autorizados |
+| scout | `sonnet` | read-only |
+
+**Perfil ativo:** `padrao` — desde 2026-09-01, sem desvio.
+*(A linha vale por host. Trocar o perfil reescreve a tabela acima e vale a partir do **próximo
+spawn, em todas as janelas deste host** — crédito é da conta, não da frente. Agente já em execução
+termina no modelo antigo; não se refaz nada. Ajuste papel a papel que diverge do preset ativo —
+inclusive com `padrao` ativo — vira `padrao · desvio: papel→modelo`; devolvido ao preset, remove-se
+o desvio. Ver passo 3 de "Com argumento — ajustar" em `/orq:elenco`.)*
+**Procedência dos valores:** `planner·interface` e `implementer·normal` são escolha do dono em
+2026-07-28; `planner·sistema` (modelo/effort) em 2026-08-09; as faixas `pesada`/`leve` nasceram em
+2026-09-01 com valor de fábrica, sem medição própria.
 
 ### Host Codex
 
@@ -141,48 +168,51 @@ Motor: a sessão Codex. A linha `manager` é expectativa verificável, não coma
 | Papel | Modelo | Por quê |
 |---|---|---|
 | manager | `gpt-5.6-sol@high` | sessão principal; verificar o modelo real antes de anunciar |
-| planner | `gpt-5.6-sol@ultra` | decisão do dono em 2026-08-09; read-only |
-| implementer | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
-| reviewer 1 | `opus` (comprovar que o alias resolve para Opus 5) | parecer externo read-only, sem ferramentas |
-| reviewer 2 | `kimi-code/k3` | parecer externo read-only, sem `--yolo`/`--auto` |
+| planner·interface | `opus` (comprovar que o alias resolve para Opus 5) | runner Anthropic, read-only — **limitação declarada:** o runner invoca `--model opus` fixo, então esta trilha **só aceita `opus`**; registrar Fable aqui gravaria um elenco que a execução não honra |
+| planner·sistema | `gpt-5.6-sol@ultra` | decisão do dono em 2026-08-09; read-only |
+| implementer·pesada | `gpt-5.6-sol@xhigh` | `workspace-write`, writer único em worktree |
+| implementer·normal | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
+| implementer·leve | `gpt-5.6-luna` | **sem effort declarado**; smoke em 2026-09-01: chamada trivial pelo runtime do Codex (`codex-companion.mjs task --model gpt-5.6-luna`) devolveu `LUNA_OK` (thread `01a05e0d-309c-7a92-839c-09f6c418a974`) — ver "Pendências comprováveis" |
+| reviewer | `opus` (comprovar que o alias resolve para Opus 5) | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas |
 | docs | `gpt-5.6-sol@low` | princípio 4 — escrita objetiva, effort mínimo |
 | scout | `gpt-5.6-sol@low` | verbatim do dono |
 
-Painel: Opus 5 + Kimi K3 são os dois pareceres independentes; o Manager Codex reconcilia e não conta
-como terceiro parecer. Falha de um revisor vira `PAINEL PARCIAL` com causa nomeada.
+**Perfil ativo:** — este host não tem presets; o ajuste aqui é papel a papel, e criar um `## Perfis`
+para ele é pedido do dono, não iniciativa. Os presets de `## Perfis` são do host Claude e **não** se
+aplicam aqui: trariam modelos Anthropic para `implementer`/`docs`, que só aceitam o vendor do host.
 
-### Host Kimi
+### Pendências comprováveis (não prometer antes de rodar)
 
-Motor: `kimi-code/k3` (hoje é acidente do `default_model` de config de terceiro; o arquivo o
-registra aqui como **escolha**; editar `~/.kimi-code/config.toml` só com o dono, no smoke).
-
-| Papel | Modelo | Por quê |
-|---|---|---|
-| planner | `kimi-code/k3` | topo de raciocínio do vendor; princípio 1 |
-| implementer | `kimi-code/kimi-for-coding` | coding-tuned; **condicionado**: hook `PreToolUse` testado vivo (decisão 4) + worktree (decisão 8). **Sem fallback cross-vendor** — a regra do dono o proíbe: hook reprovado → o host Kimi **não implementa**, o card de escrita fica com outro host |
-| reviewer | `opus` (comprovar que resolve para Opus 5) | decisão 10; falha vira painel parcial |
-| docs | `kimi-code/kimi-for-coding-highspeed` | princípio 4 (custo relativo não medido — smoke valida) |
-| scout | `kimi-code/kimi-for-coding-highspeed` | idem |
-
-`kimi-code/k3-256k` documentado como saída para briefing/patch que estoure contexto (briefing
-maior em revisor isolado força mais tamanho).
+- **`gpt-5.6-luna` em `workspace-write`, e o effort suportado, seguem sem medição.** O smoke de
+  2026-09-01 destravou o degrau e provou **só** o que segue: o modelo existe no catálogo, está
+  autenticado nesta máquina e responde quando endereçado por `--model gpt-5.6-luna` — chamada
+  trivial pelo runtime do Codex (`codex-companion.mjs task --model gpt-5.6-luna`, prompt *"responda
+  somente LUNA_OK"*), devolvendo `LUNA_OK`, thread `01a05e0d-309c-7a92-839c-09f6c418a974`, **sem
+  leitura de arquivo e sem execução de comando**. Continua **não medido**: (a) quais reasoning
+  efforts ele aceita — o catálogo não expõe e o smoke não testou, por isso o degrau vai **sem
+  effort declarado**; (b) o comportamento em `-s workspace-write`, que é o modo real do
+  implementer — o smoke foi read-only. *Responder a uma chamada trivial* não é *escrever código
+  confiável em worktree*: o primeiro card `leve` real no Codex é que diz.
+- **`codex exec -s read-only` produzindo plano** — comprovado como revisor, não como planner.
+- **`haiku` na faixa leve** — precedente indireto (docs/scout no `economia`), sem medição.
 
 ## Custo
 
-Cada papel cobra a conta do vendor do SEU modelo. Pela regra do dono, isso significa: tudo cobra a
-conta do host — motor, trio, docs, scout e o painel fresco — exceto o revisor `opus` (gasto
-deliberado, decisão 10) e os dois revisores de fora do painel. Trocar de host move o bloco inteiro
-para a outra assinatura; o evento é a troca de assinatura (ciclo de mercado).
+Cada papel cobra a conta do vendor do SEU modelo. Na prática: implementer, docs, scout e manager
+cobram a conta do host; o `planner` da trilha cruzada e o `reviewer` cobram a do outro vendor —
+gasto deliberado, é o que compra o plano de domínio e a revisão independente. Trocar de host move o
+bloco de escrita inteiro para a outra assinatura.
 
-O preset `economia`, na seção `## Perfis` abaixo, é a variante de crédito curto **do host Claude**
-(pressupõe host Claude — a anotação no preset aponta para cá). Equivalente noutro host nasce sob
-demanda, quando o dono pedir.
+O preset `economia`, na seção `## Perfis` abaixo, é a variante de crédito curto **do host Claude**.
+Equivalente no Codex nasce sob demanda, quando o dono pedir.
 
-## Perfis — times nomeados por contexto de crédito
+## Perfis — times nomeados por contexto de crédito (host Claude)
 
-Perfil é um preset do time inteiro. Ativar = reescrever a tabela "Papéis" a partir do preset e
-atualizar a linha "Perfil ativo". Os consumidores (`plan-next`, `implement-next`, `revisar`,
-`stack`) não mudam: continuam lendo a tabela ativa.
+Perfil é um preset do time inteiro **de um host**. Ativar = reescrever a tabela do host resolvido em
+`## Times por host` a partir do preset e atualizar a linha **Perfil ativo** daquela seção. Os
+consumidores (`plan-next`, `implement-next`, `revisar`, `stack`) não mudam: continuam lendo a tabela
+do host. Os presets abaixo são do **host Claude** — aplicá-los rodando no Codex traria modelos do
+vendor errado para os papéis de escrita, e por isso o comando recusa.
 
 **Frases de gatilho — atestadas vs. paráfrase** (medido no transcript de 2026-07-29, não
 imaginado): *"final do ciclo semanal"*, *"pouco crédito"* e *"acabando os créditos"* são falas
@@ -196,62 +226,65 @@ de volta é reconhecido como o pedido de mudança que é, na hora em que ele vie
 Ao ativar `economia`, sugerir em uma linha que ele avalie trocar o `/model` também: é onde mora o
 maior consumo, e só ele troca.
 
-### `padrao` — o time titular (vale por default — pedido do dono em 2026-07-29)
+**Perfil nunca troca o vendor do `reviewer`** — só o effort, dentro do mesmo vendor. Rebaixá-lo para
+o vendor do host acabaria com a única coisa que ele entrega.
+
+### `padrao` — o time titular (vale por default)
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| planner | fable | achar causa raiz e desenhar solução é o trabalho mais difícil |
-| implementer | sonnet | executar plano já aprovado é trabalho dirigido |
-| reviewer | opus | revisão adversarial exige raciocínio forte |
+| planner·interface | fable | trilha perceptual pensa com Anthropic |
+| planner·sistema | gpt-5.6-sol@ultra | trilha comportamental pensa com OpenAI |
+| implementer·pesada | opus | alto risco ou desenho ainda aberto |
+| implementer·normal | sonnet | executar plano já aprovado é trabalho dirigido |
+| implementer·leve | haiku | resultado determinado, verificação mecânica |
+| reviewer | gpt-5.6-sol@xhigh | vendor oposto ao host — a independência não se rebaixa |
 | docs | sonnet | escrita objetiva sobre código já pronto |
 | scout | sonnet | leitura ampla e barata |
 
-Revisores externos: codex **ativo** · kimi **ativo** — estado informativo, o perfil não aplica isto
-(ver passo 2 de "Com argumento `perfil <nome>`" em `/orq:elenco`); vale o que está de fato
-registrado acima. Painel completo em card normal; `--rapido` em card pequeno.
+Vias cross-vendor: `codex` **ativa** · `runner-opus` **ativa** — estado informativo, o perfil não
+aplica isto (ver passo 2 de "Com argumento `perfil <nome>`" em `/orq:elenco`); vale o que está de
+fato registrado acima.
 
 ### `economia` — fim do ciclo semanal, crédito Claude curto
 
-Composição na palavra do dono (2026-07-29): *"diminuo o planejamento com o Fable e faço só com o
-Opus; uso mais as outras, o Codex e o Kimi"*.
+Composição derivada da palavra do dono (2026-07-29): *"diminuo o planejamento com o Fable e faço só
+com o Opus"* — relida para os dois eixos.
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| planner | opus | escolha verbatim do dono para este contexto |
-| implementer | sonnet | já era o econômico |
-| reviewer | sonnet | o peso da revisão desloca para o painel externo, que não gasta crédito Claude |
+| planner·interface | opus | escolha verbatim do dono para este contexto |
+| planner·sistema | gpt-5.6-sol@high | effort rebaixado dentro do mesmo vendor |
+| implementer·pesada | sonnet | rebaixado um degrau — evita herdar Opus no perfil de economia |
+| implementer·normal | sonnet | já era o econômico |
+| implementer·leve | haiku | já era o mais barato |
+| reviewer | gpt-5.6-sol@high | effort rebaixado; **vendor não muda** |
 | docs | haiku | escrita objetiva; rebaixar aqui custa pouco |
 | scout | haiku | leitura ampla e barata |
 
-Revisores externos: codex **ativo** · kimi **ativo** — mesmo estado informativo do preset `padrao`,
-não aplicado pelo perfil (ver passo 2 de "Com argumento `perfil <nome>`" em `/orq:elenco`). Quem
-decide o painel mínimo do `--rapido` é o `/orq:revisar` — regra lá.
+Vias cross-vendor: `codex` **ativa** · `runner-opus` **ativa** — mesmo estado informativo do preset
+`padrao`, não aplicado pelo perfil. Quem decide o briefing enxuto do `--rapido` é o `/orq:revisar` —
+regra lá.
 
 **O que se perde neste perfil — dito com todas as letras:**
-- reconciliação interna mais fraca: quem desempata o painel é o reviewer, agora rebaixado — **com
-  externo ativo**, o desempate desloca para o painel externo (Codex/Kimi) — **sem externo ativo, não
-  há pra onde deslocar**: o reviewer rebaixado decide sozinho;
-- mais peso no Kimi = mais exposição — ele não tem sandbox (`T-019`); worktree descartável vira
-  **mais** obrigatório, não menos;
-- Codex e Kimi são read-only: implementação continua queimando crédito Claude — o perfil **reduz,
-  não zera**;
+- o **único** parecer independente vem com menos effort, e não há segundo revisor para compensar: a
+  auditoria do Manager contra o código carrega mais peso;
+- a escrita rebaixada erra mais justamente na faixa `pesada`, que é onde ou o desenho ainda está
+  aberto ou a consequência do erro é a maior do board (Alto risco, que **não** rebaixa nunca) — se
+  o card for pesado de verdade, prefira adiar a economia;
+- Codex read-only: a implementação continua queimando crédito Claude — o perfil **reduz, não zera**;
 - o Manager não muda: o maior consumo é a sessão principal, e só o `/model` do dono a troca.
 
-Quando o `T-021` (motor alternativo) fechar, este preset é o lugar de registrar o que mais o Codex
-e o Kimi passam a carregar (ex.: pré-parecer read-only no planejamento). Até lá, não prometer.
+## Por que a revisão independente importa neste projeto
 
-## Por que o painel importa neste projeto
+O produto aqui são **instruções**, não código. O modo de falha nº 1 é **contradição entre arquivos**
+e **referência a algo que não existe** — defeitos que quem escreveu o texto tem a maior dificuldade
+de ver, porque leu com a intenção na cabeça. Um leitor de **outro fornecedor** chega sem essa
+intenção: é essa a assimetria que o parecer compra, não a força do modelo.
 
-O produto aqui são **instruções**, não código. Onde dois modelos divergem sobre o que uma instrução
-significa, **a divergência é o achado** — é sinal de ambiguidade real no texto, que um leitor futuro
-também vai encontrar. O Codex tem contexto adicional: foi ele quem auditou a arquitetura original e
-produziu o parecer que virou o roadmap.
+Com N=1 a reconciliação virou **auditoria**: o Manager verifica cada achado no código, descarta o
+que não tem cenário de falha concreto, e diz onde discordou. É o passo que substitui a interseção
+que existia com dois pareceres — e, como não há contrapeso, ele não é opcional.
 
-Com **três** revisores (Claude · Codex · Kimi) a reconciliação fica mais forte: "confirmado por 2+"
-deixa de ser unanimidade e vira **maioria**, o que separa melhor o achado sólido do palpite de um
-modelo só. Três fornecedores distintos (Anthropic · OpenAI · Moonshot) erram de formas menos
-correlacionadas que duas instâncias do mesmo.
-
-Em card pequeno e de baixo risco, `--rapido` (só o revisor interno). Painel em mudança trivial é
-desperdício. Quem decide o painel mínimo (inclusive no perfil `economia`) é o `/orq:revisar` — regra
-lá.
+Em card pequeno e de baixo risco, `--rapido` encolhe o **briefing** — nunca troca o revisor nem
+dispensa a revisão. Regra no `/orq:revisar`.

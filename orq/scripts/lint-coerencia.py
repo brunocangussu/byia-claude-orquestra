@@ -17,6 +17,7 @@ import json
 import os
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 # `memory/` é deliberadamente excluído: o log é append-only e o gotchas.md citam
@@ -48,6 +49,147 @@ def universos(plugin: Path) -> dict:
         "agentes": {p.stem for p in (plugin / "agents").glob("*.md")},
         "skills": {p.parent.name for p in plugin.glob("skills/*/SKILL.md")},
     }
+
+
+# CommonMark: cerca aceita no máximo 3 espaços de indentação — com 4 a linha
+# vira bloco indentado, e as crases são conteúdo, não abertura. Tab conta
+# como 4, então também não abre. A versão anterior usava `[ \t]*` (indentação
+# ilimitada) e por isso uma linha de crases indentada com 4 espaços mascarava
+# texto vivo: um probe escondeu a segunda ocorrência de um heading duplicado e
+# o lint ficou verde com a duplicata invisível.
+_ABRE_CERCA_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+
+
+def _mascara_cercas(texto: str) -> str:
+    """Devolve `texto` com as linhas dentro de blocos cercados trocadas por
+    espaços, preservando o comprimento exato — assim um heading CITADO dentro de
+    um exemplo de código não é confundido com um heading de verdade, e os
+    índices continuam valendo no texto original.
+
+    Reconhecimento no estilo CommonMark, porque a versão ingênua
+    (`linha.lstrip().startswith("```")` alternando um booleano) aceitava dois
+    headings falsos, os dois comprovados por probe:
+      1. cerca de tis (`~~~markdown`) não era reconhecida — o conteúdo inteiro
+         contava como texto vivo;
+      2. cerca de 4 crases "fechada" por uma de 3 — o toggle desligava e o que
+         vinha depois, ainda dentro do bloco, virava texto vivo.
+    Regras aplicadas: abertura com 3+ crases OU 3+ tis; fecha só com o **mesmo
+    caractere**, comprimento **>= o da abertura** e **sem info string** (texto
+    após a cerca de fechamento a desqualifica, como no CommonMark).
+    Cerca não fechada: o resto do texto conta como dentro — lado seguro, deixa
+    de achar um heading em vez de achar um heading falso.
+    """
+    linhas = texto.split("\n")
+    char_aberto = ""
+    tam_aberto = 0
+    for i, linha in enumerate(linhas):
+        m = _ABRE_CERCA_RE.match(linha)
+        if not char_aberto:
+            if m:
+                char_aberto = m.group(1)[0]
+                tam_aberto = len(m.group(1))
+                linhas[i] = " " * len(linha)
+            continue
+        # dentro de um bloco: só uma cerca compatível fecha
+        fecha = (
+            m is not None
+            and m.group(1)[0] == char_aberto
+            and len(m.group(1)) >= tam_aberto
+            and m.group(2).strip() == ""
+        )
+        linhas[i] = " " * len(linha)
+        if fecha:
+            char_aberto = ""
+            tam_aberto = 0
+    return "\n".join(linhas)
+
+
+def secoes_de(texto: str, heading: str):
+    """Todas as seções abertas por `heading`, cada uma do fim do heading até o
+    próximo heading de nível igual ou superior (ou o fim do texto).
+
+    O casamento é de **linha inteira** (`^### Host Codex$`, com o texto
+    escapado), não substring: a versão anterior usava `heading in texto` +
+    `split`, e por isso um arquivo que só tivesse `### Host Codex antigo`
+    satisfazia o guarda inteiro — bastava renomear a heading obrigatória para o
+    lint ficar verde com a tabela do host inválida.
+
+    Devolve lista: vazia = heading ausente; mais de um item = heading
+    duplicado, que é ambiguidade e o chamador precisa reprovar em vez de
+    escolher a primeira em silêncio.
+    (Sem anotação de retorno: `list[str] | None` etc. elevaria o piso de
+    Python; o resto do arquivo se mantém em 3.9.)
+    """
+    nivel = len(heading) - len(heading.lstrip("#"))
+    mascarado = _mascara_cercas(texto)
+    inicio = re.compile(r"^" + re.escape(heading) + r"[ \t]*$", re.MULTILINE)
+    proximo = re.compile(r"^#{1," + str(nivel) + r"}[ \t]", re.MULTILINE)
+    achadas = []
+    for m in inicio.finditer(mascarado):
+        fim = len(texto)
+        seguinte = proximo.search(mascarado, m.end())
+        if seguinte is not None:
+            fim = seguinte.start()
+        achadas.append(texto[m.end():fim])
+    return achadas
+
+
+def secao_unica(texto: str, heading: str):
+    """`(secao, estado)` para o heading que só pode existir uma vez.
+
+    `estado` é `"ok"`, `"ausente"` ou `"duplicado:<n>"`. Existe porque todo
+    chamador de `secoes_de` quer exatamente uma seção, e o jeito "óbvio" de
+    consumir a lista esconde a duplicata: `secoes[0]` valida em silêncio só a
+    primeira, e `"\n".join(secoes)` valida o conjunto — os dois deixam passar
+    um segundo bloco divergente. Foi assim que dois `## Status`, um em 0.23.0 e
+    outro em 0.24.0, mantiveram o lint verde enquanto o bloco que se lê primeiro
+    anunciava a versão velha.
+    """
+    achadas = secoes_de(texto, heading)
+    if not achadas:
+        return None, "ausente"
+    if len(achadas) > 1:
+        return None, f"duplicado:{len(achadas)}"
+    return achadas[0], "ok"
+
+
+def _linha_unica(texto: str, prefixo: str):
+    """Mesma semântica de `secao_unica`, para âncora que é uma linha só."""
+    achadas = [l for l in texto.splitlines() if l.startswith(prefixo)]
+    if not achadas:
+        return None, "ausente"
+    if len(achadas) > 1:
+        return None, f"duplicado:{len(achadas)}"
+    return achadas[0], "ok"
+
+
+def papeis_da_tabela(secao: str):
+    """Primeira célula de cada linha de dados de uma tabela markdown.
+
+    Existe porque procurar o nome do papel na SEÇÃO (`papel in secao`) prova que
+    o texto aparece em algum lugar — numa nota de rodapé, por exemplo — e não que
+    ele é uma linha da tabela. Um probe do revisor trocou `implementer·leve` por
+    `auditor` na tabela, manteve a contagem e citou o papel numa nota fora dela:
+    o lint ficou verde com o template gerando elenco inválido.
+
+    Descarta o cabeçalho (primeira célula `Papel`) e o separador (`---`), e
+    normaliza crases/negrito para comparar por valor.
+    """
+    papeis = []
+    for linha in secao.splitlines():
+        if not linha.startswith("|"):
+            continue
+        celulas = linha.split("|")
+        if len(celulas) < 3:
+            continue
+        bruta = celulas[1].strip()
+        if set(bruta) <= {"-", ":"} and bruta:
+            continue
+        nome = bruta.strip("`* ").strip()
+        if nome.lower() == "papel":
+            continue
+        papeis.append(nome)
+    return papeis
 
 
 def arquivos_a_varrer(raiz: Path, plugin: Path):
@@ -143,16 +285,53 @@ def main() -> int:
     # A versão vive em 3 lugares e eles divergem calados: o manifesto é a fonte,
     # o README anuncia e o MEMORY.md orienta quem retoma. Já desatualizou duas
     # vezes — quem lê o índice primeiro parte de premissa velha.
+    #
+    # A checagem é ANCORADA no lugar que anuncia, não no arquivo inteiro (mesma
+    # família de defeito do guarda de eixo): um README que cite a versão nova só
+    # numa linha de changelog, com o bloco `## Status` ainda na anterior, passava
+    # por `versao not in txt` — e o `## Status` é justamente o que se lê para
+    # saber o que o produto é hoje. Onde a âncora não existir, cai para o arquivo
+    # inteiro com a mensagem antiga, para não travar projeto de layout diferente.
     manifesto = plugin / ".claude-plugin" / "plugin.json"
     versao = json.loads(manifesto.read_text(encoding="utf-8")).get("version")
+    ANCORAS_VERSAO = {
+        "README": ("## Status", lambda txt: secao_unica(txt, "## Status")),
+        "MEMORY.md": (
+            "linha `**Versão:**`",
+            lambda txt: _linha_unica(txt, "**Versão:**"),
+        ),
+    }
     for arq, rotulo in ((raiz / "README.md", "README"), (raiz / "memory" / "MEMORY.md", "MEMORY.md")):
         if not arq.exists():
             continue
         txt = arq.read_text(encoding="utf-8")
-        if re.search(r"\b\d+\.\d+\.\d+\b", txt) and versao not in txt:
-            achadas = sorted(set(re.findall(r"\b\d+\.\d+\.\d+\b", txt)))[:3]
+        if not re.search(r"\b\d+\.\d+\.\d+\b", txt):
+            continue
+        nome_ancora, extrair = ANCORAS_VERSAO[rotulo]
+        trecho, estado = extrair(txt)
+        if estado.startswith("duplicado"):
+            # Duas âncoras = duas verdades. Validar qualquer uma delas (ou as
+            # duas juntas) deixa passar a que o leitor vê primeiro estando velha.
             problemas.append(
-                (arq.relative_to(raiz), 0, f"{rotulo} não cita a versão atual {versao} (achei {achadas})")
+                (
+                    arq.relative_to(raiz),
+                    0,
+                    f"{rotulo} tem {estado.split(':')[1]}× {nome_ancora} — qual anuncia "
+                    "a versão fica ambíguo; deixe só uma",
+                )
+            )
+            continue
+        # Sem âncora, cai para o arquivo inteiro: projeto de layout diferente não
+        # trava, e a mensagem diz onde procurou.
+        alvo, onde = (trecho, nome_ancora) if estado == "ok" else (txt, "arquivo")
+        if versao not in alvo:
+            achadas = sorted(set(re.findall(r"\b\d+\.\d+\.\d+\b", alvo)))[:3]
+            problemas.append(
+                (
+                    arq.relative_to(raiz),
+                    0,
+                    f"{rotulo} não cita a versão atual {versao} em {onde} (achei {achadas})",
+                )
             )
 
     # O marketplace.json declara a versão do plugin no catálogo e ficou em
@@ -233,7 +412,7 @@ def main() -> int:
         exigida = any(
             heading in arq.read_text(encoding="utf-8") for arq in consumidores_elenco
         )
-        if exigida and heading not in template_elenco:
+        if exigida and secao_unica(template_elenco, heading)[1] != "ok":
             problemas.append(
                 (
                     elenco_cmd.relative_to(raiz),
@@ -274,13 +453,14 @@ def main() -> int:
             "`codex exec` é o caminho padrão",
         ),
         plugin / "commands" / "revisar.md": (
-            "Host Codex é exceção",
-            "exatamente Opus 5 + Kimi K3",
+            "O revisor é **um só, e sempre do vendor oposto ao host**",
+            "No host Codex, o titular é o Opus 5 pelo runner",
             "política habilitada, não capacidade comprovada",
-            "não acrescente a diagonal OpenAI",
-            "PAINEL PARCIAL",
-            "Sem elenco, valem os padrões de fábrica: reviewer `opus`,",
-            "Codex ativo e Kimi K3 ativo",
+            "Nunca substitua o titular por um revisor do mesmo vendor do host",
+            "sem revisão independente por restrição de dados",
+            "REVISÃO DEGRADADA",
+            "Sem elenco, vale o padrão de fábrica: reviewer único",
+            "`--rapido` **não troca de revisor**",
             "run-opus-reviewer.py",
             "16 KiB",
             "Nunca corte bytes nem",
@@ -294,8 +474,9 @@ def main() -> int:
         elenco_cmd: (
             "Host Codex: `codex exec` é obrigatório",
             "política habilitada, não capacidade comprovada",
-            "| reviewer 1 | `opus` (exigir comprovação de que o alias resolve para Opus 5)",
-            "| reviewer 2 | `kimi-code/k3` |",
+            "a independência ganha do domínio, sempre",
+            "| reviewer | `opus` (exigir comprovação de que o alias resolve para Opus 5)",
+            "| reviewer | `gpt-5.6-sol@xhigh` |",
             "run-opus-reviewer.py",
         ),
         opus_runner: (
@@ -327,18 +508,170 @@ def main() -> int:
                     )
                 )
 
-    # A comprovação do alias Opus 5 é obrigatória tanto no Host Codex quanto
-    # no Host Kimi; uma única ocorrência deixaria a outra tabela degradar com
-    # lint verde.
-    reviewer_opus = "| reviewer 1 | `opus` (exigir comprovação de que o alias resolve para Opus 5)"
-    if template_elenco.count(reviewer_opus) != 2:
-        problemas.append(
-            (
-                elenco_cmd.relative_to(raiz),
-                0,
-                "template precisa comprovar alias Opus 5 nos hosts Codex e Kimi",
+    # O reviewer é ÚNICO e sempre do vendor OPOSTO ao host (T-051). Contar a
+    # linha no template inteiro NÃO prova a regra: trocar as duas linhas de
+    # lugar entre `### Host Claude` e `### Host Codex` mantém a contagem 1/1 e
+    # deixa cada host revisado pelo PRÓPRIO vendor — exatamente a perda de
+    # independência que a regra do dono existe para impedir, com lint verde.
+    # Por isso o guarda ancora na seção: recorta a tabela daquele host e exige
+    # (a) a linha do vendor oposto presente 1× e (b) a linha do OUTRO host
+    # ausente. A linha do host Codex carrega junto a comprovação do alias
+    # Opus 5, que continua obrigatória.
+    REVIEWER_CLAUDE = "| reviewer | `gpt-5.6-sol@xhigh` |"
+    REVIEWER_CODEX = "| reviewer | `opus` (exigir comprovação de que o alias resolve para Opus 5)"
+    REVIEWER_POR_HOST = {
+        "### Host Claude": (REVIEWER_CLAUDE, REVIEWER_CODEX, "titular OpenAI"),
+        "### Host Codex": (REVIEWER_CODEX, REVIEWER_CLAUDE, "titular Anthropic, alias comprovado"),
+    }
+    for heading, (esperada, proibida, papel) in REVIEWER_POR_HOST.items():
+        secao, estado = secao_unica(template_elenco, heading)
+        if estado != "ok":
+            problemas.append(
+                (
+                    elenco_cmd.relative_to(raiz),
+                    0,
+                    f"template não gera exatamente 1 tabela `{heading}` ({estado}) — "
+                    "heading tem que ser linha inteira, exata e única",
+                )
             )
-        )
+            continue
+        for secao in (secao,):
+            if secao.count(esperada) != 1:
+                problemas.append(
+                    (
+                        elenco_cmd.relative_to(raiz),
+                        0,
+                        f"`{heading}` precisa da linha do reviewer oposto ({papel}) 1×",
+                    )
+                )
+            if proibida in secao:
+                problemas.append(
+                    (
+                        elenco_cmd.relative_to(raiz),
+                        0,
+                        f"`{heading}` traz o reviewer do outro host — vendor do host "
+                        "revisando a si mesmo",
+                    )
+                )
+
+    # Os dois eixos do elenco (T-051) têm que existir em CADA tabela: a trilha
+    # (interface/sistema) escolhe o vendor de quem PENSA, a faixa
+    # (pesada/normal/leve) escolhe o degrau de quem ESCREVE.
+    #
+    # A comparação é por CONJUNTO E MULTIPLICIDADE das primeiras células, não
+    # por "o nome aparece na seção". É a terceira encarnação do mesmo defeito
+    # (heading por substring; papel sobrevivendo nos presets; papel citado numa
+    # nota fora da tabela): guarda que confirma que um texto existe em algum
+    # lugar quando a regra exige que ele exista NUM lugar. Aqui: papel obrigatório
+    # exatamente 1×, nenhum papel intruso, `manager` só na tabela de host.
+    PAPEIS_EIXO = (
+        "planner·interface",
+        "planner·sistema",
+        "implementer·pesada",
+        "implementer·normal",
+        "implementer·leve",
+    )
+    PAPEIS_FIXOS = ("reviewer", "docs", "scout")
+    ESPERADO_HOST = ("manager",) + PAPEIS_EIXO + PAPEIS_FIXOS
+    ESPERADO_PRESET = PAPEIS_EIXO + PAPEIS_FIXOS
+    TABELAS_DE_PAPEL = {
+        "### Host Claude": ("tabela de host", ESPERADO_HOST),
+        "### Host Codex": ("tabela de host", ESPERADO_HOST),
+        "### `padrao` — o time titular": ("preset", ESPERADO_PRESET),
+        "### `economia` — crédito curto": ("preset", ESPERADO_PRESET),
+    }
+    for heading, (especie, esperado) in TABELAS_DE_PAPEL.items():
+        secao, estado = secao_unica(template_elenco, heading)
+        if estado != "ok":
+            problemas.append(
+                (
+                    elenco_cmd.relative_to(raiz),
+                    0,
+                    f"template não gera exatamente 1 {especie} `{heading}` ({estado})",
+                )
+            )
+            continue
+        achados = papeis_da_tabela(secao)
+        contagem = Counter(achados)
+        for papel in esperado:
+            n = contagem.get(papel, 0)
+            if n != 1:
+                falta = "não é linha da tabela" if n == 0 else f"aparece {n}× na tabela"
+                problemas.append(
+                    (
+                        elenco_cmd.relative_to(raiz),
+                        0,
+                        f"`{heading}`: papel `{papel}` {falta} — a {especie} tem que "
+                        f"declarar cada papel exatamente 1×",
+                    )
+                )
+        for intruso in sorted(set(achados) - set(esperado)):
+            problemas.append(
+                (
+                    elenco_cmd.relative_to(raiz),
+                    0,
+                    f"`{heading}`: papel `{intruso}` não pertence a esta {especie} "
+                    f"(esperados: {', '.join(esperado)})",
+                )
+            )
+
+    # ── Host aposentado (T-051) ────────────────────────────────────────────
+    # O suporte ao terceiro host saiu do produto na 0.24.0. O modo de falha nº
+    # 1 aqui é textual: sobrar instrução VIVA mandando invocar um host que não
+    # existe mais — foi assim que `/orquestra:*` sobreviveu a três releases.
+    #
+    # Varre `orq/` INTEIRO (proibição total) e mais os três arquivos da raiz que
+    # governam modelos: README.md, CLAUDE.md e AGENTS.md. Excluir esses três era
+    # buraco real — CLAUDE.md/AGENTS.md são instrução viva lida por todo modelo
+    # que abre o repo, e reintroduzir ali "use <host aposentado> como revisor"
+    # passava batido pelo guarda de identidade (que só compara um com o outro) e
+    # por este.
+    #
+    # Nos três da raiz a proibição não pode ser total: eles contam a história
+    # das releases, e o próprio README precisa poder dizer que o host FOI
+    # REMOVIDO. Daí a allowlist estrutural: a linha histórica que existe hoje é
+    # permitida no texto exato; qualquer linha nova é reprovada. É deliberado
+    # que reflow de parágrafo derrube o lint — a falha é barulhenta e a correção
+    # é reconferir a linha, o oposto do silêncio que o guarda existe para matar.
+    HOST_APOSENTADO_RE = re.compile(r"kimi|moonshot", re.IGNORECASE)
+    HISTORICO_PERMITIDO = {
+        "README.md": frozenset({
+            "ao antigo terceiro host (Moonshot) **foi removido**, com guarda de regressão no lint.",
+        }),
+        "CLAUDE.md": frozenset({
+            "Este erro já aconteceu aqui: a feature do Kimi (0.8.0) foi implementada direto, sem plano e sem",
+        }),
+    }
+    # AGENTS.md é byte-idêntico ao CLAUDE.md por gate mecânico: mesma allowlist,
+    # escrita uma vez só — duas listas divergiriam no primeiro descuido.
+    HISTORICO_PERMITIDO["AGENTS.md"] = HISTORICO_PERMITIDO["CLAUDE.md"]
+
+    este_script = Path(__file__).resolve()
+    alvos = [a for a in plugin.rglob("*") if a.is_file()]
+    alvos += [raiz / nome for nome in ("README.md", "CLAUDE.md", "AGENTS.md")]
+    for arq in alvos:
+        if not arq.is_file() or arq.resolve() == este_script:
+            continue
+        if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):
+            continue
+        try:
+            conteudo = arq.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        permitidas = HISTORICO_PERMITIDO.get(arq.name, frozenset())
+        for num, linha in enumerate(conteudo.splitlines(), 1):
+            if not HOST_APOSENTADO_RE.search(linha):
+                continue
+            if linha.strip() in permitidas:
+                continue
+            problemas.append(
+                (
+                    arq.relative_to(raiz),
+                    num,
+                    "cita o host aposentado na 0.24.0 — o suporte saiu do produto "
+                    "(linha histórica nova? entre na allowlist do lint, com revisão)",
+                )
+            )
 
     # Consumers não repetem modelos nem dependem da variável exclusiva do
     # Claude: ambos causam drift quando o elenco ou o host muda.
