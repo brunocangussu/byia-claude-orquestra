@@ -1,7 +1,7 @@
 # Thread — desenvolvimento do próprio plugin
 
 **Frente:** o Orquestra desenvolvendo o Orquestra (dogfooding).
-**Aberta em** 2026-07-26 · **último checkpoint** 2026-07-29 · **versão** 0.13.0.
+**Aberta em** 2026-07-26 · **último checkpoint** 2026-08-29 · **versão registrada nesta thread** 0.13.0.
 
 ## Fases
 
@@ -117,3 +117,11 @@ VALIDATE esperando o "pode fechar" dele.
 ⚠️ **Não rode o painel de revisores externos no repo vivo antes do `T-019`.** Só o Codex tem sandbox
 (`-s read-only`); o Kimi não tem nenhum e destruiu o working tree em 28/jul. O revisor interno é
 seguro e foi o que auditou a 0.12.0 sozinho.
+
+## ⏭️ RETOMAR AQUI — checkpoint de recuperação 2026-08-29
+
+A sessão atual avalia, sem instalar, o repositório `kingbootoshi/cartographer` como possível apoio
+ao Orquestra. A inspeção estrutural confirmou grafo SQLite local, briefs delimitados, auditoria de
+remoção, verificação de frescor e adoção; a sobreposição principal é com codebase-memory e Serena.
+Próxima ação concreta: entregar o parecer comparativo ao dono, recomendando ou rejeitando um piloto
+opcional. Não criar card nem alterar produto antes de nova autorização explícita.

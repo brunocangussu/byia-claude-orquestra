@@ -137,13 +137,53 @@ não aceita; isso não impediu os seis hooks confiados do plugin de rodarem.
 
 ## RETOMAR AQUI
 
-T-043 voltou a PLANNING após validação reprovada no Codex App. Evidência do dono: depois de
-“Seguro dar `/clear`”, o hook bloqueou `/CLEAR`, `continue` e `allow`; como o App não expõe
-`/clear`, a conversa ficou sem saída e compactou. A documentação oficial distingue as superfícies:
-o CLI tem `/clear` e `/new`; o App cria transcript novo por **New chat** ou `Cmd+N`.
+### Incidente recorrente — 2026-08-13
 
-Próximo gate: o dono decide se a conversa antiga deve permanecer bloqueada e o checkpoint deve
-ensinar **New chat / `Cmd+N`** no App (recomendação), ou se o guardião deve liberar a mesma conversa
-depois do checkpoint. A correção também deve reidratar um chat novo no App e provar que hooks
-Codex-only não alteram o Claude. Publicação, push, cache global, backstop de 90% e update do Claude
-continuam fora do gate.
+O dono decidiu a pendência anterior: depois do checkpoint, a **mesma conversa deve continuar**;
+ela não pode ficar bloqueada, inclusive durante `/goal`. O incidente reproduziu em threads de
+desenvolvimento importantes. O banco local `~/.codex/sqlite/goals_1.sqlite` tinha zero metas, então
+o `/goal` não era o bloqueio persistido: ele apenas continuava tentando executar enquanto o hook
+recusava os prompts.
+
+Causa comprovada no cache ativo `0.22.0`: o `context-guard.py` ainda tinha três saídas
+`decision: block`. Um reset simples do estado não funciona para transcript já alto: na sessão
+`019fee80-f689-7640-bde7-9b807a85d29e`, o próximo evento releu 90,2% e recriou `emergency`.
+
+Contenção operacional aplicada, sem apagar conversas: backup em
+`~/.codex/plugins/data/orq-orquestra/context-guard-backup-20260813-incident/`; os 7 estados que
+estavam em `clear_required`, `checkpoint_required` ou `emergency` receberam marcador `.allow`.
+O cache instalado ganhou ramo restrito por sessão antes do cálculo da faixa. Smoke direto da
+sessão informada retornou `decision:block = 0` e uma instrução prioritária para atender e continuar.
+Isso é hotfix recuperável do ambiente, não implementação do produto nem release.
+
+### Plano permanente no gate
+
+1. Criar testes RED para continuação em `clear_required`, `emergency` e Goal mode, inclusive
+   transcript acima de 90%; nenhum `UserPromptSubmit` ou `Stop` pode devolver `decision: block`.
+2. Tornar 55/60/70 consultivos: preservar telemetria, deduplicação e checkpoint durável, mas emitir
+   apenas contexto prioritário que conclui o checkpoint e continua o pedido atual.
+3. Depois do checkpoint, limpar o latch de execução e permitir a mesma conversa; compactação nativa
+   substitui a obrigação de `/clear`. Remover texto vivo que manda abandonar/bloquear a sessão.
+4. Tratar `/goal` como continuidade normal: meta ativa não muda a política e nunca vira requisito
+   para desbloqueio; teste não depende do banco privado do App.
+5. Atualizar `checkpoint.md`, a skill, arquitetura e testes para um único contrato consultivo.
+6. Rodar testes do guardião, `claude plugin validate ./orq --strict` e
+   `python3 orq/scripts/lint-coerencia.py .`; depois fazer smoke em sessão real já acima do limiar.
+
+Riscos: alerta consultivo pode ser ignorado e levar a compactação antes de um checkpoint completo;
+por isso o checkpoint continua automático/durável, mas nunca ganha poder de negar o pedido. O
+marcador `.allow` emergencial precisa ser retirado quando a versão corrigida estiver comprovada,
+para não virar estado paralelo permanente.
+
+Critérios de aceite: `pode continuar` passa na mesma conversa após checkpoint; `/goal` segue; 0
+respostas `decision:block`; board/thread sobrevivem à compactação; hooks do Orquestra não alteram
+o Claude. Publicação, push, cache global, backstop de 90% e update do Claude seguem fora do gate.
+
+## RETOMAR AQUI
+
+Plano consultivo aprovado pelo dono em 2026-08-13. Uma compactação ocorreu durante o Loop B; o
+checkpoint de recuperação releu `memory/MEMORY.md`, o board e esta thread e confirmou que o gate
+continua válido. Retomar o implementador já iniciado no worktree
+`feat/t043-compactacao-reidratada`, começando pelos testes RED. Depois: verificação independente,
+painel Opus 5 + Kimi K3, documentação e movimento para VALIDATE. Não publicar, dar push, atualizar
+o Claude nem substituir caches globais sem novo ok.

@@ -4,11 +4,48 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
-**Versão:** 0.22.0 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-09 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.22.0 na `main` · **`0.24.0` pronta e aprovada na branch `feat/t051-elenco-por-tarefa`, aguardando ordem de release** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
-## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
+## 🟢 Trabalho mais recente (2026-09-01) — @frente-elenco · `T-051`
 
-**⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
+**Pronto para release, esperando o dono.** Implementação + **7 rodadas de review externo** (25
+bloqueadores, contagem 5→8→4→5→2→1→**0 APROVADO**). Branch `feat/t051-elenco-por-tarefa`, 18
+arquivos, `0.24.0` nos quatro lugares, gates verdes. **Sem commit, sem push, sem publicação.**
+
+**O que a 0.24.0 muda, em uma frase cada:**
+- **Elenco em dois eixos** — `trilha` (`interface`|`sistema`) escolhe o **vendor de quem pensa**;
+  `faixa` (`pesada`|`normal`|`leve`) escolhe o **degrau de quem escreve**. Síntese aprovada pelo
+  dono: *"domínio decide quem pensa; host decide quem escreve"*.
+- **Revisor único, vendor oposto ao host, SEM exceção** — decisão do dono **contra** a recomendação
+  do planner. O painel acabou; *"confirmado por 2+"* não existe mais. **Diff com dado sensível fica
+  sem revisor** (LGPD impede o vendor oposto): o Manager audita e **declara a ausência** — é
+  proibido spawnar revisor do mesmo vendor para tapar o buraco.
+- **Kimi aposentado** do produto inteiro. A limpeza na máquina do dono é **dele, depois** do release
+  validado e do cancelamento da assinatura: `~/.claude/agents/kimi-revisor.md` · a seção de delegação
+  do `~/.claude/CLAUDE.md` · `~/.agents/skills/orq/` · `~/.kimi-code/`.
+- **`## Papéis` eliminada** — `## Times por host` é a única fonte, para ler e gravar. Antes, `perfil
+  economia` no Codex reescrevia uma tabela que **nenhum consumidor lia**.
+
+**Estado honesto: *instalado, não validado*.** Falta o passo 12 — `marketplace update` +
+`plugin update` + **restart** + `diff -rq` vazio + os 6 critérios de aceite em conversa natural.
+Retomar em `wiki/threads/T-051-elenco-por-tarefa.md`.
+
+## 🟡 Trabalho anterior (2026-08-09) — @frente-paridade-codex
+
+**⚡ ESTADO EM 2026-08-13 — leia isto primeiro:**
+
+- **T-045 concluído e T-048 aprovado em 2026-08-29:** o dono validou **PORTAR IDEIAS** e aprovou a
+  implementação do ledger de remoção e do verificador graph-first nativos, offline e host-agnósticos.
+  A fase 1 não toca hooks nem bloqueia sessões. A implementação ocorre no worktree isolado
+  `codex/t046-auditores-nativos`; retomar em `wiki/threads/T-048-auditores-nativos.md`.
+
+- **`T-043` com plano consultivo aprovado e em implementação:** incidente recorrente confirmou que o
+  bloqueio vinha do guardião instalado, não do `/goal`. Sete threads detectadas foram liberadas
+  por marcadores `.allow` recuperáveis; a sessão informada pelo dono passou smoke com zero
+  `decision:block`. Após compactação durante o Loop B, o checkpoint de recuperação confirmou o
+  estado no board/thread. O worktree `feat/t043-compactacao-reidratada` implementa na fonte a
+  política “checkpoint registra e continua”, mantendo 55/60/70 como alertas e deixando a
+  compactação nativa trabalhar.
 
 - **0.22.0 LOCAL — `T-043` em implementação/review:** guardião Codex empacotado em seis hooks,
   parser/estado por sessão, faixas 55%/60%/70%, handshake “Seguro dar `/clear`” e backstop de 90%
