@@ -23,7 +23,7 @@ responde *o que é e por que importa*; o upstream responde *como instalar*.
    não reaproveite chave de outro serviço.
 3. **Projeto pequeno merece stack pequena.** Abaixo de ~50 arquivos, a camada 3 não se paga. **A
    camada 4 é exceção** — revisor externo se decide por *criticidade*, não por tamanho: um script
-   pequeno que mexe com dinheiro ou dados de terceiros merece painel.
+   pequeno que mexe com dinheiro ou dados de terceiros merece revisão independente.
 4. **Registre o que ele recusou** em `memory/wiki/_stack.md`, para não ser reproposto a cada sessão.
 5. **Repositório oficial, não fork.** Vários destes têm forks populares com nome parecido. Confira o
    dono do repo antes.
@@ -150,41 +150,18 @@ mais o tempo de indexação. Existem **forks populares** — confira que é o re
 ## Camada 4 — Revisão independente
 
 Modelos diferentes erram diferente — e **fornecedores** diferentes erram de forma menos
-correlacionada que duas instâncias do mesmo modelo. Com dois externos ativos, "confirmado por 2+"
-deixa de exigir unanimidade e vira maioria.
+correlacionada que duas instâncias do mesmo modelo. Por isso o revisor do Orquestra é **um só, e
+sempre do vendor oposto ao host**: no host Claude, quem revisa é o GPT; no host Codex, o Opus. Sem a
+via para o outro vendor, **não há revisão independente nenhuma** — não existe cair num revisor do
+mesmo vendor do host.
 
-### `kimi` — Kimi K3 (Moonshot) no painel
-
-📦 Instalador oficial em `https://code.kimi.com/` · doc em `https://moonshotai.github.io/kimi-code/`
-
-⚠️ **Não procure no npm.** O Kimi Code **não é distribuído por pacote** — os `kimi`, `kimi-cli` e
-`kimi-code` que existem lá são homônimos sem relação (uma lib de animação de 2016, uma ferramenta de
-front-end e um wrapper de terceiro). Instalar qualquer um deles no papel de **revisor**, que lê todo
-o código que recebe, seria risco de cadeia de suprimento real. O instalador oficial baixa de
-`code.kimi.com` **com verificação de checksum**.
-
-**Detectar:** `kimi` no PATH **ou** `~/.kimi-code/bin/kimi` —
-`KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")` — e `"$KIMI" --version` respondendo.
-Checar só o PATH **dá falso negativo**: o instalador escreve no `.zshrc`, o que não alcança sessão já
-aberta. A sonda viva (`"$KIMI" -p "responda OK" --output-format text < /dev/null`) é **chamada
-paga**: use-a só quando o sintoma for revisor mudo.
-
-**Chamada:** `-p` é o modo não-interativo; `--output-format` aceita `text` e `stream-json`.
-
-⚠️ **Sem flag de sandbox.** Diferente do Codex (`-s read-only`), o Kimi não tem modo somente-leitura.
-**Não** passe `-y`/`--yolo` nem `--auto` — sem elas, em `-p`, ele não aplica mudança. Reforce no
-prompt que é para relatar, não editar. Garantia dura: worktree descartável.
-
-**Custo:** conta Moonshot (OAuth via `kimi login`). **Transferência internacional de dados** — vale a
-mesma regra do Codex: nada de PII, prontuário ou credencial.
-
-### `codex` — GPT no painel de revisores
+### `codex` — o revisor do host Claude
 
 📦 [`openai/codex`](https://github.com/openai/codex) · **a CLI** (pacote npm `@openai/codex`)
 
-**Por que importa no Orquestra:** modelos diferentes erram diferente. O valor está na **interseção**
-(alta confiança) e na **divergência** (onde vale investigar). Sem ele o painel roda só com o revisor
-Claude — funciona, você perde a diversidade.
+**Por que importa no Orquestra:** no host Claude ele **é** o revisor — o único parecer independente
+de quem escreveu. Sem ele, toda revisão vira degradada: o Manager audita o diff ele mesmo e declara
+a ausência.
 
 **É a CLI que o `/orq:revisar` usa** (`codex exec … < /dev/null`), não o plugin
 [`openai/codex-plugin-cc`](https://github.com/openai/codex-plugin-cc), que é outro artefato e serve a
@@ -212,7 +189,7 @@ arquivos é "mínimo + Supermemory", **não** arrasta a camada 3.
 |---|---|
 | **Mínimo** (qualquer projeto) | `context-mode` + `claude-mem` |
 | **Repo grande** (≳50 arquivos) | `codebase-memory` e/ou Serena |
-| **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | `codex` no painel |
+| **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | `codex` como revisor |
 | **Multi-projeto** | Supermemory |
 
 Depois de instalar: **presuma restart** — não testado por componente para instalação de ferramenta

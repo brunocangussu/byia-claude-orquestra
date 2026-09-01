@@ -16,13 +16,13 @@ Uma tabela ou lista curta, **por situação**, não por comando:
 | "pode implementar" · "manda ver" · "aprovado" | Implementa + revisa + documenta (`/orq:implement-next`) |
 | "onde paramos" · "o que falta" · "o que preciso decidir" | Mostra o board, começando pelo que espera você (`/orq:quadro`) |
 | "terminamos" · "salva aí" · "checkpoint" | Grava tudo na memória e libera o `/clear` (`/orq:checkpoint`) |
-| "revisa isso" · "valida isso" | Painel de revisores — Claude + externos ativos (`/orq:revisar`) |
+| "revisa isso" · "valida isso" | Revisão independente — um revisor do **vendor oposto** ao do host (`/orq:revisar`) |
 | "quem tá revisando" · "troca o modelo do planner" · "tô com pouco crédito, modo economia" | Mostra ou ajusta o elenco de LLMs — inclusive troca o **time inteiro** por contexto de crédito (`/orq:elenco`) |
 | "anota isso" · "isso vira card" | Cria o card no backlog, sem tirar você do que está fazendo — planejamento fica pra quando você pedir (aí sim entra o `/orq:plan-next`) |
 | "lembra quando a gente…" | Busca na memória de longo prazo (`/orq:lembrar`) |
 | "tá lento" · "o que falta instalar" | Detecta a stack que falta e instala só o que você aprovar (`/orq:stack`) |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" | Diagnóstico do ferramental — plugin, escopo, PATH (`/orq:stack --verificar`) |
-| "tem um comando pra instalar o Orquestra no Codex/no Kimi?" · "quero testar o Orquestra em outras LLMs" | Instala o próprio Orquestra nos hosts alternativos, escopo de usuário (`/orq:instalar`) |
+| "tem um comando pra instalar o Orquestra no Codex?" · "quero testar o Orquestra em outra LLM" | Instala o próprio Orquestra no host alternativo, escopo de usuário (`/orq:instalar`) |
 | "vou abrir outra janela pra isso" · "deixa essa parte pra depois" | Registra a frente com nome, marca os cards em curso com `@frente` — pra não colidir com outra janela sua |
 | "vou dormir, adianta o que der" | Modo noturno — só planejamento, com limites (`/orq:dormir`) |
 | "bom dia" (depois do noturno) | Relatório do que rodou à noite (`/orq:acordar`) |
@@ -30,8 +30,8 @@ Uma tabela ou lista curta, **por situação**, não por comando:
 | Você quer conferir a memória agora, sem esperar | Health-check da wiki (`/orq:wiki-lint`) — às vezes já roda sozinho por iniciativa do Manager (regra na skill `orq`); pedir na hora também funciona |
 | "quais as possibilidades" · "o que dá pra fazer" | Este cardápio (`/orq:ajuda`) |
 
-Adapte a lista ao que existir **neste** projeto — se `_elenco.md` não tiver revisor externo
-configurado, não anuncie um painel que não vai rodar.
+Adapte a lista ao que existir **neste** projeto — se `_elenco.md` não tiver a via cross-vendor
+ativa, diga que a revisão sai degradada em vez de anunciar um revisor que não vai rodar.
 
 ## Regras
 

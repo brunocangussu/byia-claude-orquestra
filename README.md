@@ -1,7 +1,7 @@
 # Orquestra (`orq`)
 
 Plugin do Claude Code para **desenvolvimento orientado a board**: time de agentes efêmeros,
-memória-wiki durável, painel de revisores e gates humanos.
+memória-wiki durável, revisão independente cross-vendor e gates humanos.
 
 Nasceu da arquitetura que o Alison montou no app **Terminals** (canvas de terminais multi-agente),
 redesenhada para as primitivas nativas do Claude Code — sem canvas, sem agentes residentes, sem
@@ -31,7 +31,7 @@ O plugin foi feito pra ser usado **conversando**. Você fala; o Claude reconhece
 | *"vamos planejar isso"* | planeja e **para** pra você aprovar |
 | *"pode implementar"* · *"manda ver"* | implementa + revisa + documenta |
 | *"anota isso"* · *"não esquece disso"* | vira card no backlog |
-| *"revisa isso aí"* | painel de revisores (Claude + Codex + Kimi) |
+| *"revisa isso aí"* | revisão independente por um revisor do **vendor oposto** ao do host |
 | *"lembra o que decidimos sobre X?"* | busca na memória de longo prazo |
 | *"vou dormir, adianta o que der"* | modo noturno |
 | *"bom dia"* | relatório do que rodou à noite |
@@ -96,7 +96,7 @@ exatamente isso. Elas não são requisito; são o que separa "funciona" de "rend
 | **Economia de contexto** | [`context-mode`](https://github.com/mksglu/context-mode) · [`rtk`](https://github.com/rtk-ai/rtk) | um `npm test` de 4.000 linhas entra como as 12 que interessam |
 | **Memória entre sessões** | [`claude-mem`](https://github.com/thedotmack/claude-mem) · [Supermemory](https://github.com/supermemoryai/supermemory) | é o que torna `checkpoint` + `/clear` seguro em vez de `/compact` encadeado |
 | **Entender o código** | [`codebase-memory`](https://github.com/DeusData/codebase-memory-mcp) · [Serena](https://github.com/oraios/serena) | só valem em repo grande — ver a comparação abaixo |
-| **Revisão independente** | [`codex`](https://github.com/openai/codex) · [`kimi`](https://github.com/MoonshotAI/kimi-code) | fornecedores diferentes erram de forma menos correlacionada |
+| **Revisão independente** | [`codex`](https://github.com/openai/codex) | quem revisa é de outro fornecedor que quem escreveu — sem isso, não há revisão independente |
 
 **Serena e codebase-memory são redundantes?** Não, mas se sobrepõem: os dois acham símbolo por nome, e
 a semelhança acaba aí. Serena é **LSP + edição** ("me dê o corpo disto e edite com precisão");
@@ -131,10 +131,10 @@ atuais e mostra a você o que pretende rodar antes de rodar.
 | Comando | O que faz |
 |---|---|
 | `/orq:init` | Instala e **adapta** o Orquestra ao projeto |
-| `/orq:instalar` | Instala **o plugin em si** nos hosts alternativos do dono (Codex, Kimi) |
+| `/orq:instalar` | Instala **o plugin em si** no host alternativo do dono (Codex) |
 | `/orq:plan-next` | **Loop A** — planeja o próximo card e para no gate |
-| `/orq:implement-next` | **Loop B** — implementa + painel de revisão + documentação |
-| `/orq:revisar` | Painel de revisores sobre a mudança atual |
+| `/orq:implement-next` | **Loop B** — implementa + revisão independente + documentação |
+| `/orq:revisar` | Revisão independente da mudança atual |
 | `/orq:elenco` | Ver/trocar qual LLM toca cada papel |
 | `/orq:stack` | Detecta ferramentas de contexto/memória que faltam e instala o que você aprovar |
 | `/orq:quadro` | Mostra o board e o progresso |
@@ -172,10 +172,10 @@ arquivo do agente é só o padrão de fábrica.
 
 ```bash
 /orq:elenco                    # mostra a escalação atual
-/orq:elenco planner fable      # troca o planner pro Fable 5
-/orq:elenco reviewer opus      # revisor interno em Opus
-/orq:elenco codex off          # tira o GPT do painel (só Claude)
-/orq:elenco codex xhigh        # ajusta o esforço do Codex
+/orq:elenco planner interface fable   # host Claude; no Codex essa trilha só aceita `opus`
+/orq:elenco implementer leve haiku    # troca o degrau barato de quem escreve
+/orq:elenco codex off                 # no host Claude: fica sem revisor independente
+/orq:elenco reviewer gpt-5.6-sol@high # o effort mora no modelo do papel, não na via
 /orq:elenco perfil economia    # fim do ciclo: troca o time inteiro pelo preset de crédito curto
 /orq:elenco perfil padrao      # crédito voltou: time titular de volta
 ```
@@ -183,76 +183,95 @@ arquivo do agente é só o padrão de fábrica.
 Ou simplesmente fale: *"quero o Fable planejando"* · *"tira o GPT da revisão"* · *"quem tá revisando?"*
 
 **Perfis** — além do ajuste papel a papel, o `_elenco.md` pode ter **times nomeados** (seção
-"Perfis"): `padrao` (o titular) e `economia` (crédito Claude curto). Trocar o perfil reescreve a
-tabela ativa; os comandos continuam lendo a mesma tabela. Honesto: perfil de economia muda a
-**garantia**, não só o custo — reconciliação mais fraca, mais peso em revisor sem sandbox — e o
-preset lista isso com todas as letras. O `manager` nunca entra em perfil: é o
+"Perfis"): `padrao` (o titular) e `economia` (crédito Claude curto). Presets são **por host**:
+trocar o perfil reescreve a tabela **daquele host** em `## Times por host`, que é de onde os
+comandos leem. Honesto: perfil de economia muda a
+**garantia**, não só o custo — o parecer único vem com menos effort, e não há segundo revisor pra
+compensar — e o preset lista isso com todas as letras. O `manager` nunca entra em perfil: é o
 `/model` da sessão, e só o dono troca.
 
-**Padrões de fábrica:**
+**Padrões de fábrica — a tabela do host Claude.** O elenco é resolvido **sempre** assim: identifique
+o host, leia a tabela dele em `## Times por host`, aplique a Matriz de invocação. Não há outra
+tabela ativa; o host Codex tem a sua, com os modelos OpenAI equivalentes.
 
 | Papel | Modelo | Por quê |
 |---|---|---|
 | `manager` | *sessão principal* | definido pelo `/model` — não é spawn, não muda por aqui |
-| `planner` | `opus` | achar causa raiz e desenhar solução é o trabalho mais difícil |
-| `implementer` | `inherit` | acompanha o modelo da sessão |
-| `reviewer` | `opus` | revisão adversarial exige raciocínio forte |
+| `planner·interface` | `fable` | trilha perceptual pensa com Anthropic |
+| `planner·sistema` | `gpt-5.6-sol@ultra` | trilha comportamental pensa com OpenAI, read-only por CLI |
+| `implementer·pesada` | `opus` | alto risco ou decisão de desenho ainda aberta |
+| `implementer·normal` | `sonnet` | plano fechado, execução dirigida |
+| `implementer·leve` | `haiku` | resultado determinado, verificação mecânica |
+| `reviewer` | `gpt-5.6-sol@xhigh` | independência: sempre o vendor oposto ao host |
 | `docs` | `sonnet` | escrita objetiva sobre código já pronto |
 | `scout` | `sonnet` | leitura ampla e barata |
 
-Valores aceitos: `opus` · `sonnet` · `haiku` · `fable` · `inherit` · ou um id específico
-(`claude-opus-5`).
+**Dois eixos, e é o que explica a tabela.** A **trilha** do card (`interface` | `sistema`) escolhe o
+*vendor de quem pensa*: critério de aceite perceptual (o dono valida olhando) pensa com Anthropic;
+critério comportamental (valida-se verificando) pensa com OpenAI. A **faixa** (`pesada` | `normal` |
+`leve`) escolhe o *degrau de quem escreve*, sempre no vendor do host — escrita cross-vendor está
+fora do desenho. Em uma frase: **domínio decide quem pensa; host decide quem escreve.** As duas
+réguas ficam escritas uma única vez, em `orq/commands/elenco.md`.
+
+**Só `planner` e `reviewer` cruzam vendor** — o planner pelo **domínio**, o reviewer pela
+**independência** (e ele é obrigado: sempre o vendor oposto ao host). `implementer`, `docs` e
+`scout` ficam no vendor do host: os dois primeiros porque escrevem, o `scout` porque leitura ampla
+e barata não se paga em domínio. Valores aceitos nesses três dependem do host: no Claude, `opus` ·
+`sonnet` · `haiku` · `fable` · `inherit` ou um id (`claude-opus-5`); no Codex, os modelos OpenAI
+com effort (`gpt-5.6-terra@xhigh`…). Nos que cruzam, qualquer vendor com célula na Matriz de
+invocação, **desde que o mecanismo daquela célula execute aquele modelo** (a célula
+Anthropic×Codex é o runner de Opus fixo: lá só entra `opus`).
 
 **Onde modelo forte se paga:** planner e reviewer. Um erro de plano custa a implementação inteira;
 um review fraco deixa passar o que vai quebrar depois. Docs e scout resolvem com modelo menor.
 
-**Quer só Claude, sem GPT?** `/orq:elenco codex off` e deixe o reviewer em `opus`. Você perde a
-diversidade do painel (modelos diferentes erram diferente), mas ganha um fornecedor só.
+**Quer só Claude, sem GPT?** No host Claude, `/orq:elenco codex off` desliga a via externa — e com ela **o único
+revisor independente que existe**. Toda revisão passa a ser degradada: o Manager audita o diff ele
+mesmo e declara a ausência. Não existe cair num revisor do mesmo fornecedor do host.
 
 ---
 
-## Painel de revisores
+## Revisão independente
 
-Revisores diferentes erram de formas diferentes: um acha o bug de lógica, outro acha o vazamento de
-escopo. O valor está na **interseção** (alta confiança) e na **divergência** (onde vale investigar).
+Um revisor só, **sempre do fornecedor oposto ao do host**: no host Claude quem revisa é o GPT, no
+host Codex é o Opus. A razão de existir do revisor é ser independente de quem escreveu — um revisor
+do mesmo fornecedor devolveria a aparência de revisão sem a independência que a justifica.
 
-**Hoje:**
-- `orq-reviewer` — Claude, adversarial, sempre roda
-- **Codex** (GPT-5.6 Sol, `--effort xhigh`) — se o plugin `codex` estiver instalado
-
-**Reconciliação obrigatória** — nunca despejar dois pareceres um embaixo do outro:
+**Auditoria obrigatória** — com um revisor só, todo achado é solitário por construção:
 
 | Situação | O que o Manager faz |
 |---|---|
-| Confirmado por 2+ revisores | alta confiança, vai no topo |
-| Achado por só um | **verifica no código** antes de aceitar |
-| Revisores discordam | **desempata olhando o código** e explica |
+| Achado do revisor | **verifica no código** antes de aceitar — sempre, sem exceção |
+| Discorda do parecer | **desempata olhando o código** e explica |
 | Sem cenário de falha concreto | descarta ou marca como opinião de estilo |
+| Plano veio do mesmo vendor do revisor | audita os achados também contra o plano, e diz isso |
 
-### Revisores externos (Codex + Kimi K3)
+### A via para o outro fornecedor
 
-Registre na seção **Revisores externos** do mesmo `memory/wiki/_elenco.md`:
+Registre na seção **Revisores externos** do mesmo `memory/wiki/_elenco.md` — ela é o **registro de
+capacidade** das vias cross-vendor, não uma composição de painel:
 
 ```markdown
 ## Revisores externos
-| Revisor | Estado | Config |
-|---|---|---|
-| codex | ativo | `--model gpt-5.6-sol --effort xhigh` (read-only) |
-| kimi | ativo | `kimi-code/k3` · CLI com `-m` antes de `-p` · read-only, sem `--yolo`/`--auto` |
+| Via | Vendor | Consumida por | Estado | Registro |
+|---|---|---|---|---|
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | ativo | `--model gpt-5.6-sol --effort xhigh` (read-only) |
+| runner-opus | Anthropic | **host Codex**: `planner·interface` e `reviewer`. No host Claude não é via — é o vendor nativo | ativo | `scripts/run-opus-reviewer.py` · comprova `claude-opus-5` · 16 KiB/lote · 240s |
 ```
 
-O `/orq:revisar` lê esse arquivo e inclui todo revisor marcado como **ativo**. Aqui, ativo significa
-política habilitada, não saúde de runtime: CLI, autenticação, modelo e saída são verificados a cada
-parecer. No Host Codex, o painel é exatamente Opus 5 + Kimi K3 e não inclui uma diagonal OpenAI;
-no Host Kimi, o parecer Moonshot fresco entra pela diagonal da Matriz. Capacidade ausente vira
-**PAINEL PARCIAL** com a causa nomeada; nunca é tratada como parecer entregue nem substituída.
-O Opus roda por `orq/scripts/run-opus-reviewer.py`: briefings acima de 16 KiB são divididos por
-arquivo/hunk sem truncamento; cada lote tem timeout e só vale se o JSON comprovar
-`claude-opus-5`. Timeout, modelo errado ou saída vazia deixam diagnóstico explícito.
+Aqui, ativo significa política habilitada, não saúde de runtime: CLI, autenticação, modelo e saída
+são verificados a cada parecer. O Opus roda por `orq/scripts/run-opus-reviewer.py`: briefings acima
+de 16 KiB são divididos por arquivo/hunk sem truncamento; cada lote tem timeout e só vale se o JSON
+comprovar `claude-opus-5`.
 
-Em card pequeno e de baixo risco, use `--rapido` (só o revisor interno). Painel em mudança trivial
-é desperdício. Se o revisor interno estiver rebaixado, quem decide o painel mínimo é o
-`/orq:revisar` — regra lá.
+**Capacidade ausente não vira substituição.** Titular fora do ar (binário, autenticação, timeout,
+saída vazia) → **REVISÃO DEGRADADA** com a causa nomeada, e o card não avança sozinho. Diff com dado
+sensível → a regra de dados impede o titular e **não há revisor nenhum**: o Manager audita ele mesmo
+e declara "sem revisão independente por restrição de dados". Nos dois casos é **proibido** spawnar
+um revisor do mesmo fornecedor do host para tapar o buraco.
+
+Em card pequeno e de baixo risco, `--rapido` encolhe o **briefing** — nunca troca de revisor nem
+dispensa a revisão. Quem decide o que entra no briefing enxuto é o `/orq:revisar` — regra lá.
 
 ---
 
@@ -372,28 +391,27 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.22.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
-· painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
+`0.24.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+· **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
+(trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar
 auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
 · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
 corpus real (não inventados) · cardápio por situação (`/orq:ajuda`) · política de iniciativa própria em
 **três níveis** (age e relata · propõe, nunca insiste · sempre pergunta) · **perfis de elenco** (`padrao` ·
-`economia`) pra trocar o time inteiro por contexto de crédito · correções do painel de três revisores
-sobre 0.14.0–0.16.0: teto do N2 numa **cláusula única** (sem regra duplicada) · painel mínimo do
-`--rapido` decidido num lugar só (`/orq:revisar`, pela propriedade real — reviewer rebaixado — não
-pelo nome do perfil) · template do elenco com heading `Papéis`, revisores externos literais e
+`economia`) pra trocar o time inteiro por contexto de crédito · teto do N2 numa **cláusula única**
+(sem regra duplicada) · o que o `--rapido` encolhe é decidido num lugar só (`/orq:revisar`), nunca
+pelo nome do perfil · template do elenco com seção de vias externas literal e
 auto-cura da seção Perfis em arquivo pré-0.16.0 (ao trocar de perfil ou ajustar um papel — não migra
 nota de preset) · **`AGENTS.md` = `CLAUDE.md`, byte-idênticos** (identidade vira gate mecânico no
 lint, não mais "dever de sincronizar") · `/orq:init` grava o mesmo bloco `orquestra:start` nos dois
-· `/orq:instalar` novo — instala o plugin em si (não só o projeto) nos hosts alternativos do dono,
-Codex e Kimi, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4) · **elenco
-host-agnóstico** (`T-026`, passo 8): `## Times por host` resolve o time de Codex e Kimi na leitura,
+· `/orq:instalar` — instala o plugin em si (não só o projeto) no host alternativo do dono, o
+Codex, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4) · **elenco
+host-agnóstico** (`T-026`, passo 8): `## Times por host` resolve o time de cada host na leitura,
 sem preset ativável; `## Matriz de invocação` documenta o template por vendor × host com
 procedência; o template do `init` gera as duas seções e migra arquivo antigo de forma aditiva;
 consumidores resolvem host→papel→executor; no Codex, Manager Sol/high, Planner Sol/ultra,
-Implementer Terra/xhigh e painel Opus 5 + Kimi K3; diagnóstico separa plugin instalado/habilitado,
-skill carregada e smoke comportamental; painel do Kimi corrigido para a ordem de flags segura
-(`-m` antes, `-p` por último) ·
+Implementer Terra/xhigh e revisor Opus 5; diagnóstico separa plugin instalado/habilitado,
+skill carregada e smoke comportamental ·
 **guardião preventivo do contexto Codex** (`T-043`): hooks empacotados observam a telemetria por
 sessão, pré-alertam em 55%, executam checkpoint obrigatório no primeiro valor observado ≥60% e
 bloqueiam trabalho novo até o `/clear` manual; compactação automática fica apenas como backstop
@@ -403,10 +421,18 @@ dono (modelo · effort · contexto · custo · rate-limit 5h · diretório · wo
 achando o `kanban-status.sh` por vizinhança em vez de caminho fixo e degradando para só o board sem
 `jq` — e o `init` passa a checar os **três escopos** de settings (local do projeto, compartilhado do
 projeto, global do usuário) antes de propor, nunca sobrescrevendo statusline existente em nenhum
-deles; a cópia instalada leva marca de versão para re-sync detectável.
+deles; a cópia instalada leva marca de versão para re-sync detectável ·
+**elenco em dois eixos e revisor único** (`T-051`): a **trilha** do card (`interface`/`sistema`)
+escolhe o vendor do planner e a **faixa** (`pesada`/`normal`/`leve`) escolhe o degrau do
+implementer, sempre no vendor do host — *domínio decide quem pensa, host decide quem escreve*; a
+revisão é de **um** revisor, sempre do vendor oposto ao host, com auditoria obrigatória do
+Manager contra o código; sem contingência interna — titular fora do ar vira **REVISÃO
+DEGRADADA** e diff com dado sensível fica **sem revisor**, com a ausência declarada; o suporte
+ao antigo terceiro host (Moonshot) **foi removido**, com guarda de regressão no lint.
 
 **Roadmap:** enforcement por hooks (bloquear tecnicamente pular review) · workflows determinísticos ·
-implementação noturna limitada (só após pilotos do modo planejamento) · mais revisores no painel.
+implementação noturna limitada (só após pilotos do modo planejamento) · medir o degrau barato do
+host Codex em escrita real (o smoke de 2026-09-01 provou só que o modelo responde).
 
 ## Problemas conhecidos (leia se algo "não funciona")
 
@@ -451,22 +477,22 @@ Sonda pendente (custo: uma invocação): no próximo release que alterar `orq/co
 `orq/agents/*`, rodar `/reload-plugins` na sessão viva e invocar o comando/agente alterado
 procurando o texto novo. Apareceu → a célula vira ✅; não apareceu → vira "exige restart".
 
-### Um revisor sumiu do painel sem avisar
+### O revisor sumiu sem avisar
 
 Quase sempre é o binário fora do PATH, não ausência. `which` responde sobre o PATH **daquela
 sessão** — instaladores costumam escrever no `.zshrc`, o que só alcança shell aberto depois. Detecte
 com fallback:
 
 ```bash
-KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
+CODEX=$(command -v codex || echo "$(npm prefix -g 2>/dev/null)/bin/codex")
 ```
 
-O `/orq:revisar` avisa quando o painel fica parcial. Se ele entregar parecer de um revisor **sem**
-dizer que faltou alguém, é bug — reporte.
+O `/orq:revisar` avisa quando a revisão sai **degradada**. Se ele entregar veredito **sem** revisor
+e sem dizer isso na primeira linha, é bug — reporte.
 
 ### O revisor externo trava e nunca responde
 
-Falta `< /dev/null`. Sem TTY, tanto `codex exec` quanto `kimi -p` **bloqueiam lendo stdin** e travam
+Falta `< /dev/null`. Sem TTY, `codex exec` **bloqueia lendo stdin** e trava
 até o timeout — mesmo com o prompt passado como argumento. Com o stdin fechado, respondem em
 segundos.
 
