@@ -1,6 +1,7 @@
 # T-052 — Reconciliar a `0.24.0` local com a `0.22.7` publicada
 
-> **Estado:** plano aprovado pelo dono em 2026-09-01, **decisões fechadas**, implementação autorizada.
+> **Estado: CONCLUÍDO E PUBLICADO** em 2026-09-02 — `78b0fec` (dois pais) + `bd6d3fc`. O plano
+> abaixo é registro; o fechamento está no `RETOMAR AQUI` no fim do arquivo.
 > **Planner:** `gpt-5.6-sol@xhigh` via `codex exec` — trilha `sistema` pelo elenco da 0.24.0. Foi a
 > **primeira vez** que a via OpenAI produziu plano (antes só tinha sido exercitada como revisor);
 > uma das três pendências declaradas na `0.24.0` fica assim coberta.
@@ -201,3 +202,30 @@ Se os 25 recibos individuais não puderem ser recuperados, o card deve parar fai
    **Recomendação:** incluir, pois contêm T‑052/T‑053 e dois gotchas que ainda não existem em nenhum commit.
 
 Estado do card: plano concluído; deve permanecer no gate do dono, sem implementação, bump, commit, push, cache ou publicação.
+
+---
+
+## ⏭️ RETOMAR AQUI — *(atualizado em 2026-09-02)*
+
+**Concluído e publicado. Não reabra.**
+
+- **Commit `78b0fec`, dois pais** (`6fde3e3` remoto + `dcc350b` local) — a ancestralidade dos dois
+  ramos ficou registrada no grafo. Depois, `bd6d3fc` com a documentação do release.
+- **Como foi feito:** reconstrução manual a partir de `origin/main`, `merge -s ours` **apenas** para
+  registrar os pais. Zero hunk automático — o git funde calado quando as edições tocam linhas
+  diferentes, e em arquivo de instrução isso vira regra contraditória que passa nos gates.
+- **Tamanho real:** 18 arquivos colididos · 29 caminhos só-remoto · 8 só-local · **52 cards** fundidos
+  card a card · 5 arquivos só-remoto alterados (3 de reconciliação semântica + 2 testes).
+- **Prova:** 5 ledgers em `T-052-ledgers/`, todos **discriminando** — passam na árvore fundida e
+  **reprovam** na árvore que não tem a regra. `ledger_t051` 25/25 aqui e 0/25 no remoto puro;
+  `ledger_remoto` 4/4 aqui e 0/4 no golden local.
+- **4 rodadas de revisão externa** (3+2 → 3+2 → 1 → 1). Os gates ficaram **verdes em todas**.
+
+**O que este card ensinou, e está no `gotchas.md`:** a classe de defeito dominante numa fusão de
+instruções não é contradição, é **ausência** — obrigação que existe num ramo e some do texto do
+outro. Contradição tem string para procurar; ausência não. Foi assim que a suíte de 201 testes ficou
+fora do guia de release e o bump sumiu do procedimento do README.
+
+**Seguimento natural, se algum dia incomodar:** o `T-044` (reset concorrente) continua num terceiro
+ramo (`codex/t044-reset-concurrency-0225`), fora de `origin/main` — decisão do dono de deixá-lo fora
+desta reconciliação. Replanejar sobre a `0.25.0`, com card próprio.

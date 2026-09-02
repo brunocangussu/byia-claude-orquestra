@@ -469,3 +469,24 @@ pareceu confirmação. Eram os **transcripts desta própria conversa** (o `.json
 antes.
 → Ao buscar evidência no disco, verificar **a origem do match** antes de contá-lo como prova.
 Transcript de sessão, log de memória e cache de conversa refletem o que foi dito, não o que é.
+
+### `.DS_Store` na pasta de trabalho reprova o verificador de cache
+
+2026-09-02: o lint reprovou com `versão 0.25.0 diverge do cache instalado (missing:.DS_Store)` logo
+depois de um release verificado com sucesso. Causa: o Finder criou `orq/.DS_Store` (0 bytes) na
+pasta local. Ele está no `.gitignore` e **nunca foi commitado**, mas o verificador compara a **pasta
+de trabalho** com o cache — e `missing` significa *existe na fonte, falta no instalado*. O cache
+estava correto; a fonte é que tinha lixo. Por isso a verificação contra **clone limpo** passava e a
+mesma verificação contra o working tree falhava.
+→ `rm -f orq/.DS_Store` resolve. E é a razão de o `T-049` ter deixado `.DS_Store` **estrito**, fora
+da allowlist instalada-only: permitir mascararia divergência real. Prova de release usa **fonte
+limpa** (clone detached do SHA publicado), nunca o working tree — o lint local usa a pasta e por isso
+acusa lixo que o clone não tem.
+
+### `find` (e outros comandos) podem voltar filtrados — confirme com `ls` antes de concluir
+
+No mesmo episódio: `find orq/ -name ".DS_Store"` respondeu como se não houvesse nada, e eu quase
+concluí que o arquivo estava do outro lado. `ls -la orq/.DS_Store` mostrou o arquivo na hora.
+→ Quando um comando de busca "não acha" algo que o erro afirma existir, **confirme por outro
+caminho** antes de inverter a hipótese. Vale a mesma regra do probe que não injetou: resultado de
+ferramenta não é evidência até você saber que a ferramenta olhou onde você acha que olhou.

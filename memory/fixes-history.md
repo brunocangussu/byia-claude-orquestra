@@ -1,5 +1,72 @@
 # Log de mudanças — append-only
 
+## [2026-09-02] release | 0.25.0 publicada, instalada e verificada nos dois hosts (T-051 + T-052)
+
+**O dia começou com um pedido simples e terminou numa reconciliação de dois ramos.** O dono pediu
+duas coisas: aposentar o Kimi (assinatura a cancelar) e redistribuir os modelos por tipo de trabalho,
+a partir de uma configuração de referência. Virou o `T-051`. Ao tentar publicar, o push foi
+**rejeitado**: a `main` remota estava 27 commits à frente, em `0.22.7`, com o trabalho do Codex
+publicado enquanto a `0.24.0` era construída. Nasceu o `T-052`.
+
+**O erro de leitura que o dono corrigiu no gate, e que virou o card.** A v1 do plano colapsou a
+referência num eixo só (dificuldade). Ele apontou: *"ou você interpretou errado ou você viu errado?"*
+A configuração tem **dois eixos**, e o segundo escolhe o **vendor**: interface → Anthropic, sistema →
+OpenAI. Generalizado, o eixo **não é frontend/backend, é interface vs sistema**. Como escrita
+cross-vendor está fora do desenho (`T-021`), a síntese aprovada foi **"domínio decide quem pensa;
+host decide quem escreve"**: planner e revisor cruzam vendor (read-only, já comprovado); implementer,
+docs e scout ficam no vendor do host.
+
+**O painel morreu por decisão do dono, contra a recomendação do planner.** Revisor **único, vendor
+oposto ao host, sem exceção**. Consequências assumidas e escritas no produto: diff com dado sensível
+fica **sem revisor** (LGPD impede o vendor oposto, e não há substituto interno — o Manager audita e
+declara a ausência); titular fora do ar → `REVISÃO DEGRADADA` e o card não avança sozinho.
+
+**Onze rodadas de revisão adversarial, 36 bloqueadores.** `T-051`: 5→8→4→5→2→1→0. `T-052`:
+3+2 → 3+2 → 1 → 1. **Os gates ficaram verdes em todas elas.** Os quatro mais caros: (a) o elenco
+tinha **duas fontes de verdade** — `## Papéis` se dizia ativa e era o que os perfis reescreviam,
+enquanto os consumidores liam `## Times por host`: `perfil economia` no Codex era **inócuo**;
+(b) uma correção **apagou o piso de Alto risco**, deixando schema/segurança cair no implementer mais
+fraco; (c) o exemplo canônico de roteamento da skill era **inválido no Codex** — virou nomeação de
+papéis resolvidos, sem modelo concreto; (d) o guia de release mandava publicar **sem rodar a suíte**
+de 201 testes: ela veio do ramo remoto e a documentação de release veio do local, e **nenhum dos dois
+textos sabia do outro**.
+
+**A lição de método do dia, que vale mais que os achados:** a classe de defeito dominante não é
+contradição — é **ausência**. Contradição tem string para procurar; ausência não. Foi assim que a
+suíte ficou fora do guia de release, que o bump sumiu do procedimento do README, e que a mesma falha
+apareceu na página irmã. **22 dos 25 bloqueadores do `T-051` vieram de coerência entre superfícies**,
+e o padrão se repetiu até o fim: quando uma regra muda, a frase que a resume em outro arquivo
+continua contando a versão anterior.
+
+**A reconciliação foi manual, arquivo a arquivo** (decisão do dono): partiu de `origin/main`, com
+`merge -s ours` registrando apenas os dois pais — **zero hunk automático**. Razão: o git funde calado
+quando as edições tocam linhas diferentes, e em arquivo de instrução isso vira regra contraditória
+que passa nos gates. 18 arquivos colididos, 29 caminhos só-remoto, 8 só-local, **52 cards** fundidos
+card a card. Três cards (`T-037` SuperMemory, `T-043` guardião, `T-048` auditores) tinham avançado no
+remoto e o board local não sabia.
+
+**A prova de que nada se perdeu é executável, não declarada.** Cinco ledgers persistidos em
+`wiki/threads/T-052-ledgers/`, e o que os torna prova é **discriminarem**: 25/25 e 4/4 na árvore
+fundida, **0/25** no remoto puro e **0/4** no golden local. Um probe que passa em qualquer árvore não
+prova nada. Os pareceres das 7 rodadas viraram evidência durável em `wiki/threads/T-051-pareceres.md`
+(24 KB, hash por parecer) — antes viviam só no scratchpad da sessão.
+
+**Seis defeitos viraram guarda mecânico permanente:** papel por célula de tabela · heading ancorado
+em linha exata · host aposentado alcançando as páginas vivas · teto do runner **derivado** de
+`DEFAULT_TIMEOUT_SECONDS` · vocabulário extinto · bump como passo do procedimento. A cobertura
+automática subiu de 2 para 6 famílias; a coerência de prosa entre superfícies segue manual.
+
+**Release:** commit `78b0fec` (dois pais: `6fde3e3` remoto + `dcc350b` local), push feito, `0.25.0`
+instalada em Claude e Codex, e **os dois caches verificados com `verify_installed_cache.py` a partir
+de clone detached limpo** — `ok: installed cache matches source`, exit `0` nos dois. Falta apenas o
+teste comportamental do dono.
+
+**Fora do ciclo:** o Fable 5.1 apareceu no menu; o alias `fable` só passou a resolvê-lo depois de o
+dono atualizar o CLI para 2.1.258 — antes, o cache trazia a entrada `disabled` exigindo `2.1.255+`.
+Como o elenco grava o **alias** e nunca ID versionado, o `planner·interface` passou a usar o 5.1 sem
+uma linha de mudança no produto.
+
+
 ## [2026-09-01] feat | 0.24.0 — elenco em dois eixos, revisor único cross-vendor, Kimi aposentado (T-051)
 
 O dono pediu duas coisas na mesma conversa: retirar o Kimi (assinatura a cancelar) e redistribuir os

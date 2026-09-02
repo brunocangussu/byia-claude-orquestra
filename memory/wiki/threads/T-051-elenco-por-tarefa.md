@@ -1,10 +1,13 @@
 # T-051 — Elenco em dois eixos (trilha × faixa) + aposentadoria do Kimi
 
-> **Status:** PLANO v2 — revisado em 2026-09-01 após correção do dono no gate. As quatro decisões
-> estão **fechadas** (seção 8); resta **um** ponto de confirmação. Nada em `orq/` foi tocado.
-> Versão-alvo proposta: **0.24.0** — o board reserva `0.23.0` para o `T-042` (statusline Codex,
-> `KANBAN.md:23,54`); quem sair primeiro leva o menor número livre, e os quatro lugares do bump
-> andam juntos de qualquer forma.
+> **Status: ENTREGUE E PUBLICADO** — saiu na **`0.25.0`** (`bd6d3fc`), instalada e verificada em
+> Claude e Codex. As cinco decisões do dono estão fechadas (seção 8). O plano abaixo é **registro do
+> desenho**, não trabalho pendente: o que ainda falta é só o teste comportamental, descrito no
+> `RETOMAR AQUI` no fim do arquivo.
+>
+> A versão-alvo original era `0.24.0`; ela **nunca foi publicada** — o push foi rejeitado por
+> divergência com o ramo remoto, e o `T-052` reconciliou os dois lados na `0.25.0`. Correções feitas
+> durante as 7 rodadas de review estão marcadas no corpo com a data e a rodada.
 
 ---
 
@@ -395,10 +398,35 @@ faixa/trilha retroativa nos cards antigos.
 
 ---
 
-## ⏭️ RETOMAR AQUI
-
+## RETOMAR AQUI — SUPERADO *(o vivo é o do fim do arquivo)*
 **Próxima ação exata:** o Manager apresenta ao dono **só o ponto único da seção 8** (as três
 exceções da contingência interna — recomendação: confirmar como está) e a proposta de versão
 (**0.24.0**, `0.23.0` reservado ao `T-042`). Confirmado, mover `T-051` de `[>]` para `[~]` READY e
 despachar o implementer (host Codex, `gpt-5.6-terra@xhigh`, worktree dedicado) com os passos 1-10
 da seção 6 — 11-13 são do Manager. Nenhuma edição em `orq/` antes disso.
+
+---
+
+## ⏭️ RETOMAR AQUI — *(atualizado em 2026-09-02)*
+
+**Nada a implementar. O card foi entregue, reconciliado pelo `T-052` e publicado como `0.25.0`.**
+
+- **Publicado:** commit `bd6d3fc` em `origin/main`.
+- **Instalado e verificado:** cache Claude e Codex conferidos com `verify_installed_cache.py` a
+  partir de **clone detached limpo** do SHA publicado — `ok: installed cache matches source`,
+  exit `0` nos dois. Não foi comparação contra working tree.
+- **Custo da prova:** 7 rodadas de revisão externa, 25 bloqueadores, gates verdes em todas elas.
+  Pareceres em `T-051-pareceres.md`; probes executáveis em `T-052-ledgers/ledger_t051.py` (25/25 na
+  árvore publicada, **0/25** numa árvore sem as correções — é isso que os torna prova).
+
+**A única coisa pendente é o teste comportamental do dono**, e ele é conversado, não digitado:
+
+1. *"tô com pouco crédito"* no Codex → o perfil troca o time **de verdade** (antes reescrevia uma
+   tabela que nenhum consumidor lia — o `perfil economia` era inócuo naquele host).
+2. *"melhora o texto desse aviso"* e depois *"otimiza o cache da busca"*, **no mesmo host** → os dois
+   anúncios devem nomear **planners de vendors diferentes**. É o eixo de trilha funcionando.
+3. *"revisa isso"* num diff com dado de paciente → tem que dizer que **não haverá revisor**, explicar
+   a LGPD, e **não** inventar um revisor interno.
+4. *"dá pra instalar o Orquestra no Kimi?"* → suporte aposentado.
+
+Passando os quatro, o card fecha. Falhando algum, abra card novo — **não reabra este**.
