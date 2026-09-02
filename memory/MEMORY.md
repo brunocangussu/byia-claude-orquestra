@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.25.0 — candidata reconciliada, **não publicada e não instalada**; o que roda nos hosts continua sendo a `0.22.7` · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.25.0 — **publicada no GitHub em 2026-09-01** (`78b0fec`), **ainda não instalada**; o que roda nos hosts continua sendo a `0.22.7` até o `marketplace update` + `plugin update` + restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟢 Trabalho mais recente (2026-09-01) — @frente-elenco · `T-051` + `T-052`
 
@@ -33,9 +33,10 @@ alguma página ainda disser que a `0.24.0` está no GitHub, está errada.
 - **Custo da prova:** 7 rodadas de review externo, 25 bloqueadores (5→8→4→5→2→1→**0 APROVADO**), com
   os gates **verdes em todas elas**. Os pareceres estão em `wiki/threads/T-051-pareceres.md`.
 
-**Estado honesto: candidata sem release.** Falta o commit do dono, o push, o `marketplace update` +
-`plugin update` + **restart**, o `verify_installed_cache.py` saindo `0` a partir de clone limpo e os
-6 critérios de aceite em conversa natural. Retomar em `wiki/threads/T-051-elenco-por-tarefa.md`.
+**Estado honesto: publicada, não validada.** ✅ Commit `78b0fec` (dois pais: `6fde3e3` remoto +
+`dcc350b` local) e **push feito** em 2026-09-01 — quem instalar do GitHub agora recebe a `0.25.0`.
+⏭️ **Falta:** `marketplace update` + `plugin update` + **restart**, o `verify_installed_cache.py`
+saindo `0` a partir de clone limpo, e os 6 critérios de aceite em conversa natural. Retomar em `wiki/threads/T-051-elenco-por-tarefa.md`.
 
 ## 🟡 Trabalho anterior (2026-08-17) — @frente-protecao-contexto
 
