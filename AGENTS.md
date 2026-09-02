@@ -47,10 +47,15 @@ fecha em VALIDATE e o dono confirma usando o produto.
 **Não há build.** A verificação automatizada tem três comandos, **os três obrigatórios**:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest orq.scripts.test_verify_installed_cache orq.scripts.test_context_guard orq.scripts.test_run_opus_reviewer
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'   # suíte
 claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruções
 ```
+
+⚠️ **A suíte é descoberta, nunca enumerada.** A versão anterior desta linha listava três dos cinco
+módulos: quem a seguia rodava 119 dos 201 testes achando que rodara tudo. `discover` acha todo
+`orq/scripts/test_*.py`, então **acrescentar um módulo não exige lembrar de editar isto aqui** —
+que é o modo de falha real, não a digitação.
 
 ...seguidos de **teste comportamental** — que só vale depois do release completo. `<clean-source>`
 é checkout detached do SHA remoto aprovado, com `git status --porcelain` vazio; nunca cache de host
@@ -61,45 +66,48 @@ python3 <clean-source>/orq/scripts/verify_installed_cache.py --host claude --sou
 python3 <clean-source>/orq/scripts/verify_installed_cache.py --host codex  --source <clean-source>/orq --installed ~/.codex/plugins/cache/orquestra/orq/<versão>/
 ```
 
-Cada comando executado deve sair `0`; Kimi usa o contrato de cópia seletiva de
-`memory/wiki/distribuicao.md`. Só então conversar em português natural para ver se a intenção é
-reconhecida sem comando digitado.
+Cada comando executado deve sair `0`. Só então conversar em português natural para ver se a intenção
+é reconhecida sem comando digitado.
 Para iterar numa **skill**, `/reload-plugins` comprovadamente aplica o update na sessão viva
 (2026-07-29) — serve para experimentar, **não** para fechar card: comando e agente seguem sem teste.
 
 ⚠️ **`validate` sozinho não prova correção.** Ele checa o manifesto e passa com instruções que mandam
 rodar comando inexistente — foi assim que `/orquestra:*` sobreviveu a três releases depois da
 renomeação para `orq`. O lint cobre esse buraco: comando, agente, skill e `${CLAUDE_PLUGIN_ROOT}/…`
-citados têm que existir. Ele **ignora `memory/` de propósito** — o log é append-only e cita nomes
-extintos ao descrever bugs passados.
+citados têm que existir. Ele **ignora `memory/` por padrão** — o log é append-only e cita nomes
+extintos ao descrever bugs passados. **Duas exceções nominais são varridas**, por serem instrução
+viva e não registro: `memory/wiki/distribuicao.md` e `memory/wiki/arquitetura.md`. Falha nelas não é
+falso positivo; `fixes-history.md`, `gotchas.md` e `threads/` continuam fora.
 
 O verificador de cache deve vir da fonte limpa. Não crie exclusões ad hoc: as únicas normalizações
 são as allowlists instaladas-only e host-aware codificadas em `verify_installed_cache.py`.
 
 - **Commit:** `feat(0.X.0): descrição em minúscula, sem acento no assunto` — travessão pro subtítulo.
 - **Versão:** mexeu em `orq/` → o mesmo commit bumpa `orq/.claude-plugin/plugin.json`, a seção
-  Status do README, o `memory/MEMORY.md`, o `.claude-plugin/marketplace.json` **e** a constante
-  `expected` de `ContextGuardReleaseVersionTest` (são cinco). O cache é indexado por versão:
-  **editar sem bump não muda o que roda** e nada acusa — lint e suíte têm guardas pra isso.
+  Status do README, o `memory/MEMORY.md` **e** o `.claude-plugin/marketplace.json` (são quatro, e
+  só quatro). O `ContextGuardReleaseVersionTest` **deriva** a versão do manifesto e confere os
+  outros três contra ela — é guarda, não uma quinta fonte de verdade. O cache é indexado por
+  versão: **editar sem bump não muda o que roda** e nada acusa — lint e suíte têm guardas pra isso.
 - **Nunca** `git push`, publicar ou bumpar versão sem o ok do dono.
 
 ## O produto aqui são instruções, não código
 
 Isso muda o que o review procura. Não há null pointer nem race condition — há **ambiguidade**,
-**contradição entre arquivos** e **referência a algo que não existe**. Ao spawnar o `orq-reviewer`
-neste repo, inclua no briefing:
+**contradição entre arquivos** e **referência a algo que não existe**. Ao briefar o revisor deste
+repo, inclua:
 
 > Leia como um modelo hostil leria. Onde esta instrução admite duas interpretações? Ela contradiz
 > alguma regra em outro arquivo do plugin? Cita comando, skill ou agente que não existe?
 
-## Se você é um revisor externo entrando pelo painel
+## Se você é o revisor entrando pelo `/orq:revisar`
 
-Você entra pelo `/orq:revisar`, ao lado do revisor interno. Duas coisas:
+Você é o **único** revisor, e é sempre de vendor oposto ao host — não há revisor interno ao seu
+lado. Duas coisas:
 
 - **Read-only.** Aponte, não corrija. Quem implementou aplica.
 - **O produto são instruções, não código** — vale a mesma pergunta da seção acima ("O produto aqui
   são instruções, não código"). Um achado sem cenário de falha concreto é opinião de estilo e será
-  descartado na reconciliação.
+  descartado na auditoria do Manager.
 
 ## Idioma
 

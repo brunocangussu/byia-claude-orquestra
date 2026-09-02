@@ -19,7 +19,15 @@ Um papel → o **agent**.
 
 ## Ciclo de edição
 
+⚠️ **Mexeu em `orq/`? O primeiro passo é o bump — antes dos gates, no mesmo commit.** Os quatro
+lugares andam juntos: `orq/.claude-plugin/plugin.json` · `.claude-plugin/marketplace.json` · a seção
+**Status** do `README.md` · `memory/MEMORY.md`. Nenhum gate pega a omissão: o teste de coordenação
+só compara os quatro **entre si**, e sem bump eles continuam iguais; o bloco de cache do lint só roda
+quando aquela versão **já existe** no disco, então em máquina limpa ou no CI ele nem é exercitado.
+Sem bump, o release reaproveita a chave e o cache conserva os bytes antigos — o `T-017`.
+
 ```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'   # suíte — 201 testes
 claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência
 claude plugin marketplace update orquestra     # relê o marketplace local
@@ -40,8 +48,8 @@ compara entrada, tipo e bytes. No lado instalado, Claude permite
 somente `.in_use` (arquivo legado ou diretório no topo) e `.orphaned_at` (arquivo no topo); Codex
 permite somente `.codex-plugin/migrated-command-skills/`. A fonte não recebe exceção, `.DS_Store`
 falha e qualquer outro extra, ausência, mudança de tipo ou byte drift sai `1`; leia `tipo:caminho`
-e corrija a fonte/cache sem bump automático. Erro operacional sai `2`. Kimi continua com os diffs
-seletivos porque não possui cache de bundle equivalente.
+e corrija a fonte/cache sem bump automático. Erro operacional sai `2`. São os dois únicos hosts
+com cache de bundle — e, desde a `0.24.0`, os dois únicos hosts do produto.
 
 Esse fecho pós-release só vale quando o marketplace/update resolve o **mesmo SHA** de
 `ORQ_CLEAN_SOURCE`. Marketplace `Directory` é iteração local, não prova publicação nem pode ser
@@ -92,14 +100,29 @@ Para validar o reviewer externo de verdade, use um projeto de teste sem instruç
 revisão em linguagem natural. A evidência mínima do Opus é: runner exit 0, stderr com
 `OPUS_MODEL=claude-opus-5` e parecer não vazio. Testar só `claude --version` ou o alias no help não
 prova modelo nem integração do plugin. Briefing acima de 16 KiB deve aparecer como lotes completos;
-timeout/modelo errado/saída vazia precisam resultar em `PAINEL PARCIAL`, nunca silêncio.
+timeout, modelo errado ou saída vazia precisam resultar em **`REVISÃO DEGRADADA — sem parecer`**,
+com a causa real nomeada — nunca silêncio e **nunca `PAINEL PARCIAL`**, que é vocabulário da época do
+painel. Nessa situação **o card não avança sozinho**: seguir sem revisão independente é decisão do
+dono, pedida na hora. O contrato completo é o do `/orq:revisar`; esta página não o reescreve.
 
-## As duas verificações
+## As três verificações
 
-`validate --strict` checa o **manifesto** e nada mais: passa com instruções que mandam rodar comando
-inexistente — foi assim que o namespace `/orquestra:*` sobreviveu a três releases.
+**1. A suíte** — o único gate que executa código de verdade:
 
-Por isso existe a segunda:
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'
+```
+
+São 201 testes cobrindo `verify_installed_cache`, `context-guard`, `run-opus-reviewer` e os dois
+auditores. **Rode-a antes de publicar**: os outros dois gates leem texto e manifesto, então uma
+regressão no verificador, no runner ou no guardião passa por eles **inteira**. A lista de módulos é
+**descoberta**, não enumerada — enumerar já custou caro: a instrução citava três dos cinco, e quem a
+seguia rodava 119 dos 201 achando que rodara tudo.
+
+**2. `validate --strict`** checa o **manifesto** e nada mais: passa com instruções que mandam rodar
+comando inexistente — foi assim que o namespace `/orquestra:*` sobreviveu a três releases.
+
+**3. O lint de coerência:**
 
 ```bash
 python3 orq/scripts/lint-coerencia.py .
@@ -108,12 +131,17 @@ python3 orq/scripts/lint-coerencia.py .
 Confere que todo `/orq:x`, `` `orq-agente` ``, `` skill `nome` `` e `${CLAUDE_PLUGIN_ROOT}/arquivo`
 citado **existe de fato**. Sai com código 1 e lista `arquivo:linha` quando não.
 
-**Ele ignora `memory/` de propósito** — o log é append-only e o `gotchas.md` citam nomes de comandos
-extintos ao descrever bugs passados. Sem essa exclusão o lint acusaria falso positivo em todo
-checkpoint, e lint que grita à toa é lint desligado.
+**A fronteira do `memory/`, exata.** O lint pula `memory/` por padrão — o log é append-only e o
+`gotchas.md` citam nomes de comandos extintos ao descrever bugs passados; sem essa exclusão ele
+acusaria falso positivo em todo checkpoint, e lint que grita à toa é lint desligado. **Duas páginas
+são exceção nominal e SÃO varridas**, porque não são registro histórico e sim instrução viva sobre
+como o sistema funciona hoje: `memory/wiki/distribuicao.md` (esta) e `memory/wiki/arquitetura.md`.
+Nelas valem os guardas de host aposentado, vocabulário extinto e fonte de versão. **Continuam fora:**
+`fixes-history.md`, `gotchas.md` e tudo em `memory/wiki/threads/`. Falha nessas duas páginas **não é
+falso positivo** — é regra viva contradita. A lista está em `PAGINAS_VIVAS_FORA_DO_PLUGIN`, no lint.
 
-**O que nenhuma das duas cobre:** contradição semântica entre arquivos (uma regra que nega outra em
-linguagem natural). Isso é trabalho do painel de revisores — e é onde ele se paga.
+**O que nenhum dos três cobre:** contradição semântica entre arquivos (uma regra que nega outra em
+linguagem natural). Isso é trabalho do revisor independente do vendor oposto — e é onde ele se paga.
 
 O teste que importa é **comportamental**: instalar, conversar com o Claude em português natural e ver
 se ele reconhece a intenção sem que ninguém digite comando.
@@ -142,13 +170,13 @@ release fica commitado sem push, quem instalar recebe a versão **anterior** e n
 estado entre 05 e 07/ago, com a 0.19.0 parada localmente e o mundo recebendo a 0.18.0. Publicar é,
 portanto, parte do release, não um passo opcional depois dele.
 
-**Instalar nos outros dois hosts é o mesmo release, por outro mecanismo** (`/orq:instalar`):
-Codex por `codex plugin add orq@orquestra` (cache indexado por versão, mesmo gotcha do Claude);
-Kimi por **cópia** para `~/.agents/skills/orq/` + `~/.kimi-code/agents/` — snapshot **sem
-versionamento**, que envelhece em silêncio se `/orq:instalar` não for re-rodado a cada release.
+**Instalar no outro host é o mesmo release, por outro mecanismo** (`/orq:instalar`): Codex por
+`codex plugin add orq@orquestra` — cache indexado por versão, mesmo gotcha do Claude, e por isso a
+mesma prova pelo `verify_installed_cache.py`, nunca por comparação bruta de diretórios.
 **Estado da release combinada T-037 + T-043:** a `0.22.3` foi publicada em `origin/main` no commit
 `3bb1a24e9c06e483cc987b2b34bff9a2fac6858c`, instalada no Codex e no Claude a partir do marketplace
-GitHub nominal e espelhada no Kimi no mesmo ciclo. Os caches novos bateram com a fonte remota limpa;
+GitHub nominal — e, na época, espelhada também no terceiro host que desde a `0.24.0` saiu do
+produto. Os caches novos bateram com a fonte remota limpa;
 os antigos ainda referenciados por tasks abertas foram preservados. A candidata T-044/`0.22.2`
 ficou fora. Esta task provou um detalhe operacional adicional: enquanto uma sessão viva ainda cita
 um cache antigo, esse diretório precisa continuar existente e marcado com `.in_use`; a restauração
@@ -162,19 +190,25 @@ antigos: antes do upgrade, inventarie os caminhos ainda citados em `~/.codex/ses
 instalador remova. Compare com a fonte somente o cache da versão recém-instalada.
 
 **Convenção de commit** (do `git log`): `feat(0.X.0): descrição em minúscula, sem acento no assunto`,
-travessão para o subtítulo. A versão vive em **cinco** lugares e os cinco andam juntos no mesmo
-commit: `orq/.claude-plugin/plugin.json` · a seção **Status** do `README.md` · `memory/MEMORY.md` ·
-`.claude-plugin/marketplace.json` · a constante `expected` de
-`ContextGuardReleaseVersionTest`. **Esta página já disse "dois" e isso custou caro:** o
-`marketplace.json` ficou declarando `0.4.0` por **sete releases** sem ninguém notar — é a origem do
-card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) confere os quatro pontos declarativos e a
-suíte automatizada confere também a constante `expected`.
+travessão para o subtítulo. A versão vive em **quatro** lugares — e só quatro — e os quatro andam
+juntos no mesmo commit: `orq/.claude-plugin/plugin.json` · a seção **Status** do `README.md` ·
+`memory/MEMORY.md` · `.claude-plugin/marketplace.json`. **Esta página já disse "dois" e isso custou
+caro:** o `marketplace.json` ficou declarando `0.4.0` por **sete releases** sem ninguém notar — é a
+origem do card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) confere os quatro, e o
+`ContextGuardReleaseVersionTest` **deriva** a versão do manifesto para conferir os outros três contra
+ela. ⚠️ **Não literalize a versão dentro do teste**: uma constante `expected` fixa seria uma **quinta
+fonte de verdade** e um quinto ponto de esquecimento a cada bump — foi assim que ela nasceu, e o
+`T-052` a desfez.
 
 **Nunca commitar nem publicar sem o ok do dono.**
 
 ## Hooks do guardião de contexto
 
-Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e precisa entrar no `diff -rq`. Na `0.22.1`,
+Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e por isso entra na cobertura do
+`verify_installed_cache.py` como qualquer outro arquivo do pacote — **não** o compare com `diff -rq`:
+a comparação bruta reprova cache válido por artefato instalado-only legítimo (`.in_use`,
+`.orphaned_at`, `migrated-command-skills/`), que é exatamente o falso positivo do `T-049`. Na
+`0.22.1`,
 o smoke exige `checkpoint_verified`, compactação não bloqueada e reidratação em
 `SessionStart(source=compact)`. Instalação no
 Codex só está validada quando `/hooks` mostra o bundle com confiança aprovada e uma sessão nova roda

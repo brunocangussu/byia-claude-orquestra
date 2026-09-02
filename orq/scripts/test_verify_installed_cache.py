@@ -445,8 +445,16 @@ class VerifierCommandContractTests(unittest.TestCase):
             distribution,
         )
         self.assertEqual(agents, claude)
-        self.assertIn("orq.scripts.test_verify_installed_cache", agents)
+        # A asserção original exigia o nome de UM módulo. Ela era satisfeita por
+        # uma lista enumerada de três dos cinco — quem seguisse a instrução
+        # rodaria 119 dos 201 testes achando que rodara tudo. Provar a
+        # descoberta é mais forte: cobre todo `test_*.py`, inclusive os que
+        # ainda não existem, e proíbe a enumeração que envelhece calada.
         self.assertIn("PYTHONDONTWRITEBYTECODE=1 python3 -m unittest", agents)
+        self.assertIn(
+            "python3 -m unittest discover -s orq/scripts -p 'test_*.py'", agents
+        )
+        self.assertNotRegex(agents, r"python3 -m unittest\s+orq\.scripts\.")
         self.assertIn("--host codex", agents)
         self.assertIn("checkout detached", agents)
 

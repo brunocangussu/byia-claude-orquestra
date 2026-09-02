@@ -24,26 +24,49 @@ rotear pelo fluxo e **anunciar em uma linha** o que você vai fazer.
 
 **Escala de resposta** — dimensione pelo risco, não pelo tamanho do texto do pedido:
 
-| Nível | O que é | O que roda |
-|---|---|---|
-| **Trivial** | typo, renomear variável local, ajuste de texto sem efeito | faça direto, sem cerimônia |
-| **Pequeno** | 1 arquivo, sem decisão de desenho, reversível | implemente + **revisor interno** |
-| **Normal** | feature, correção com causa raiz, mexe em contrato entre partes | **ciclo completo**: plano → gate do dono → implementação → painel → docs → VALIDATE |
-| **Alto risco** | schema, segurança, dependência nova, dado de terceiro, irreversível | ciclo completo **+ gate extra antes de tocar** |
+| Nível | O que é | O que roda | Faixa inicial |
+|---|---|---|---|
+| **Trivial** | typo, renomear variável local, ajuste de texto sem efeito | faça direto, sem cerimônia — **você escreve, não há implementer** | **—** |
+| **Pequeno** | 1 arquivo, sem decisão de desenho, reversível | implemente + **revisão independente** (mesmo revisor, briefing enxuto) | `leve` ou `normal` |
+| **Normal** | feature, correção com causa raiz, mexe em contrato entre partes | **ciclo completo**: plano → gate do dono → implementação → revisão → docs → VALIDATE | `normal` |
+| **Alto risco** | schema, segurança, dependência nova, dado de terceiro, irreversível | ciclo completo **+ gate extra antes de tocar** | `pesada` |
 
 **Na dúvida, suba um nível.** O custo de planejar demais é minutos; o de implementar a coisa errada
 é a implementação inteira mais o retrabalho.
 
-**Anuncie, não pergunte.** Uma linha antes de começar, dizendo o roteamento e o elenco:
+**Os dois eixos do elenco.** A coluna Faixa acima decide o **degrau de quem escreve**; a **trilha**
+do card (`interface` | `sistema`) decide o **vendor de quem pensa**. As duas réguas são definidas
+**uma única vez**, em `ORQ_PACKAGE_ROOT/commands/elenco.md`, seção "As duas réguas" — leia lá antes
+de classificar; nunca reescreva o critério aqui.
 
-> *"Isso é normal: vou planejar primeiro (planner em Opus), te mostro o plano pra aprovar, e depois
-> implemento com painel de revisão (Codex + Kimi)."*
+⚠️ **A escala mede cerimônia; a faixa mede a capacidade de quem foi spawnado. Onde não há spawn,
+não há faixa.** Por isso o Trivial tem `—`: ali **você** escreve, na sessão, e anunciar uma faixa
+seria prometer um implementer que não vai existir. A faixa só vale de **Pequeno** para cima.
+
+**A coluna é o ponto de partida, não o veredito** — quem decide é a régua, e ela varia nos dois
+sentidos: desenho ainda por decidir **sobe** para `pesada`; plano aprovado que determina tudo
+**rebaixa**, na revalidação do gate do Loop A. Um card `Normal` pode acabar implementado em
+`pesada` ou em `leve` — e é assim que tem que ser. **Alto risco é a exceção: tem piso `pesada` e
+não rebaixa nunca**, nem com o plano fechado.
+
+**Anuncie, não pergunte.** Uma linha antes de começar, dizendo o roteamento, a trilha, a faixa
+(quando houver spawn) e quem toca cada papel:
+
+> *"Isso é normal, trilha `sistema`, faixa `normal`: planejo com o **planner·sistema**, te mostro o
+> plano pra aprovar, implemento com o **implementer·normal** e mando revisar pelo **reviewer** — os
+> três resolvidos na tabela do meu host."*
+
+⚠️ **O exemplo nomeia PAPÉIS, não modelos, de propósito** — e você troca cada papel pelo modelo que
+resolveu antes de falar. Qual modelo cai em cada papel depende do host, então um exemplo com modelo
+fixo está errado em metade dos hosts: a versão anterior desta linha dizia *"implemento com o Sonnet
+e mando revisar pelo GPT"*, que no host Codex é escrita cross-vendor (proibida) **e** revisor do
+próprio vendor do host (não é revisão independente). Resolva primeiro, anuncie depois.
 
 Nada de *"quer que eu rode o `/orq:plan-next`?"* — ele não precisa saber que o comando existe.
 Pergunte só quando a decisão for **dele**: rumo do produto, aparência, algo irreversível.
 
 ⚠️ **O erro mais comum é este:** o pedido chega em linguagem natural, parece pequeno, e você começa a
-editar. Aí não houve plano, não houve gate, e o painel só entra depois — revisando o que já está
+editar. Aí não houve plano, não houve gate, e a revisão só entra depois — revisando o que já está
 pronto, quando a decisão errada já custou. **Roteie primeiro.**
 
 ## ⚡ Interface NATURAL — o dono não digita comando
@@ -55,29 +78,29 @@ mecanismo interno — ele não precisa saber que existem.
 `/orq:*` nesse host; esses slash commands pertencem ao Claude Code. Ausência de `/orq` no menu do
 Codex não significa plugin ausente.
 
-⚠️ **Fora do Claude Code (Kimi, ou Codex sem os commands instalados), os `/orq:*` citados na tabela
-abaixo não existem como comando.** O procedimento é o mesmo: leia o arquivo `commands/<nome>.md`
-(ex.: a linha "pode implementar" → `commands/implement-next.md`) — **não presuma que ele mora no
-mesmo diretório desta skill**, isso só vale no Kimi.
+⚠️ **Fora do Claude Code (Codex sem os commands instalados, por exemplo), os `/orq:*` citados na
+tabela abaixo não existem como comando.** O procedimento é o mesmo: leia o arquivo
+`commands/<nome>.md` (ex.: a linha "pode implementar" → `commands/implement-next.md`) — **não
+presuma que ele mora no mesmo diretório desta skill**.
 
 Antes de ler qualquer command, resolva uma vez a **raiz do pacote instalado** e chame-a de
-`ORQ_PACKAGE_ROOT`: no Claude é `${CLAUDE_PLUGIN_ROOT}`; no Kimi, use o diretório desta skill **só
-se `commands/` existir ao lado** (o instalador cria esse layout); se não existir, suba como no
-Codex até o ancestral do pacote. No Codex, suba a partir desta skill até o ancestral do pacote que
-contém `.claude-plugin/plugin.json`, onde `skills/` e `commands/` são irmãos — nunca use
-`skills/orq/commands/`. Se o diretório adjacente ou o ancestral do pacote não puder ser comprovado,
-pare e declare a raiz ausente; não invente caminho. Toda referência
+`ORQ_PACKAGE_ROOT`: no Claude é `${CLAUDE_PLUGIN_ROOT}`. No Codex, suba a partir desta skill até o
+ancestral do pacote que contém `.claude-plugin/plugin.json`, onde `skills/` e `commands/` são
+irmãos — nunca use `skills/orq/commands/`. Em qualquer outro host, se `commands/` existir ao lado
+desta skill, essa é a raiz; senão, suba como no Codex. Se o diretório adjacente ou o ancestral do
+pacote não puder ser comprovado, pare e declare a raiz ausente; não invente caminho. Toda referência
 `ORQ_PACKAGE_ROOT/commands/<nome>.md` nos commands usa essa raiz já resolvida. Quando um command
 legado citar `${CLAUDE_PLUGIN_ROOT}`, substitua pelo `ORQ_PACKAGE_ROOT` comprovado antes de executar;
 fora do Claude, nunca passe a variável literal ao shell.
 
 Siga o arquivo como se você tivesse acabado de "rodar o comando" — **até onde o host permitir, nunca
 além disso**. Vários passos exigem primitiva que nem todo host tem: spawn de subagente com override
-de modelo (`plan-next.md`, `revisar.md`), `isolation: "worktree"` (`implement-next.md`), spawn sem
-`name`, `AskUserQuestion` e caminhos `.claude/agents/`/`statusLine` (`init.md`), `/clear`
-(`checkpoint.md`). **Sem a primitiva, nunca finja**: não simule que houve subagente, painel ou
-worktree — declare a degradação ao dono numa frase e faça o passo você mesmo, dizendo o que se
-perdeu. Onde houver equivalente, use-o: no lugar de spawn em sessão, invoque o papel como
+de modelo (`plan-next.md`, `implement-next.md`), `isolation: "worktree"` (`implement-next.md`),
+spawn **sem `name`** — com `name` o subagente vira teammate endereçável e fica vivo em loop de
+*idle* em vez de devolver o resultado, e quem esperava trava —, `AskUserQuestion` e caminhos
+`.claude/agents/`/`statusLine` (`init.md`), `/clear` (`checkpoint.md`). **Sem a primitiva, nunca
+finja**: não simule que houve subagente, parecer ou worktree — declare a degradação ao dono numa
+frase e faça o passo você mesmo, dizendo o que se perdeu. Onde houver equivalente, use-o: no lugar de spawn em sessão, invoque o papel como
 **subprocesso de CLI** do vendor daquele modelo (vendor do modelo == vendor do host → mecanismo
 nativo; senão → CLI do vendor do modelo). Se existir, o projeto `memory/wiki/_elenco.md` governa o
 time e a Matriz; sem ele, use o template em `ORQ_PACKAGE_ROOT/commands/elenco.md`. O comando do Opus
@@ -93,18 +116,18 @@ resolva o papel e só então aplique a célula da `## Matriz de invocação`. �
 | **"quero X" · "queria acrescentar Y" · "vamos fazer/criar/mudar Z" · "seria bom se" · "dá pra" · "tem um problema em W" · "isso está errado" · "não funciona" · "não gostei" · "precisa melhorar"** | **ROTEIA PELO CICLO** — é o caso mais comum e o mais fácil de errar. Cria o card, planeja, **para no gate**. Só implementa direto se for trivial pela escala acima |
 | "pode começar" · "siga" · "siga com suas recomendações" · "pode ir" · "aprovado" · "manda ver" · "vamos seguir" · "perfeito, segue" | **AVANÇA** o que está no gate — se havia plano aguardando, é aprovação: vá para a implementação. Se não havia, o "siga" se aplica ao que você acabou de propor |
 | "onde paramos?" · "o que falta?" · "cadê o board?" · "quais as pendências?" · "o que estamos fazendo?" · "o que preciso decidir?" | **Mostra o quadro** (`/orq:quadro`): esperando-ele primeiro, depois em curso e a validar |
-| "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" · "pode limpar" · "checkpoint" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board e verifica o board; no Codex libera a compactação nativa e a mesma conversa pode continuar, enquanto no Claude avisa que é seguro dar `/clear` |
+| "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" · "pode limpar" · "checkpoint" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board e verifica o board; no Codex libera a compactação nativa e a mesma conversa pode continuar, enquanto no Claude avisa que é seguro dar `/clear` — e que dá pra **fechar a janela** se a pendência ficou registrada |
 | "vamos planejar X" · "próxima tarefa" · "o que vem agora?" | **Loop A** (`/orq:plan-next`) — e **pare** no gate pra ele aprovar |
 | "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
-| "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Painel de revisores** (`/orq:revisar`) — o revisor interno + os externos **ativos no `_elenco.md`**, em paralelo, achados reconciliados |
+| "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Revisão independente** (`/orq:revisar`) — **um** revisor, sempre de um modelo do **vendor oposto ao host** (resolvido no `_elenco.md`; outro modelo do mesmo vendor do host **não** serve), com os achados auditados por você contra o código antes de virarem veredito |
 | "audite a remoção de X" · "prove que X saiu" · "verifique se começamos pelo grafo" | **Auditoria explícita e offline** (`/orq:auditar`) — ledger de remoção ou análise de trace graph-first; sem hook, captura viva ou bloqueio |
 | "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" · "tô com pouco crédito" · "acabando os créditos" · "final do ciclo semanal" · "modo economia" · e qualquer pedido de sair do perfil ou voltar ao time normal | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel; frase de contexto de crédito troca o **time inteiro** pelo perfil nomeado (`perfil economia` / `perfil padrao`), anunciando o que muda, **o que se perde** e **como reverter** — sem depender de uma frase fixa de volta, que ele pede naturalmente quando o crédito voltar |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória elegível**: wiki do projeto primeiro; depois, somente se o host expuser uma busca confiável **e ela não estiver em `memory/wiki/_stack.md` como Dispensada**, consulte-a. Provider dispensado nunca vira fallback só por estar conectado. Se não houver busca elegível, declare que a cobertura ficou limitada à wiki |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" — queixa sobre o **ferramental** (plugin, revisor, statusline, MCP, PATH), nunca sobre o que o produto faz | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado (versão **e** conteúdo), escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
 | "quais as possibilidades" · "o que dá pra fazer" | **Cardápio por situação** (`/orq:ajuda`) — frases naturais em primeiro plano, comando entre parênteses. Nunca ensine o dono a digitar comando como resposta |
-| "tem um comando pra instalar o Orquestra no Codex/no Kimi?" · "quero testar o Orquestra em outras LLMs" — só dispara aqui quando a frase **nomeia o host** (Codex, Kimi) ou **o Orquestra** em si; sem isso, é ambíguo e cai num dos desempates ao lado | **Instalação em outro host** (`/orq:instalar`) — descobre a fonte, instala no host escolhido e **verifica que instalou**. Desempate contra `/orq:elenco` (acima): ali o pedido troca **quem toca o papel** no time atual, nunca leva o produto pra outro CLI. Desempate contra `/orq:stack` (acima): ali o objeto é uma ferramenta que falta **neste projeto**; aqui o objeto é **o Orquestra**, indo para outro host. Desempate por destino: pedido para **este projeto** (o CLI onde você já está) é `/orq:init`, mesmo citando "o Orquestra" — só dispara aqui quando o destino declarado é **outro** CLI |
+| "tem um comando pra instalar o Orquestra no Codex?" · "quero testar o Orquestra em outra LLM" — só dispara aqui quando a frase **nomeia o host** (Codex) ou **o Orquestra** em si; sem isso, é ambíguo e cai num dos desempates ao lado | **Instalação em outro host** (`/orq:instalar`) — descobre a fonte, instala no host escolhido e **verifica que instalou**. Desempate contra `/orq:elenco` (acima): ali o pedido troca **quem toca o papel** no time atual, nunca leva o produto pra outro CLI. Desempate contra `/orq:stack` (acima): ali o objeto é uma ferramenta que falta **neste projeto**; aqui o objeto é **o Orquestra**, indo para outro host. Desempate por destino: pedido para **este projeto** (o CLI onde você já está) é `/orq:init`, mesmo citando "o Orquestra" — só dispara aqui quando o destino declarado é **outro** CLI |
 | "vou abrir outra janela pra isso" · "deixa essa parte pra depois" · "essa janela é pra X" | **Registre a frente**: nomeie a thread, marque os cards em curso com `@frente`, e diga em uma linha o que fica onde |
 | "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
 | "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |

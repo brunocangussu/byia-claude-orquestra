@@ -4,9 +4,40 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.22.7 instalada e verificada em Claude/Codex; Kimi não atualizado · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-31 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.25.0 — candidata reconciliada, **não publicada e não instalada**; o que roda nos hosts continua sendo a `0.22.7` · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
-## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
+## 🟢 Trabalho mais recente (2026-09-01) — @frente-elenco · `T-051` + `T-052`
+
+**A `0.24.0` foi construída fora da linha publicada e a `T-052` a reconciliou na `0.25.0`.** Duas
+cópias cresceram separadas desde `008fbc9`: a local entregou o `T-051` (`0.24.0`) e a remota chegou
+à `0.22.7` pelo trabalho do Codex. O push da `0.24.0` foi **rejeitado**; nada se perdeu, e a
+reconciliação é manual, arquivo a arquivo, sobre `origin/main`. Retomar em
+`wiki/threads/T-052-reconciliacao.md`.
+
+⚠️ **A `0.24.0` NUNCA foi publicada nem instalada** — quem instalar do GitHub recebe a `0.22.7`. Se
+alguma página ainda disser que a `0.24.0` está no GitHub, está errada.
+
+**O que o `T-051` trouxe para a `0.25.0`, em uma frase cada:**
+- **Elenco em dois eixos** — `trilha` (`interface`|`sistema`) escolhe o **vendor de quem pensa**;
+  `faixa` (`pesada`|`normal`|`leve`) escolhe o **degrau de quem escreve**. Síntese aprovada pelo
+  dono: *"domínio decide quem pensa; host decide quem escreve"*.
+- **Revisor único, vendor oposto ao host, SEM exceção** — decisão do dono **contra** a recomendação
+  do planner. O painel acabou; *"confirmado por 2+"* não existe mais. **Diff com dado sensível fica
+  sem revisor** (LGPD impede o vendor oposto): o Manager audita e **declara a ausência** — é
+  proibido spawnar revisor do mesmo vendor para tapar o buraco.
+- **Kimi aposentado** do produto inteiro. A limpeza na máquina do dono é **dele, depois** do release
+  validado e do cancelamento da assinatura: `~/.claude/agents/kimi-revisor.md` · a seção de delegação
+  do `~/.claude/CLAUDE.md` · `~/.agents/skills/orq/` · `~/.kimi-code/`.
+- **`## Papéis` eliminada** — `## Times por host` é a única fonte, para ler e gravar. Antes, `perfil
+  economia` no Codex reescrevia uma tabela que **nenhum consumidor lia**.
+- **Custo da prova:** 7 rodadas de review externo, 25 bloqueadores (5→8→4→5→2→1→**0 APROVADO**), com
+  os gates **verdes em todas elas**. Os pareceres estão em `wiki/threads/T-051-pareceres.md`.
+
+**Estado honesto: candidata sem release.** Falta o commit do dono, o push, o `marketplace update` +
+`plugin update` + **restart**, o `verify_installed_cache.py` saindo `0` a partir de clone limpo e os
+6 critérios de aceite em conversa natural. Retomar em `wiki/threads/T-051-elenco-por-tarefa.md`.
+
+## 🟡 Trabalho anterior (2026-08-17) — @frente-protecao-contexto
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
 
@@ -212,6 +243,10 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-026-host-alternativo.md`](wiki/threads/T-026-host-alternativo.md) | **Ativo** — o Orquestra rodando fora do Claude Code. Instalação multi-host (0.18.0, provada no Codex) e elenco host-agnóstico (0.19.0 — **liberada, instalada nos três hosts e revisada pelo painel em 07/ago; reprovada 3/3, achados em `T-033`/`T-034`/`T-035`**). **A thread é longa: o `⏭️ RETOMAR AQUI` vivo é o último do arquivo** — os anteriores estão marcados como superados |
 | [`wiki/threads/T-023-reload-vs-restart.md`](wiki/threads/T-023-reload-vs-restart.md) | **Implementado na 0.14.0**, reprovado no review e corrigido — evidência por componente no lugar de regra binária |
 | [`wiki/threads/T-020-perfis-elenco.md`](wiki/threads/T-020-perfis-elenco.md) | **Entregue na 0.16.0** — perfis de elenco (`padrao` · `economia`) trocados por frase |
+| [`wiki/threads/T-051-elenco-por-tarefa.md`](wiki/threads/T-051-elenco-por-tarefa.md) | **Entregue na 0.24.0, reconciliado na 0.25.0** — elenco em dois eixos, revisor único cross-vendor, Kimi aposentado; traz os 6 critérios de aceite comportamental |
+| [`wiki/threads/T-051-pareceres.md`](wiki/threads/T-051-pareceres.md) | **Evidência durável** — os 25 bloqueadores das 7 rodadas de review externo, com hash por parecer |
+| [`wiki/threads/T-052-reconciliacao.md`](wiki/threads/T-052-reconciliacao.md) | **Thread ativa** — o plano e as 5 decisões da reconciliação `0.24.0` local × `0.22.7` publicada |
+| [`wiki/threads/T-052-ledgers/`](wiki/threads/T-052-ledgers/README.md) | **Prova executável** da reconciliação — três ledgers que reprovam onde a regra não existe (25/25 · 4/4 · 12/12) |
 | [`wiki/threads/_noturno.md`](wiki/threads/_noturno.md) | Manifesto **expirado** + relatório do modo noturno de 2026-07-30 — não abrir run novo a partir dele |
 | [`snapshot-2026-07-31-releases-0.14-0.16.md`](snapshot-2026-07-31-releases-0.14-0.16.md) | **Marco**: estado exato ao fim das três entregas do dia + as três lições de método |
 

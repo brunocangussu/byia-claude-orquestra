@@ -29,8 +29,8 @@ FERR=$(command -v <ferramenta> || echo "$HOME/<caminho-conhecido>")
 ```
 
 **De onde vem `<caminho-conhecido>` — nesta ordem, nunca da imaginação:**
-1. a linha **Config** da seção *Revisores externos* de `memory/wiki/_elenco.md` — ela registra o
-   binário com caminho completo para os revisores deste ambiente;
+1. a linha **Registro** da seção *Revisores externos* de `memory/wiki/_elenco.md` — ela registra o
+   binário com caminho completo da via cross-vendor deste ambiente;
 2. a linha **Detectar** da ferramenta no catálogo `${CLAUDE_PLUGIN_ROOT}/stack.md`.
 
 Sem entrada em nenhum dos dois, o veredito é **"não encontrado no PATH — indeterminado"**, nunca
@@ -44,7 +44,7 @@ Idem para `--help | head`: a lista é alfabética e o `head` corta. Verifique o 
 |---|---|---|
 | Plugin desatualizado ou cache stale | versão **e conteúdo** — bloco "Plugin: versão E conteúdo" abaixo | comportamento antigo com o `list` dizendo que está tudo certo |
 | Escopo do plugin | mesma saída — `user` ou `project`? | funciona num projeto e some no outro |
-| Revisor externo presente | só os **ativos** em `memory/wiki/_elenco.md`: resolver o binário (PATH → caminho conhecido) e rodar `--version` — **sem chamada de modelo** | painel vira um revisor a menos, calado |
+| Revisor externo presente | a via **ativa** em `memory/wiki/_elenco.md`: resolver o binário (PATH → caminho conhecido) e rodar `--version` — **sem chamada de modelo** | fica sem revisor nenhum, calado |
 | Board legível | rodar o script **e conferir os três sinais** — bloco "Board: os três sinais" abaixo | statusline muda **ou** progresso errado sem `⚠` |
 | Contrato da memória | há `memory/` **e** falta `memory/wiki/_schema.md`? | instalação pré-0.6.0: `checkpoint` e `wiki-lint` degradam para o contrato inline — **informativo, não defeito** |
 | Agente colidindo | `ls .claude/agents/orq-*.md ~/.claude/agents/orq-*.md 2>/dev/null` — projeto **e** usuário | colisão de nome com o plugin, resolução indefinida |
@@ -107,8 +107,12 @@ versão igual NÃO implica conteúdo igual — quem editou a fonte sem bumpar de
      instalada; corrija a fonte/cache e repita o update, sem bump automático. Exit `2` → host,
      raiz ou leitura inválidos; reporte **instalação não validada**. Com divergência,
      "atualizado ✓" é conclusão **proibida**;
-   - `Source` remota (Git/GitHub) → não há fonte local para comparar: reporte
-     **"versão confere; conteúdo não verificável daqui — indeterminado"**, nunca "✓".
+   - `Source` remota (Git/GitHub) **e sem fonte limpa à mão** → não há o que comparar: reporte
+     **"versão confere; conteúdo não verificável daqui — indeterminado"**, nunca "✓". ⚠️ O
+     "indeterminado" vale para **esta** condição, não para toda Source remota: se você já resolveu um
+     clone detached e limpo do SHA aprovado — é o que o `/orq:instalar` faz no passo 0 —, rode o
+     verificador contra ele em vez de encerrar indeterminado. Prova disponível não vira
+     indeterminação.
 
 ### Board: os três sinais (saída não-vazia não prova nada)
 
@@ -125,8 +129,8 @@ Os três sinais são o contrato de `memory/wiki/_schema.md`; divergiu de lá, qu
 
 ### Revisor externo: quem testar, e até onde
 
-Leia `memory/wiki/_elenco.md` primeiro: **só se testa revisor marcado `ativo`** — dispensado é
-dispensado, e revisor que nem consta não é achado. No diagnóstico geral, binário presente +
+Leia `memory/wiki/_elenco.md` primeiro: **só se testa via com `Estado` = `ativo`** — desligada é
+desligada, e via que nem consta não é achado. No diagnóstico geral, binário presente +
 `--version` respondendo é reportado como **"presente (não exercitado)"** — não afirme que ele
 responde a prompt sem ter testado. A **sonda viva** (prompt trivial `"responda OK"`, sempre com
 `< /dev/null`, timeout de ~60s) é **chamada paga a serviço de terceiro**: rode-a apenas quando o
@@ -138,9 +142,9 @@ Não proponha a lista inteira. Corte pelo projeto:
 
 - **Menos de ~50 arquivos** → camada 3 (Serena / codebase-memory) não se paga. Não proponha.
 - **Incompatível com o host atual** → não proponha. Plugin exclusivo do Claude Code não entra em
-  recomendação para Codex/Kimi, e o inverso também vale.
+  recomendação para o Codex, e o inverso também vale.
 - **Camada 4 (revisor externo) não se filtra por tamanho** — o critério é **criticidade**. Projeto
-  pequeno que mexe com dinheiro, dados de terceiros ou segurança merece painel; projeto grande e
+  pequeno que mexe com dinheiro, dados de terceiros ou segurança merece revisor; projeto grande e
   descartável, não.
 - **Já recusado antes** → leia `memory/wiki/_stack.md` e **não reproponha** o que ele já dispensou.
   Sem esse arquivo (projeto ainda sem Orquestra), trate como primeira vez — mas **não crie o arquivo

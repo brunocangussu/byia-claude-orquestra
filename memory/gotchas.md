@@ -399,3 +399,73 @@ o conteúdo ao modelo. Codex (OpenAI) e Kimi (Moonshot) são transferência inte
 dono proíbe. (2026-08-09)
 → Host padrão pode ser o Codex para o **produto** (código e instruções). Projeto com PII fica em
 host Anthropic, e isso vale como regra permanente daquele projeto, não exceção pontual.
+
+### Guarda que prova a string, não a regra — a família mais recorrente do lint
+
+Apareceu **quatro vezes** no `T-051` (2026-09-01), sempre com o mesmo formato: a checagem confirma que
+um texto existe **em algum lugar** quando a regra exige que ele exista **num lugar específico**.
+Casos reais, todos com probe que passava verde: `heading not in texto` aceitando `### Host Codex
+antigo` como se fosse `### Host Codex` · papel obrigatório sobrevivendo nos presets depois de sumir da
+tabela do host · papel trocado por intruso com a contagem mantida e o nome citado numa **nota fora da
+tabela** · versão nova aparecendo só numa linha de changelog enquanto o bloco `## Status` anunciava a
+anterior — justamente o defeito que aquele guarda existe para pegar.
+→ Guarda de posição extrai **a célula/linha exata** e compara conjunto **e multiplicidade**; nunca
+`x in texto`. E heading duplicado tem que **reprovar por ambiguidade**, não ser concatenado nem
+resolvido pelo primeiro. Ao consertar um caso, **varra a família inteira** — foi assim que dois
+guardas extras apareceram.
+
+### A frase-resumo continua contando a versão anterior da regra
+
+Mudar uma regra em `orq/` conserta o normativo e deixa vivo o **resumo** dela em 4-6 outras
+superfícies: `README.md`, `memory/wiki/_elenco.md`, `init.md`, `ajuda.md`, `stack.md`, e a própria
+thread do plano. No `T-051`, **22 dos 25 bloqueadores** foram disto. Casos: a wiki dizendo *"plano
+fechado rebaixa a faixa"* depois do piso de Alto risco existir; o `init` com regra própria de
+migração recriando as duas fontes que o card acabara de eliminar; o README exibindo `codex xhigh`
+num exemplo, violando o contrato escrito no comando ao lado.
+→ Ao mudar uma regra, **caçar onde ela está resumida** antes de devolver. E: o **plano** também
+envelhece — no `T-051` o bloqueador do `scout` nasceu de contradição dentro da própria thread
+aprovada, que dizia as duas coisas em seções diferentes.
+
+### Identificador de job fantasma — subagente que diz ter despachado e não despachou
+
+2026-09-01: o subagente de revisão devolveu `task-mtivartx-7nfsa3` como se tivesse enfileirado o
+trabalho. `codex-companion.mjs status --all` respondia **"No jobs recorded yet"** — a revisão nunca
+existiu. Aceitar o identificador como prova teria reportado ao dono uma revisão que não aconteceu.
+→ Identificador não é resultado. Conferir no runtime (`status`/`result`) antes de contar como feito;
+sem job registrado, é **revisão degradada declarada**, nunca silêncio. O `adversarial-review` do
+companion, com saída redirecionada para arquivo, é a via confiável — a saída em background chega
+**truncada** e perde o começo do parecer.
+
+### Probe do Manager que falha por erro do Manager
+
+2026-09-01: rodei o probe do papel intruso trocando `` | `implementer·leve` `` — mas a tabela escreve
+sem crases, então o `sed` não casou e o lint passou verde. Quase reportei que o guarda estava furado;
+teria mandado "consertar" um guarda que funcionava, e a correção provavelmente quebraria algo.
+→ Verificar que a **injeção do probe aconteceu** (`MUDOU? True`) antes de interpretar o resultado.
+Probe que não altera o arquivo prova exatamente nada.
+
+### Modelo novo no menu não significa modelo disponível — confira o cache, não a documentação
+
+2026-09-01: o menu do Claude Code passou a listar **Fable 5.1**, e eu concluí, a partir do texto do
+`claude --help` (*"an alias for the latest model"*), que o alias `fable` já o estaria usando. **Errado.**
+O `~/.claude.json` → `additionalModelOptionsCache` mostrava a verdade: `{"value":
+"cc-update-required-1", "label": "Fable 5.1 (disabled)", "description": "Update to 2.1.255+ to use
+Fable 5.1", "disabled": true}` — o item aparece no menu, o `value` é um **sentinela de update**, e o
+CLI local era 2.1.246. O alias resolvia para `claude-fable-5[1m]`, o Fable 5.
+**Desfecho (mesmo dia, após `claude update`):** com o CLI em **2.1.258**, o cache passou a ter uma
+entrada só — `{"value": "claude-fable-5-1[1m]", "label": "Fable"}` — e o alias `fable` passou a
+resolver o 5.1 **sozinho**, sem tocar no produto. A regra do alias estava certa; errada estava a
+afirmação sobre aquela máquina naquele momento.
+→ A regra "alias = mais recente" só vale entre os modelos que **aquela instalação alcança**. Antes de
+afirmar qual modelo está em uso, ler `additionalModelOptionsCache` — o `--help` descreve a intenção,
+o cache descreve o estado. Gotcha irmão do que já vale para o plugin: **documentação não é evidência
+de comportamento**.
+
+### Grep que "confirma" o que você acabou de escrever
+
+No mesmo episódio: `grep -rl 'Fable 5.1' ~/.claude/` retornou vários arquivos e por um instante
+pareceu confirmação. Eram os **transcripts desta própria conversa** (o `.jsonl` da sessão, os
+`events.md` do context-mode, backups tocados no mesmo minuto) — texto que eu tinha escrito minutos
+antes.
+→ Ao buscar evidência no disco, verificar **a origem do match** antes de contá-lo como prova.
+Transcript de sessão, log de memória e cache de conversa refletem o que foi dito, não o que é.

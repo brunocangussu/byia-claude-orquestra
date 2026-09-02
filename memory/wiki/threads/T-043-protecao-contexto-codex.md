@@ -135,7 +135,7 @@ Não houve configuração global do backstop de 90%, publicação ou push. O sta
 erro pré-existente e separado: `~/.codex/hooks.json` contém `_managedBy`, campo que o Codex 0.147.0
 não aceita; isso não impediu os seis hooks confiados do plugin de rodarem.
 
-## RETOMAR AQUI
+## RETOMAR AQUI — SUPERADO pela publicação da `0.22.3` (o marcador vivo é o último do arquivo)
 
 O redesenho aprovado está implementado no worktree `feat/t043-compactacao-reidratada`:
 
@@ -200,6 +200,28 @@ atual, tratar checkpoint apenas como documentação e ignorar exigências anteri
 interrupção. Um smoke com estado `clear_required`, 80% e prompt “pode continuar daqui” confirmou a
 saída prioritária, sem `decision=block` e sem instrução de limpeza (`LIVE_PRIORITY_OVERRIDE=PASS`).
 
+## Evidência do incidente recorrente — 2026-08-13 (vinda do ramo local, na reconciliação `T-052`)
+
+Registro que só existia no ramo da `0.24.0` e não se perde aqui. **É cronologia: tudo abaixo já foi
+executado e publicado na `0.22.3`** — não é plano pendente.
+
+O incidente reproduziu em threads de desenvolvimento importantes. O banco local
+`~/.codex/sqlite/goals_1.sqlite` tinha zero metas, então o `/goal` não era o bloqueio persistido: ele
+apenas continuava tentando executar enquanto o hook recusava os prompts.
+
+Causa comprovada no cache ativo `0.22.0`: o `context-guard.py` ainda tinha três saídas
+`decision: block`. Um reset simples do estado não funciona para transcript já alto: na sessão
+`019fee80-f689-7640-bde7-9b807a85d29e`, o próximo evento releu 90,2% e recriou `emergency`.
+
+Contenção operacional aplicada, sem apagar conversas: backup em
+`~/.codex/plugins/data/orq-orquestra/context-guard-backup-20260813-incident/`; os 7 estados que
+estavam em `clear_required`, `checkpoint_required` ou `emergency` receberam marcador `.allow`.
+O cache instalado ganhou ramo restrito por sessão antes do cálculo da faixa. Smoke direto da
+sessão informada retornou `decision:block = 0` e uma instrução prioritária para atender e continuar.
+Isso foi hotfix recuperável do ambiente, não implementação do produto nem release. ⚠️ O marcador
+`.allow` emergencial deixa de ter razão de ser com a versão consultiva publicada — se ainda houver
+algum no disco, retire-o para não virar estado paralelo permanente.
+
 ## Checkpoint de 2026-08-13 — deriva confirmada
 
 O hotfix direto não sobreviveu ao gerenciamento do cache: `codex plugin list` continua em `0.22.0`
@@ -208,7 +230,7 @@ e o `context-guard.py` ativo voltou ao SHA original bloqueante
 ou Bruno Vascular estão desbloqueados. A solução válida é somente release nova instalada a partir da
 fonte; repetir edição do cache criaria o mesmo resultado temporário.
 
-⏭️ RETOMAR AQUI: atualizar especificação/plano/testes para a invariável “zero `decision=block` no
+⏭️ RETOMAR AQUI — SUPERADO: atualizar especificação/plano/testes para a invariável “zero `decision=block` no
 host Codex”; escrever RED para 60%, 70%, recuperação sem telemetria e estado legado. Implementar
 respostas consultivas na fonte `0.22.1`, rodar GREEN + gates, obter parecer Opus 5 válido,
 reconciliar Kimi, integrar em `main`, instalar somente no Codex e confirmar nas sessões New ByIA e
@@ -226,7 +248,7 @@ Essas mudanças ainda não foram validadas nesta retomada nem commitadas. Elas d
 trabalho em curso possivelmente produzido por outra janela: não sobrescrever, não descartar e não
 atribuir autoria sem evidência.
 
-⏭️ RETOMAR AQUI: validar o diff existente com testes do guardião, `py_compile`, manifesto estrito,
+⏭️ RETOMAR AQUI — SUPERADO: validar o diff existente com testes do guardião, `py_compile`, manifesto estrito,
 lint de coerência, identidade `AGENTS.md`/`CLAUDE.md` e buscas por qualquer `decision=block` ou
 instrução `/clear` no caminho Codex. Se passar, revisar os riscos Kimi, obter parecer Opus 5 válido e
 só depois decidir integração e instalação local da `0.22.1`. Não fazer push/publicação nem alterar
@@ -259,7 +281,7 @@ guardião consultivo e deixou integralmente fora a candidata T-044/`0.22.2` não
 do dono, a publicação passa a ser paritária: `0.22.3` no Codex e no Claude, com caches antigos ainda
 referenciados preservados; o Kimi recebe o mesmo snapshot no ciclo de instalação.
 
-⏭️ RETOMAR AQUI: corrigir os achados finais da revisão da `0.22.3`, repetir gates e obter re-review
+⏭️ RETOMAR AQUI — SUPERADO: corrigir os achados finais da revisão da `0.22.3`, repetir gates e obter re-review
 limpo; depois publicar, instalar nos dois hosts, comparar o cache novo, provar o fail-open no Claude
 e os smokes do guardião em processo Codex novo. A validação do dono continua sendo o gate de fecho.
 

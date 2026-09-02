@@ -1,5 +1,56 @@
 # Log de mudanças — append-only
 
+## [2026-09-01] feat | 0.24.0 — elenco em dois eixos, revisor único cross-vendor, Kimi aposentado (T-051)
+
+O dono pediu duas coisas na mesma conversa: retirar o Kimi (assinatura a cancelar) e redistribuir os
+modelos por tipo de trabalho, a partir de uma configuração de referência que ele trouxe. Viraram **um
+card só** porque batiam nos mesmos arquivos — separar seria o retrabalho que `T-023`/`T-025`/`T-020`
+já pagaram.
+
+**A leitura da referência foi corrigida pelo dono, no gate, e essa correção é o card.** O plano v1
+colapsou a configuração num eixo só (dificuldade). Ele apontou: *"ou você interpretou errado ou você
+viu errado?"* — e tinha razão. A referência tem **dois eixos**, e o segundo escolhe o **vendor**:
+interface/experiência → Anthropic (`Frontend→Opus`, `Hard UI/UX→Fable`, `Simple UI→Sonnet`);
+sistema/lógica → OpenAI (`Architecture→Sol`, `Backend→Sol`, `Normal coding→Terra`,
+`Small changes→Luna`). Generalizado, o eixo **não é frontend/backend, é interface vs sistema** — CLI
+é sistema, brand book é interface, e projeto sem UI só não usa a linha de cima.
+
+**O eixo só sobrevive porque a escrita não cruza vendor.** A matriz completa exigiria um vendor
+escrevendo no host do outro, o que segue **fora do desenho** (`T-021`, um writer por worktree). A
+síntese que o dono aprovou: **"domínio decide quem pensa; host decide quem escreve"** — `planner` e
+`reviewer` são read-only e cruzam vendor (mecanismo já comprovado: `codex exec -s read-only` e
+`run-opus-reviewer.py`); `implementer`, `docs` e `scout` ficam no vendor do host.
+
+**O painel morreu.** Regra do dono, verbatim: *"sempre tem que ser com um revisor de uma LLM
+diferente; se eu estiver no Claude, o revisor tem que ser do GPT, e se eu estiver no GPT, do
+Claude"*. Revisor **único, vendor oposto ao host, sem exceção** — ele escolheu a regra pura **contra
+a recomendação do planner**, que propunha três exceções. Consequências assumidas e escritas no
+produto: diff com dado sensível fica **sem revisor nenhum** (LGPD impede o vendor oposto, e não há
+substituto interno — o Manager audita e declara a ausência); titular fora do ar → REVISÃO DEGRADADA
+e o card não avança sozinho; `--rapido` vira briefing enxuto para o mesmo titular externo.
+*"Confirmado por 2+"* deixou de existir.
+
+**Sete rodadas de review externo, 25 bloqueadores.** Contagem por rodada: **5 → 8 → 4 → 5 → 2 → 1 →
+0 (APROVADO)**. Os gates ficaram **verdes em todas elas** — inclusive com os oito da rodada 2
+presentes. Os achados mais caros: (a) o elenco tinha **duas fontes de verdade** — `## Papéis` se
+declarava ativa e era o que os perfis reescreviam, enquanto os consumidores liam `## Times por host`,
+então `perfil economia` no Codex era **inócuo**; `## Papéis` foi eliminada; (b) a correção do piso de
+faixa **apagou o piso de Alto risco**, deixando schema/segurança cair no implementer mais fraco; (c)
+o exemplo canônico de roteamento da SKILL (*"implemento com o Sonnet e mando revisar pelo GPT"*) era
+**duplamente inválido no Codex** — virou nomeação de papéis resolvidos, sem modelo concreto; (d) o
+comando aceitava registrar `fable` como planner no Codex, mas o runner invoca `--model opus` fixo —
+elenco declarava um modelo e executava outro, calado.
+
+**Cobertura mecânica subiu de 2 para 5 famílias de defeito**, com 9 regressões negativas provadas.
+Mas **22 dos 25 bloqueadores vieram de coerência entre superfícies**, que segue manual.
+
+Smoke do `gpt-5.6-luna`: **passou** (`LUNA_OK`, thread `01a05e0d-309c-7a92-839c-09f6c418a974`),
+liberando o degrau `implementer·leve` do Codex — **sem effort declarado**, porque o smoke provou que
+o modelo responde, não quais efforts aceita nem como se comporta em `workspace-write`.
+
+Branch `feat/t051-elenco-por-tarefa`, 18 arquivos, `0.24.0` nos quatro lugares. **Sem commit, sem
+push, sem publicação** — o release aguarda ordem do dono. Estado honesto: *instalado, não validado*.
+
 ## [2026-08-31] processo | @frente-opus-timeout · T-050 fechada
 
 Após uma compactação sem checkpoint verificado, o estado foi reconstruído na worktree isolada pela
@@ -206,6 +257,33 @@ candidata 0.22.5 adiciona ledger de remoção e verificador de trace graph-first
 Claude/Codex/Kimi. RED foi observado; 11 testes novos passam. A fase não toca hooks ou guardião e
 não instala, publica, commita ou envia ao GitHub antes dos gates finais e autorização do dono.
 
+## [2026-08-29] checkpoint | @frente-auditoria-nativa · T-048 aprovado e reconciliado com a main
+
+Após compactação, o estado foi relido e a colisão com a T-046 já publicada na 0.22.4 foi detectada.
+O novo card foi renumerado para T-048 porque a main atual já possui T-047. O desenho está aprovado e
+a implementação TDD seguirá no worktree isolado baseado em `origin/main`, sem tocar hooks, instalar,
+publicar ou enviar ao GitHub neste gate.
+
+## [2026-08-29] plan | @frente-auditoria-nativa · T-045 fechado e T-048 desenhado sem hooks
+
+O dono validou “PORTAR IDEIAS”, fechando o piloto Cartographer. O follow-up T-048 propõe dois
+auditores nativos, explícitos e offline: ledger de remoção e verificador de trace graph-first. A
+fase 1 exclui hooks, bloqueios, captura live, rede e dependência Cartographer; aguarda aprovação.
+
+## [2026-08-29] investig | @frente-cartographer · microbench favorece stack atual e isola uma ideia útil
+
+Fixture sintética pré-declarada comparou Cartographer, codebase-memory e o fallback textual do stack.
+O Cartographer cobriu 11/13 âncoras, contra 13/13 do stack atual, e tratou histórico como ativo; seu
+verificador `adoption` distinguiu corretamente graph-first de leitura-direta-primeiro. Parecer:
+portar as ideias de ledger/adoption, sem instalar ou integrar a dependência.
+
+## [2026-08-29] investig | @frente-paridade-codex · avaliação do Cartographer recuperada após compactação
+
+A análise read-only do `kingbootoshi/cartographer` foi recuperada após compactação sem checkpoint:
+o candidato oferece grafo SQLite local, briefs delimitados, auditoria de remoção e medição de
+adoção, mas sobrepõe codebase-memory/Serena. Nenhuma instalação, dependência ou mudança no produto
+foi feita; a decisão de adotar continua aberta e depende do parecer comparativo desta sessão.
+
 ## [2026-08-17] release+instalação | @frente-protecao-contexto · 0.22.4 no Claude e Codex
 
 O conserto da T-046 foi publicado em `origin/main` no commit de produto `676846a` e instalado como
@@ -267,6 +345,14 @@ SHA-256 original bloqueante `33f8f0a65381d7b1fbf287c6219462b44c238b8e14ce6d7e99b
 Logo, editar diretamente o cache não é solução durável: o Codex o restaura/reinstala. A correção
 consultiva precisa entrar na fonte, passar pelo painel e ser instalada como `0.22.1`. Main permanece
 11 commits à frente do remoto; worktree T-043 estava limpo antes deste checkpoint.
+
+## [2026-08-13] incidente | @frente-protecao-contexto · T-043 bloqueou threads após checkpoint
+
+O `/goal` coincidiu com o travamento, mas o banco local não tinha metas: o cache ativo `0.22.0`
+ainda devolvia `decision: block` e reconstruía `emergency` a partir do transcript alto. Resetar só
+o JSON não durava. Sete estados detectados receberam exceção `.allow` recuperável, com backup; a
+sessão informada pelo dono passou smoke sem bloqueio. O hotfix é operacional. A correção permanente
+ficou no gate: checkpoint consultivo, mesma conversa continua e compactação nativa permanece livre.
 
 ## [2026-08-11] hotfix local | @frente-protecao-contexto · sessões Codex desbloqueadas
 
@@ -1347,3 +1433,9 @@ de uma frase literal: descrever intenção não é fabricar fala.
 **Também nesta versão:** o `_schema.md` passou a listar o `_elenco.md` como **escrita compartilhada**
 entre janelas — ele é o arquivo mais fácil de perder sem perceber, porque ninguém "trabalha" nele, só
 passa e troca uma linha.
+## 2026-08-13 — checkpoint de recuperação durante a T-043
+
+- A conversa foi compactada no meio do Loop B já aprovado da T-043.
+- Foram relidos `memory/MEMORY.md`, `memory/wiki/KANBAN.md`, a thread da T-043 e o contrato de
+  checkpoint; o board continuava com a T-043 em execução e o escopo consultivo aprovado.
+- A retomada foi gravada na thread sem reabrir o gate nem abandonar o implementador em curso.

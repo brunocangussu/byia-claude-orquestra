@@ -13,7 +13,7 @@
 | `claude-mem` | plugin, marketplace `thedotmack/claude-mem` | captura a sessão e reinjeta na seguinte |
 | Serena | MCP stdio via `uvx` (repo `oraios/serena`) | LSP: símbolo exato + edição cirúrgica |
 | codebase-memory | binário em `~/.local/bin/` (~255 MB) | grafo de relações: quem chama o quê, impacto |
-| `codex` | CLI em `/usr/local/bin/codex` | GPT-5.6 Sol no painel de revisores, `--effort xhigh` |
+| `codex` | CLI em `/usr/local/bin/codex` | GPT-5.6 Sol como **o** revisor do host Claude (vendor oposto), `--effort xhigh` |
 
 ## Dispensadas (não repropor)
 
@@ -21,12 +21,7 @@
 |---|---|---|
 | SuperMemory | 2026-08-15 | conexão/autenticação recorrente; retirado por decisão do dono no `T-037`. Não repropor no init nem no stack |
 | indexação semântica **deste** repo | 2026-07-26 | 24 arquivos de markdown — `grep` resolve e a indexação não se paga. Vale nos projetos-alvo, não aqui |
-
-## Bloqueadas
-
-| Ferramenta | O que falta |
-|---|---|
-| Kimi K2 (revisor) | sem CLI e sem MCP nesta máquina — card `T-007` |
+| Kimi K3 (revisor) | 2026-09-01 | terceiro host e terceiro revisor **saíram do produto** no `T-051`: a revisão é de um revisor só, do vendor oposto ao host. Fechou o antigo `T-007`. Não repropor |
 
 ## Procedência
 

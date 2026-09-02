@@ -104,10 +104,10 @@ Para cada papel adicional decida:
 - quando é chamado e o que entrega.
 
 **Proponha o ELENCO** (`memory/wiki/_elenco.md`) — qual LLM toca cada papel. Sugira uma escalação e
-deixe claro que ele pode mudar depois com `/orq:elenco planner fable`, ou trocar o **time inteiro**
+deixe claro que ele pode mudar depois com `/orq:elenco planner <modelo>`, ou trocar o **time inteiro**
 por contexto de crédito com `/orq:elenco perfil economia` — o arquivo já nasce com esse conceito
 (seção "Perfis", ver FASE 4). Identifique também o host atual e proponha a linha correspondente em
-`## Times por host`; fora do Claude, não use a tabela `## Papéis` como se fosse universal.
+`## Times por host` — **é a única tabela ativa**, e cada host lê e grava só a seção dele.
 
 **Estratégia de leitura** (o que economiza contexto neste projeto):
 - Repo grande → busca semântica primeiro; indexar se ainda não estiver.
@@ -142,7 +142,7 @@ Apresente ao dono, curto e escaneável:
 juntas:
 
 1. **Instalar o Orquestra** com esse time e essa memória? (ajustes do time entram aqui)
-2. **Revisores no painel** — só Claude, ou Claude + os externos **que já existem nesta máquina**?
+2. **Revisor independente** — habilitar a via para o vendor oposto ao host, se o binário **já existe nesta máquina**? Sem ela, toda revisão sai degradada.
 3. **Instalar a stack complementar** que falta? — listada à parte, e ele pode recusar inteira sem
    afetar o resto.
 4. **Statusline** — só entra na lista se a investigação classificou F1 ou F2. Se caiu em F3, não há
@@ -172,8 +172,8 @@ juntas:
 
 ⚠️ **A 2 e a 3 são perguntas distintas, nunca a mesma.** Quem já tem o `codex` instalado e não quer
 instalar mais nada responde "não" para a 3 — e isso **não** pode desligar um revisor que ele já
-possui. Soldar as duas grava um `_elenco.md` sem painel num ambiente que tinha painel, e o
-`/orq:revisar` cai silenciosamente para um revisor só.
+possui. Soldar as duas grava um `_elenco.md` sem via cross-vendor num ambiente que tinha uma, e o
+`/orq:revisar` cai silenciosamente para revisão degradada.
 
 ⚠️ **A 1 não autoriza a 3.** Instalar arquivos no projeto dele é reversível; instalar software na
 máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **sem ela**.
@@ -243,19 +243,24 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 2. **Agentes** — os cinco do núcleo vêm do plugin, **não recrie**. Em `.claude/agents/`, só os papéis
    adicionais aprovados, com nome próprio (nunca `orq-*`) e `model`/`tools` decididos. Não duplique o
    que o projeto já tem; complemente.
-2b. **Elenco** em `memory/wiki/_elenco.md` — a escalação aprovada (papel → modelo) + os revisores
-   externos ativos, **gerado a partir do template "Modelo do arquivo" de
+2b. **Elenco** em `memory/wiki/_elenco.md` — a escalação aprovada (papel → modelo, nos dois eixos) +
+   a via cross-vendor ativa, **gerado a partir do template "Modelo do arquivo" de
    `${CLAUDE_PLUGIN_ROOT}/commands/elenco.md`**
    (traz de fábrica `## Matriz de invocação`, `## Times por host`, a linha "Perfil ativo" e a seção
    "Perfis" com `padrao`/`economia` prontos — ajuste só os modelos e a nota de "o que se perde" à
-   realidade deste projeto). Não crie um `_elenco.md` só com a tabela de papéis: o projeto nasce
+   realidade deste projeto). Não crie um `_elenco.md` só com a tabela de um host: o projeto nasce
    **já** com o conceito de perfil e resolução por host, não como um recurso que só aparece se
    alguém pedir depois. É esse arquivo que os comandos leem na hora de spawnar.
 
-   `_elenco.md` já existe? Leia o arquivo inteiro, preserve modelos/perfis/revisores escolhidos e
-   acrescente somente headings obrigatórias ausentes. Se `## Matriz de invocação` ou `## Times por
-   host` existe mas está incompleta, mostre o diff e pare no gate; não substitua linha existente sem
-   aprovação explícita.
+   **`_elenco.md` já existe? Não improvise migração aqui — siga a canônica.** Leia
+   `${CLAUDE_PLUGIN_ROOT}/commands/elenco.md`, seções "Migração aditiva obrigatória" e "Migração de
+   arquivo legado", e **execute o que está lá**: converter os papéis para os dois eixos **em todas as
+   tabelas** (a do host **e cada preset**), validar as contagens (preset 8 linhas, tabela de host 9),
+   remover o `## Papéis` legado depois de copiá-lo, e **reconciliar linha a linha, no gate**, quando
+   `### Host Claude` já existir. Preservar o que o projeto escolheu é o piso, não o teto: acrescentar
+   `## Times por host` e deixar o `## Papéis` velho ao lado cria **duas fontes divergentes**, e os
+   consumidores novos leem só a primeira — as escolhas "preservadas" viram letra morta sem ninguém
+   perceber. Nada disso se aplica sozinho: tudo passa pelo gate.
 3. **`CLAUDE.md` e `AGENTS.md`** — os dois arquivos saem **byte-idênticos, do primeiro ao último
    caractere — não só o bloco.** É decisão do dono: *"o agent MD tem que ter o mesmo conteúdo do
    Claude MD"*; `diff CLAUDE.md AGENTS.md` tem que voltar vazio, arquivo inteiro, não só o bloco.
@@ -268,8 +273,8 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    (build, teste, o que quebra o deploy). Se algum dos dois já tinha conteúdo fora do bloco antes
    deste `/orq:init` (ex.: uma instrução pensada só para um host), **não deixe os arquivos
    divergirem por causa disso**: incorpore esse trecho ao texto comum como uma seção que se
-   endereça por identidade a quem lê ("Se você é um revisor externo entrando pelo painel…", "Se
-   você é o Codex/Kimi rodando este projeto…") — conteúdo condicional na leitura, nunca conteúdo
+   endereça por identidade a quem lê ("Se você é o revisor externo desta mudança…", "Se
+   você é o Codex rodando este projeto…") — conteúdo condicional na leitura, nunca conteúdo
    que só existe num dos dois arquivos — e grave a mesma versão,
    completa, nos dois arquivos. Nada de ponteiro ("leia o outro arquivo") e nada de "cada um guarda
    o seu resto" — é o mesmo conteúdo, inteiro, nos dois.

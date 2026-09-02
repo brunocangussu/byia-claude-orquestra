@@ -35,7 +35,6 @@ O núcleo é único; a interface e o executor variam pelo host:
 |---|---|---|
 | Claude Code | linguagem natural + `/orq:*` | subagente nativo quando suporta o papel; CLIs externas para diversidade |
 | Codex | linguagem natural + `/skills` | time `Host Codex` e Matriz; CLI explícita quando a primitiva não aceita modelo/effort |
-| Kimi | linguagem natural pela skill instalada | time `Host Kimi` e Matriz; escrita só com contenção comprovada |
 
 `commands/` é a superfície de slash commands do Claude e a descrição canônica das operações; o
 Codex não a converte em `/orq:*`. Ausência de `/orq` no menu do Codex não é falha de instalação.
@@ -44,15 +43,33 @@ Todo consumidor resolve na mesma ordem: **host → papel → vendor → mecanism
 `_elenco.md` gera `## Times por host` e `## Matriz de invocação`; projeto existente é migrado de
 forma aditiva. “Configurado” descreve o próximo despacho, não prova qual processo está rodando.
 
-No host Codex, o titular é Manager `gpt-5.6-sol@high`, Planner `gpt-5.6-sol@ultra` e Implementer
-`gpt-5.6-terra@xhigh`. O painel independente obrigatório é Opus 5 + Kimi K3; o Manager reconcilia,
-mas não conta como parecer.
+No host Codex o titular tem **uma célula por eixo**, não um papel singular — despachar pelo "o
+Planner" ou "o Implementer" escolhe o modelo errado em metade dos cards: Manager `gpt-5.6-sol@high` ·
+`planner·interface` **`opus`** (runner Anthropic; a trilha perceptual pensa com Anthropic mesmo no
+host Codex, e o runner só executa Opus) · `planner·sistema` `gpt-5.6-sol@ultra` ·
+`implementer·pesada` `gpt-5.6-sol@xhigh` · `implementer·normal` `gpt-5.6-terra@xhigh` ·
+`implementer·leve` `gpt-5.6-luna` · `reviewer` `opus` (vendor oposto ao host, pelo mesmo runner) ·
+`docs` e `scout` `gpt-5.6-sol@low`. **Esta página não é a fonte
+dos modelos concretos** — ela mostra a *forma* do elenco; os valores vivos, e os do host Claude,
+estão em `memory/wiki/_elenco.md`, seção `## Times por host`, que é de onde os comandos leem.
+
+A revisão independente obrigatória é de **um** revisor, sempre do **vendor
+oposto ao host** — no Codex, o Opus 5 pelo `run-opus-reviewer.py`; no Claude, o GPT pelo `codex
+exec`. Não existe revisor interno ao lado dele, e o Manager reconcilia, mas não conta como parecer:
+ele **audita** cada achado contra o código antes de aceitá-lo. Sem a via para o outro vendor, a
+revisão sai **degradada** e a ausência é declarada — nunca substituída por um modelo do vendor do
+host.
+
+Os dois eixos do elenco: a **trilha** do card (`interface`/`sistema`) escolhe o vendor de quem
+pensa; a **faixa** (`pesada`/`normal`/`leve`) escolhe o degrau de quem escreve, sempre no vendor do
+host. *Domínio decide quem pensa; host decide quem escreve.* Só `planner` e `reviewer` cruzam
+vendor — o primeiro por domínio, o segundo por independência.
 
 O reviewer Opus não é uma chamada `claude -p` crua. `orq/scripts/run-opus-reviewer.py` recebe o
 briefing sanitizado pelo stdin, limita cada lote a 16 KiB, anuncia o início e aplica timeout de
 600s; só libera a saída quando `modelUsage` comprova `claude-opus-5`. O teto foi ampliado após uma
 resposta válida levar 267,1s e ser morta pelo limite anterior de 240s. Diff maior é dividido por arquivo/hunk, cobrindo
-todos os lotes sem truncamento; falha em qualquer lote produz painel parcial com diagnóstico.
+todos os lotes sem truncamento; falha em qualquer lote produz **revisão degradada** com diagnóstico.
 
 ## Máquina de estados
 
@@ -110,20 +127,22 @@ prova conteúdo igual**. O comparador é compartilhado pelo lint, diagnóstico e
 allowlist por host somente ao cache instalado e mantém extras, ausências, tipos e bytes estritos.
 Comparar versão é fonte única, e fonte única foi o padrão de erro mais caro deste projeto.
 
-**Só o Codex tem sandbox.** `codex exec -s read-only` é garantia; o Kimi **não tem flag equivalente**
-e o prompt "não edite nada" é pedido, não ACL — ele rodou `git checkout -- .` numa revisão read-only
-e destruiu o working tree (2026-07-28). Revisor sem sandbox precisa de **worktree descartável**, não
-de instrução (`T-019`). É a mesma lição do `T-001`, cobrada no próprio repo.
+**Revisor sem sandbox precisa de worktree descartável, não de instrução.** `codex exec -s
+read-only` é garantia; o prompt "não edite nada" é pedido, não ACL. O terceiro host que já esteve
+aqui não tinha flag equivalente e rodou `git checkout -- .` numa revisão read-only, destruindo o
+working tree (2026-07-28, `T-019`) — o host saiu do produto, a lição fica: é a mesma do `T-001`,
+cobrada no próprio repo.
 
 ## Roteamento automático (o dono não digita comando)
 
 **Todo pedido de mudança entra pelo ciclo.** *"quero X"*, *"vamos acrescentar Y"*, *"tem um problema
 em Z"* não são pedidos de código — são pedidos de **plano**. A escala dimensiona pelo risco: trivial
-vai direto; pequeno leva revisor interno; normal roda o ciclo completo; alto risco ganha gate extra.
+vai direto; pequeno leva revisão independente enxuta; normal roda o ciclo completo; alto risco
+ganha gate extra.
 Na dúvida, sobe um nível.
 
 **O modo de falha é conhecido e nomeado:** o pedido chega em linguagem natural, parece pequeno, e o
-Manager começa a editar — sem plano, sem gate, com o painel entrando só depois, revisando o que já
+Manager começa a editar — sem plano, sem gate, com o revisor entrando só depois, revisando o que já
 está pronto. Aconteceu em toda a sessão de 26-28/jul, incluindo features inteiras, porque a
 `description` da skill tinha **0% de cobertura** sobre a fala real do dono.
 

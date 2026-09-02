@@ -1,25 +1,25 @@
 ---
-description: Painel de revisores independentes (Claude + Codex + Kimi, e outros configurados) sobre a mudança atual, com os achados reconciliados num parecer só
-argument-hint: "[T-NNN | caminho | 'o que revisar'] [--rapido para painel mínimo — normalmente só o revisor interno]"
+description: Parecer independente sobre a mudança atual — todo revisor é de um modelo do vendor OPOSTO ao do host (o titular e qualquer segundo parecer pedido pelo dono), com os achados auditados pelo Manager antes de virarem veredito
+argument-hint: "[T-NNN | caminho | 'o que revisar'] [--rapido para briefing enxuto ao mesmo revisor titular]"
 ---
 
-Rode uma **revisão por painel**: revisores independentes olham a mesma mudança **em paralelo**, e
-você reconcilia os achados num parecer único.
+Rode uma **revisão independente**: um revisor lê a mudança sem ter escrito nada dela, devolve o
+parecer, e você **audita cada achado contra o código** antes de repassar.
 
-Por que painel: revisores diferentes erram de formas diferentes. Um acha o bug de lógica, outro acha
-o vazamento de escopo. O valor está na **interseção** (alta confiança) e na **divergência** (onde
-vale investigar).
+O revisor é **um só, e sempre do vendor oposto ao host** — host Claude é revisado por OpenAI, host
+Codex é revisado por Anthropic. A razão de existir do revisor é ser independente de quem escreveu;
+um revisor do mesmo vendor do host não entrega isso, por mais forte que seja o modelo.
 
 ## 1. Definir o alvo
 - `$ARGUMENTS` com `T-NNN` → o diff/escopo daquele card.
 - Caminho ou descrição → aquilo.
 - Vazio → as mudanças não commitadas (`git status` + `git diff`), ou o último commit se estiver limpo.
 
-Monte o **briefing** uma vez (será o mesmo pra todos): o que mudou, por quê, o critério de aceite,
-o que está **fora** de escopo, e as convenções do projeto. Sem briefing igual, os pareceres não são
-comparáveis.
+Monte o **briefing**: o que mudou, por quê, o critério de aceite, o que está **fora** de escopo, e
+as convenções do projeto. A disciplina do papel está em `agents/orq-reviewer.md` — ela é o conteúdo
+do briefing, não um segundo parecer a spawnar.
 
-**Exija o MESMO formato de saída de todos** — sem isso a reconciliação vira leitura de prosa solta:
+**Exija este formato de saída** — sem ele a auditoria vira leitura de prosa solta:
 
 ```
 ## BLOQUEADORES
@@ -32,80 +32,44 @@ APROVADO | APROVADO_COM_RESSALVAS | REPROVADO
 
 ## 1b. ⛔ Antes de mandar QUALQUER coisa para fora
 
-Revisor externo é **transferência de dados para terceiro** (OpenAI, Moonshot). Antes de montar o
-briefing, **inspecione o que vai nele**:
+O revisor titular é, por definição, **transferência de dados para terceiro** — do ponto de vista de
+cada host, o vendor oposto é terceiro. Antes de montar o briefing, **inspecione o que vai nele**:
 
 **Nunca envie:** dado de paciente ou pessoal (PII), prontuário, credencial, token, chave, `.env`,
 dump de banco com linhas reais.
 **Pode enviar:** código, schema, arquitetura, infra, mensagem de erro sem payload.
 
-Achou dado sensível no diff? **PARE e avise o dono** — não tente higienizar sozinho e seguir. O
-revisor interno (`orq-reviewer`) roda no mesmo ambiente e **não** tem essa restrição: em mudança que
-toca dado sensível, use `--rapido` e diga por quê.
+**Achou dado sensível no diff? PARE e avise o dono — e saiba o que isso significa: não haverá
+revisor nenhum.** A regra LGPD impede o titular, e **não existe substituto**: spawnar um revisor do
+mesmo vendor do host para "ter algum parecer" é proibido, porque devolveria a aparência de revisão
+sem a independência que a justifica. O que resta é o **Manager auditando o diff ele mesmo** — o que
+ele já faz no passo 3 — e **declarando** "sem revisão independente por restrição de dados". Isso não
+é revisão degradada por falha: é ausência de revisor, nomeada, e o dono decide se segue assim.
 
-## 2. Disparar os revisores EM PARALELO
+Não tente higienizar sozinho e seguir.
 
-**Leia `memory/wiki/_elenco.md` primeiro** — ele define o modelo do reviewer interno e **quais
-revisores externos estão ativos**. **Sem elenco, valem os padrões de fábrica: reviewer `opus`,
-Codex ativo e Kimi K3 ativo**; ausência de qualquer capacidade vira `PAINEL PARCIAL`, não exclusão
-silenciosa do revisor.
+## 2. Disparar o revisor titular
 
-Primeiro **identifique o host** e resolva o papel em `## Times por host`; depois use a célula da
-`## Matriz de invocação`. O Manager que reconcilia não conta como parecer independente.
+**O passo 1b vence tudo e já rodou:** dado sensível no diff encerra o assunto — não há revisor, e
+nada deste passo se aplica. Só siga aqui com o briefing já inspecionado.
 
-**Host Claude — Claude interno:** subagente `orq-reviewer` (read-only, adversarial), com o modelo do
-papel `reviewer` do elenco.
+**Leia `memory/wiki/_elenco.md` primeiro.** **Sem elenco, vale o padrão de fábrica: reviewer único
+do vendor oposto ao host** — as vias registradas em "Revisores externos" são capacidade, não
+composição de painel. `ativo` ali é **política habilitada, não capacidade comprovada**, e as duas
+se checam antes de disparar:
 
-> Isto só existe no host Claude (é spawn nativo). **No Host Kimi**, o membro Moonshot do próprio
-> host entra pela célula-diagonal da `## Matriz de invocação`, em sessão nova. **Host Codex é exceção:**
-> seu painel é exatamente Opus 5 + Kimi K3; o Manager OpenAI só reconcilia e não há
-> terceiro parecer OpenAI pela diagonal.
+1. **Coluna `Estado` da via** — `inativo` significa que o dono **desligou** aquela transferência
+   cross-vendor. Não dispare, nem "só desta vez": escreva **REVISÃO DEGRADADA — via desligada pelo
+   dono** e siga a regra de titular indisponível abaixo. Não é falha, é política.
+2. **Capacidade** — binário, autenticação, modelo e saída não vazia no momento do parecer.
 
-> ⚠️ **Spawne o `orq-reviewer` SEM `name`.** Com `name` ele vira teammate endereçável e fica vivo em
-> loop de *idle* em vez de devolver o parecer — o painel morre esperando. Sem nome, ele retorna o
-> resultado normalmente. (Quebrou assim em 2026-07-26; ver `memory/gotchas.md`.)
+Os dois diagnósticos são diferentes e o dono precisa saber qual dos dois aconteceu: "você desligou"
+e "o binário não respondeu" pedem ações opostas.
 
-**Host Codex — painel obrigatório Opus 5 + Kimi K3:** dispare em paralelo dois pareceres
-independentes, ambos sobre o mesmo briefing sanitizado:
+Primeiro **identifique o host** e resolva a linha `reviewer` em `## Times por host`; depois use a
+célula da `## Matriz de invocação`. O Manager que audita não conta como parecer independente.
 
-O briefing do Opus tem orçamento de **16 KiB = 16.384 bytes UTF-8 por lote, medidos depois da
-sanitização**. Até esse limite, envie o pacote inteiro. Acima dele, divida por arquivo/hunk em lotes
-independentes, repetindo em cada lote o objetivo, os critérios e o fora de escopo; cubra todos os
-hunks e registre a cobertura. **Nunca corte bytes nem resuma em silêncio** para caber. Um lote
-omitido ou que falhar torna a cobertura do Opus parcial.
-
-```bash
-# ORQ_PACKAGE_ROOT já foi resolvido pela skill para um caminho absoluto.
-OPUS_RUNNER="<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"
-OPUS_OUT=$(printf '%s' "$OPUS_BRIEFING_SANITIZADO" | python3 "$OPUS_RUNNER")
-OPUS_EXIT=$?
-if [ "$OPUS_EXIT" -ne 0 ] || [ -z "$OPUS_OUT" ]; then
-  echo "PAINEL PARCIAL: Opus ausente; preserve o diagnóstico do stderr"
-fi
-
-KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
-"$KIMI" -m kimi-code/k3 --output-format text -p "<briefing>" < /dev/null
-```
-
-O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 600s. Esse teto
-acomoda a latência real observada de 267,1s em revisão arquitetural, sem remover a proteção contra
-processo órfão. A validação
-de tamanho ocorre antes do anúncio: `BRIEFING_TOO_LARGE` significa que nenhuma chamada começou;
-redivida o lote e execute, sem contar isso como retry. O runner exige
-`claude-opus-5` no `modelUsage` JSON e não imprime parecer em modelo errado, timeout, erro ou saída
-vazia (`OPUS_EMPTY_RESULT`). `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer lote incompleto →
-**PAINEL PARCIAL** com o diagnóstico do stderr;
-não faça retry automático após chamada iniciada, para não duplicar custo.
-
-O Manager Codex reconcilia Opus 5 e `kimi-code/k3`; ele próprio não vira um terceiro parecer. Se um
-não rodar, escreva **PAINEL PARCIAL**, nomeie o revisor ausente e a causa real: PATH, autenticação,
-timeout, modelo indisponível ou saída vazia. Nunca anuncie painel completo com um único parecer.
-Todo host que usar o alias `opus` como Opus 5 usa o mesmo runner e precisa verificar essa resolução
-antes do parecer. Se ela não puder ser comprovada, trate Opus 5 como ausente e marque **PAINEL
-PARCIAL**, sem trocar de modelo. A regra vale também no Host Kimi.
-
-**Se o Codex estiver ATIVO no elenco e o host não for Codex** e a CLI existir (`codex` no PATH):
-rode direto, read-only:
+**Host Claude — titular OpenAI pela CLI `codex`**, read-only:
 
 ```bash
 codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only "<briefing>" < /dev/null
@@ -118,84 +82,118 @@ codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
-**Se o Kimi estiver ATIVO no elenco e o host não for Kimi:** rode a CLI direto, resolvendo o
-binário com fallback e passando o modelo do elenco:
+**Host Codex — titular Anthropic pelo runner.** No host Codex, o titular é o Opus 5 pelo runner, e
+o Manager OpenAI só audita: ele não vira parecer.
+
+O briefing do Opus tem orçamento de **16 KiB = 16.384 bytes UTF-8 por lote, medidos depois da
+sanitização**. Até esse limite, envie o pacote inteiro. Acima dele, divida por arquivo/hunk em lotes
+independentes, repetindo em cada lote o objetivo, os critérios e o fora de escopo; cubra todos os
+hunks e registre a cobertura. **Nunca corte bytes nem resuma em silêncio** para caber. Um lote
+omitido ou que falhar torna a cobertura do parecer parcial — e isso se declara.
 
 ```bash
-KIMI=$(command -v kimi || echo "$HOME/.kimi-code/bin/kimi")
-"$KIMI" -m <modelo do elenco> --output-format text -p "<briefing>" < /dev/null
+# ORQ_PACKAGE_ROOT já foi resolvido pela skill para um caminho absoluto.
+OPUS_RUNNER="<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"
+OPUS_OUT=$(printf '%s' "$OPUS_BRIEFING_SANITIZADO" | python3 "$OPUS_RUNNER")
+OPUS_EXIT=$?
+if [ "$OPUS_EXIT" -ne 0 ] || [ -z "$OPUS_OUT" ]; then
+  echo "REVISÃO DEGRADADA: titular ausente; preserve o diagnóstico do stderr"
+fi
 ```
 
-> ⚠️ **Ordem das flags importa: `-m` antes, `-p` por último.** O `-p` aceita valor, então com o `-m`
-> vindo depois dele o Kimi consome o nome do modelo como se fosse o próprio briefing — não roda e
-> devolve saída vazia em silêncio (pago em 2026-08-05; ver `gotchas.md`). Confira o tamanho da saída
-> antes de tratá-la como parecer.
->
-> ⚠️ **O instalador do Kimi põe o binário em `~/.kimi-code/bin/` e adiciona ao `.zshrc`** — o que só
-> vale em shell aberto **depois** da instalação. Uma sessão já em curso não enxerga, `which kimi`
-> falha, e o painel vira silenciosamente um revisor a menos **enquanto o binário está lá, funcionando**.
-> Por isso o fallback acima. (Uma sessão irmã concluiu "Kimi não instalado" exatamente assim, e ainda
-> foi procurar no npm — onde ele nunca esteve: a distribuição é por `code.kimi.com`, não por pacote.)
->
-> ⚠️ **Ele não tem flag de sandbox** como o `-s read-only` do Codex. **Não** passe `-y`/`--yolo` nem
-> `--auto`: sem elas, em modo `-p`, ele não aplica mudança. Reforce no prompt: *"não edite arquivo
-> nenhum, apenas relate"*. Se precisar de garantia dura, rode-o num worktree descartável.
+O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 600s. Esse teto
+acomoda a latência real observada de 267,1s em revisão arquitetural, sem remover a proteção contra
+processo órfão. A validação
+de tamanho ocorre antes do anúncio: `BRIEFING_TOO_LARGE` significa que nenhuma chamada começou;
+redivida o lote e execute, sem contar isso como retry. O runner exige
+`claude-opus-5` no `modelUsage` JSON e não imprime parecer em modelo errado, timeout, erro ou saída
+vazia (`OPUS_EMPTY_RESULT`). `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer lote incompleto →
+**REVISÃO DEGRADADA** com o diagnóstico do stderr;
+não faça retry automático após chamada iniciada, para não duplicar custo.
+Todo host que usar o alias `opus` como Opus 5 usa o mesmo runner e precisa verificar essa resolução
+antes do parecer. Se ela não puder ser comprovada, trate Opus 5 como ausente e marque **REVISÃO
+DEGRADADA**, sem trocar de modelo.
 
-**Outros revisores** marcados como **ativo** na seção "Revisores externos" do `_elenco.md`: `ativo`
-é política habilitada, não capacidade comprovada; verifique CLI, autenticação, modelo e saída no
-momento do parecer. No Host Codex, a composição obrigatória permanece exatamente Opus 5 + Kimi K3;
-não acrescente a diagonal OpenAI. No Host Kimi, pule o externo Moonshot duplicado porque o parecer
-fresco desse vendor já entrou pela diagonal da Matriz. Em outros hosts, siga a composição registrada.
+### Titular indisponível → REVISÃO DEGRADADA, e o card não avança sozinho
 
-**Revisor ativo no elenco que falhar** (binário ausente, timeout, saída vazia) → **diga ao dono que
-o painel parcial perdeu aquele revisor**, nomeando quem faltou. Nunca apresente parecer de um revisor como se fosse a
-interseção de vários: o valor do painel está em distinguir confirmado-por-dois de achado-por-um.
+Binário fora do PATH, autenticação vencida, timeout, modelo indisponível, saída vazia: escreva
+**REVISÃO DEGRADADA — sem parecer**, nomeie a causa real, e **pare**. O card **não** avança sozinho:
+seguir sem revisão é decisão do dono, pedida na hora.
 
-**Dado sensível no diff → a regra LGPD do passo 1b deste arquivo vence tudo, antes de qualquer outra
-coisa**: rode só o revisor interno, mesmo rebaixado, dizendo por quê. Sem esta precedência na frente,
-a saída "rebaixado + externo ativo" abaixo correria primeiro e mandaria dado sensível para fora.
+**Nunca substitua o titular por um revisor do mesmo vendor do host** — nem "só pra ter algo", nem
+como contingência. Não existe cair num revisor interno: ou o parecer vem do vendor oposto, ou não
+há parecer, e a ausência se declara. Um parecer do próprio vendor do host devolveria a *aparência*
+de revisão independente sem a independência.
 
-Sem dado sensível, com `--rapido`: rode só o revisor interno **salvo se ele estiver rebaixado** —
-modelo mais fraco que o do preset `padrao` do mesmo `_elenco.md` (ordem `haiku < sonnet < opus`;
-`fable` sem ordem definida → trate como **não rebaixado**; `inherit` → compare com o modelo real da
-sessão, não com o rótulo — é o caso em que o rótulo esconde o modelo, e é justamente o que esta regra
-existe para pegar; arquivo sem seção Perfis → trate como **não rebaixado**, na dúvida). Rebaixado,
-duas saídas, sem beco:
+**Segundo parecer só sob demanda do dono — e sob a MESMA regra de vendor.** Se ele pedir ("quero
+uma segunda opinião"), o parecer extra também é do **vendor oposto ao host**: pode ser outro
+modelo, outro effort ou outro briefing, nunca o outro lado da regra. **Um parecer do vendor do
+host não vale como segundo parecer** — chamá-lo de "avulso" não o torna independente, e é por
+essa porta que o revisor interno voltaria. Não havendo outro modelo do vendor oposto disponível,
+**não há segundo parecer**: diga isso ao dono, em vez de improvisar um nativo. Parecer extra não
+ressuscita painel nem vira padrão.
 
-1. **há externo ativo** → o `--rapido` inclui **um** externo, mesmo assim mais barato que o painel
-   completo;
-2. **nenhum externo ativo** (projeto solo-Claude) → roda só o interno e **anuncia em uma linha que o
-   painel está no mínimo** — não trave, não exija um revisor que não existe.
+### `--rapido` — briefing enxuto, mesmo titular
 
-Quem decide o painel mínimo é sempre este comando — os demais consumidores do `--rapido` (
-`/orq:implement-next`, o README do repositório do plugin, preset `economia`) não re-enunciam a
-condição, só apontam para cá.
+`--rapido` **não troca de revisor** (um revisor já é o padrão) e **não dispensa a revisão**. Ele
+encolhe o briefing: só o diff, o critério de aceite e o fora de escopo, sem a contextualização
+longa. Use em card pequeno e de baixo risco. Quem decide o que entra no briefing enxuto é sempre
+este comando — os demais consumidores (`/orq:implement-next`, o README do repositório do plugin,
+preset `economia`) não re-enunciam a regra, só apontam para cá.
 
-## 3. Reconciliar (o passo que dá o valor)
+## 3. Auditar o parecer (o passo que dá o valor)
 
-**Não despeje os pareceres um embaixo do outro.** Consolide:
+Nunca repasse parecer cru. **Qual dos dois ramos vale depende de quantos pareceres chegaram** — e
+são só dois, porque o segundo parecer só existe quando o dono pede.
 
-- **Confirmado por 2+** → alta confiança, vai no topo.
-- **Achado por só um** → mantenha, mas **verifique você mesmo no código** antes de repassar.
-  Revisor sozinho erra; achado não verificado vira ruído e queima a confiança do painel.
-- **Divergência** (um diz que quebra, outro diz que está certo) → **você desempata olhando o
-  código** e explica qual está certo e por quê. Não deixe a contradição pro dono resolver.
-- **Duplicata** → funda num item só, citando quem achou.
+### Ramo padrão — um parecer (N=1)
 
-Descarte achado sem **cenário de falha concreto** (entrada → resultado errado) — ou marque
-explicitamente como "opinião de estilo".
+**Todo achado é solitário por construção** e não há com o que cruzar:
+
+- **Verifique cada achado no código, você mesmo**, antes de aceitar. Revisor sozinho erra, e neste
+  ramo não existe outro parecer para contrapor; achado não verificado vira ruído e queima a
+  confiança da revisão.
+- **Descarte achado sem cenário de falha concreto** (entrada → resultado errado) — ou marque
+  explicitamente como "opinião de estilo".
+- **Discordou do parecer?** Você desempata olhando o código e **explica por quê**. Não deixe a
+  contradição pro dono resolver.
+
+Aqui a auditoria é a **única** defesa contra o erro do revisor único. Não é opcional nem se delega.
+
+### Ramo excepcional — dois pareceres (o dono pediu segunda opinião)
+
+Só entra aqui quando o passo 2 produziu um segundo parecer **do mesmo vendor oposto**. Neste ramo
+existe cruzamento, e ignorá-lo desperdiçaria o que o dono pagou:
+
+- **Os dois apontaram o mesmo defeito** → confiança alta, vai no topo — mas **ainda assim confirme
+  no código**: dois modelos do mesmo vendor erram de forma correlacionada, então acordo entre eles
+  é indício, não prova.
+- **Achado de um só** → trate pelo ramo padrão: você verifica antes de aceitar.
+- **Divergem** (um diz que quebra, outro diz que está certo) → **você desempata olhando o código** e
+  explica qual está certo e por quê. Concordância entre pareceres nunca substitui essa verificação:
+  **a verificação direta do Manager é o desempate final**, nos dois ramos.
+- Na entrega, diga **quantos pareceres houve** e o que cada um sustentou. Sem isso o dono não sabe
+  se está lendo um cruzamento ou um parecer só.
+
+### Vale nos dois ramos
+
+**Trilha cruzada:** quando o plano veio do mesmo vendor do revisor (host Claude + card `sistema`, ou
+o simétrico), o parecer é independente **do writer**, não do planner. Audite os achados também
+contra o plano, e diga isso na entrega.
 
 ## 4. Entregar
 
 - **Veredito:** aprovar · aprovar com correções · refazer.
 - **Achados** ordenados por severidade: `arquivo:linha` · o defeito em uma frase · como falha na
-  prática · quem apontou (Claude / Codex / …).
+  prática · **verificado por você no código** (ou descartado, com o motivo).
 - **Roteiro de teste manual** — passos de usar o produto (vira o guia de validação do dono).
-- **O que os revisores discordaram** e sua decisão.
+- **Onde você discordou do revisor** e sua decisão.
+- Revisão degradada ou ausência de revisor por dado sensível → diga **na primeira linha**, não no
+  rodapé.
 
 Se nada relevante apareceu, diga em uma linha. **Não invente achado pra parecer útil.**
 
 ## Regras
 - Revisor **não corrige** — quem implementou aplica. Você (Manager) roteia as correções.
 - Máximo **2 rodadas** de correção+revisão; persistindo, escale pro dono.
-- Nunca mande segredo/credencial no briefing de um revisor externo.
+- Nunca mande segredo/credencial no briefing do revisor.
