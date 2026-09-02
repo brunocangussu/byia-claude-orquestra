@@ -490,3 +490,14 @@ concluí que o arquivo estava do outro lado. `ls -la orq/.DS_Store` mostrou o ar
 → Quando um comando de busca "não acha" algo que o erro afirma existir, **confirme por outro
 caminho** antes de inverter a hipótese. Vale a mesma regra do probe que não injetou: resultado de
 ferramenta não é evidência até você saber que a ferramenta olhou onde você acha que olhou.
+
+### Reescrever página viva pode apagar contrato que um TESTE exige
+
+2026-09-02: a reescrita do `arquitetura.md` (229 → 388 linhas, para virar página de consulta) removeu
+três termos da seção do guardião — `clear_required`, `falha de persistência` e `additionalContext`.
+Eles não são prosa: `test_context_guard.py::test_guard_contract_is_present_in_live_instructions`
+**exige** cada um, nesta página e no `README.md`. A suíte reprovou; os outros dois gates passaram
+verdes, porque `validate` lê manifesto e o lint confere referências, não contrato semântico.
+→ Antes de reescrever página viva, **rode a suíte depois** — não só o lint. E o diagnóstico do
+subagente atribuiu a falha a um `.DS_Store` no ambiente; era outra coisa. **Ler o traceback antes de
+aceitar a causa relatada**: teste isolado passando e suíte falhando quase nunca é ambiente.
