@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.25.0 — **publicada no GitHub em 2026-09-01** (`78b0fec`), **ainda não instalada**; o que roda nos hosts continua sendo a `0.22.7` até o `marketplace update` + `plugin update` + restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.25.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-01/02 (`bd6d3fc`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟢 Trabalho mais recente (2026-09-01) — @frente-elenco · `T-051` + `T-052`
 
@@ -35,8 +35,12 @@ alguma página ainda disser que a `0.24.0` está no GitHub, está errada.
 
 **Estado honesto: publicada, não validada.** ✅ Commit `78b0fec` (dois pais: `6fde3e3` remoto +
 `dcc350b` local) e **push feito** em 2026-09-01 — quem instalar do GitHub agora recebe a `0.25.0`.
-⏭️ **Falta:** `marketplace update` + `plugin update` + **restart**, o `verify_installed_cache.py`
-saindo `0` a partir de clone limpo, e os 6 critérios de aceite em conversa natural. Retomar em `wiki/threads/T-051-elenco-por-tarefa.md`.
+✅ **Instalação verificada em 2026-09-02:** `marketplace update` + `plugin update` feitos pelo dono;
+cache Claude (`~/.claude/plugins/cache/orquestra/orq/0.25.0/`) e cache Codex
+(`~/.codex/plugins/cache/orquestra/orq/0.25.0/`) batem byte a byte com a fonte limpa. O marketplace
+do Codex aponta para `bd6d3fc`. ⚠️ **Sessão Codex aberta antes do update segue com a versão antiga
+em memória — só sessão nova carrega a `0.25.0`.**
+⏭️ **Falta APENAS:** os 6 critérios de aceite em conversa natural (seção 7 da thread `T-051`). Retomar em `wiki/threads/T-051-elenco-por-tarefa.md`.
 
 ## 🟡 Trabalho anterior (2026-08-17) — @frente-protecao-contexto
 
