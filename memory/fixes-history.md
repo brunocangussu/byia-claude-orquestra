@@ -1506,3 +1506,217 @@ passa e troca uma linha.
 - Foram relidos `memory/MEMORY.md`, `memory/wiki/KANBAN.md`, a thread da T-043 e o contrato de
   checkpoint; o board continuava com a T-043 em execução e o escopo consultivo aprovado.
 - A retomada foi gravada na thread sem reabrir o gate nem abandonar o implementador em curso.
+
+## [2026-09-02] frente | @frente-economia — o board encolheu 89% e o guardião foi replanejado
+
+**Origem:** `docs/brief-economia-tokens-2026-09-02.md`, análise externa do dono sobre consumo de
+tokens (13.639 chamadas Claude + 58.363 Codex, agosto/2026). Pedido: validar com outra LLM e
+implementar, seguindo o ciclo.
+
+**Roteamento.** 16 cards novos (`T-054`…`T-069`), frente `@frente-economia`, thread
+`threads/T-054-economia-tokens.md`. Três nasceram em `[!]`: superpowers × Matriz (`T-064`),
+configurações fora do plugin (`T-065`), consolidar ferramental (`T-066`). Os cards nasceram já
+dentro do teto que eles próprios propõem — 148 a 173 bytes.
+
+**Validação cross-vendor.** Host Claude → revisor OpenAI. Rodada 1 (briefing mandando ler 11
+arquivos) rodou ~20 min, saiu do worktree e **morreu sem emitir parecer**; descartada pela regra
+"51 bytes não é parecer". Rodada 2, com o código colado verbatim em 6,9 KB, respondeu numa passada.
+**Veredito: corrigir antes.** Nenhuma das três propostas prioritárias sobreviveu intacta.
+
+**O que o parecer derrubou.** (a) A conta da proposta 7 omite `output_tokens` — mede o que entrou e
+ignora que a saída entra na próxima chamada. (b) Faixa absoluta não substitui a relativa: 170k deixa
+30k livres numa janela de 200k e 830k numa de 1M; precisa dos dois gatilhos. (c) A proposta 8 não
+pode depender de `additionalContextLimit`, que **não existe na documentação** embora o plugin já o
+use. (d) O achado maior: **`T-055` e `T-056` se sabotam combinados** — um tira as decisões do board,
+o outro só reinjeta o card curto, e a recuperação perde restrições e critérios de aceite. A proposta
+8 passa a exigir bloco estruturado, não três linhas livres. (e) Nasceu `T-069`: injetar thread em
+`additionalContext` é promoção de confiança, com cenário de prompt injection.
+
+**Auditoria do Manager contra o código, como manda o `_elenco.md`.** Um achado teve o mecanismo
+corrigido — o revisor disse que `kanban-status.sh` sai `1` sem board; sai `0` com saída vazia, e o
+risco real é o hook tratar vazio como falha. Outro foi **confirmado empiricamente**: com o teto em
+200, 17 cards passavam contando code points e 21 contando bytes.
+
+**Implementado (`T-056`).** Teto de **240 bytes UTF-8** com orçamento por componente, escrito em
+`memory/wiki/_schema.md`, no template do `orq/commands/init.md` e como item 8 e 9 do
+`orq/commands/wiki-lint.md`. `kanban-status.sh` ganhou o sinal `📏N`, medido em passo separado com
+`LC_ALL=C` — separado de propósito, porque o awk principal trunca o título da statusline e sob
+`LC_ALL=C` cortaria emoji no meio. Sinal **próprio**, nunca o `⚠`: fundir os dois deixaria o alerta
+de contrato cronicamente aceso durante a migração.
+
+**`test_kanban_status.py` — 9 testes.** O parser do board, contrato central do projeto, **não tinha
+teste nenhum** até hoje. Contraprova contra a versão anterior: 3 dos 9 falham, os 6 restantes passam
+por cobrirem comportamento pré-existente.
+
+**Migração: 48 cards.** `KANBAN.md` de **104,7 KB para 12,7 KB**; corpo dos cards de 28,4k para
+**3,6k tokens, −87%**. Nota movida **íntegra**, nunca resumida: card com frente própria mandou para
+a thread dele, e os demais para `threads/_notas-de-cards.md` — arquivo único, porque trinta threads
+de um parágrafo trocariam um inchaço por outro. `T-053` ganhou thread própria.
+
+**Três armadilhas pagas, em `gotchas.md`.** (1) A migração do `T-042` levou a release alvo `0.23.0`
+para a thread e **derrubou a suíte na hora** — o teste é um consumidor que lê só o board; virou a
+tabela "o que NUNCA migra" no `_schema.md`. (2) `awk length()` conta bytes ou caracteres conforme o
+locale. (3) O migrador validava o teto **depois** de escrever na thread; o `T-036` estourou e a nota
+ficou duplicada. Corrigido para validar antes e ficar idempotente.
+
+**Gates.** 210 testes verdes (eram 201) · `validate` ✔ · **lint ✗ — e é o estado correto**: ele
+acusa que `orq/` mudou e a versão segue `0.25.0`, igual ao cache instalado. É o guarda do `T-017`
+dizendo que o que roda ainda não é o que está escrito. Sair do vermelho exige bump e release, e
+**nada foi bumpado, commitado ou publicado** — depende do dono.
+
+**Não implementado, e por quê.** `T-054` e `T-055` foram replanejados mas não escritos: o parecer os
+amarrou por contrato mútuo, e implementar um sem o outro é o único jeito de piorar. `T-057` e
+`T-058` não foram tocados — `MEMORY.md` segue com 21,8 KB e a thread `T-026` com 139 KB.
+
+**Adendo — revisão independente do `T-056`, no mesmo dia.** O canal de revisão falhou 3 vezes antes
+de entregar; um smoke de uma linha provou que o canal estava vivo (`CANAL_OK`) e evitou uma
+declaração falsa de `REVISÃO DEGRADADA`. Padrão medido: briefing que **manda ler** morre, briefing
+que **traz o trecho colado** entrega; invocação longa em background morreu 3/3, em foreground
+entregou. Vale para o `T-060`. O revisor confirmou as quatro decisões de desenho e derrubou três
+pontos: fail-open silencioso da medição (virou `📏?`, com teste que injeta a falha), CRLF empurrando
+card no limite para fora do teto (descontado antes de medir), e endereçamento do arquivo coletivo
+(agora por ID, com índice de 39 IDs). Os dois bloqueadores dele sobre a migração foram verificados e
+não se materializaram: zero links markdown relativos nas 48 notas, e reconciliação byte a byte por
+ID dando **48/48 íntegras**, 97,4 KB, sem órfã nem duplicata. Nasceram `T-070` (o índice afirma no
+presente que o painel de 3 revisores funciona — achado do `wiki-lint` N1) e `T-071` (o regex de
+seção arquivada aceita `## Como arquivar` e recusa `## ARQUIVADOS`, bug pré-existente que a
+duplicação da regra agora dobra). Suíte fechou em **215**.
+
+**Adendo 2 — decisões do dono e bump para 0.26.0.** Ele autorizou o bump, confirmou a unidade em
+byte, e mandou seguir a recomendação no `T-064`. Versão subiu nos quatro lugares e **os três gates
+ficaram verdes** (215 testes · validate · lint). O `T-064` foi escrito na `SKILL.md`: **a Matriz
+vence qualquer outra skill de spawn instalada no host**, com o dado que justifica a regra (256
+threads de sub-agente no Codex em agosto, assinatura `writer`/`rereview1..3`, um sub-agente por
+tarefa em vez de por card) — e foi para VALIDATE.
+
+Para decidir `T-065` e `T-066` ele pediu números, e o levantamento **corrigiu o brief**: o
+**caveman não está instalado em host nenhum** — a memória do dono estava certa e a contagem de "três
+camadas de compressão" era falsa; são duas (rtk no comando, context-mode na saída), que não se
+sobrepõem. A sobreposição real é outra: **dois MCPs de grafo de código no mesmo host**
+(codebase-memory-mcp e serena). Também caiu por terra a suspeita de duplicação nos hooks do
+codebase-memory: os 4 registros em `SessionStart` têm matchers distintos. E apareceu um consumidor
+que o brief não mapeou: o **Orca, com 12 dos 19 hooks do Claude**. Ganho grátis identificado: dos 6
+MCPs do Claude, `composio` está sem autenticação e `magic` falha ao conectar — dois publicam
+definição em toda chamada sem entregar capacidade.
+
+## [2026-09-02] correção | a injeção do claude-mem custa 2,8k/sessão, não 12,1k — eu errei por 4,4×
+
+Eu havia medido a injeção do `SessionStart` em **12,14k tokens** e recomendado ao dono cortar 74%
+com base nisso. **O número estava errado.** Uma análise que ele trouxe de outra conversa dizia ~2,3k;
+remedi e ela está certa: **≈2,8k**.
+
+**A causa:** contei os 10 resumos de sessão como se todos fossem injetados por inteiro — e ainda usei
+`len(str(dict(row)))`, que inflava com nomes de coluna e escapes do Python. O formato real, conferido
+contra o bloco que este projeto recebeu no início da sessão, é outro: **os resumos antigos entram
+como uma linha cada; só o mais recente traz o corpo** (investigated/learned/completed/next_steps).
+
+**A consequência é de decisão, não de placar:** com 2,8k numa sessão de 379k, o argumento de custo
+para rebaixar a ferramenta **não existe**. A recomendação que eu tinha dado — cortar volume — era
+resposta ao problema errado. O problema real é **sinal**: 80% das 1.534 observações deste projeto são
+`discovery` + `change`, isto é, narração de sessão, que o próprio `_schema.md` chama de derivável.
+Filtrar por **tipo** resolve na raiz; cortar quantidade não.
+
+Verificado também: as três afirmações da análise batem com o código — `SKILL.md:364` não nomeia
+ferramenta de memória, `stack.md:214` diz "opcional; não propor no Codex", e o gatilho "lembra
+quando" (`SKILL.md:144`) manda consultar "uma busca confiável do host" sem dizer qual. Daí os 3
+cards: `T-072` (papel escrito), `T-073` (fiação nomeada) e `T-074` (custo no Codex antes de
+instalar), todos **parados no gate**.
+
+**Aporte desta janela à análise:** o filtro por tipo e a fiação de busca são um **par com ordem**. O
+filtro corta 86% do volume, e quem atribui o tipo é o observer Haiku, não uma regra — uma decisão
+rotulada como `change` sumiria da injeção. Isso só é seguro se a busca sob demanda alcançar o
+material, e hoje ela não alcança (3 chamadas MCP em 79 sessões, zero `mem-search`). **Aplicar o
+filtro sem o `T-073` deixa o valioso inalcançável pelos dois caminhos.**
+
+**Adendo 3 — `T-072` e `T-073` implementados, `T-074` medido.** O dono aprovou os três cards.
+
+`T-072`: o papel do claude-mem agora está escrito em três lugares. `SKILL.md` (item 3 das
+ferramentas) passou a nomear a busca e a dizer que **a wiki vence em caso de conflito**; `stack.md`
+teve a ficha reescrita com a tabela de papéis, o aviso de que a ferramenta **não se paga sem a busca
+ligada** e a regra de **filtrar por tipo, não por quantidade**; a linha "opcional; não propor no
+Codex" saiu da tabela de perfis, substituída por "o Codex também é alvo — medir os 5 hooks antes".
+No `_stack.md`, o claude-mem virou **Ativo com papel**, com o custo real de 2,8k/sessão registrado.
+
+`T-073`: o gatilho *"lembra quando a gente…"* passou de "consulte uma busca confiável do host" —
+texto que nunca disparou, porque não nomeia nada — para **duas etapas explícitas**: wiki primeiro
+(`MEMORY.md` + página/thread) e, não achando, `mem-search` / `search` / `get_observations` chamados
+pelo nome, com a obrigação de **declarar** quando não houver busca elegível em vez de fingir que
+procurou.
+
+`T-074`: medido, **nada instalado**. Confirmado que o claude-mem não está no Codex (marketplace
+`thedotmack` não registrado) — é ausência de instalação, não defeito, e explica as zero observações
+do `bruno-brain`. O pacote suporta o host (`.codex-plugin/` + `hooks/codex-hooks.json`). Os 5 hooks
+têm timeouts de 20/20/30/**120**/60 s, e o `PostToolUse` de 120 s é onde o observer roda. Volume
+projetado: **~32,4k observações/mês no Codex, 4,3× o do Claude**. O achado que muda a decisão: essas
+chamadas vão a um **modelo Anthropic barato, não ao GPT** — portanto **não consomem o limite semanal
+do Codex**, que é o gargalo daquele host. O custo real é conta Anthropic mais latência por tool use.
+
+Gotcha pago no caminho: citar `` a skill `mem-search` `` derrubou o lint **e dois testes** que rodam
+o lint por dentro — o padrão `` skill `nome` `` é validado contra as skills deste plugin.
+
+## [2026-09-02] incidente | claude-mem parou 22h em silêncio — e a wiki segurou
+
+Descoberto por um aviso do próprio plugin, não por percepção nossa: **nenhuma observação gravada
+desde 00:34**, em nenhum projeto, enquanto o worker respondia `{"status":"ok"}` com PID vivo e as
+sessões continuavam sendo registradas em `sdk_sessions`. `observer-health.json` acusava 42 falhas
+consecutivas com `NOT NULL constraint failed: session_summaries.memory_session_id`.
+
+**Causa (bug do plugin, não de configuração):** a sessão é marcada `status='completed'` enquanto a
+conversa continua; ao gravar o resumo de uma sessão já dada como encerrada, o `memory_session_id`
+vem nulo e o `NOT NULL` recusa. **126 das 481 sessões** receberam observação depois de marcadas como
+completas — o padrão é geral.
+
+**Erro de método registrado, porque vale mais que o acerto:** minha primeira hipótese foi mensagem
+envenenada em `pending_messages` (3 presas desde maio/junho). Limpei a fila com backup e o erro
+**continuou subindo durante a investigação** — de 33 para 42 falhas. Fila vazia somada a nada
+gravado provou que o problema era antes do ponto consertado. *Hipótese que explica os dados não é
+causa até a correção mudar o comportamento.* Backup em `~/.claude-mem/claude-mem.db.bak-2026-09-02`;
+as 3 mensagens removidas estão íntegras em `~/.claude-mem/removidas-2026-09-02.json`.
+
+**O que o incidente provou sobre o desenho:** a sessão que consertou a fiação do claude-mem **não
+foi capturada por ele** — e nada se perdeu, porque a wiki e os checkpoints seguraram tudo. É
+exatamente a divisão de papéis escrita no `T-072`: wiki é fonte da verdade, claude-mem é rede de
+segurança. Quando a rede caiu em silêncio, quem não dependia dela não sentiu.
+
+**Consequência para o `T-074`:** as 24 sessões com `memory_session_id` nulo são **todas do Codex**,
+nenhuma das 285 do Claude. O plugin foi instalado lá nesta janela, mas a recomendação virou **não
+deixar ligado até o upstream corrigir**.
+
+Nasceu o `T-075`, a pedido do dono: detectar memória de sessão parada. Requisito aprendido —
+**health não serve**; o sinal é o carimbo do que foi gravado. E a checagem deve ser genérica ("a
+memória Ativa no `_stack.md` gravou desde que começamos?"), não específica do claude-mem.
+
+## [2026-09-04] feat + limpeza | elenco revisado, runner Anthropic generalizado, repositório podado
+
+**Elenco (decisão do dono, aplicada nos dois hosts).** `manager` passou a dizer explicitamente
+**"sempre escolha do dono"** em ambos — ele troca no `/model`, e o Codex deixou de fingir que
+`gpt-5.6-sol@high` era comando de troca. Host Claude: as **três faixas de `implementer` unificadas
+em `sonnet`**, `planner·sistema` e `reviewer` promovidos a `@max`. Host Codex: `planner·sistema`
+a `@max`, as três faixas de `implementer` mais `docs` e `scout` em `gpt-5.6-terra@xhigh`.
+⚠️ Consequência registrada no próprio elenco: **com as três faixas no mesmo modelo, a faixa deixa
+de escolher executor** e passa a medir só cerimônia — a régua segue válida para o gate e para o
+piso de Alto risco, mas `pesada` não traz mais modelo mais forte.
+
+**`T-077` — o runner deixou de ser exclusivo do Opus.** O dono queria Fable como
+`planner·interface` e `reviewer` no Codex; estava bloqueado por `run-opus-reviewer.py`, que fixava
+`--model opus` e reprovava tudo fora de `claude-opus-5`. **Era limitação do nosso script, não do
+Codex.** Generalizado por TDD: `--model <alias>` com mapa `opus`/`fable`/`sonnet`/`haiku` → prefixo
+esperado, **prova por alias** (pedir `fable` e receber Opus reprova com exit 7) e **fail-closed
+antes de chamar o CLI** quando o alias é desconhecido — sem prefixo conhecido não há como atribuir
+a saída a modelo nenhum. Padrão continua `opus`, então chamadas gravadas sem a flag não mudam.
+4 testes novos, **3 deles reprovam o script anterior** (contraprova rodada). Suíte 215 → **219**.
+O prefixo `OPUS_` das mensagens ficou como contrato de fio estável, com o modelo real sempre
+nomeado no conteúdo — documentado no docstring para não virar mentira de nome.
+
+**Limpeza do repositório: 10 worktrees → 1, 11 branches → 3.** Removidos os 8 worktrees de branches
+já mergeados (4 limpos, 4 com sujeira só em `memory/`) e 8 branches mergeados. **Preservados por
+motivo declarado:** `t044-reset-concurrency` tem **1 commit fora da main** com trabalho real (393
+linhas de teste) para um card ainda em backlog; e `codex/backup-t049-pre-reconcile`, cujo
+`test_verify_installed_cache.py` **difere** do que entrou na main pela T-052 — backup por nome e
+por conteúdo, fica. Nada foi descartado às cegas: os diffs e os arquivos não rastreados dos 4
+worktrees sujos estão em `docs/arquivo-worktrees-2026-09-04/`.
+
+**O que a limpeza provou, e virou gotcha:** as alterações órfãs eram quase todas `memory/` —
+board, índice, log e threads editados dentro de worktree e nunca commitados. Boards de 41–52 cards
+contra 74 no principal. É o `T-076` acontecendo há meses, muito antes de qualquer app com worktree
+nativo entrar na conversa.

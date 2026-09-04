@@ -1,0 +1,170 @@
+# Worktree t046-auditores-nativos — arquivado em 2026-09-04
+
+## status
+ M memory/MEMORY.md
+ M memory/fixes-history.md
+ M memory/wiki/KANBAN.md
+ M memory/wiki/threads/T-049-verificador-instalacao.md
+
+## branch
+codex/t046-auditores-nativos
+41ed5da fix(orq): decouple version gate from release state
+
+## diff dos rastreados
+diff --git a/memory/MEMORY.md b/memory/MEMORY.md
+index 2731624..0bc9d0b 100644
+--- a/memory/MEMORY.md
++++ b/memory/MEMORY.md
+@@ -4,7 +4,7 @@
+ > Contexto é descartável; isto aqui não é.
+ 
+ **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
+-**Versão:** 0.22.7 publicada, ainda não reinstalada · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
++**Versão:** 0.22.7 publicada e reinstalada no Claude/Codex · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-30 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+ 
+ ## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
+ 
+@@ -34,7 +34,7 @@
+   virou T-049: allowlist estrita para `.in_use` e `.codex-plugin`. Histórico em
+   `wiki/threads/T-048-auditores-nativos.md`.
+ 
+-- **`T-049` RECONCILIADA — candidata 0.22.7:** o dono aprovou comparador compartilhado + CLI,
++- **`T-049` EM VALIDATE — 0.22.7 publicada e reinstalada:** o dono aprovou comparador compartilhado + CLI,
+   `.orphaned_at` somente no cache Claude instalado, `.DS_Store` estrito e a promoção para `0.22.7`.
+   Implementação TDD concluída no worktree isolado: comparador cross-host, integração no lint,
+   comandos/documentação e bump nos cinco anchors. Antes da reconciliação, 200 testes, Ruff, validate,
+@@ -46,9 +46,16 @@
+   caches externos `0.22.6` em Claude e Codex, ambos divergentes e sem os dois novos arquivos do
+   verificador; esta task não os instalou. `origin/main` avançou com a T-050 e publicou outra 0.22.6,
+   explicando os caches. O rebase sobre `origin/main` preservou a T-050, promoveu a candidata para
+-  0.22.7 e passou em 201 testes e todos os gates. O push fast-forward autorizado publicou `deabd4d`
+-  em `origin/main`. O próximo gate é reinstalação Claude/Codex a partir de clone remoto detached;
+-  Kimi e restart permanecem separados.
++  0.22.7 e passou em 201 testes e todos os gates. O push fast-forward autorizado publicou o produto
++  em `deabd4d` e o registro/fix do gate em `41ed5da`; HEAD, `origin/main` e GitHub estão alinhados
++  nesse último SHA. Com autorização do dono, Claude e Codex foram reinstalados a partir de clone
++  remoto detached e registram 0.22.7 habilitada; o verificador novo confirmou os dois caches
++  byte-idênticos à fonte limpa. O upgrade Codex removeu caches antigos no meio da chamada e fez a
++  sessão viva procurar `0.22.5`; o backup preventivo restaurou 0.22.5 e 0.22.6 sem sobrescrever a
++  nova versão. Kimi permanece byte-idêntico em 0.22.5. Um processo Codex novo carregou a skill,
++  retomou a T-049 e reportou 0.22.7 sem editar arquivos. A sonda Claude nova não executou por limite
++  de sessão da conta, com reset informado para 19:10 (Bahia); não houve retry. Faltam o smoke
++  Claude após o reset e a confirmação visual numa task nova do Codex App.
+ 
+ - **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de
+   `.in_use/<PID>` entrou em `origin/main` no commit de produto `676846a`. Claude e Codex registram
+diff --git a/memory/fixes-history.md b/memory/fixes-history.md
+index bdbae3e..b710597 100644
+--- a/memory/fixes-history.md
++++ b/memory/fixes-history.md
+@@ -1,5 +1,30 @@
+ # Log de mudanças — append-only
+ 
++## [2026-08-30] smoke parcial | Codex 0.22.7 carregado; Claude limitado pela conta
++
++Um processo Codex novo e read-only carregou o Orquestra, retomou a T-049 e declarou 0.22.7 sem
++alterar arquivos. O processo Claude válido não chegou ao plugin porque a conta atingiu o limite de
++sessão, com reset informado para 19:10 (Bahia); não houve retry depois dessa resposta. A T-049
++permanece em VALIDATE até o smoke Claude pós-reset e a confirmação visual numa task nova do Codex
++App. Nenhum cache, Kimi, restart, commit ou push mudou neste passo.
++
++## [2026-08-30] reinstalação | 0.22.7 no Claude e Codex
++
++Com autorização do dono, a release remota `41ed5da` foi clonada em estado detached e instalada
++somente no Claude e no Codex. Ambos listam 0.22.7 habilitada e o verificador cross-host da fonte
++limpa confirmou igualdade dos caches. O upgrade Codex removeu caches antigos durante a chamada e
++expôs uma sessão viva presa ao hook da 0.22.5; o backup preventivo restaurou 0.22.5 e 0.22.6 sem
++sobrescrever 0.22.7. Kimi permaneceu byte-idêntico em 0.22.5. Nenhum restart, commit ou push foi
++executado; falta o smoke natural depois de reabrir uma sessão Claude e uma Codex.
++
++## [2026-08-30] checkpoint | fotografia completa após publicação da T-049
++
++HEAD, `origin/main` e GitHub foram confirmados em `41ed5da`, com árvore limpa e versão fonte 0.22.7.
++O board tem 48 cards: 6 esperando, 4 fazendo, 12 em validação, 19 no backlog e 7 feitos. Claude e
++Codex ainda executam 0.22.6, mas os dois caches passaram no verificador cross-host contra a fonte
++detached T-050 (`bc060b3`, exit 0); Kimi permanece no snapshot 0.22.5. A diferença fonte/runtime é
++intencional até o próximo gate. Nenhuma instalação, cópia Kimi ou restart foi executado.
++
+ ## [2026-08-30] publicação | T-049 0.22.7 em origin/main
+ 
+ O dono autorizou o push e o commit de produto `deabd4d` chegou a `origin/main` por fast-forward,
+diff --git a/memory/wiki/KANBAN.md b/memory/wiki/KANBAN.md
+index 437f1a4..cf3e5ed 100644
+--- a/memory/wiki/KANBAN.md
++++ b/memory/wiki/KANBAN.md
+@@ -8,14 +8,6 @@
+ 
+ ## ⏸️ Esperando você
+ 
+-- [!] `T-049` Instalador rejeita caches corretos por artefatos gerados pelo host — implementação
+-  `0.22.7` reconciliada sobre `origin/main`, preservando a T-050/0.22.6. O dono dispensou o Kimi
+-  somente nesta task; Opus 5 real deu GO. Rebase e bump passaram em 201 testes, validate, Ruff,
+-  lint, identidade AGENTS/CLAUDE, cinco anchors, diff e varredura de conflitos. A branch está um
+-  commit limpa sobre a T-050. O push fast-forward foi autorizado e `deabd4d` chegou a `origin/main`.
+-  **Gate exato:** autorizar ou não a reinstalação Claude/Codex a partir de clone remoto detached,
+-  seguida do verificador cross-host. Kimi e restart permanecem fora. @frente-auditoria-nativa
+-
+ - [?] `T-025` Comandos que nunca disparam sozinhos — o dono não lembra quais existem, e não deveria precisar — 🟡 pedido do dono em 2026-07-30, **PLANO PRONTO, esperando você** — `memory/wiki/threads/T-025-gatilhos.md` (planner `fable`, 2026-07-30; nada em `orq/` foi tocado). **IMPLEMENTADO NA 0.15.0 (2026-07-31) — aguarda seu teste.** Fable planejou · Sonnet implementou · **Opus reprovou DUAS vezes** (4 bloqueadores, depois 1 remanescente) · três rodadas de correção · aprovado na terceira. O bloqueador mais difícil era **circular**: a exceção "recusou aos 52%, repropõe aos 75%" era **inalcançável por construção**, porque bloco de trabalho foi definido como "até o próximo checkpoint" — e o que o dono recusou **foi o checkpoint**. Resolvido contando o teto **por assunto** e permitindo repropor no mesmo bloco a cada piora material. ✅ **DECIDIDO PELO DONO EM 2026-07-31:** ele confirmou **"1 por assunto, no máximo 2 hoje"** — exatamente o que está implementado, então nada mudou no código. A razão que ele aceitou: com teto único, uma sugestão de ferramenta gastaria a cota e me deixaria **calado** justamente quando o contexto ficasse crítico. Se algum dia nascer um terceiro gatilho de N2, isso volta ao gate. **As 6 decisões originais, fechadas:** (1) descoberta = comando `/orq:ajuda` **mais** gatilho de frase, escolha dele: *"você pergunta, eu mostro"* · (2) nome `ajuda` · (3) `wiki-lint` autônomo a cada release fechado + contradição flagrada, sem número mágico · (4) teto de **1 proposta não solicitada por bloco**, e recusa registrada não volta · (5) achado numa linha no fim da resposta corrente · (6) aplicar os gatilhos atestados. **A escolha dele sobre iniciativa, verbatim:** *"age no que é leitura, propõe 1× o resto"* — iniciativa **nunca escreve**. Era — forma da descoberta · nome do comando · condição do `wiki-lint` autônomo · teto de iniciativa · onde o achado aparece · aplicar os gatilhos atestados. Com as respostas o card vai a READY e o implementer executa os passos 1–11. O design já é "interface natural", mas a cobertura é **parcial e ninguém mediu**: `wiki-lint` aparece **zero vezes** na `SKILL.md` (medido em 2026-07-30) — sem gatilho, sem linha na tabela — então só roda se ele digitar o comando, que é exatamente o que ele diz não lembrar. Medir o mesmo para os outros 11 (`acordar`, `checkpoint`, `dormir`, `elenco`, `implement-next`, `init`, `lembrar`, `plan-next`, `quadro`, `revisar`, `stack`). **Segunda parte do pedido:** poder **revisar as possibilidades** de vez em quando — decidir se isso é comando de ajuda, seção do `/orq:quadro`, ou linha no relatório do checkpoint. **Terceira, a mais ambiciosa:** ele quer que o Manager **decida sozinho** o que rodar durante o desenvolvimento (chamar o `wiki-lint` quando a wiki acumulou cards fechados sem atualização de página, propor `stack` ao detectar atrito). Isso é **política de iniciativa**, não gatilho de frase, e precisa de borda explícita para não virar assistente intrometido — o que ele pediu foi automatismo, não interrupção. **Precedente que o plano deve respeitar:** o `T-014` mediu 10 frases reais contra 25 gatilhos e deu **0/10**; a lição foi medir, não imaginar como ele falaria.
+ - [?] `T-023` `/reload-plugins` **aplica** update de cache — a doc está estrita demais **IMPLEMENTADO, REVISADO E CORRIGIDO (2026-07-31) — aguarda seu teste** — `memory/wiki/threads/T-023-reload-vs-restart.md`. Fable planejou · Sonnet implementou (9 arquivos, bump 0.14.0) · **Opus revisou e REPROVOU** com 3 bloqueadores. O mais instrutivo: a correção **criou** contradição entre `orq/stack.md` e `orq/commands/stack.md` — o defeito que este card existe para eliminar — e reintroduziu uma procedência errada que o painel da 0.11.0 já havia corrigido. **As 7 correções foram aplicadas e verificadas** (gates verdes; catálogo e comando voltaram a concordar: CLI → restart, slash command → `/reload-plugins`; frases extintas só sobrevivem no log e na thread, descrevendo o passado). **Como validar, depois do release + restart:** (1) abra o README em "Problemas conhecidos" e confira a tabela com **data em cada ✅** e nenhuma frase dizendo "reload basta" ou "não está comprovado"; (2) diga *"instala o Serena aqui"* e **pare antes de aprovar** — tem que sair **uma** instrução sobre como aplicar, não duas alternativas sem critério; (3) pergunte *"editei só o `orq/stack.md`, preciso reiniciar?"* — a resposta certa é **sim, presuma restart**; (4) dê `/clear`, diga *"onde paramos?"* e confira que nem o board nem a thread pedem decisões já tomadas. **🔎 OBSERVAÇÃO DE 2026-07-31, a confirmar:** depois do `claude plugin update` para a 0.15.0, o comando novo `orq:ajuda` **apareceu na lista de comandos/skills da sessão viva**, sem restart explícito. Isso é evidência a favor de "reload aplica **comando**" — mas **não fecha a célula**: não dá para separar se foi o reload do plugin ou um recarregamento disparado por outra edição na mesma janela, e o card do `T-023` existe justamente porque este projeto já afirmou coisa demais a partir de evidência fina. Repetir de forma isolada antes de marcar ✅ na tabela. **Sonda diferida:** no release do `T-025`, chame `/orq:ajuda` após `/reload-plugins` sem reiniciar — respondeu, a célula "comando" vira ✅ com data; não respondeu, vira "exige restart". Plano em (planner `fable`, 2026-07-30, modo noturno). **Causa raiz achada, e não é a que o card supunha:** a doc sempre codificou **regra binária** ("reload basta" ↔ "reinicie sempre") em vez de **evidência por componente** — a 0.10.0 afirmou sem procedência, a 0.11.0 desconfiou, não teve como auditar e inverteu tudo. **Virar a regra de novo seria a terceira repetição do mesmo defeito.** A saída é vocabulário de três estados por componente (✅ comprovado com data · ❓ não testado · regra operacional: presuma restart), em tabela num lugar canônico e espelhada na `distribuicao.md` — dado novo passa a atualizar **uma célula**, não a regra. **Honestidade que o plano registra:** hoje **nada** está no estado "sabidamente exige restart" — hook e MCP são presunção do `--help`, e o fato de 2026-07-29 provou que o `--help` é conservador. **Achado além do card:** são **7 lugares + 2 homônimos**, não 5 — `orq/commands/stack.md` (4 ocorrências, **manter**: ali é regra operacional correta) e `SKILL.md:66` ("pode reiniciar" é **fala do dono** no gatilho de checkpoint — **não tocar**); `README.md:52` já está preciso. **✅ LIBERADO EM 2026-07-31 — o dono delegou as 5 decisões ("o resto você decide e eu confiro no board"), e o Manager fechou assim:** (1) **tabela** de três estados por componente, não prosa · (2) **mantém** a regra "card só fecha com teste pós-restart" — sessão pós-reload pode estar mista · (3) roda a sonda barata no release do `T-025` (o `/orq:ajuda` é a cobaia: prova se reload aplica **comando**) · (4) ordem **`T-023` = 0.14.0 antes de `T-025` = 0.15.0** · (5) ajusta a linha do `gotchas.md`. **Primeiro da fila de implementação.** Era — tabela vs prosa · manter "card só fecha com teste pós-restart" · rodar a sonda barata no release do `T-025` · ordem `T-023`=0.14.0 antes de `T-025`=0.15.0 · ajuste de uma linha no `gotchas.md:76`. — 🟢 **verificado em 2026-07-29**: depois de `claude plugin update orq@orquestra`, um `/reload-plugins` na sessão viva passou a servir a skill 0.11.0 (o parágrafo "Desempate obrigatório" apareceu). A 0.11.0 trocou o README para "reinicie sempre — não está comprovado que reload aplique update de cache"; agora está comprovado que aplica, pelo menos para **skill**. Falta saber se vale igual para comando, agente e hook. Corrigir a redação nos cinco lugares que a 0.11.0 endureceu (`README.md:52`, `:313`, `:357-358`, `CLAUDE.md:54`, `orq/stack.md:218`) **sem** voltar a afirmar mais do que foi testado: hook e MCP continuam exigindo restart, e isso não foi verificado.
+ - [?] `T-020` Perfis de elenco — trocar o time inteiro por contexto de crédito, não papel por papel — 🟡 pedido do dono em 2026-07-29, **PLANO PRONTO, esperando você** — `memory/wiki/threads/T-020-perfis-elenco.md` (planner `fable`, 2026-07-30, modo noturno). ⚠️ **A paráfrase deste card envelheceu e o planner corrigiu com a fonte:** no transcript de 2026-07-29 você não disse "menos Fable" — disse **"faço só com o Opus"** no modo economia e **"uso mais o Codex e o Kimi"**. A composição do perfil está atestada na sua fala, não precisa ser inventada. **Causa raiz:** o `_elenco.md` guarda um **valor** (o time de agora), não uma **escolha de catálogo** — trocar custa 7 edições, voltar depende de memória, e o motivo da troca ("crédito curto") não tem onde morar. **Solução:** presets nomeados (`padrao` · `economia`) dentro do próprio `_elenco.md`, com uma linha "Perfil ativo" registrando nome, data e desvios; **nenhum consumidor muda** — `plan-next`, `implement-next`, `revisar` e `stack` seguem lendo a mesma tabela (verificado por grep). Recusados: arquivo separado, resolver preset dentro dos consumidores, e troca automática por detecção de crédito. **Honestidade que vai escrita no preset:** economia muda **garantia**, não só custo — plano mais raso, desempate interno rebaixado, mais peso no Kimi (que não tem sandbox, `T-019`), externos são read-only, então **implementação continua queimando Claude**; e o Manager não muda, só o seu `/model`. **ENTREGUE NA 0.16.0 (2026-07-31) — aguarda seu teste.** Fable planejou · Sonnet implementou · **Opus reprovou duas vezes**, e as duas achando defeito que a *correção anterior* tinha criado. O mais instrutivo foi o primeiro: o template definia o perfil `padrao` como **ponteiro** ("a tabela acima"), então ativar `economia` fazia `padrao` apontar para `economia` — voltar virava no-op e o time titular **sumia do arquivo**. Era a causa raiz do card reproduzida dentro da solução. O segundo: o `init.md` ficou com o **único caminho relativo do plugin inteiro**, invisível ao lint e quebrado em qualquer projeto que não seja este. **Medição do corpus (36 mensagens reais):** "modo economia" e "volta o time normal" têm **zero** ocorrências — a segunda foi removida, e a volta passou a ser **ensinada no anúncio da troca** em vez de virar frase inventada. **Como validar:** diga *"tô com pouco crédito"* → troca o time inteiro sem comando, anunciando o que se perde e como reverter · *"o crédito voltou"* → devolve o titular **sem abrir card** · fechando um card, *"chegamos ao final do ciclo"* → **checkpoint, não troca** · *"vamos economizar contexto"* → não encosta no elenco · depois de ir e voltar, a linha do `manager` continua no `_elenco.md`. Era: o dono delegou as decisões, mas a **composição do perfil `economia` não foi inventada** — veio da fala dele no transcript de 29/jul (*"faço só com o Opus"*, *"uso mais o Codex e o Kimi"*). **Ele confirma na validação, usando.** Fechado: 2 perfis (`padrao`, `economia`) · troca falada sem confirmação, porque é reversível · `--rapido` desaconselhado no economia · `init` passa a gerar perfis. Era — quantos perfis · composição do economia · troca falada sem confirmar · `--rapido` desaconselhado no economia · ordem de release depois de `T-023`/`T-025` · o `init` passar a gerar perfis. Hoje o `_elenco.md` guarda **um** time e trocar papel é edição manual (funciona: o Fable entrou assim). O que falta é **perfil nomeado**: no fim do ciclo semanal, com crédito Claude curto, ele quer dizer *"modo economia"* e o time inteiro mudar — menos Fable no planejamento, mais Codex e Kimi carregando o que der. **Padrão continua o atual** (planner `fable`, implementer `sonnet`, reviewer `opus`). Precisa decidir: quantos perfis, o que cada um troca, e se a troca é falada (*"tô no fim do crédito"*) ou explícita. É instrução + tabela, não código. **✅ COMPOSIÇÃO DECIDIDA PELO DONO EM 2026-08-02, respondendo ao painel:** *"não usar o Fable · usar somente o Opus · talvez direcionar tarefas menores para o Sonnet · usar os outros modelos como revisor, que são o ChatGPT e o Kimi"*. Isso **confirma o que já está implementado** (`planner: opus`) e **move o defeito para a nota**: *"plano mais raso"* é falso com Opus planejando, e a regra *"card de alto risco não se planeja em economia"* perde a premissa que a sustentava. A economia vem de **não spawnar um modelo a mais + reviewer interno rebaixado + revisão deslocada para Codex/Kimi**, que não gastam crédito Claude — e isso precisa estar escrito, porque hoje o preset promete o contrário. Única leitura não atestada: `docs`/`scout` em `haiku` (como está) ou `sonnet`.
+@@ -44,6 +36,16 @@
+ 
+ ## 🟣 Validar
+ 
++- [?] `T-049` Instalador rejeita caches corretos por artefatos gerados pelo host — 0.22.7 publicada
++  em `41ed5da` e reinstalada no Claude/Codex a partir de clone remoto detached. Ambos registram a
++  versão habilitada e passaram no verificador cross-host contra a fonte limpa. O upgrade Codex podou
++  caches antigos durante a chamada; 0.22.5 e 0.22.6 foram restaurados do backup e os três guards
++  existem. Kimi permaneceu byte-idêntico em 0.22.5. Processo Codex novo carregou a skill, retomou
++  a T-049 e reportou 0.22.7 sem escrever. A sonda Claude foi impedida pelo limite da conta, com reset
++  às 19:10 (Bahia), e não foi repetida. **Validação restante:** smoke Claude após o reset e
++  confirmação visual do dono numa task nova do Codex App; nenhum restart foi executado.
++  @frente-auditoria-nativa
++
+ - [?] `T-037` Tirar o SuperMemory do sistema de desenvolvimento — **`0.22.3` PUBLICADA E INSTALADA**: `origin/main` em `3bb1a24`, Codex e Claude na mesma versão e Kimi no mesmo snapshot. Não há SuperMemory, `sm-search` ou `/orq:lembrar` ativos no produto nem nas instruções globais; resíduos foram movidos para backup recuperável em `~/.codex/backups/orquestra-0.22.3-b84bc51`. Suíte de 113 testes, gates, comparação dos caches e smokes em processos novos passaram. A task atual ainda carregava o hook `0.22.2`; o cache antigo foi restaurado sem tocar na `0.22.3`. Aguarda validação prática do dono após reabrir a task; T-044 permanece fora. @frente-supermemory
+ - [?] `T-043` Proteção preventiva da janela de contexto no Codex — guardião consultivo publicado na `0.22.3`: Codex não bloqueia, recuperação sem telemetria e rearme em +10 p.p.; Claude preserva `/clear`. Suíte combinada de 113 testes, parecer final aprovado, smoke Codex consultivo e smoke Claude-only fail-open passaram. Aguarda validação prática do dono em task reaberta. O aviso global `_managedBy` é preexistente e segue separado da release. @frente-protecao-contexto
+ 
+diff --git a/memory/wiki/threads/T-049-verificador-instalacao.md b/memory/wiki/threads/T-049-verificador-instalacao.md
+index c201a85..0abbd24 100644
+--- a/memory/wiki/threads/T-049-verificador-instalacao.md
++++ b/memory/wiki/threads/T-049-verificador-instalacao.md
+@@ -1,6 +1,6 @@
+ # T-049 — verificador de instalação cross-host
+ 
+-**Estado:** 0.22.7 publicada; aguardando reinstalação Claude/Codex · **frente:** `@frente-auditoria-nativa`.
++**Estado:** 0.22.7 publicada e reinstalada no Claude/Codex; aguardando smoke natural em sessões novas · **frente:** `@frente-auditoria-nativa`.
+ 
+ ## Objetivo
+ 
+@@ -97,9 +97,28 @@ push, publicação e restart continuam gates separados.
+   201 testes, seguida de validate, Ruff, lint, identidade AGENTS/CLAUDE e `git diff --check` verdes.
+ - ✅ Push fast-forward autorizado e verificado: `deabd4d` chegou a `origin/main` sem force. Nenhum
+   cache, marketplace local, Kimi ou sessão foi alterado durante o push.
++- ✅ Checkpoint completo posterior ao registro `41ed5da`: HEAD, `origin/main` e GitHub têm o mesmo
++  SHA; árvore limpa. Claude e Codex listam `orq@orquestra 0.22.6` habilitado e o novo verificador
++  confirmou os dois caches byte-idênticos à fonte detached `bc060b3` (host Claude e Codex, exit 0).
++  Kimi continua no snapshot 0.22.5 e não foi alterado.
++- ✅ Reinstalação autorizada concluída a partir de clone remoto detached no SHA `41ed5da`:
++  Claude e Codex listam `orq@orquestra 0.22.7` habilitado. O verificador executado da fonte limpa
++  retornou exit 0 nos dois hosts. O upgrade Codex podou 0.22.5 no meio da chamada, fazendo o hook da
++  sessão viva falhar; o cache foi restaurado do backup dentro do mesmo processo e 0.22.6 também foi
++  reposto depois. Inventário final: Claude 0.22.3–0.22.7; Codex 0.22.5–0.22.7. O hash do Kimi
++  permaneceu idêntico e nenhuma sessão foi reiniciada.
++- ✅ Checkpoint de recuperação pós-compactação registrado no primeiro ponto seguro: pedido
++  atual, board, memória, thread, instalação e evidências foram reconciliados sem commit nem push.
++- ✅ Smoke Codex em processo novo, read-only, saiu 0 e declarou `ORQ_LOADED`, T-049 em VALIDATE,
++  versão instalada 0.22.7 e o gate seguinte; o processo afirmou e o diff confirmou que nenhum
++  arquivo foi alterado.
++- ⏸️ Smoke Claude em processo novo não chegou ao plugin: a primeira chamada teve erro local de
++  ordenação dos argumentos, corrigido antes da segunda; a chamada válida encerrou com limite de
++  sessão e reset informado para 19:10 (Bahia). Não houve terceiro retry nem parecer fictício.
+ 
+ ## ⏭️ RETOMAR AQUI
+ 
+-A 0.22.7 está publicada em `origin/main`. Aguardar autorização explícita para criar clone remoto
+-detached do SHA publicado, preservar caches referenciados e reinstalar somente Claude e Codex.
+-Depois executar o verificador nos dois hosts. Não tocar no Kimi nem reiniciar sessões sem autorização.
++A 0.22.7 está publicada e verificada nos caches Claude/Codex; o processo Codex novo passou. Após
++o reset de uso, repetir uma única vez o smoke Claude válido. O dono ainda confirma a interface em
++uma task nova do Codex App. Não reinstalar, apagar caches ou tocar no Kimi. Restart global, commit e
++push deste checkpoint continuam gates separados.

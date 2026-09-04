@@ -18,6 +18,13 @@ linha da contagem (ela reaparece como `⚠N`, mas o denominador encolhe sem alar
 
     - [ ] `T-001` Título curto — nota livre depois do travessão
 
+**A linha inteira cabe em 240 bytes UTF-8.** O que não couber vai para `threads/T-NNN.md`, e o card
+fica com título, estado, como validar e o ponteiro. O board é relido inteiro a cada retomada e a
+cada compactação — nota longa no card é custo cobrado em toda sessão, enquanto na thread ela só é
+lida por quem precisa. ⚠️ Ao encurtar um card, **não mova o que outra coisa lê da linha**:
+`trilha:`/`faixa:`, a release alvo e o `@frente` ficam no card. Ver `_schema.md`, "O que NUNCA
+migra para a thread".
+
 **Se o projeto NÃO tem wiki**, crie o mínimo: `memory/MEMORY.md` (índice) + `memory/fixes-history.md`
 (log) e siga — não precisa da estrutura completa num projeto pequeno.
 

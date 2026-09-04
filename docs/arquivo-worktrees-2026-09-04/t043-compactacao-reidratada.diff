@@ -1,0 +1,981 @@
+# Worktree t043-compactacao-reidratada — arquivado em 2026-09-04
+
+## status
+ M .claude-plugin/marketplace.json
+ M README.md
+ M memory/MEMORY.md
+ M memory/fixes-history.md
+ M memory/wiki/KANBAN.md
+ M memory/wiki/arquitetura.md
+ M memory/wiki/distribuicao.md
+ M memory/wiki/threads/T-043-protecao-contexto-codex.md
+ M memory/wiki/threads/_noturno.md
+ M orq/.claude-plugin/plugin.json
+ M orq/scripts/context-guard.py
+ M orq/scripts/test_context_guard.py
+?? memory/wiki/threads/T-044-reset-concorrente.md
+?? memory/wiki/threads/T-045-hooks-terminals.md
+
+## branch
+feat/t043-compactacao-reidratada
+bbcc4cb fix: tornar guardiao codex consultivo
+
+## diff dos rastreados
+diff --git a/.claude-plugin/marketplace.json b/.claude-plugin/marketplace.json
+index 6cb3d61..07b0480 100644
+--- a/.claude-plugin/marketplace.json
++++ b/.claude-plugin/marketplace.json
+@@ -9,7 +9,7 @@
+       "source": "./orq",
+       "displayName": "Orquestra",
+       "description": "Desenvolvimento orientado a board: time de agentes efemeros, memoria-wiki, painel de revisores e gates humanos. Interface natural — voce conversa, ele executa.",
+-      "version": "0.22.1",
++      "version": "0.22.2",
+       "category": "workflow",
+       "keywords": [
+         "kanban",
+diff --git a/README.md b/README.md
+index 0a6b0ce..58cffa2 100644
+--- a/README.md
++++ b/README.md
+@@ -372,7 +372,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
+ 
+ ## Status
+ 
+-`0.22.1` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
++`0.22.2` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+ · painel de **três** revisores (Claude + Codex + Kimi) · elenco configurável de LLM por papel · stack complementar
+ auto-detectada · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
+ · reload vs restart documentado por **evidência por componente**, não regra binária · gatilhos medidos por
+diff --git a/memory/MEMORY.md b/memory/MEMORY.md
+index 4c75d64..c75f654 100644
+--- a/memory/MEMORY.md
++++ b/memory/MEMORY.md
+@@ -4,12 +4,29 @@
+ > Contexto é descartável; isto aqui não é.
+ 
+ **Projeto:** Orquestra (`orq`) — plugin do Claude Code para desenvolvimento orientado a board.
+-**Versão:** 0.22.1 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-13 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
++**Versão:** 0.22.2 · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-14 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+ 
+ ## 🟡 Trabalho atual (2026-08-09) — @frente-paridade-codex
+ 
+ **⚡ ESTADO EM 2026-08-09 — leia isto primeiro:**
+ 
++- **CHECKPOINT DE RECUPERAÇÃO 2026-08-14 — `T-044` voltou ao gate:** a candidata local `0.22.2`
++  implementa reset geracional e locks `flock`/`msvcrt`; três rodadas TDD fecharam falhas de cleanup,
++  enumeração e fallback, e a suíte independente chegou a **75 testes verdes**. Kimi K3 aprovou, mas
++  Opus 5 comprovado encontrou uma corrida arquitetural remanescente: `PreCompact`/`PostCompact`
++  escrevem estado fora do lock e podem ressuscitar o JSON pré-clear. Após três correções, o protocolo
++  exige novo gate antes de ampliar o desenho. **Nada foi commitado, instalado, publicado ou enviado ao
++  Claude/GitHub.** Durante o painel, o cache `0.22.1` perdeu `scripts/context-guard.py` e entrou em loop;
++  o arquivo exato de `bbcc4cb` foi restaurado com SHA
++  `23e59a45fc8cf43565e2661eadb8cbe592ed79494adea11a6d599c7e252ebb14`. Depois, a ativação da
++  `0.22.2` removeu também o cache `0.22.0` ainda referenciado por seis arquivos de sessão; o mesmo
++  guardião consultivo foi recomposto nesse caminho e todas as versões referenciadas voltaram a ter
++  executável. Falta transformar a preservação de shims antigos em gate de upgrade.
++- **`T-045` replanejado localmente:** nenhum contato com Terminals/Alison. A recomendação é helper
++  atômico/idempotente + LaunchAgent opt-in, com `SessionStart` somente diagnóstico. Aguarda o dono
++  escolher entre aceitar possível reinicialização única na corrida do watcher ou exigir zero warning
++  desde a primeira sessão.
++
+ - **0.22.1 CANDIDATA — `T-043` em implementação/review:** estado v2 do guardião Codex migra o
+   `clear_required` legado para `checkpoint_verified`; checkpoint libera a compactação nativa e
+   `SessionStart(source=compact)` reidrata memória/board/thread. Compactação sem checkpoint exige
+@@ -17,13 +34,25 @@
+   **Decisão posterior do dono:** hooks Codex nunca bloqueiam; apenas alertam e solicitam checkpoint.
+   Depois dele, a pessoa pode continuar, abrir conversa/task nova ou compactar. O hotfix direto no
+   cache `0.22.0` não foi durável: em 2026-08-13 o Codex voltou a expor o SHA original bloqueante
+-  `33f8f0a…`, e `plugin list` ainda mostra `0.22.0`. **Estado validado em 2026-08-13:** a fonte
++  `33f8f0a…`, e `plugin list` ainda mostrava `0.22.0`. **Estado validado em 2026-08-13:** a fonte
+   consultiva passou em 65 testes do guardião, 14 do runner e todos os gates; recuperação sem
+   telemetria, rearme após +10 p.p. e allowlist anti-bloqueio estão cobertos. Opus 5 real
+   (`claude-opus-5`, 124,5 s) e Kimi K3 real aprovaram com ressalvas, sem bloqueadores; as ressalvas
+-  acionáveis foram corrigidas. Próximo: commit, integrar, instalar a `0.22.1` no Codex e confirmar nas sessões
+-  New ByIA e Bruno Vascular. Claude mantém `/clear`.
++  acionáveis foram corrigidas. O commit estreito `bbcc4cb` foi criado e a `0.22.1` está instalada
++  e habilitada localmente no Codex a partir deste worktree; 63 testes de runtime passaram no cache
++  instalado e os seis arquivos críticos são byte-idênticos à fonte. O checkout principal continua
++  sem integração porque quatro arquivos de memória/board têm mudanças concorrentes. Dois
++  processos Codex efêmeros e read-only, iniciados em New ByIA e Bruno Vascular, carregaram
++  `orq:orq` `0.22.1` e devolveram exatamente `Checkpoint verificado; conversa continua.`,
++  `EXIGE_CLEAR=nao` e `HOOKS_BLOQUEIAM=nao`. Próximo: conciliar o `main` antes da integração.
++  O warning global de `~/.codex/hooks.json` gerenciado pelo Terminals (`_managedBy` incompatível)
++  virou card separado; não impediu os hooks do plugin. Claude mantém `/clear`.
+   Sem push, publicação ou update do Claude.
++- **MODO NOTURNO 2026-08-13 ENCERRADO:** `T-044` e `T-045` ganharam planos completos e foram
++  estacionados em `[!]` com perguntas exatas ao dono. `T-044` propõe release local `0.22.2` com
++  reset geracional e locks `flock`/`msvcrt`; `T-045` prova que `_managedBy` é gerado pelo
++  Terminals 1.11.0 e que a correção deve ocorrer lá, não no Orquestra. `T-033` não foi iniciado:
++  o run parou no checkpoint preventivo de contexto. Relatório em `memory/wiki/threads/_noturno.md`.
+ - **0.21.0 PUBLICADA — `T-041` em VALIDATE:** template/migração do elenco host-aware,
+   resolução host→papel→executor, interface Codex por linguagem natural + `/skills`, diagnóstico em
+   sete camadas e memória legada diferenciada de projeto virgem. Runner Opus 5 comprovado em nova
+diff --git a/memory/fixes-history.md b/memory/fixes-history.md
+index ab7a90c..90d2630 100644
+--- a/memory/fixes-history.md
++++ b/memory/fixes-history.md
+@@ -1,5 +1,57 @@
+ # Log de mudanças — append-only
+ 
++## [2026-08-14] incidente local | @frente-protecao-contexto · tasks antigas `0.22.0` recuperadas
++
++A ativação da `0.22.2` removeu o diretório de cache `orq/0.22.0`, mas seis arquivos de sessão Codex
++continuavam referenciando diretamente `0.22.0/scripts/context-guard.py` (387 ocorrências). Isso fez
++o hook falhar antes do modelo e bloqueou mensagens em tasks antigas; os arquivos de trabalho dos
++projetos não foram tocados. O caminho foi recomposto com o guardião consultivo exato de `bbcc4cb`
++(SHA-256 `23e59a45fc8cf43565e2661eadb8cbe592ed79494adea11a6d599c7e252ebb14`), não com o código
++original bloqueante da `0.22.0`. `py_compile`, smokes sintéticos em 60%/80% e nova enumeração das
++sessões passaram sem chave bloqueante nem `/clear`; todas as versões referenciadas (`0.22.0`,
++`0.22.1`, `0.22.2`) voltaram a ter executável.
++
++## [2026-08-14] recuperação+review | @frente-protecao-contexto · cache recomposto e T-044 devolvido ao gate
++
++A candidata `0.22.2` chegou a 75 testes verdes após três rodadas TDD sobre reset geracional,
++falhas de filesystem e locks `flock`/`msvcrt`. Kimi K3 aprovou; Opus 5 real encontrou uma corrida
++remanescente em `PreCompact`/`PostCompact`, que ainda escrevem estado fora do lock e podem
++ressuscitar o JSON pré-clear. O card voltou ao gate arquitetural antes de uma quarta correção.
++Durante o painel, o arquivo `scripts/context-guard.py` sumiu do cache `0.22.1` e o Stop hook entrou
++em loop; o conteúdo exato do commit `bbcc4cb` foi restaurado e validado por SHA/`py_compile`.
++Nenhum commit, push, publicação, instalação da `0.22.2` ou contato com Terminals foi feito.
++
++## [2026-08-13] planejamento | @noturno-2026-08-13-2225 · duas causas raiz fechadas sem implementação
++
++O modo noturno planejou `T-044` e `T-045` em sequência, sem tocar produto, configuração global,
++Git ou ambientes externos. `T-044` reproduziu duas corridas e desenhou reset por gerações mais
++locks de kernel `flock`/`msvcrt`; aguarda aval para release local `0.22.2`. `T-045` rastreou o
++warning `_managedBy` ao gerador do Terminals 1.11.0 e confirmou que o Codex rejeita somente aquela
++fonte global, mantendo os hooks do Orquestra ativos; aguarda autorização para encaminhar o relatório
++ao mantenedor. `T-033` permaneceu no backlog porque o run encerrou no checkpoint preventivo de
++contexto, com 2/3 cards planejados.
++
++## [2026-08-13] smoke | @frente-protecao-contexto · 0.22.1 comprovada em dois processos Codex novos
++
++Processos `codex exec --ephemeral` read-only iniciados em New ByIA e Bruno Vascular carregaram a
++skill `orq:orq` do cache `0.22.1`, consultaram o contrato instalado e convergiram na saída exata
++`Checkpoint verificado; conversa continua. | EXIGE_CLEAR=nao | HOOKS_BLOQUEIAM=nao`. Os eventos
++`SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse` e `Stop` executaram sem bloquear.
++Ambos também reproduziram um warning independente: o Codex 0.147 rejeita o campo `_managedBy` do
++`~/.codex/hooks.json` gerenciado pelo Terminals; os hooks do Orquestra continuaram ativos, e o
++arquivo global não foi alterado. O achado virou `T-045`.
++
++## [2026-08-13] instalação+checkpoint | @frente-protecao-contexto · Codex 0.22.1 ativo sem integrar o main sujo
++
++O commit estreito `bbcc4cb` foi criado no worktree e o Codex local passou a carregar
++`orq@orquestra` habilitado da fonte `feat/t043-compactacao-reidratada`, versão `0.22.1`. Os seis
++arquivos críticos do cache instalado são byte-idênticos à fonte e 63 testes de runtime passaram
++no próprio cache; os dois testes omitidos dependem de arquivos de documentação/release que não
++fazem parte do cache do plugin. O shim consultivo `0.22.0` foi preservado para sessões antigas.
++O checkout principal não foi integrado: quatro arquivos sobrepostos continuam modificados por
++outra janela. Faltam os smokes em sessões novas de New ByIA e Bruno Vascular; sem push, publicação
++ou alteração no Claude.
++
+ ## [2026-08-13] review+correção | @frente-protecao-contexto · painel real sem bloqueadores
+ 
+ O runner comprovou `claude-opus-5` em 124,5 s com briefing de 6.367 bytes; Opus devolveu
+diff --git a/memory/wiki/KANBAN.md b/memory/wiki/KANBAN.md
+index 83fd4f5..a86c152 100644
+--- a/memory/wiki/KANBAN.md
++++ b/memory/wiki/KANBAN.md
+@@ -20,7 +20,7 @@
+ ## 🟡 Fazendo
+ 
+ - [~] `T-040` Paridade operacional do Orquestra no Codex — especificação e planos aprovados; coordena `T-041` (core `0.21.0`), `T-043` (guardião `0.22.0`) e `T-042` (statusline opt-in `0.23.0`). Execução inline autorizada em 2026-08-09; publicação, cache global e push continuam fora da autorização. @frente-paridade-codex
+-- [~] `T-043` Proteção preventiva da janela de contexto no Codex — candidata `0.22.1` implementada e revisada: zero bloqueio Codex, recuperação sem telemetria, rearme consultivo a cada +10 p.p., sanitização por allowlist e Claude `/clear` preservado. 65 testes do guardião + 14 do runner e gates verdes; painel real Opus 5 + Kimi K3 aprovou com ressalvas, sem bloqueadores. Faltam commit, integração, instalação Codex e smoke real em New ByIA + Bruno Vascular. Sem push, update do Claude ou publicação. @frente-protecao-contexto
++- [~] `T-043` Proteção preventiva da janela de contexto no Codex — candidata `0.22.1` implementada e revisada: zero bloqueio Codex, recuperação sem telemetria, rearme consultivo a cada +10 p.p., sanitização por allowlist e Claude `/clear` preservado. Commit `bbcc4cb`; 65 testes do guardião + 14 do runner e gates verdes; painel real Opus 5 + Kimi K3 sem bloqueadores. Instalada e habilitada localmente; 63 testes de runtime no cache. Smokes novos em New ByIA + Bruno Vascular carregaram `0.22.1` e confirmaram frase exata, `EXIGE_CLEAR=nao` e `HOOKS_BLOQUEIAM=nao`. Incidente de 2026-08-14: a instalação da `0.22.2` removeu o cache `0.22.0` ainda referenciado por seis arquivos de sessão; shim consultivo recomposto e todas as versões referenciadas voltaram a ter executável. Falta integrar e tornar a preservação de shims um gate de upgrade. Sem push, update do Claude ou publicação. @frente-protecao-contexto
+ - [?] `T-041` Paridade core do Codex — `0.21.0` instalada e validada em Claude/Codex, caches idênticos e smoke externo com `OPUS_MODEL=claude-opus-5` + Kimi exit 0. Push autorizado e confirmado no GitHub: `main` contém a versão e o runner. **Aguarda validação prática do dono no projeto real que antes falhava, em nova sessão Codex.** @frente-paridade-codex
+ 
+ - [~] `T-037` Tirar o Supermemory do sistema de desenvolvimento — 🟡 **pedido do dono em 2026-08-07**: *"SuperMemory está dando muito problema de conexão, e eu quero retirá-lo do sistema de desenvolvimento"*. Ele é citado em **6 arquivos do produto** (`orq/stack.md`, `orq/scripts/sm-search.py`, `orq/commands/stack.md`, `orq/commands/lembrar.md`, `orq/commands/checkpoint.md`, `orq/skills/orq/SKILL.md` — 22 ocorrências) e em 4 fora dele (`memory/wiki/_stack.md`, `memory/wiki/distribuicao.md`, `memory/wiki/threads/T-030-correcoes-painel.md`, `README.md`). **A pergunta de desenho, que é do dono:** o `/orq:lembrar` existe **inteiro** para contornar o bug de busca do MCP oficial (o `sm-search.py` é o contorno). Sem Supermemory, ou (a) o comando morre e a memória de longo prazo passa a ser só a wiki + claude-mem, ou (b) o comando sobrevive com outro motor (claude-mem, que já captura sessão e tem busca própria). **(b) preserva a intenção — "lembra quando a gente…?" continua funcionando — e é a minha recomendação a levar**, mas custa mais que (a). **Cuidado com a wiki:** o log (`fixes-history.md`) e as threads são **append-only** e citam o Supermemory ao descrever o que aconteceu num dia — isso **não** se apaga; só as páginas vivas ("como funciona hoje") e o produto mudam. **Não confundir com o stack pessoal dele** (`~/.claude/CLAUDE.md` também o menciona): fora do produto, vira recomendação, nunca edição nossa. **Plano em `memory/wiki/threads/T-037-sem-supermemory.md`** (2026-08-07). ⏸️ **PERGUNTA AO DONO:** **(1)** o `/orq:lembrar` **morre** e o gatilho "lembra quando…" passa a buscar wiki + claude-mem (rec. do Planner, **divergindo** do que o card trazia) ou sobrevive com motor novo? **(2)** release separado e sequencial ao `T-036` (rec.) ou junto? **(3)** na máquina dele: remover o MCP `api-supermemory-ai` do `~/.claude.json` — **é lá que nasce o erro de conexão**, este card não o alcança — e atualizar o `~/.claude/CLAUDE.md` global (recomendação, ele aplica); **(4)** confirmar a entrada em "Dispensadas" no `_stack.md`. ⚠️ **CORREÇÃO À DECISÃO 3, verificada pelo Manager em 2026-08-07:** o plano supõe que o MCP mora no `~/.claude.json` — **não mora**. `claude mcp list` **não o lista**; ele não está em `~/.claude.json` (nem na raiz nem por projeto), nem em `~/.claude/settings.json`, nem em `.mcp.json` de projeto algum. O único vestígio local é `~/.claude/supermemory-credentials.json`. Conclusão: é **conector da conta claude.ai**, gerenciado no lado do servidor — a remoção é na interface (claude.ai → Settings → Connectors), **não por edição de arquivo**, e só o dono a faz. Corrigir a Decisão 3 do plano antes de implementar. @frente-supermemory ✅ **DECISÕES 1-4 APROVADAS pelo dono em 2026-08-07** — implementação enfileirada **depois** do `T-036` (releases sequenciais, decisão 2).
+@@ -47,7 +47,8 @@
+ 
+ ## 🔵 Backlog
+ 
+-- [ ] `T-044` Endurecer reset concorrente do guardião de contexto — Opus 5 e Kimi K3 concordaram que uma transação anterior pode apagar o marcador `.reset` criado por `SessionStart(clear)`, causando over-enforcement recuperável (pedir um segundo `/clear`), e que o fallback Windows `lockdir` não recupera lock órfão. Follow-up da revisão final do `T-043`; sem bypass silencioso no alvo macOS/Linux. @frente-protecao-contexto
++- [!] `T-044` Endurecer reset concorrente do guardião de contexto — candidata `0.22.2` com 75 testes verdes após três rodadas TDD; Kimi aprovou, mas Opus 5 encontrou corrida remanescente: `PreCompact`/`PostCompact` escrevem fora do lock e podem ressuscitar JSON pré-clear. **Gate do dono:** ampliar o card para serializar também os eventos de compactação, preservando fail-open e zero bloqueio, ou estacionar a candidata sem commit/instalação? Sem push, publicação ou update do Claude. Thread: `memory/wiki/threads/T-044-reset-concorrente.md`. @frente-protecao-contexto
++- [!] `T-045` Compatibilidade do hooks.json global gerenciado pelo Terminals com Codex 0.147 — plano local concluído, sem contato com Terminals/Alison: helper atômico/idempotente + LaunchAgent opt-in; `SessionStart` somente diagnóstico. **Gate do dono:** aceitar possível reinicialização única quando o Codex vencer a corrida do watcher, ou exigir zero warning desde a primeira sessão (escopo maior). Nenhuma configuração global foi alterada. Thread: `memory/wiki/threads/T-045-hooks-terminals.md`. @frente-hooks-terminals
+ 
+ - [ ] `T-042` Statusline nativa do Codex — perfil opt-in, backup/merge/rollback e limite explícito sem board em release local `0.23.0`; plano em `docs/superpowers/plans/2026-08-09-statusline-nativa-codex.md`. Executar somente depois de `T-043`. @frente-paridade-codex
+ 
+diff --git a/memory/wiki/arquitetura.md b/memory/wiki/arquitetura.md
+index 3e15ac5..83435e8 100644
+--- a/memory/wiki/arquitetura.md
++++ b/memory/wiki/arquitetura.md
+@@ -205,3 +205,16 @@ guardião ou falha de persistência pode impedir compactação nem persistir con
+ `UserPromptSubmit`, `additionalContext` reafirma a política consultiva para a conversa já carregada.
+ O script só atua no ambiente
+ nativo `PLUGIN_ROOT` do Codex; variáveis somente `CLAUDE_*` não ativam o guardião.
++
++Pedidos de reset do estado são marcadores vazios: o caminho fixo `<hash>.reset` continua sendo
++reconhecido para upgrades, e novos pedidos usam gerações exclusivas `<hash>.reset.*`. Dentro do lock
++da sessão, a transação captura os marcadores presentes, remove o JSON de estado e só então remove
++aquela captura. Um marcador criado durante essa operação permanece para a próxima transação; se a
++remoção do JSON ou de um marcador falhar, o pedido fica pendente e o resultado é reset repetido, não
++reconhecimento falso. O estado e seus marcadores não guardam prompt, transcript ou conteúdo da
++conversa.
++
++O lock é do kernel: macOS/Linux usam `fcntl.flock` e Windows usa `msvcrt.locking` não bloqueante de
++um byte na posição zero. O descritor é fechado ao liberar e também pelo sistema operacional quando
++o processo termina. Se o host não oferecer nenhum desses backends, o hook informa a falha aberta e
++não cria diretório de lock, lease por PID ou recuperação por idade.
+diff --git a/memory/wiki/distribuicao.md b/memory/wiki/distribuicao.md
+index 9ed1600..f1f7ebc 100644
+--- a/memory/wiki/distribuicao.md
++++ b/memory/wiki/distribuicao.md
+@@ -136,11 +136,14 @@ card `T-017`. O lint (`orq/scripts/lint-coerencia.py`) hoje confere os quatro.
+ 
+ ## Hooks do guardião de contexto
+ 
+-Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e precisa entrar no `diff -rq`. Na `0.22.1`,
+-o smoke exige `checkpoint_verified`, compactação não bloqueada e reidratação em
+-`SessionStart(source=compact)`. Instalação no
+-Codex só está validada quando `/hooks` mostra o bundle com confiança aprovada e uma sessão nova roda
+-`SessionStart` sem erro. `plugin list` e presença no disco não provam hook ativo.
++Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e precisa entrar no `diff -rq`. O smoke do
++guardião exige `checkpoint_verified`, compactação não bloqueada e reidratação em
++`SessionStart(source=compact)`, além de um processo filho que morre depois de adquirir o lock e
++permite uma aquisição posterior. Em macOS/Linux esse smoke exercita `fcntl.flock`; em Windows ele
++precisa exercitar `msvcrt.locking` no Windows real. O teste unitário com backend `msvcrt` falso só
++prova a seleção, a posição zero e o unlock — não substitui a validação de morte de processo nesse
++host. Instalação no Codex só está validada quando `/hooks` mostra o bundle com confiança aprovada e
++uma sessão nova roda `SessionStart` sem erro. `plugin list` e presença no disco não provam hook ativo.
+ 
+ O backstop de 90% usa `model_auto_compact_token_limit` absoluto e `scope = "total"`; ele não é
+ gravado pelo pacote. Diagnóstico calcula o valor da janela efetiva, mostra backup/operação e aguarda
+diff --git a/memory/wiki/threads/T-043-protecao-contexto-codex.md b/memory/wiki/threads/T-043-protecao-contexto-codex.md
+index b9ad64f..629fa31 100644
+--- a/memory/wiki/threads/T-043-protecao-contexto-codex.md
++++ b/memory/wiki/threads/T-043-protecao-contexto-codex.md
+@@ -250,3 +250,50 @@ o Claude.
+ ⏭️ RETOMAR AQUI: criar o commit estreito de T-043 no worktree, inspecionar o `main` sujo antes de
+ integrar, preservar mudanças concorrentes, instalar `0.22.1` somente no Codex e executar smokes
+ reais em New ByIA e Bruno Vascular. Não fazer push/publicação nem atualizar o Claude.
++
++## Commit, instalação local e recuperação pós-compactação — 2026-08-13
++
++- commit estreito criado: `bbcc4cb fix: tornar guardiao codex consultivo`;
++- marketplace Codex `orquestra` aponta para este worktree e `orq@orquestra` está habilitado;
++- cache `0.22.1` confirma a versão e seis arquivos críticos byte-idênticos à fonte;
++- 63 testes de runtime passaram no cache instalado; os dois testes repo-level excluídos exigem
++  `memory/wiki/arquitetura.md` e o manifesto do marketplace, que não pertencem ao cache;
++- shim consultivo `0.22.0` mantido para não quebrar sessões Codex abertas antes da troca;
++- checkout principal preservado, sem merge: `memory/MEMORY.md`, `memory/fixes-history.md`,
++  `memory/wiki/KANBAN.md` e esta thread têm mudanças concorrentes;
++- nenhuma alteração no Claude, nenhum push e nenhuma publicação.
++
++⏭️ RETOMAR AQUI: abrir sessões Codex novas em New ByIA e Bruno Vascular e provar que alerta, checkpoint e continuação não emitem bloqueio nem exigem `/clear`; depois, conciliar os quatro arquivos concorrentes do checkout principal antes de integrar `bbcc4cb`; não remover o shim `0.22.0` enquanto houver sessões antigas; não fazer push/publicação nem atualizar o Claude.
++
++## Smokes em processos Codex novos — 2026-08-13
++
++- New ByIA: sessão efêmera `019ffdcb-d5a7-75b2-bb33-46e94e101a9e`, read-only, exit 0;
++- Bruno Vascular: sessão efêmera `019ffdcb-d5a5-7d42-ad93-5a95d0de9621`, read-only, exit 0;
++- ambos invocaram explicitamente `orq:orq`, leram o cache `0.22.1` e retornaram:
++  `ORQ_VERSION=0.22.1 | FRASE=Checkpoint verificado; conversa continua. | EXIGE_CLEAR=nao | HOOKS_BLOQUEIAM=nao`;
++- eventos dos hooks executaram nos dois processos sem decisão bloqueante;
++- o primeiro smoke, que proibia consultar a skill, foi inconclusivo e não conta como validação;
++- warning paralelo reproduzido nos dois: `~/.codex/hooks.json` contém `_managedBy` do Terminals,
++  campo rejeitado pelo schema do Codex 0.147. O arquivo global não foi alterado e o tema saiu do
++  escopo de T-043 como `T-045`, pois não impediu os hooks empacotados do Orquestra.
++
++⏭️ RETOMAR AQUI: comparar os quatro arquivos concorrentes do checkout principal com este worktree, conciliar sem apagar mudanças de outra janela e integrar `bbcc4cb`; depois rodar os gates completos no `main`; manter o shim `0.22.0` enquanto houver sessões antigas; não fazer push/publicação nem atualizar o Claude.
++
++## Incidente de compatibilidade com tasks abertas — 2026-08-14
++
++- a ativação local da `0.22.2` removeu o diretório de cache `0.22.0`, embora tasks Codex antigas
++  ainda guardassem o caminho absoluto daquela versão;
++- a falha ocorreu antes da execução do modelo e apareceu como `can't open file .../0.22.0/scripts/context-guard.py`;
++- seis arquivos de sessão continham 387 referências à `0.22.0`; os projetos em desenvolvimento
++  permaneceram intactos;
++- o shim foi recomposto em `~/.codex/plugins/cache/orquestra/orq/0.22.0/scripts/context-guard.py`
++  com o guardião consultivo de `bbcc4cb`, SHA-256
++  `23e59a45fc8cf43565e2661eadb8cbe592ed79494adea11a6d599c7e252ebb14`;
++- `py_compile`, smokes de 60%/80%, ausência de `decision`/`continue`/`stopReason`/
++  `permissionDecision`/`reason` e ausência de `/clear` passaram;
++- enumeração final confirmou executável presente para todas as versões ainda referenciadas:
++  `0.22.0`, `0.22.1` e `0.22.2`.
++
++⏭️ RETOMAR AQUI: transformar a preservação dos shims de versões ainda referenciadas em gate de
++instalação/upgrade antes de qualquer nova limpeza de cache; não remover `0.22.0` nem `0.22.1`
++enquanto houver tasks abertas apontando para esses caminhos.
+diff --git a/memory/wiki/threads/_noturno.md b/memory/wiki/threads/_noturno.md
+index d8bc9d9..5462400 100644
+--- a/memory/wiki/threads/_noturno.md
++++ b/memory/wiki/threads/_noturno.md
+@@ -1,5 +1,62 @@
+ # Modo noturno — manifesto
+ 
++## Run encerrado — `noturno-2026-08-13-2225`
++
++```
++run_id: noturno-2026-08-13-2225
++cards_max: 3
++horas_max: 4
++expira_em: 02:25 (2026-08-14)
++modo: PLANEJAMENTO (nenhuma implementação)
++cards: [T-044, T-045, T-033]
++```
++
++**Autorização do dono (2026-08-13):** continuar durante a noite nas tarefas que não precisem
++dele. Pelo contrato noturno v1, isso significa investigação e planejamento; nenhuma implementação,
++merge, push, deploy, instalação ou mutação de configuração global.
++
++### Fila escolhida
++
++| Card | Trabalho permitido |
++|---|---|
++| `T-044` | reproduzir e planejar a correção das corridas do reset/lock sem alterar código |
++| `T-045` | investigar o contrato Terminals↔Codex e desenhar correção na fonte, sem editar `~/.codex/hooks.json` |
++| `T-033` | fechar plano do template `_elenco.md` incompleto em projetos novos |
++
++### Pulados neste run
++
++- `T-042`: já tem plano e depende do fechamento de `T-043`.
++- `T-032`: envolve protocolo/schema e decisões do dono.
++- Qualquer card de segurança, permissão, instalação, deploy, infra ou produção.
++
++### Registro da execução
++
++- **22:25** — manifesto aberto; nenhum produto ou ambiente alterado.
++- **22:38** — `T-044` planejado; as duas corridas foram reproduzidas em temporário. Card → `[!]`
++  com pergunta exata sobre release local `0.22.2`; plano em `threads/T-044-reset-concorrente.md`.
++- **22:39** — `T-045` entrou em planejamento read-only.
++- **22:48** — `T-045` planejado; schema estrito do Codex e gerador incompatível do Terminals
++  confirmados. Card → `[!]` com pergunta exata; plano em `threads/T-045-hooks-terminals.md`.
++- **22:48** — run encerrado preventivamente pelo contexto alto, com 2/3 cards planejados. `T-033`
++  não foi iniciado e permanece no backlog.
++
++### Relatório final
++
++| Card | Resultado |
++|---|---|
++| `T-044` | plano RED/GREEN completo; aguarda aprovação da release local `0.22.2` |
++| `T-045` | correção pertence ao Terminals; aguarda autorização para encaminhar o relatório |
++| `T-033` | não iniciado; preservado no backlog |
++
++Nenhuma implementação, merge, push, deploy, instalação, mensagem externa ou alteração de
++configuração global foi executada.
++
++⏭️ RETOMAR AQUI: ao acordar, responder as perguntas exatas de `T-044` e `T-045`; depois decidir se `T-033` entra no próximo run de planejamento. O `T-043` continua separado, aguardando conciliação segura do `main` sujo.
++
++---
++
++## Histórico — `noturno-2026-07-30-2228` (expirado)
++
+ ```
+ run_id: noturno-2026-07-30-2228
+ cards_max: 3
+diff --git a/orq/.claude-plugin/plugin.json b/orq/.claude-plugin/plugin.json
+index c9fa582..72076c3 100644
+--- a/orq/.claude-plugin/plugin.json
++++ b/orq/.claude-plugin/plugin.json
+@@ -2,7 +2,7 @@
+   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+   "name": "orq",
+   "displayName": "Orquestra",
+-  "version": "0.22.1",
++  "version": "0.22.2",
+   "description": "Desenvolvimento orientado a board com time de agentes efemeros, memoria-wiki duravel, painel de revisores e modo noturno. Interface natural: voce conversa, o Claude executa.",
+   "author": {
+     "name": "Bruno Canguçu"
+diff --git a/orq/scripts/context-guard.py b/orq/scripts/context-guard.py
+index 422923b..52c1f95 100644
+--- a/orq/scripts/context-guard.py
++++ b/orq/scripts/context-guard.py
+@@ -22,6 +22,11 @@ try:
+ except ImportError:  # pragma: no cover - fallback para Windows
+     fcntl = None
+ 
++try:
++    import msvcrt
++except ImportError:  # pragma: no cover - indisponível fora do Windows
++    msvcrt = None
++
+ 
+ DEFAULT_TAIL_BYTES = 4 * 1024 * 1024
+ MAX_TAIL_BYTES = 32 * 1024 * 1024
+@@ -56,8 +61,8 @@ class UsageSnapshot:
+ @dataclass
+ class StateLock:
+     path: Path
+-    handle: BinaryIO | None = None
+-    directory: bool = False
++    handle: BinaryIO
++    backend: str
+ 
+ 
+ def _is_positive_int(value: object) -> bool:
+@@ -164,34 +169,57 @@ def _state_reset_path(data_dir: Path, session_id: str) -> Path:
+     return state_path(data_dir, session_id).with_suffix(".reset")
+ 
+ 
+-def _mark_state_reset(data_dir: Path, session_id: str) -> bool:
+-    marker = _state_reset_path(data_dir, session_id)
+-    try:
+-        marker.parent.mkdir(parents=True, exist_ok=True)
+-        marker.touch(exist_ok=True)
+-    except OSError:
+-        return False
++def _pending_state_reset_paths(data_dir: Path, session_id: str) -> list[Path] | None:
++    """Lista o marcador legado e as gerações presentes neste instante."""
++
++    legacy_marker = _state_reset_path(data_dir, session_id)
+     try:
+-        state_path(data_dir, session_id).unlink(missing_ok=True)
++        entries = list(legacy_marker.parent.iterdir())
++    except FileNotFoundError:
++        return []
+     except OSError:
+-        pass
+-    return True
++        return None
++    generation_prefix = f"{legacy_marker.name}."
++    return sorted(
++        path
++        for path in entries
++        if path.name == legacy_marker.name or path.name.startswith(generation_prefix)
++    )
+ 
+ 
+-def _apply_pending_reset(data_dir: Path, session_id: str) -> None:
+-    if not _state_reset_path(data_dir, session_id).exists():
+-        return
++def _mark_state_reset(data_dir: Path, session_id: str) -> bool:
++    legacy_marker = _state_reset_path(data_dir, session_id)
+     try:
+-        state_path(data_dir, session_id).unlink(missing_ok=True)
++        legacy_marker.parent.mkdir(parents=True, exist_ok=True)
++        with tempfile.NamedTemporaryFile(
++            dir=legacy_marker.parent,
++            prefix=f"{legacy_marker.name}.",
++            delete=False,
++        ):
++            pass
+     except OSError:
+-        pass
++        return False
++    return True
++
+ 
++def _apply_pending_reset(data_dir: Path, session_id: str) -> bool:
++    """Consome apenas os resets pendentes observados na transação atual."""
+ 
+-def _finish_pending_reset(data_dir: Path, session_id: str) -> None:
++    pending_markers = _pending_state_reset_paths(data_dir, session_id)
++    if pending_markers is None:
++        return False
++    if not pending_markers:
++        return True
+     try:
+-        _state_reset_path(data_dir, session_id).unlink(missing_ok=True)
++        state_path(data_dir, session_id).unlink(missing_ok=True)
+     except OSError:
+-        pass
++        return False
++    for marker in pending_markers:
++        try:
++            marker.unlink()
++        except OSError:
++            return False
++    return True
+ 
+ 
+ def _acquire_state_lock(data_dir: Path, session_id: str) -> StateLock | None:
+@@ -210,7 +238,7 @@ def _acquire_state_lock(data_dir: Path, session_id: str) -> StateLock | None:
+         while True:
+             try:
+                 fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+-                return StateLock(path=lock_path, handle=handle)
++                return StateLock(path=lock_path, handle=handle, backend="fcntl")
+             except OSError as error:
+                 if error.errno not in {errno.EACCES, errno.EAGAIN}:
+                     handle.close()
+@@ -220,33 +248,35 @@ def _acquire_state_lock(data_dir: Path, session_id: str) -> StateLock | None:
+                     return None
+                 time.sleep(0.01)
+ 
+-    directory_path = lock_path.with_suffix(".lockdir")
++    if msvcrt is None:
++        return None
++    try:
++        handle = lock_path.open("a+b")
++    except OSError:
++        return None
+     while True:
+         try:
+-            directory_path.mkdir()
+-            return StateLock(path=directory_path, directory=True)
+-        except FileExistsError:
++            handle.seek(0)
++            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
++            return StateLock(path=lock_path, handle=handle, backend="msvcrt")
++        except OSError:
+             if time.monotonic() >= deadline:
++                handle.close()
+                 return None
+             time.sleep(0.01)
+-        except OSError:
+-            return None
+ 
+ 
+ def _release_state_lock(lock: StateLock) -> None:
+-    if lock.handle is not None:
+-        try:
+-            fcntl.flock(lock.handle.fileno(), fcntl.LOCK_UN)
+-        except OSError:
+-            pass
+-        lock.handle.close()
+-        return
+-    if not lock.directory:
+-        return
+     try:
+-        lock.path.rmdir()
++        if lock.backend == "fcntl" and fcntl is not None:
++            fcntl.flock(lock.handle.fileno(), fcntl.LOCK_UN)
++        elif lock.backend == "msvcrt" and msvcrt is not None:
++            lock.handle.seek(0)
++            msvcrt.locking(lock.handle.fileno(), msvcrt.LK_UNLCK, 1)
+     except OSError:
+         pass
++    finally:
++        lock.handle.close()
+ 
+ 
+ def _quarantine_corrupt_state(path: Path) -> None:
+@@ -383,8 +413,6 @@ def _persist_response(
+ ) -> dict | None:
+     state_warning = state.get("_state_warning")
+     saved = save_state(data_dir, session_id, state)
+-    if saved:
+-        _finish_pending_reset(data_dir, session_id)
+     source = dict(response or {})
+     result: dict = {}
+     system_message = source.get("systemMessage")
+@@ -415,6 +443,22 @@ def _persist_response(
+     return result
+ 
+ 
++def _state_reset_failure_response(event: dict) -> dict:
++    """Expõe falha de reset sem avançar a transação de estado."""
++
++    event_name = event.get("hook_event_name")
++    response = (
++        _session_context("SessionStart", event.get("source"))
++        if event_name == "SessionStart"
++        else None
++    )
++    result = dict(response or {})
++    result["systemMessage"] = (
++        "Orquestra: reset do estado de contexto não foi aplicado por completo; o hook falhou aberto."
++    )
++    return result
++
++
+ def _additional_context(event_name: str, text: str) -> dict:
+     return {
+         "hookSpecificOutput": {
+@@ -812,11 +856,16 @@ def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
+         return _handle_event_unlocked(event, env)
+ 
+     data_dir = Path(plugin_data)
+-    if event_name == "SessionStart" and event.get("source") == "clear":
+-        _mark_state_reset(data_dir, session_id)
++    clear_marker_failed = (
++        event_name == "SessionStart"
++        and event.get("source") == "clear"
++        and not _mark_state_reset(data_dir, session_id)
++    )
+ 
+     lock_path = _acquire_state_lock(data_dir, session_id)
+     if lock_path is None:
++        if clear_marker_failed:
++            return _state_reset_failure_response(event)
+         response = (
+             _session_context("SessionStart", event.get("source"))
+             if event_name == "SessionStart"
+@@ -828,7 +877,14 @@ def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
+         )
+         return result
+     try:
+-        _apply_pending_reset(data_dir, session_id)
++        if clear_marker_failed:
++            try:
++                state_path(data_dir, session_id).unlink(missing_ok=True)
++            except OSError:
++                return _state_reset_failure_response(event)
++            return _state_reset_failure_response(event)
++        if not _apply_pending_reset(data_dir, session_id):
++            return _state_reset_failure_response(event)
+         return _handle_event_unlocked(event, env)
+     finally:
+         _release_state_lock(lock_path)
+diff --git a/orq/scripts/test_context_guard.py b/orq/scripts/test_context_guard.py
+index 808389f..f7d0f4f 100644
+--- a/orq/scripts/test_context_guard.py
++++ b/orq/scripts/test_context_guard.py
+@@ -276,7 +276,7 @@ class ContextGuardStateTest(unittest.TestCase):
+         state_dir = guard.state_path(self.data_dir, "session-a").parent
+         self.assertEqual(list(state_dir.glob(".*.json.*")), [])
+ 
+-    def test_process_exit_releases_state_lock_without_stale_reclamation(self) -> None:
++    def test_process_exit_releases_state_lock(self) -> None:
+         child_code = f"""
+ import importlib.util, os, pathlib, sys
+ spec = importlib.util.spec_from_file_location('orq_context_guard_child', {str(GUARD_PATH)!r})
+@@ -307,6 +307,123 @@ os._exit(0)
+             if recovered is not None:
+                 guard._release_state_lock(recovered)
+ 
++    def test_reset_created_during_apply_survives_for_next_transaction(self) -> None:
++        old_state = guard.default_state()
++        old_state["phase"] = "recovery_required"
++        old_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
++        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
++        first_generation = guard._pending_state_reset_paths(self.data_dir, "session-a")
++        self.assertEqual(len(first_generation), 1)
++
++        state_file = guard.state_path(self.data_dir, "session-a")
++        original_unlink = Path.unlink
++        second_generation_created = False
++
++        def create_second_generation_during_state_removal(
++            path: Path,
++            *args: object,
++            **kwargs: object,
++        ) -> None:
++            nonlocal second_generation_created
++            if path == state_file and not second_generation_created:
++                second_generation_created = True
++                self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
++            return original_unlink(path, *args, **kwargs)
++
++        with mock.patch.object(
++            Path,
++            "unlink",
++            new=create_second_generation_during_state_removal,
++        ):
++            self.assertTrue(guard._apply_pending_reset(self.data_dir, "session-a"))
++
++        pending_after_first_apply = guard._pending_state_reset_paths(
++            self.data_dir,
++            "session-a",
++        )
++        self.assertTrue(second_generation_created)
++        self.assertFalse(state_file.exists())
++        self.assertEqual(len(pending_after_first_apply), 1)
++        self.assertNotEqual(pending_after_first_apply, first_generation)
++        self.assertTrue(guard._apply_pending_reset(self.data_dir, "session-a"))
++        self.assertEqual(
++            guard._pending_state_reset_paths(self.data_dir, "session-a"),
++            [],
++        )
++
++    def test_legacy_fixed_reset_marker_is_consumed(self) -> None:
++        old_state = guard.default_state()
++        old_state["phase"] = "recovery_required"
++        old_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
++        legacy_marker = guard._state_reset_path(self.data_dir, "session-a")
++        legacy_marker.touch()
++
++        self.assertTrue(guard._apply_pending_reset(self.data_dir, "session-a"))
++
++        self.assertEqual(
++            guard.load_state(self.data_dir, "session-a"),
++            guard.default_state(),
++        )
++        self.assertFalse(legacy_marker.exists())
++
++    def test_msvcrt_backend_locks_and_unlocks_same_byte(self) -> None:
++        class FakeMsvcrt:
++            LK_NBLCK = 23
++            LK_UNLCK = 42
++
++            def __init__(self) -> None:
++                self.calls: list[tuple[int, int, int]] = []
++
++            def locking(self, file_descriptor: int, mode: int, count: int) -> None:
++                self.calls.append(
++                    (mode, count, os.lseek(file_descriptor, 0, os.SEEK_CUR))
++                )
++
++        fake_msvcrt = FakeMsvcrt()
++        with (
++            mock.patch.object(guard, "fcntl", None),
++            mock.patch.object(guard, "msvcrt", fake_msvcrt, create=True),
++        ):
++            lock = guard._acquire_state_lock(self.data_dir, "session-a")
++            self.assertIsNotNone(lock)
++            assert lock is not None
++            self.assertEqual(lock.backend, "msvcrt")
++            self.assertIsNotNone(lock.handle)
++            handle = lock.handle
++            assert handle is not None
++            self.assertEqual(fake_msvcrt.calls, [(fake_msvcrt.LK_NBLCK, 1, 0)])
++            handle.seek(5)
++            guard._release_state_lock(lock)
++
++        self.assertEqual(
++            fake_msvcrt.calls,
++            [
++                (fake_msvcrt.LK_NBLCK, 1, 0),
++                (fake_msvcrt.LK_UNLCK, 1, 0),
++            ],
++        )
++        self.assertTrue(handle.closed)
++
++    def test_missing_kernel_lock_backend_fails_open_without_lockdir(self) -> None:
++        with (
++            mock.patch.object(guard, "fcntl", None),
++            mock.patch.object(guard, "msvcrt", None, create=True),
++        ):
++            lock = guard._acquire_state_lock(self.data_dir, "session-a")
++            try:
++                self.assertIsNone(lock)
++            finally:
++                if lock is not None:
++                    guard._release_state_lock(lock)
++
++        self.assertFalse(
++            guard._state_lock_path(self.data_dir, "session-a")
++            .with_suffix(".lockdir")
++            .exists()
++        )
++
+ 
+ class ContextGuardHookInterfaceTest(unittest.TestCase):
+     def test_hook_api_exists(self) -> None:
+@@ -770,6 +887,158 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
+             "o /clear precisa destravar o mesmo session_id, se o host o reutilizar",
+         )
+ 
++    def test_clear_marker_creation_failure_resets_state_without_persistence(self) -> None:
++        old_state = guard.default_state()
++        old_state["phase"] = "recovery_required"
++        old_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
++        state_file = guard.state_path(self.data_dir, "session-a")
++        self.assertEqual(guard._pending_state_reset_paths(self.data_dir, "session-a"), [])
++        original_named_temporary_file = guard.tempfile.NamedTemporaryFile
++
++        def fail_only_reset_marker_creation(*args: object, **kwargs: object) -> object:
++            if str(kwargs.get("prefix", "")).endswith(".reset."):
++                raise OSError("sem espaço para o marcador")
++            return original_named_temporary_file(*args, **kwargs)
++
++        with mock.patch.object(
++            guard.tempfile,
++            "NamedTemporaryFile",
++            side_effect=fail_only_reset_marker_creation,
++        ):
++            result = guard.handle_event(
++                self.event("SessionStart", 10.0, source="clear"),
++                self.env,
++            )
++
++        self.assertNotEqual((result or {}).get("decision"), "block")
++        self.assertFalse(state_file.exists())
++        self.assertEqual(guard._pending_state_reset_paths(self.data_dir, "session-a"), [])
++        self.assertIn("falhou aberto", result["systemMessage"].lower())
++        self.assertIn("reset", result["systemMessage"].lower())
++
++    def test_clear_marker_creation_failure_warns_when_fallback_cannot_remove_state(self) -> None:
++        old_state = guard.default_state()
++        old_state["phase"] = "recovery_required"
++        old_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
++        state_file = guard.state_path(self.data_dir, "session-a")
++        state_before = state_file.read_text(encoding="utf-8")
++        original_named_temporary_file = guard.tempfile.NamedTemporaryFile
++        original_unlink = Path.unlink
++        unlink_attempts: list[Path] = []
++
++        def fail_only_reset_marker_creation(*args: object, **kwargs: object) -> object:
++            if str(kwargs.get("prefix", "")).endswith(".reset."):
++                raise OSError("sem espaço para o marcador")
++            return original_named_temporary_file(*args, **kwargs)
++
++        def reject_state_removal(
++            path: Path,
++            *args: object,
++            **kwargs: object,
++        ) -> None:
++            if path == state_file:
++                unlink_attempts.append(path)
++                raise OSError("estado não removível")
++            return original_unlink(path, *args, **kwargs)
++
++        with (
++            mock.patch.object(
++                guard.tempfile,
++                "NamedTemporaryFile",
++                side_effect=fail_only_reset_marker_creation,
++            ),
++            mock.patch.object(Path, "unlink", new=reject_state_removal),
++        ):
++            result = guard.handle_event(
++                self.event("SessionStart", 10.0, source="clear"),
++                self.env,
++            )
++
++        self.assertNotEqual((result or {}).get("decision"), "block")
++        self.assertEqual(unlink_attempts, [state_file])
++        self.assertEqual(state_file.read_text(encoding="utf-8"), state_before)
++        self.assertEqual(guard._pending_state_reset_paths(self.data_dir, "session-a"), [])
++        self.assertIn("falhou aberto", result["systemMessage"].lower())
++        self.assertIn("reset", result["systemMessage"].lower())
++
++    def test_reset_marker_scan_failure_is_visible_without_new_persistence(self) -> None:
++        old_state = guard.default_state()
++        old_state["phase"] = "recovery_required"
++        old_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
++        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
++        pending_marker = guard._pending_state_reset_paths(self.data_dir, "session-a")[0]
++        state_file = guard.state_path(self.data_dir, "session-a")
++        state_before = state_file.read_text(encoding="utf-8")
++
++        with mock.patch.object(Path, "iterdir", side_effect=OSError("diretório indisponível")):
++            result = guard.handle_event(
++                self.event("UserPromptSubmit", 10.0, prompt="continue"),
++                self.env,
++            )
++
++        self.assertNotEqual((result or {}).get("decision"), "block")
++        self.assertTrue(pending_marker.exists())
++        self.assertEqual(state_file.read_text(encoding="utf-8"), state_before)
++        self.assertIn("falhou aberto", result["systemMessage"].lower())
++        self.assertIn("reset", result["systemMessage"].lower())
++
++    def test_reset_marker_is_found_without_entry_stat(self) -> None:
++        old_state = guard.default_state()
++        old_state["phase"] = "recovery_required"
++        old_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
++        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
++        pending_marker = guard._pending_state_reset_paths(self.data_dir, "session-a")[0]
++
++        with mock.patch.object(Path, "is_file", return_value=False):
++            result = guard.handle_event(
++                self.event("UserPromptSubmit", 10.0, prompt="continue"),
++                self.env,
++            )
++
++        self.assertIsNone(result)
++        self.assertFalse(pending_marker.exists())
++        reset_state = guard.load_state(self.data_dir, "session-a")
++        self.assertFalse(reset_state["recovery_required"])
++        self.assertFalse(reset_state["checkpoint_started"])
++
++    def test_reset_marker_removal_failure_is_visible_without_new_persistence(self) -> None:
++        old_state = guard.default_state()
++        old_state["phase"] = "recovery_required"
++        old_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
++        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
++        pending_marker = guard._pending_state_reset_paths(self.data_dir, "session-a")[0]
++        original_unlink = Path.unlink
++
++        def reject_pending_marker_removal(
++            path: Path,
++            *args: object,
++            **kwargs: object,
++        ) -> None:
++            if path == pending_marker:
++                raise OSError("marcador não removível")
++            return original_unlink(path, *args, **kwargs)
++
++        with mock.patch.object(
++            Path,
++            "unlink",
++            new=reject_pending_marker_removal,
++        ):
++            result = guard.handle_event(
++                self.event("UserPromptSubmit", 10.0, prompt="continue"),
++                self.env,
++            )
++
++        self.assertNotEqual((result or {}).get("decision"), "block")
++        self.assertTrue(pending_marker.exists())
++        self.assertFalse(guard.state_path(self.data_dir, "session-a").exists())
++        self.assertIn("falhou aberto", result["systemMessage"].lower())
++        self.assertIn("reset", result["systemMessage"].lower())
++
+     def test_clear_during_lock_contention_resets_before_next_prompt(self) -> None:
+         blocked = guard.default_state()
+         blocked["phase"] = "checkpoint_verified"
+@@ -795,6 +1064,66 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
+         )
+         self.assertIn("falhou aberto", result["systemMessage"])
+ 
++    def test_prior_transaction_cannot_consume_newer_clear_reset(self) -> None:
++        stale_state = guard.default_state()
++        stale_state["phase"] = "recovery_required"
++        stale_state["recovery_required"] = True
++        self.assertTrue(guard.save_state(self.data_dir, "session-a", stale_state))
++        held_lock = guard._acquire_state_lock(self.data_dir, "session-a")
++        self.assertIsNotNone(held_lock)
++        reset_created = threading.Event()
++        clear_response: list[dict | None] = []
++        original_mark_reset = guard._mark_state_reset
++
++        def mark_reset_and_signal(data_dir: Path, session_id: str) -> bool:
++            marked = original_mark_reset(data_dir, session_id)
++            reset_created.set()
++            return marked
++
++        try:
++            with (
++                mock.patch.object(
++                    guard,
++                    "_mark_state_reset",
++                    side_effect=mark_reset_and_signal,
++                ),
++                mock.patch.object(guard, "STATE_LOCK_WAIT_SECONDS", 0.05),
++            ):
++                clear_worker = threading.Thread(
++                    target=lambda: clear_response.append(
++                        guard.handle_event(
++                            self.event("SessionStart", 10.0, source="clear"),
++                            self.env,
++                        )
++                    ),
++                    daemon=True,
++                )
++                clear_worker.start()
++                self.assertTrue(reset_created.wait(timeout=1))
++                guard._persist_response(
++                    self.data_dir,
++                    "session-a",
++                    stale_state,
++                    None,
++                )
++                clear_worker.join(timeout=1)
++        finally:
++            guard._release_state_lock(held_lock)
++
++        self.assertFalse(clear_worker.is_alive())
++        self.assertIn("falhou aberto", clear_response[0]["systemMessage"])
++        next_prompt = guard.handle_event(
++            self.event("UserPromptSubmit", 10.0, prompt="continue"),
++            self.env,
++        )
++
++        self.assertIsNone(next_prompt)
++        reset_state = guard.load_state(self.data_dir, "session-a")
++        self.assertEqual(reset_state["phase"], "normal")
++        self.assertFalse(reset_state["checkpoint_started"])
++        self.assertFalse(reset_state["checkpoint_verified"])
++        self.assertFalse(reset_state["recovery_required"])
++
+     def test_compact_without_checkpoint_requires_recovery(self) -> None:
+         event = self.event("SessionStart", 20.0, source="compact")
+ 
+@@ -1183,7 +1512,7 @@ class ContextGuardHookLintTest(unittest.TestCase):
+ class ContextGuardReleaseVersionTest(unittest.TestCase):
+     def test_release_version_is_coordinated(self) -> None:
+         repo_root = PLUGIN_ROOT.parent
+-        expected = "0.22.1"
++        expected = "0.22.2"
+         manifest = json.loads(
+             (PLUGIN_ROOT / ".claude-plugin" / "plugin.json").read_text()
+         )

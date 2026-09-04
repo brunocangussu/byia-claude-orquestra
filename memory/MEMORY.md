@@ -4,9 +4,52 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.25.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-01/02 (`bd6d3fc`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.26.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-01/02 (`bd6d3fc`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
-## 🟢 Trabalho mais recente (2026-09-01) — @frente-elenco · `T-051` + `T-052`
+## 🟢 Trabalho mais recente (2026-09-02) — @frente-economia · `T-054`…`T-075`
+
+**A memória do Orquestra tinha crescido a ponto de ser ela quem consumia a janela.** O dono trouxe
+uma análise medida (`docs/brief-economia-tokens-2026-09-02.md`) e a frente nasceu dela.
+Retomar em `wiki/threads/T-054-economia-tokens.md` e `wiki/threads/T-072-claude-mem.md`.
+
+**Entregue e verificado:**
+- **Teto de 240 bytes por card + 48 cards migrados** — board de **104,7 KB → 13 KB**, de 28,4k para
+  3,6k tokens. A nota foi movida **íntegra** para a thread de cada card; reconciliação byte a byte
+  por ID deu **48/48**, sem órfã nem duplicata. O ganho não é disco (o texto mudou de arquivo): é
+  que o board é relido em **toda** retomada e **toda** compactação — ~25k tokens poupados por leitura.
+- **`test_kanban_status.py`** — o parser do board, contrato central do projeto, não tinha teste
+  nenhum. Suíte 201 → **215**.
+- **`T-064`**: a Matriz vence qualquer skill de spawn instalada no host (medido: 256 threads de
+  sub-agente no Codex em agosto, uma por tarefa em vez de por card).
+- **`T-072`/`T-073`**: o claude-mem voltou ao catálogo **com papel escrito** (rede de segurança; a
+  wiki vence em conflito) e o gatilho *"lembra quando"* passou a **nomear a busca** — antes dizia
+  "consulte alguma busca do host", e por isso nunca disparou em 79 sessões.
+
+**Versão `0.26.0` bumpada nos quatro lugares. NADA commitado, publicado ou instalado — depende do
+dono.** Três gates verdes: 215 testes · `validate` · lint.
+
+**Decidido com o dono, não re-litigar:** autocompactação **recusada** (checkpoint + `/clear` já
+resolve melhor) · `codebase-memory` e `serena` **ficam os dois** (~570 tok/sessão) · caveman **nunca
+esteve instalado** · teto de card é **240 bytes**, não 200.
+
+⚠️ **Incidente aberto:** o claude-mem ficou **22 h sem gravar nada, respondendo `status: ok`** — bug
+do plugin (sessão marcada `completed` enquanto a conversa continua). 126 de 481 sessões têm o mesmo
+padrão. **A wiki segurou tudo e nada se perdeu**, o que é a prova prática da divisão de papéis.
+Virou o `T-075`: detectar memória parada pelo **carimbo do banco**, nunca por health. É o próximo a
+planejar.
+
+**2026-09-04 — elenco revisado e repositório podado.** O `manager` é **sempre escolha do dono**
+(`/model`) nos dois hosts; mudança pontual de papel se pede em conversa, e o padrão é o registrado
+no `_elenco.md`. O **`T-077`** destravou o Fable no host Codex: o runner Anthropic passou a aceitar
+`--model` com prova por alias, então `planner·interface` e `reviewer` lá são `fable` de fato — falta
+a primeira chamada real. Suíte **219**. O repositório foi de **10 worktrees para 1** e de 11 branches
+para 3; preservados o `t044` (1 commit fora da main, card aberto) e o backup do `t049` (conteúdo
+difere do que entrou na main). Diffs do que foi removido em `docs/arquivo-worktrees-2026-09-04/`.
+
+⏭️ **Falta:** validação em uso de `T-056`, `T-064`, `T-072`, `T-073`; planejar o `T-075`; e o dono
+decidir sobre `AGENTS.md`/`CLAUDE.md` (**nada será cortado sem ele ver linha a linha**).
+
+## 🟡 Trabalho anterior (2026-09-01) — @frente-elenco · `T-051` + `T-052`
 
 **A `0.24.0` foi construída fora da linha publicada e a `T-052` a reconciliou na `0.25.0`.** Duas
 cópias cresceram separadas desde `008fbc9`: a local entregou o `T-051` (`0.24.0`) e a remota chegou
@@ -42,7 +85,7 @@ do Codex aponta para `bd6d3fc`. ⚠️ **Sessão Codex aberta antes do update se
 em memória — só sessão nova carrega a `0.25.0`.**
 ⏭️ **Falta APENAS:** os 6 critérios de aceite em conversa natural (seção 7 da thread `T-051`). Retomar em `wiki/threads/T-051-elenco-por-tarefa.md`.
 
-## 🟡 Trabalho anterior (2026-08-17) — @frente-protecao-contexto
+## ⚪ Trabalho anterior (2026-08-17) — @frente-protecao-contexto
 
 **⚡ ESTADO EM 2026-08-17 — leia isto primeiro:**
 
@@ -251,6 +294,11 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-051-elenco-por-tarefa.md`](wiki/threads/T-051-elenco-por-tarefa.md) | **Entregue na 0.24.0, reconciliado na 0.25.0** — elenco em dois eixos, revisor único cross-vendor, Kimi aposentado; traz os 6 critérios de aceite comportamental |
 | [`wiki/threads/T-051-pareceres.md`](wiki/threads/T-051-pareceres.md) | **Evidência durável** — os 25 bloqueadores das 7 rodadas de review externo, com hash por parecer |
 | [`wiki/threads/T-052-reconciliacao.md`](wiki/threads/T-052-reconciliacao.md) | **Thread ativa** — o plano e as 5 decisões da reconciliação `0.24.0` local × `0.22.7` publicada |
+| [`wiki/threads/T-054-economia-tokens.md`](wiki/threads/T-054-economia-tokens.md) | **Thread ativa** — a frente de economia de tokens: o diagnóstico, o baseline medido, o que o parecer mudou e o **⏭️ RETOMAR AQUI** |
+| [`wiki/threads/T-054-pareceres.md`](wiki/threads/T-054-pareceres.md) | **Evidência durável** — o parecer cross-vendor íntegro e a auditoria do Manager, que corrigiu um achado e confirmou outro |
+| [`wiki/threads/T-072-claude-mem.md`](wiki/threads/T-072-claude-mem.md) | **No gate** — o papel do claude-mem, a fiação de busca que nunca existiu, e a correção de uma medição minha que estava 4,4× errada |
+| [`wiki/threads/_notas-de-cards.md`](wiki/threads/_notas-de-cards.md) | As notas longas que saíram do board na migração do `T-056`, íntegras, por ID de card. **Não é thread** — não tem RETOMAR AQUI |
+| [`wiki/threads/T-053-fable-51.md`](wiki/threads/T-053-fable-51.md) | O Fable 5.1 no elenco — thread criada na migração, porque o card era o único dos seis maiores sem uma |
 | [`wiki/threads/T-052-ledgers/`](wiki/threads/T-052-ledgers/README.md) | **Prova executável** da reconciliação — três ledgers que reprovam onde a regra não existe (25/25 · 4/4 · 12/12) |
 | [`wiki/threads/_noturno.md`](wiki/threads/_noturno.md) | Manifesto **expirado** + relatório do modo noturno de 2026-07-30 — não abrir run novo a partir dele |
 | [`snapshot-2026-07-31-releases-0.14-0.16.md`](snapshot-2026-07-31-releases-0.14-0.16.md) | **Marco**: estado exato ao fim das três entregas do dia + as três lições de método |

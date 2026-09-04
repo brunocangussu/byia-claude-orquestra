@@ -44,8 +44,9 @@ class OpusReviewerRunnerTest(unittest.TestCase):
                     subprocess.Popen([sys.executable, "-c", child_code])
                     time.sleep(2)
                 time.sleep(float(os.environ.get("FAKE_SLEEP", "0")))
+                expect_model = os.environ.get("FAKE_EXPECT_MODEL", "opus")
                 expected = [
-                    "-p", "--model", "opus", "--permission-mode", "plan", "--tools", "",
+                    "-p", "--model", expect_model, "--permission-mode", "plan", "--tools", "",
                     "--setting-sources", "", "--disable-slash-commands",
                     "--no-session-persistence", "--output-format", "json",
                 ]
@@ -118,6 +119,57 @@ class OpusReviewerRunnerTest(unittest.TestCase):
         self.assertEqual(result.returncode, 7)
         self.assertIn("OPUS_MODEL_MISMATCH", result.stderr)
         self.assertEqual(result.stdout, "")
+
+    def test_runs_the_requested_anthropic_model_and_proves_it(self) -> None:
+        """`--model fable` roda Fable — o runner deixou de ser exclusivo do Opus.
+
+        Antes desta capacidade, a trilha `interface` e o `reviewer` no host Codex
+        ficavam presos ao Opus: o elenco podia pedir Fable, mas a execução não
+        honrava. Elenco que a execução não honra é pior que elenco ausente.
+        """
+        result = self.run_runner(
+            "revise", "--model", "fable",
+            FAKE_EXPECT_MODEL="fable", FAKE_MODEL="claude-fable-5-1",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "PARECER_OK")
+        self.assertIn("MODEL_ALIAS=fable", result.stderr)
+        self.assertIn("OPUS_MODEL=claude-fable-5-1", result.stderr)
+
+    def test_proof_is_per_alias_not_hardcoded_to_opus(self) -> None:
+        """Pedir Fable e receber Opus é reprovado — a prova acompanha o alias.
+
+        É a propriedade que dá valor ao runner. Generalizar o modelo sem
+        generalizar a prova transformaria o verificador em decoração: ele
+        aprovaria qualquer modelo desde que fosse Opus.
+        """
+        result = self.run_runner(
+            "revise", "--model", "fable",
+            FAKE_EXPECT_MODEL="fable", FAKE_MODEL="claude-opus-5",
+        )
+        self.assertEqual(result.returncode, 7)
+        self.assertIn("claude-fable-5", result.stderr)
+        self.assertEqual(result.stdout, "")
+
+    def test_unknown_alias_fails_closed_without_calling_claude(self) -> None:
+        """Alias fora do mapa não roda: sem prefixo conhecido não há como provar.
+
+        Aceitar um alias desconhecido devolveria saída que o runner não pode
+        atribuir a modelo nenhum — exatamente o que ele existe para impedir.
+        """
+        marker = Path(self.tmp.name) / "nunca-chamado"
+        result = self.run_runner(
+            "revise", "--model", "gpt-5.6-sol", FAKE_MARKER=str(marker),
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("MODEL_ALIAS_DESCONHECIDO", result.stderr)
+        self.assertFalse(marker.exists(), "o CLI não pode ser chamado com alias inválido")
+
+    def test_default_model_is_still_opus(self) -> None:
+        """Sem `--model`, nada muda — o host Codex tem chamadas gravadas sem a flag."""
+        result = self.run_runner()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("MODEL_ALIAS=opus", result.stderr)
 
     def test_rejects_oversized_briefing_before_calling_claude(self) -> None:
         marker = Path(self.tmp.name) / "called"

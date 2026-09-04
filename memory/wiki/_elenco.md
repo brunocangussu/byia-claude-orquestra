@@ -116,7 +116,7 @@ uma vez, não repetido) · `não testado`.
 
 | Vendor do modelo | host Claude | host Codex |
 |---|---|---|
-| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"` — comprova `claude-opus-5`, limita 16 KiB/lote e aplica timeout; sonda real em repo + diretório externo passou em 2026-08-09. **Só comprova `claude-opus-5`:** a trilha `interface` no Codex pensa com Opus, não com Fable |
+| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; **`fable` habilitado no `T-077` (2026-09-04) e ainda sem chamada real — comprovar no primeiro uso** |
 | **OpenAI** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=<e> -s read-only "<briefing>" < /dev/null` — **comprovado como revisor**; **como planner, não exercitado** (o primeiro Loop A de trilha `sistema` no host Claude é o teste real). Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
 
 ## Times por host
@@ -141,13 +141,13 @@ time da outra.
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| manager | modelo da sessão (`/model`) | sessão principal; só o dono troca |
+| manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono**, em qualquer host |
 | planner·interface | `fable` | spawn nativo, read-only |
-| planner·sistema | `gpt-5.6-sol@ultra` | `codex exec … -s read-only`; mecanismo comprovado como revisor, não como planner |
-| implementer·pesada | `opus` | worktree dedicado, writer único |
+| planner·sistema | `gpt-5.6-sol@max` | `codex exec … -s read-only`; mecanismo comprovado como revisor, não como planner |
+| implementer·pesada | `sonnet` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
-| implementer·leve | `haiku` | worktree quando houver trabalho paralelo |
-| reviewer | `gpt-5.6-sol@xhigh` | vendor oposto ao host; `codex exec … -s read-only` |
+| implementer·leve | `sonnet` | worktree quando houver trabalho paralelo |
+| reviewer | `gpt-5.6-sol@max` | vendor oposto ao host; `codex exec … -s read-only` |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
@@ -157,9 +157,11 @@ spawn, em todas as janelas deste host** — crédito é da conta, não da frente
 termina no modelo antigo; não se refaz nada. Ajuste papel a papel que diverge do preset ativo —
 inclusive com `padrao` ativo — vira `padrao · desvio: papel→modelo`; devolvido ao preset, remove-se
 o desvio. Ver passo 3 de "Com argumento — ajustar" em `/orq:elenco`.)*
-**Procedência dos valores:** `planner·interface` e `implementer·normal` são escolha do dono em
-2026-07-28; `planner·sistema` (modelo/effort) em 2026-08-09; as faixas `pesada`/`leve` nasceram em
-2026-09-01 com valor de fábrica, sem medição própria.
+**Procedência dos valores:** revisão completa do dono em **2026-09-03** — as três faixas de
+`implementer` unificadas em `sonnet`, `planner·sistema` e `reviewer` promovidos a `@max`.
+⚠️ **Com as três faixas no mesmo modelo, a faixa deixa de escolher executor neste host** e passa a
+medir só cerimônia. A régua continua válida (ela também governa o gate e o piso de Alto risco), mas
+não espere que `pesada` traga um modelo mais forte aqui — não traz mais.
 
 ### Host Codex
 
@@ -167,15 +169,15 @@ Motor: a sessão Codex. A linha `manager` é expectativa verificável, não coma
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| manager | `gpt-5.6-sol@high` | sessão principal; verificar o modelo real antes de anunciar |
-| planner·interface | `opus` (comprovar que o alias resolve para Opus 5) | runner Anthropic, read-only — **limitação declarada:** o runner invoca `--model opus` fixo, então esta trilha **só aceita `opus`**; registrar Fable aqui gravaria um elenco que a execução não honra |
-| planner·sistema | `gpt-5.6-sol@ultra` | decisão do dono em 2026-08-09; read-only |
-| implementer·pesada | `gpt-5.6-sol@xhigh` | `workspace-write`, writer único em worktree |
+| manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono** — verificar o modelo real antes de anunciar |
+| planner·interface | `fable` | decisão do dono em 2026-09-03, **destravada pelo `T-077`**: o runner passou a aceitar `--model` e a provar o prefixo do alias pedido. Invocar com `--model fable`; a prova exige `claude-fable-5` no `modelUsage` |
+| planner·sistema | `gpt-5.6-sol@max` | decisão do dono em 2026-09-03; read-only |
+| implementer·pesada | `gpt-5.6-terra@xhigh` | `workspace-write`, writer único em worktree |
 | implementer·normal | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
-| implementer·leve | `gpt-5.6-luna` | **sem effort declarado**; smoke em 2026-09-01: chamada trivial pelo runtime do Codex (`codex-companion.mjs task --model gpt-5.6-luna`) devolveu `LUNA_OK` (thread `01a05e0d-309c-7a92-839c-09f6c418a974`) — ver "Pendências comprováveis" |
-| reviewer | `opus` (comprovar que o alias resolve para Opus 5) | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas |
-| docs | `gpt-5.6-sol@low` | princípio 4 — escrita objetiva, effort mínimo |
-| scout | `gpt-5.6-sol@low` | verbatim do dono |
+| implementer·leve | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03: as três faixas no mesmo modelo. O smoke do `gpt-5.6-luna` fica no histórico, mas o degrau não o usa mais |
+| reviewer | `fable` | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas. Invocar com `--model fable` |
+| docs | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
+| scout | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
 
 **Perfil ativo:** — este host não tem presets; o ajuste aqui é papel a papel, e criar um `## Perfis`
 para ele é pedido do dono, não iniciativa. Os presets de `## Perfis` são do host Claude e **não** se

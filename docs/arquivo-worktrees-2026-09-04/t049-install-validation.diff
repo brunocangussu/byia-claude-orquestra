@@ -1,0 +1,116 @@
+# Worktree t049-install-validation — arquivado em 2026-09-04
+
+## status
+ M memory/MEMORY.md
+ M memory/fixes-history.md
+ M memory/wiki/KANBAN.md
+ M memory/wiki/distribuicao.md
+
+## branch
+codex/t049-install-validation
+6fde3e3 docs(orq): fecha checkpoints t-049 e t-050
+
+## diff dos rastreados
+diff --git a/memory/MEMORY.md b/memory/MEMORY.md
+index e78bc41..4b447f7 100644
+--- a/memory/MEMORY.md
++++ b/memory/MEMORY.md
+@@ -4,7 +4,7 @@
+ > Contexto é descartável; isto aqui não é.
+ 
+ **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
+-**Versão:** 0.22.7 instalada e verificada em Claude/Codex; Kimi não atualizado · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-31 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
++**Versão:** 0.22.7 instalada e verificada em Claude/Codex; Kimi não atualizado · fechamento T-049/T-050 publicado em `origin/main` no commit `6fde3e3` · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-08-31 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+ 
+ ## 🟡 Trabalho atual (2026-08-17) — @frente-protecao-contexto
+ 
+@@ -19,7 +19,9 @@
+   anunciou `TIMEOUT=600s` e comprovou Opus 5. A 0.22.5 foi preservada para sessões antigas. Em
+   2026-08-31, uma task Codex nova carregou naturalmente a 0.22.7, que preserva o default de 600s, e
+   o dono confirmou explicitamente que a T-050 estava resolvida. Nenhuma nova chamada Opus foi feita:
+-  a revisão real de 267,1s e o smoke do runner instalado já cobriam o comportamento. Histórico:
++  a revisão real de 267,1s e o smoke do runner instalado já cobriam o comportamento. O checkpoint
++  conjunto T-049/T-050 foi commitado nesta worktree e publicado por fast-forward em `origin/main`
++  no commit documental `6fde3e3`, sem mudar `orq/`. Histórico:
+   `wiki/threads/_concluidas/T-050-opus-timeout.md`.
+ 
+ - **`T-048` FECHADA — 0.22.5 publicada e instalada:** auditores nativos de remoção e adoção graph-first
+@@ -56,8 +58,10 @@
+   rejeitadas com `rc=1`, provando o fail-closed sem tocar nos caches reais. A reinstalação redundante
+   foi evitada; Kimi e restart permaneceram fora. Em 2026-08-31, uma task Codex nova carregou a skill
+   0.22.7 pela frase natural *"onde paramos?"* e retomou na ordem `memory/MEMORY.md` → board →
+-  thread T-049. O dono delegou a conclusão da validação sem autorizar commit, push ou restart;
+-  o smoke Claude permanece separado e condicionado a um restart futuro explicitamente autorizado.
++  thread T-049. Depois do fechamento, o dono autorizou nominalmente commit e push na mesma
++  worktree; o checkpoint conjunto chegou a `origin/main` por fast-forward em `6fde3e3`, sem diff em
++  `orq/` e sem restart. O smoke Claude permanece separado e condicionado a um restart futuro
++  explicitamente autorizado.
+   Histórico: `wiki/threads/_concluidas/T-049-verificador-instalacao.md`.
+ 
+ - **`T-046` FECHADA — `0.22.4` publicada e instalada:** o conserto do falso positivo de
+diff --git a/memory/fixes-history.md b/memory/fixes-history.md
+index 49ca514..0947848 100644
+--- a/memory/fixes-history.md
++++ b/memory/fixes-history.md
+@@ -1,5 +1,13 @@
+ # Log de mudanças — append-only
+ 
++## [2026-08-31] processo | @frente-auditoria-nativa · checkpoint T-049/T-050 publicado
++
++O dono autorizou nominalmente commit e push, exigindo a mesma worktree isolada. O checkpoint de
++fechamento das T-049/T-050 foi registrado em `6fde3e3` e publicado por fast-forward em
++`origin/main`; `HEAD` e a referência remota ficaram idênticos. O commit altera somente memória,
++board e documentação: `orq/` permanece byte a byte igual à 0.22.7 já instalada e verificada em
++Claude/Codex. Nenhuma outra worktree, instalação ou restart foi usado.
++
+ ## [2026-08-31] processo | @frente-opus-timeout · T-050 fechada
+ 
+ Após uma compactação sem checkpoint verificado, o estado foi reconstruído na worktree isolada pela
+diff --git a/memory/wiki/KANBAN.md b/memory/wiki/KANBAN.md
+index f05bc75..24a0572 100644
+--- a/memory/wiki/KANBAN.md
++++ b/memory/wiki/KANBAN.md
+@@ -82,16 +82,19 @@
+   em 2026-08-31.** A revisão real terminou em 267,1s com o novo teto padrão de 600s, e o smoke do
+   runner instalado comprovou `TIMEOUT=600s` e `claude-opus-5`. Uma task Codex nova carregou
+   naturalmente a 0.22.7, que preserva a correção; o dono confirmou o fechamento. Nenhuma chamada
+-  Opus foi repetida. Histórico em `memory/wiki/threads/_concluidas/T-050-opus-timeout.md`.
++  Opus foi repetida. O checkpoint conjunto foi publicado em `origin/main` no commit documental
++  `6fde3e3`, sem mudança em `orq/`. Histórico em
++  `memory/wiki/threads/_concluidas/T-050-opus-timeout.md`.
+   @frente-opus-timeout
+ 
+ - [x] `T-049` Instalador rejeita caches corretos por artefatos gerados pelo host — **validado pelo
+   dono em 2026-08-31 numa task Codex nova.** A skill 0.22.7 foi carregada pela frase natural
+   *"onde paramos?"* e a retomada foi confirmada na ordem `memory/MEMORY.md` → board → thread
+   T-049. Verificação fresca repetiu `rc=0` nos caches reais Codex e Claude, ambos habilitados em
+-  0.22.7, contra o pacote limpo no SHA `41ed5da`. A reinstalação redundante foi evitada; Kimi,
+-  commit, push e restart permaneceram fora. O smoke Claude continua separado e só pode ocorrer
+-  depois de um restart autorizado. @frente-auditoria-nativa
++  0.22.7, contra o pacote limpo no SHA `41ed5da`. O checkpoint de fechamento foi publicado por
++  fast-forward em `origin/main` no commit documental `6fde3e3`; `orq/` não mudou. A reinstalação
++  redundante foi evitada; Kimi e restart permaneceram fora. O smoke Claude continua separado e só
++  pode ocorrer depois de um restart autorizado. @frente-auditoria-nativa
+ - [x] `T-048` Auditores nativos de remoção e adoção graph-first — 0.22.5 publicada em `origin/main` no commit `0cefa97` e instalada em Codex, Claude e Kimi. 184 testes, gates, validação prática 10/10 e painel Opus 5 + Kimi K3 verdes. Smokes em processos novos dos três hosts carregaram a skill e retomaram a memória/board; caches antigos preservados e nenhum hook protegido alterado. @frente-auditoria-nativa
+ - [x] `T-046` Lint de coerência separa `.in_use/<PID>` de divergência real — `0.22.4` publicada no commit de produto `676846a` e instalada no Claude/Codex. Os 29 arquivos do pacote são byte-idênticos nos dois caches; o lint real passou com dois marcadores Claude ativos, enquanto extras e bytes divergentes continuam cobertos por teste. 105 + 14 testes, Ruff, painel Kimi K3 + Opus 5 e gates verdes. Cache `0.22.3` preservado nos dois hosts. @frente-protecao-contexto
+ - [x] `T-024` O painel de revisão não está funcionando — ⚠️ **nasceu de uma frase de teste de roteamento (`T-014`/`T-016`), não de uma falha observada** — confirmar com o dono antes de planejar: se foi só o teste, este card fecha sem trabalho nenhum. Mantido no board de propósito, porque engolir o card é justamente o defeito que o desempate existe para evitar. 🟡 relato do dono em 2026-07-29, **sem sintoma detalhado ainda**: falta saber se não roda, se roda e volta vazio, se só um parecer volta, ou se trava. Entrou pelo **ciclo** e não pelo diagnóstico de ambiente porque o painel é o que o **produto** faz (`/orq:revisar`) — pelo desempate da skill, o card nasce antes da investigação, e o diagnóstico, se rodar, serve ao plano. **Cruzamento obrigatório:** `T-010` (painel consertado — duas causas raiz: `codex exec` bloqueia lendo stdin sem TTY, resolvido com `< /dev/null`; e subagente spawnado **com `name`** vira teammate e nunca devolve resultado) e `T-007` (Kimi em `~/.kimi-code/bin/kimi`, fora do PATH) estão **os dois em VALIDATE, nunca validados pelo dono na prática** — se a falha se confirmar, os dois voltam reprovados e a causa raiz é provavelmente regressão de um deles, não defeito novo. **Terceira hipótese, com precedente:** em 2026-07-28 os pareceres de Codex e Kimi **estouraram o tempo** no meio de uma revisão real e voltaram parciais, sem veredito. **Próximo passo:** planner reproduz `/orq:revisar` numa mudança pequena e localiza onde quebra — invocação, execução do CLI externo, retorno do subagente ou reconciliação. **✅ FECHADO EM 2026-07-31 SEM TRABALHO — o dono confirmou que era a frase de teste**, o painel não falhou. O card existiu de propósito: engoli-lo teria sido o defeito que o desempate do `T-016` existe para evitar. **Fica pendente em outro lugar:** o painel continua sem validação prática do dono — isso é o `T-010`, em VALIDATE.
+diff --git a/memory/wiki/distribuicao.md b/memory/wiki/distribuicao.md
+index 723b874..c971230 100644
+--- a/memory/wiki/distribuicao.md
++++ b/memory/wiki/distribuicao.md
+@@ -47,10 +47,12 @@ Esse fecho pós-release só vale quando o marketplace/update resolve o **mesmo S
+ `ORQ_CLEAN_SOURCE`. Marketplace `Directory` é iteração local, não prova publicação nem pode ser
+ misturado com clone remoto para declarar o cache validado.
+ 
+-Evidência operacional de 2026-08-30: a fonte remota final `41ed5da` foi clonada em detached e limpa;
++Evidência operacional de 2026-08-30: o commit de produto `41ed5da` foi clonado em detached e limpo;
+ os caches 0.22.7 de Claude e Codex passaram com `rc=0`. A mesma ferramenta rejeitou com `rc=1` um
+-`unexpected-extra.txt` inserido somente em cópias descartáveis. Se os caches reais já estiverem
+-instalados, habilitados e coerentes, não repita o instalador apenas para produzir movimento.
++`unexpected-extra.txt` inserido somente em cópias descartáveis. Em 2026-08-31, o commit documental
++`6fde3e3` avançou `origin/main` sem mudar `orq/`; por isso não exige reinstalação. Se os caches reais
++já estiverem instalados, habilitados e coerentes, não repita o instalador apenas para produzir
++movimento.
+ 
+ Validação natural de 2026-08-31: uma task Codex nova carregou a skill 0.22.7 pela frase *"onde
+ paramos?"* e retomou `memory/MEMORY.md` antes do board e da thread ativa. Isso fecha o smoke Codex

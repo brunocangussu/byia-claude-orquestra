@@ -11,7 +11,42 @@ root=$(cd "$dir" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null) || ro
 board="$root/memory/wiki/KANBAN.md"
 [ -f "$board" ] || exit 0
 
-awk '
+# Cards acima do teto de 240 BYTES (_schema.md, "O teto da linha").
+#
+# Passo separado, com LC_ALL=C, de propósito: `length()` no awk conta caracteres
+# ou bytes conforme o locale, então a mesma linha "cabe" numa máquina e "estoura"
+# noutra — o defeito que este teto existe para não ter. LC_ALL=C fixa bytes.
+#
+# E é passo SEPARADO em vez de LC_ALL=C no awk principal porque lá embaixo
+# `length(t)` trunca o título em 34 para a statusline: sob LC_ALL=C isso cortaria
+# emoji e acento no meio do caractere. Uma régua por finalidade.
+#
+# Duas consequências de ser passo separado, ambas deliberadas:
+#
+#  1. A regra de "arquivado" fica DUPLICADA entre os dois awk. É duas fontes de
+#     verdade, e seria bug esperando acontecer — se não estivesse coberta:
+#     `test_card_arquivado_nao_conta_para_o_teto` quebra assim que os dois
+#     passos discordarem. Mexeu num, rode a suíte.
+#  2. Se este awk falhar, a statusline sai sem quebrar — mas NÃO em silêncio:
+#     falha vira `📏?`, não ausência de sinal. "Não consegui medir" e "está
+#     tudo dentro do teto" são estados diferentes, e a statusline é o único
+#     lugar onde o usuário veria a diferença. Renderizar os dois igual é o
+#     modo de falha que uma statusline não denuncia sozinha.
+#
+# O `sub(/\r$/, "")` tira o terminador de linha do Windows ANTES de medir: `\r`
+# é byte e contaria, então um card de exatamente 240 bytes acenderia `📏` só
+# porque o arquivo veio com CRLF. O teto mede conteúdo, não como o arquivo foi
+# salvo.
+gordos=$(LC_ALL=C awk -v teto=240 '
+  { sub(/\r$/, "") }
+  /^##+ .*[Aa]rquiv/ { archived=1 }
+  archived { next }
+  /^- \[[ >!~?x]\] `[^`]+`/ { if (length($0) > teto) n++ }
+  END { print n+0 }
+' "$board" 2>/dev/null) || gordos="?"
+[ -n "$gordos" ] || gordos="?"
+
+awk -v gordos="$gordos" '
   # para de contar ao chegar no arquivado — casa Arquivado/Arquivadas/Arquivo/arquiv…
   /^##+ .*[Aa]rquiv/ { archived=1 }
   archived { next }
@@ -62,6 +97,13 @@ awk '
       out = out " · " t
     }
     if (suspeitas > 0) out = out sprintf(" ⚠%d", suspeitas)
+    # Sinal PRÓPRIO, nunca o ⚠: são doenças diferentes. ⚠ é "linha parece card e
+    # quebra o contrato" — raro e acionável na hora. 📏 é "card acima do teto" —
+    # dívida acumulada, que fica acesa durante toda a migração. Somar as duas no
+    # mesmo símbolo deixaria o ⚠ cronicamente aceso, e alarme crônico é alarme
+    # ignorado: exatamente o que este contador existe para curar.
+    if (gordos == "?") out = out " 📏?"
+    else if (gordos + 0 > 0) out = out sprintf(" 📏%d", gordos + 0)
     print out
   }
 ' "$board"

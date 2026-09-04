@@ -23,6 +23,77 @@ Card, exatamente assim:
 ⚠️ **Isto não é estilo, é contrato.** `orq/scripts/kanban-status.sh` casa
 `` /^- \[[ >!~?x]\] `[^`]+`/ `` — estrito de propósito.
 
+### O teto da linha — 240 bytes
+
+**A linha inteira do card cabe em 240 bytes UTF-8.** O que não couber vai para a thread do card, e o
+card guarda um ponteiro para ela.
+
+**A unidade é byte UTF-8, não "caractere"** — e isto não é preciosismo. Neste board, contando *code
+points*, 17 cards passavam de 200; contando *bytes*, 21. Quatro cards ficavam de lados opostos da
+mesma régua. `wc -c` conta bytes, `wc -m` conta caracteres, `awk` depende do locale e `len()` do
+Python conta code points: sem a unidade fixada, o mesmo board passa numa máquina e falha noutra.
+Byte UTF-8 é a única régua que não depende de locale nem de implementação — e é a mais próxima do
+custo real em tokens, que é o motivo do teto existir.
+
+**Orçamento por componente**, porque esticar só o total apenas adia o aperto:
+
+| Componente | Teto | Observação |
+|---|---|---|
+| marcador + ID | ~14 B | fixo pelo contrato |
+| título | **80 B** | até o primeiro travessão |
+| ponteiro de thread | **50 B** | `→ threads/T-NNN-nome.md` |
+| nota (estado, `trilha:`, `faixa:`, como validar, `@frente`) | o que sobrar | ~96 B |
+
+**Por que 240 e não 200.** A migração de 2026-09-02 mediu: com teto de 200, **três dos nove
+primeiros cards estouraram** e tiveram o "como validar" reescrito até caber — perda que não aparece
+em contagem nenhuma. A causa é sempre título longo somado a ponteiro longo. 240 dá a folga sem
+devolver a nota-ensaio.
+
+⚠️ **A nota continua sendo lida por parser semântico.** `trilha: … · faixa: …` é procurado dentro
+dela por `/orq:plan-next`, `/orq:implement-next` e `/orq:elenco`. O teto **não** pode espremer isso
+para fora: é metadado obrigatório, não prosa.
+
+### Onde a nota vai morar, e como achá-la depois
+
+| Situação do card | Destino da nota |
+|---|---|
+| tem frente/thread própria | a thread dele, `threads/T-NNN-nome.md` |
+| não tem | `threads/_notas-de-cards.md`, seção própria |
+
+**O endereço é sempre o ID, nunca a posição.** A seção se chama exatamente
+`` ## Nota herdada do card `T-NNN` `` — procure por essa linha. Assim o endereço sobrevive a
+reordenação, a renomeação de título e a notas novas inseridas no meio, que é o que faria um ponteiro
+por posição apodrecer em semanas. O `_notas-de-cards.md` mantém um índice de IDs no topo.
+
+**Por que um arquivo coletivo e não uma thread por card:** trinta threads de um parágrafo trocariam
+um inchaço por outro, e o `wiki-lint` acusaria trinta páginas órfãs — com razão. O coletivo **não é
+thread**: não tem `RETOMAR AQUI` e não representa frente de trabalho. Card que voltar a ser
+trabalhado ganha thread de verdade, e a nota migra para lá.
+
+### O que NUNCA migra para a thread
+
+O board tem **consumidores automáticos** que só leem ele. O que eles procuram na linha do card é
+metadado, não nota — e migrar isso quebra o consumidor em silêncio.
+
+| Fica no card, sempre | Quem lê |
+|---|---|
+| `trilha: … · faixa: …` | `/orq:plan-next`, `/orq:implement-next`, `/orq:elenco` |
+| **release alvo** (`0.23.0`) em card que tem uma | `ContextGuardReleaseVersionTest` |
+| `@frente` | o protocolo de várias janelas |
+| o ponteiro `→ threads/…` | quem precisa achar o resto |
+
+⚠️ **Isto não é teoria — aconteceu na migração de 2026-09-02.** A nota do `T-042` citava a release
+alvo `0.23.0`; ela foi para a thread junto com o resto, e a suíte caiu na hora
+(`test_release_version_is_coordinated`). O teste é um consumidor que lê **só** o board, e a
+informação sumiu do lugar onde ele olha. **Antes de migrar a nota de um card, pergunte quem mais lê
+aquela linha** — a resposta não é sempre "uma pessoa".
+
+⚠️ **O que a thread precisa carregar depois da migração.** Mover a nota para a thread cria um risco
+específico: a recuperação pós-compactação injeta o card curto e o `RETOMAR AQUI`, não a nota velha.
+Se a nota continha uma **restrição** ("não fazer deploy") ou os **critérios de aceite**, eles somem
+da recuperação. Por isso a thread guarda esses dois como **campos**, não como prosa solta — e é a
+thread, não o board, que responde "o que não pode ser feito neste card".
+
 **Só card usa `- [` na coluna 0.** Se você escrever uma seção de processo com itens soltos
 (`- [x] revisor aprovou`), eles **não** entram na contagem por não terem ID entre crases — mas
 aparecem como `⚠N` na statusline, para o desvio não passar despercebido.

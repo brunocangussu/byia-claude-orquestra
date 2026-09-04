@@ -501,3 +501,194 @@ verdes, porque `validate` lê manifesto e o lint confere referências, não cont
 → Antes de reescrever página viva, **rode a suíte depois** — não só o lint. E o diagnóstico do
 subagente atribuiu a falha a um `.DS_Store` no ambiente; era outra coisa. **Ler o traceback antes de
 aceitar a causa relatada**: teste isolado passando e suíte falhando quase nunca é ambiente.
+
+## Encolher o card do board pode quebrar um consumidor automático — 2026-09-02
+
+**O que aconteceu.** A migração do `T-056` moveu a nota longa de 31 cards para as threads. A nota do
+`T-042` citava a release alvo `0.23.0`; foi junto. A suíte caiu no mesmo instante:
+`ContextGuardReleaseVersionTest.test_release_version_is_coordinated` lê a **linha do card** e exige
+que `0.23.0` esteja lá, para provar que card e plano estão coordenados.
+
+**A lição.** O board não é lido só por gente. `trilha:`/`faixa:` são lidos por três comandos; a
+release alvo, por um teste; `@frente`, pelo protocolo de várias janelas. **Antes de mover a nota de
+um card, pergunte quem mais lê aquela linha.** A tabela do que nunca migra está em
+`wiki/_schema.md`, seção "O que NUNCA migra para a thread".
+
+**Por que valeu a pena mesmo assim.** O gate pegou na hora, e o custo foi repor 25 bytes na linha.
+Sem a suíte, teria virado um teste-fantasma passando por ausência de dado.
+
+## `awk length()` conta bytes ou caracteres conforme o locale — 2026-09-02
+
+**Onde queima.** Qualquer teto medido em `awk`. Com `LANG` vazio ou `C`, `length()` conta bytes; com
+locale UTF-8, conta caracteres. Board em português tem acento em quase toda linha: medindo este
+board, **17 cards passavam de 200 contando code points e 21 contando bytes** — quatro cards ficavam
+de lados opostos da mesma régua, e o mesmo arquivo passaria numa máquina e falharia noutra.
+
+**O que fazer.** Fixe a unidade e force o locale onde ela é medida. No `kanban-status.sh` a
+contagem do teto roda num passo separado com `LC_ALL=C`, **de propósito não no awk principal**: lá
+`length(t)` trunca o título da statusline em 34, e sob `LC_ALL=C` isso cortaria emoji no meio.
+Uma régua por finalidade, cada uma com o locale que ela precisa.
+
+## Validação depois de efeito colateral não é validação — 2026-09-02
+
+**O que aconteceu.** O script que migrava a nota do card escrevia na thread e **só depois** conferia
+se a linha nova cabia no teto. O `T-036` estourou: a thread já tinha recebido a nota, o board não
+tinha sido tocado, e o texto ficou duplicado. Nada se perdeu, mas o estado ficou inconsistente sem
+ninguém avisar.
+
+**A regra.** Valide tudo o que dá para validar **antes** da primeira escrita, e ordene os efeitos do
+mais recuperável para o menos. Aqui: valida o teto → escreve na thread → só então reescreve o board.
+Se a escrita da thread falhar, o board continua íntegro e a operação inteira pode ser repetida — e o
+migrador ficou idempotente para que repetir não duplique.
+
+## Verificador que reprova TUDO está quebrado, não o código — 2026-09-02
+
+**O que aconteceu.** Escrevi um reconciliador para provar que as 48 notas migradas do board estavam
+íntegras nas threads. Ele acusou **48 de 48 falhando**. O defeito era dele: o regex
+`/^## Marca\n([\s\S]*?)(?=\n## |$)/gm` — com a flag `m`, o `$` do lookahead casa fim de **linha**,
+não fim de string, então o não-guloso encerrava a seção na primeira quebra de linha. Conferido um
+caso à mão, a nota batia 5027 de 5027 caracteres.
+
+**A regra.** Reprovação universal é sinal de verificador quebrado, não de código quebrado —
+especialmente quando outra checagem já passou. **Confira um caso à mão antes de agir sobre o próprio
+alarme.** Custa um minuto e evita "consertar" o que estava certo. Corrigido, o resultado real foi
+48/48 íntegras, na seção do próprio ID, sem duplicata nem órfã.
+
+## Statusline que some com o sinal esconde a falha que devia mostrar — 2026-09-02
+
+**O que aconteceu.** O contador de cards fora do teto (`📏`) roda num awk separado. Se esse awk
+falhar, a variável fica vazia e o sinal simplesmente não aparece. Eu documentei isso como
+*"fail-open de propósito"* — e a revisão externa mostrou o buraco: um board com dezenas de cards
+fora do teto renderiza **exatamente igual** a um board limpo.
+
+**A regra.** *"Não consegui medir"* e *"está tudo certo"* são estados diferentes e não podem
+renderizar igual. Fail-open protege o prompt de quebrar; não autoriza mentir sobre o que foi
+medido. Falha agora vira `📏?`, com teste que injeta a falha e exige o `?`.
+
+## `\r` do CRLF conta como byte em qualquer teto medido por linha — 2026-09-02
+
+**Onde queima.** Teto de tamanho por linha, medido em bytes. O `\r` do CRLF é byte e entra na conta:
+um card de exatamente 240 bytes de conteúdo acende o alarme só porque o arquivo veio com CRLF. O
+mesmo board reprova ou passa conforme quem o salvou — que é o oposto de ter uma régua.
+
+**O que fazer.** `sub(/\r$/, "")` antes de medir. O teto mede o conteúdo, não como o arquivo foi
+gravado. E o teste tem que ser de **fronteira exata com CRLF**, não só "linha gorda com CRLF": a
+linha gorda acusa dos dois jeitos e não prova nada.
+
+## Citar skill de OUTRO plugin com o padrão `` skill `nome` `` derruba o lint — 2026-09-02
+
+**O que aconteceu.** Escrevi na `SKILL.md` que o gatilho de memória deve chamar *"a skill
+`mem-search`"*. O lint reprovou: `` skill `mem-search` não existe ``. E **dois testes caíram junto** —
+`test_main_ignores_in_use_in_installed_cache` e `test_main_ignores_top_level_orphaned_at_in_installed_cache`
+rodam o lint inteiro e exigem exit 0.
+
+**Por quê.** O padrão `` skill `([A-Za-z0-9][\w-]*)` `` (`lint-coerencia.py:66`) é validado contra as
+skills **deste** plugin. `mem-search` pertence ao claude-mem. O lint está certo: ele não tem como
+saber se um nome externo existe, e deixar passar reabriria o buraco que o `T-008` fechou.
+
+**Como citar ferramenta de outro plugin.** Não use a palavra "skill" imediatamente antes do nome em
+crases. `` ele expõe `mem-search` `` passa; `` a skill `mem-search` `` não. O mesmo vale para
+`/comando` e `` `agente` `` de terceiros.
+
+**A lição maior:** teste que reprova sem causa aparente pode estar apenas **rodando outro gate por
+dentro**. Antes de investigar dois testes como se fossem defeitos independentes, verifique se ambos
+não são o mesmo lint falhando.
+
+## `codex plugin marketplace add` registra com nome DERIVADO, não com o do manifesto — 2026-09-02
+
+**O que aconteceu.** `codex plugin marketplace add thedotmack/claude-mem` respondeu
+*"Added marketplace `claude-mem-local`"*. O `marketplace.json` daquele repositório se declara
+`name: "thedotmack"`, então o passo seguinte — `codex plugin add claude-mem@thedotmack` — falhou com
+*"plugin `claude-mem` was not found in marketplace `thedotmack`"*. O nome válido é o **de registro**
+(`claude-mem-local`), não o declarado no manifesto nem o dono do repositório.
+
+**Como acertar sempre:** rode `codex plugin marketplace list` **entre** os dois comandos e use o
+nome da coluna `MARKETPLACE`. Não presuma o nome a partir da URL, do dono ou do manifesto.
+
+⚠️ **Isto afeta o `instalar.md` do próprio Orquestra**, que ensina `codex plugin add orq@orquestra`.
+Funcionou porque aquele marketplace **por acaso** registrou como `orquestra` — não porque o nome
+seja previsível. Instalação em host novo deve conferir a listagem antes do `add`.
+
+## O claude-mem pode parar de gravar e continuar respondendo "ok" no health — 2026-09-02
+
+**O que aconteceu.** O aviso dizia *"observer falhou 33 vezes"* com
+`NOT NULL constraint failed: session_summaries.memory_session_id`. Medido: **última gravação 17,6 h
+antes, zero observações em 12 h** — e o worker respondendo `{"status":"ok"}` na porta 37701, com
+`activeSessions: 1`. **Worker vivo não significa memória sendo salva.**
+
+**Como verificar de verdade** — não confie no health, olhe o relógio do banco:
+
+    select max(created_at_epoch) from observations;
+
+Se a última gravação for de horas atrás e houve trabalho no período, está quebrado.
+
+**O que isso provou sobre o desenho, e é o ponto que fica:** a sessão inteira que consertou a fiação
+do claude-mem **não foi capturada por ele** — e nada se perdeu, porque a wiki e o checkpoint
+seguraram tudo. É exatamente a divisão de papéis escrita no `T-072`: a wiki é a **fonte da verdade**,
+o claude-mem é **rede de segurança**. Quando a rede falha em silêncio, quem estava certo era quem
+não dependia dela.
+
+## Memória de sessão parada NÃO se detecta pelo health — só pelo relógio do banco — 2026-09-02
+
+**O caso completo, porque a investigação errou antes de acertar.** O claude-mem parou de gravar às
+00:34 e só foi notado **22 h depois**, por um aviso do próprio plugin. Durante todo esse tempo:
+`{"status":"ok"}` na porta 37701, worker com PID vivo, sessões sendo registradas normalmente em
+`sdk_sessions` — e **zero** observações gravadas, de nenhum projeto.
+
+**A causa real** (`observer-health.json` + `logs/claude-mem-*.log`): a sessão foi marcada
+`status='completed'` enquanto a conversa **continuava**. Ao tentar gravar o resumo de uma sessão já
+dada como encerrada, o `memory_session_id` vem nulo e o `NOT NULL` da tabela `session_summaries`
+recusa. 42 falhas consecutivas. **Não é caso isolado: 126 das 481 sessões receberam observação
+depois de marcadas como completas.** É bug do plugin, não de configuração.
+
+**A hipótese errada, registrada de propósito:** achei que a causa fosse uma mensagem envenenada em
+`pending_messages` (3 presas desde maio/junho, uma apontando para sessão sem `memory_session_id`).
+Limpei a fila com backup — e o erro continuou, com `consecutiveFailures` subindo de 33 para 42
+**durante** a investigação. Fila vazia + nada gravado = as mensagens não estavam nem chegando; o
+problema era antes do ponto consertado. *Uma hipótese que explica os dados não é a causa até a
+correção mudar o comportamento.*
+
+**Como verificar de verdade** — três sinais, nesta ordem:
+
+    cat ~/.claude-mem/observer-health.json     # consecutiveFailures e lastErrorMessage
+    # última gravação vs. agora, no banco: max(created_at_epoch) de observations
+    # health na porta: o MENOS confiável dos três — responde ok com tudo parado
+
+**A lição que vale além do claude-mem:** *processo vivo não é trabalho feito.* Todo componente que
+grava em segundo plano precisa ser verificado pelo **carimbo do que gravou**, nunca por
+liveness/health. E o que salvou estas 22 h foi a wiki: o claude-mem é rede de segurança, a wiki é a
+fonte da verdade — quando a rede caiu em silêncio, quem não dependia dela não perdeu nada. Virou o
+card `T-075`.
+
+## `.worktreeinclude` é do Claude Code, não do git — 2026-09-04
+
+**Crédito da correção:** análise externa (Fable 5.1), que a levantou como opção e depois a
+retratou. Registrada aqui porque é suposição plausível que só apareceria **depois** de uma
+implementação inteira.
+
+O `.worktreeinclude` existe e funciona — mas é recurso **do Claude Code** (está no changelog
+dele), não do git. Ele copia arquivos ignorados para worktrees que *o Claude Code* cria.
+Worktree criado por outro app (Orca, herdr) ou por `git worktree add` na mão **não passa por
+ele**. Qualquer desenho que dependa dele para compartilhar `memory/` entre worktrees falha
+silenciosamente fora do Claude Code.
+
+**A regra geral:** antes de apoiar um desenho num recurso, confirme **de quem** é o recurso —
+git, host, ou plugin. `git help <cmd>` responde em segundos, e a resposta muda o desenho.
+
+## Board editado dentro de worktree é trabalho que ninguém mais vê — 2026-09-04
+
+**Medido neste repo:** dos 10 worktrees vivos, **7 tinham alterações não commitadas, e quase
+todas eram arquivos de `memory/`** — `KANBAN.md`, `MEMORY.md`, `fixes-history.md` e threads.
+Board de 41–52 cards nos worktrees contra 74 no principal. Um agente aberto no `t037` editaria
+um board sem os 31 cards criados depois.
+
+**Por que acontece:** `memory/` é versionado, então cada worktree carrega uma **cópia congelada
+no commit daquele branch**. O protocolo multi-janela ("releia antes de escrever", "edite a linha")
+pressupõe **um** arquivo disputado — e com worktree não há disputa, há bifurcação silenciosa.
+
+**Como detectar:** `git worktree list` e, em cada um, `git status --porcelain | grep memory/`.
+Alteração de `memory/` dentro de worktree é sinal de trabalho órfão, não de trabalho em curso.
+
+**Conserto proposto:** `T-076` — resolver `memory/` pelo `git rev-parse --git-common-dir`, que
+devolve o `.git` do **principal** a partir de qualquer worktree. ⚠️ Ele pode vir **relativo ao
+cwd** (da raiz devolve `.git`), então normalize para absoluto antes de mudar de diretório.

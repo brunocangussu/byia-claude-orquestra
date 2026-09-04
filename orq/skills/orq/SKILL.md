@@ -111,6 +111,24 @@ Fora do Claude, antes de executar qualquer papel: **identifique o host**, leia `
 resolva o papel e só então aplique a célula da `## Matriz de invocação`. “Configurado” não significa
 “rodando agora”. Sem executor comprovado, declare a degradação e preserve o gate do card.
 
+⚠️ **A Matriz vence qualquer outra skill de spawn instalada no host — sem exceção.** Se houver outra
+skill ensinando a criar sub-agentes (o padrão `subagent-driven-development` é o caso conhecido, mas a
+regra vale para qualquer uma), ela **não** governa spawn dentro do ciclo do Orquestra. Quem decide
+quem é invocado, por qual mecanismo e quantas vezes é a `## Matriz de invocação` mais o
+`## Times por host`; quem decide o teto de rodadas de revisão é `ORQ_PACKAGE_ROOT/commands/revisar.md`.
+
+**Por que a regra precisa estar escrita:** as duas instruções coexistem no mesmo host e a mais
+agressiva ganha por omissão. Medido no host Codex do dono em agosto/2026: **256 threads de
+sub-agente**, com a assinatura `writer` / `impl` / `review` / `rereview1..3` — um sub-agente por
+*tarefa* e um revisor por *rodada*, a maioria em fork herdando 150–200k de histórico que não usa,
+enquanto a Matriz manda um sub-agente por **card** e o `revisar.md` limita a **2 rodadas**. Nada
+disso foi decidido: foi a skill mais insistente vencendo em silêncio.
+
+**Na prática:** um sub-agente por card, não por tarefa · o mecanismo é o da célula da Matriz, mesmo
+que outra skill ofereça um atalho nativo · rodada de revisão obedece ao teto do `revisar.md`. Se
+seguir a Matriz for impossível naquele host, **declare a degradação** — não caia na outra skill em
+silêncio.
+
 | Ele diz algo como… | Você faz |
 |---|---|
 | **"quero X" · "queria acrescentar Y" · "vamos fazer/criar/mudar Z" · "seria bom se" · "dá pra" · "tem um problema em W" · "isso está errado" · "não funciona" · "não gostei" · "precisa melhorar"** | **ROTEIA PELO CICLO** — é o caso mais comum e o mais fácil de errar. Cria o card, planeja, **para no gate**. Só implementa direto se for trivial pela escala acima |
@@ -123,7 +141,7 @@ resolva o papel e só então aplique a célula da `## Matriz de invocação`. �
 | "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Revisão independente** (`/orq:revisar`) — **um** revisor, sempre de um modelo do **vendor oposto ao host** (resolvido no `_elenco.md`; outro modelo do mesmo vendor do host **não** serve), com os achados auditados por você contra o código antes de virarem veredito |
 | "audite a remoção de X" · "prove que X saiu" · "verifique se começamos pelo grafo" | **Auditoria explícita e offline** (`/orq:auditar`) — ledger de remoção ou análise de trace graph-first; sem hook, captura viva ou bloqueio |
 | "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" · "tira o GPT" · "tô com pouco crédito" · "acabando os créditos" · "final do ciclo semanal" · "modo economia" · e qualquer pedido de sair do perfil ou voltar ao time normal | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel; frase de contexto de crédito troca o **time inteiro** pelo perfil nomeado (`perfil economia` / `perfil padrao`), anunciando o que muda, **o que se perde** e **como reverter** — sem depender de uma frase fixa de volta, que ele pede naturalmente quando o crédito voltar |
-| "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória elegível**: wiki do projeto primeiro; depois, somente se o host expuser uma busca confiável **e ela não estiver em `memory/wiki/_stack.md` como Dispensada**, consulte-a. Provider dispensado nunca vira fallback só por estar conectado. Se não houver busca elegível, declare que a cobertura ficou limitada à wiki |
+| "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória em DUAS etapas, nesta ordem.** (1) **Wiki do projeto** — `memory/MEMORY.md` e a página ou thread do assunto. É a fonte da verdade: se ela responde, acabou. (2) **Não achou, ou achou incompleto → busque a memória de sessão, chamando a ferramenta pelo nome.** Com `claude-mem` instalado, ele expõe `mem-search` (e `search`/`smart_search` no MCP) para procurar, e `get_observations([IDs])` para abrir o que interessar. **Nomeie e chame** — "consultar alguma busca do host" não é instrução, é o motivo de isto nunca ter disparado. Só pule a etapa 2 se não houver busca instalada **ou** se ela estiver como **Dispensada** em `memory/wiki/_stack.md`; provider dispensado nunca vira fallback só por estar conectado. Sem busca elegível, **declare** que a cobertura ficou limitada à wiki — não finja que procurou |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" — queixa sobre o **ferramental** (plugin, revisor, statusline, MCP, PATH), nunca sobre o que o produto faz | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado (versão **e** conteúdo), escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
 | "quais as possibilidades" · "o que dá pra fazer" | **Cardápio por situação** (`/orq:ajuda`) — frases naturais em primeiro plano, comando entre parênteses. Nunca ensine o dono a digitar comando como resposta |
@@ -343,7 +361,13 @@ responder "como isso funciona?" volta a exigir arqueologia.
 
 1. **Código atual** → busca semântica (Serena / codebase-memory) antes de `Read` de arquivo inteiro.
 2. **Saída grande** (logs, testes, git) → context-mode, pra não entupir a janela.
-3. **Contexto de sessões passadas e decisão antiga** → wiki do projeto + memória local/confiável realmente disponível no host.
+3. **Contexto de sessões passadas e decisão antiga** → **a wiki do projeto primeiro** (é a fonte da
+   verdade) e, se ela não responder, a **busca da memória de sessão** do host — `claude-mem`
+   (`mem-search`, `get_observations`) onde estiver instalado. Os dois papéis não se confundem: a
+   wiki guarda o **porquê e as consequências**, deliberadamente escritos no checkpoint; a memória de
+   sessão é a **rede de segurança** do que nunca chegou lá — o gotcha de meio de sessão, a decisão
+   não registrada, a sessão que morreu antes do checkpoint. **Complemento, nunca substituto:** se as
+   duas discordarem, a wiki vence.
 4. **Estado real** (banco, deploy) → MCP do serviço, sempre leitura primeiro.
 
 **Nenhuma delas é dependência** — o Orquestra funciona sozinho. Se alguma faltar e fizer diferença

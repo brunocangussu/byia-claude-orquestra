@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Executa reviewer Claude e só entrega saída comprovadamente gerada por Opus 5."""
+"""Executa um papel read-only num modelo Anthropic e só entrega saída comprovada.
+
+O nome do arquivo e o prefixo `OPUS_` das mensagens são **contrato de fio estável**,
+preservados de quando o Opus era o único modelo Anthropic alcançável fora de spawn.
+Toda mensagem nomeia o modelo real, então o prefixo é rótulo de código, não afirmação
+sobre qual modelo rodou.
+"""
 
 from __future__ import annotations
 
@@ -15,7 +21,17 @@ import time
 
 DEFAULT_MAX_INPUT_BYTES = 16_384
 DEFAULT_TIMEOUT_SECONDS = 600.0
-EXPECTED_MODEL_PREFIX = "claude-opus-5"
+DEFAULT_MODEL_ALIAS = "opus"
+
+# alias do CLI → prefixo que o `modelUsage` da resposta TEM que exibir.
+# É o mapa que sustenta a prova: sem prefixo conhecido, a saída não pode ser
+# atribuída a modelo nenhum, e o runner recusa antes de chamar o CLI.
+MODEL_ALIASES = {
+    "opus": "claude-opus-5",
+    "fable": "claude-fable-5",
+    "sonnet": "claude-sonnet-5",
+    "haiku": "claude-haiku-4-5",
+}
 
 
 def fail(code: int, message: str) -> int:
@@ -43,6 +59,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_SECONDS)
     parser.add_argument("--max-input-bytes", type=int, default=DEFAULT_MAX_INPUT_BYTES)
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL_ALIAS,
+        help=f"alias Anthropic a executar; um de {', '.join(sorted(MODEL_ALIASES))}",
+    )
     return parser.parse_args()
 
 
@@ -50,6 +71,15 @@ def main() -> int:
     args = parse_args()
     if args.timeout <= 0 or args.max_input_bytes <= 0:
         return fail(2, "OPUS_INVALID_LIMITS: timeout e max-input-bytes devem ser positivos")
+
+    # Fail-closed ANTES de qualquer efeito: alias sem prefixo conhecido não roda.
+    expected_prefix = MODEL_ALIASES.get(args.model)
+    if expected_prefix is None:
+        return fail(
+            2,
+            f"MODEL_ALIAS_DESCONHECIDO: {args.model!r} não está no mapa de prova; "
+            f"conhecidos: {', '.join(sorted(MODEL_ALIASES))}",
+        )
 
     raw = sys.stdin.buffer.read(args.max_input_bytes + 1)
     if len(raw) > args.max_input_bytes:
@@ -75,7 +105,7 @@ def main() -> int:
         claude,
         "-p",
         "--model",
-        "opus",
+        args.model,
         "--permission-mode",
         "plan",
         "--tools",
@@ -90,7 +120,7 @@ def main() -> int:
 
     started = time.monotonic()
     print(
-        f"OPUS_STARTED MODEL_ALIAS=opus TIMEOUT={args.timeout:g}s BRIEFING_BYTES={len(raw)}",
+        f"OPUS_STARTED MODEL_ALIAS={args.model} TIMEOUT={args.timeout:g}s BRIEFING_BYTES={len(raw)}",
         file=sys.stderr,
         flush=True,
     )
@@ -125,10 +155,10 @@ def main() -> int:
 
     model_usage = payload.get("modelUsage") or payload.get("model_usage") or {}
     model_names = list(model_usage) if isinstance(model_usage, dict) else []
-    opus_models = [name for name in model_names if name.startswith(EXPECTED_MODEL_PREFIX)]
+    opus_models = [name for name in model_names if name.startswith(expected_prefix)]
     if not opus_models:
         observed = ",".join(model_names) if model_names else "<ausente>"
-        return fail(7, f"OPUS_MODEL_MISMATCH: esperado {EXPECTED_MODEL_PREFIX}; observado {observed}")
+        return fail(7, f"OPUS_MODEL_MISMATCH: esperado {expected_prefix}; observado {observed}")
 
     result = payload.get("result")
     if not isinstance(result, str) or not result.strip():

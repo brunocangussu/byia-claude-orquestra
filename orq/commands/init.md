@@ -214,7 +214,21 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    - o título vai até o primeiro travessão `—`;
    - **nada de negrito ou crase envolvendo o marcador ou o ID**, e **sem indentação**;
    - **só card usa `- [` na coluna 0** — item de processo solto não é card;
-   - uma seção cujo título case com `## …arquiv…` **encerra a contagem** de progresso.
+   - uma seção cujo título case com `## …arquiv…` **encerra a contagem** de progresso;
+   - **a linha inteira cabe em 240 bytes UTF-8** — o que não couber vai para `threads/T-NNN.md`,
+     e o card fica com título, estado, como validar e o ponteiro para a thread.
+
+   ## O teto da linha de card
+   A unidade é **byte UTF-8**, não "caractere": `wc -c` conta bytes, `wc -m` conta caracteres e
+   `awk` depende do locale — sem fixar a unidade, o mesmo board passa numa máquina e falha noutra.
+   Orçamento: título ≤ 80 B · ponteiro de thread ≤ 50 B · o resto para estado e `trilha:`/`faixa:`.
+   O teto existe porque o board é relido inteiro a cada retomada e a cada compactação: nota longa
+   no card é custo cobrado em toda sessão, enquanto na thread ela só é lida por quem precisa dela.
+   ⚠️ A nota **continua** carregando `trilha: … · faixa: …`, que três comandos leem por parser —
+   o teto não pode espremer esse metadado para fora.
+   ⚠️ Ao mover a nota, **restrição e critério de aceite viram campos da thread**, não prosa solta:
+   a recuperação pós-compactação injeta o card curto e o `RETOMAR AQUI`, então o que ficar só na
+   prosa da nota velha não volta.
 
    ## Regras da wiki
    - o LOG (`fixes-history.md`) é append-only: responde "o que aconteceu naquele dia";

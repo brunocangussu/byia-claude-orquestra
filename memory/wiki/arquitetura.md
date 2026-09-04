@@ -135,7 +135,7 @@ Contrato canônico em `orq/commands/revisar.md` — aqui só o que muda o desenh
 - `--rapido` encolhe só o **briefing** em card pequeno/baixo risco — nunca troca de revisor nem
   dispensa a revisão.
 
-O runner Opus (`run-opus-reviewer.py`) sanitiza o briefing, limita 16 KiB por lote (dividindo por
+O runner Anthropic (`run-opus-reviewer.py`) sanitiza o briefing, limita 16 KiB por lote (dividindo por
 arquivo/hunk acima disso), anuncia `OPUS_STARTED` no stderr e aplica timeout de 600s — teto que
 acomoda a latência real observada em revisão arquitetural (267,1s), sem remover a proteção contra
 processo órfão. Só libera saída quando `modelUsage` comprova `claude-opus-5`.
@@ -296,7 +296,7 @@ Comandos, skill e agentes são texto. Estes são os assets de runtime, todos em 
 | Arquivo | Faz |
 |---|---|
 | `context-guard.py` | guardião preventivo de contexto do Codex — o `hooks.json` o encaixa em 6 eventos (`PostToolUse`, `Stop`, `UserPromptSubmit`, `SessionStart`, `PreCompact`, `PostCompact`); só age no ambiente nativo do Codex (ver seção própria abaixo) |
-| `run-opus-reviewer.py` | roda o revisor/planner Opus 5 pela via cross-vendor Anthropic, comprova `claude-opus-5` no `modelUsage`, 16 KiB/lote, timeout 600s |
+| `run-opus-reviewer.py` | roda revisor/planner num modelo **Anthropic escolhido por `--model`** (`opus`·`fable`·`sonnet`·`haiku`; padrão `opus`) pela via cross-vendor, **comprova no `modelUsage` o prefixo do alias pedido** — pedir um e receber outro reprova —, 16 KiB/lote, timeout 600s |
 | `verify_installed_cache.py` | compara byte a byte a fonte do plugin com o cache instalado num host — o fecho de todo release e de todo `/orq:instalar` |
 | `audit-removal.py` | ledger offline de remoção de código/config (`scan`/`verify`), evidência reproduzível sem chamar LLM nenhuma |
 | `audit-adoption.py` | verifica offline, a partir de um trace explícito (`schemas/audit-ledger-v1.json`), se a descoberta seguiu grafo/índice antes de busca textual |

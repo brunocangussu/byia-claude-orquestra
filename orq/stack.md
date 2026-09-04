@@ -79,16 +79,39 @@ nunca trate memória externa como requisito para o checkpoint.
 
 ### `claude-mem` — captura a sessão e reinjeta na próxima
 
-📦 [`thedotmack/claude-mem`](https://github.com/thedotmack/claude-mem) · plugin do Claude Code
+📦 [`thedotmack/claude-mem`](https://github.com/thedotmack/claude-mem) · plugin do Claude Code, com
+`.codex-plugin/` e `hooks/codex-hooks.json` no pacote — **o Codex também é alvo suportado**
 
 Comprime o que aconteceu na sessão e injeta o resumo no início da seguinte.
 
-**Por que importa no Orquestra:** o plugin recomenda `checkpoint` + `/clear` em vez de `/compact`
-encadeado — e o `/clear` só é seguro porque alguma coisa devolve o contexto depois. A wiki cobre o
-**estado do trabalho**; o claude-mem cobre a **textura da conversa** (o que foi tentado e descartado,
-o tom da decisão). Sem ele o `/clear` continua seguro, mas mais seco.
+**O papel, e por que ele não colide com a wiki:** o plugin recomenda `checkpoint` + `/clear` em vez
+de `/compact` encadeado — e o `/clear` só é seguro porque alguma coisa devolve o contexto depois.
+São duas memórias com funções distintas, e confundi-las é o erro a evitar:
 
-**Detectar:** marketplace `thedotmack` registrado. **Custo:** roda um worker local.
+| | Guarda | Como nasce |
+|---|---|---|
+| **wiki + checkpoint** | o **porquê** e as consequências — a fonte da verdade | escrita deliberadamente, curada |
+| **claude-mem** | a **rede de segurança** do que não chegou ao checkpoint: gotcha de meio de sessão, decisão não registrada, sessão que morreu antes | captura automática |
+
+**Complemento, nunca substituto.** Se as duas discordarem, a wiki vence. Sem ele o `/clear` continua
+seguro, só mais seco.
+
+**Ligue a busca, ou ele não se paga.** O valor não está na injeção automática — está em **conseguir
+perguntar**. Uma instalação em que ninguém chama `mem-search`/`get_observations` paga o custo e não
+colhe nada; o gatilho *"lembra quando a gente…"* tem que **nomear a ferramenta**, não dizer "alguma
+busca do host".
+
+**Regule por TIPO, não por quantidade.** A captura é dominada por narração de sessão — medido num
+projeto real: **80% das observações são `discovery` + `change`** ("testes verdes", "gate ok"), que é
+exatamente o que a wiki chama de derivável. Filtrar a injeção por `decision, bugfix, gotcha,
+security_alert, security_note` corta o ruído na raiz; baixar a contagem só corta ruído e sinal na
+mesma proporção. ⚠️ **Só filtre depois de ligar a busca:** quem atribui o tipo é um modelo, não uma
+regra, e o que for classificado errado sai da injeção — se a busca não estiver ligada, fica
+inalcançável pelos dois caminhos.
+
+**Detectar:** marketplace `thedotmack` registrado. **Custo:** roda um worker local, e o observer faz
+uma chamada de modelo barato por observação — **medir antes de instalar em host cujo gargalo seja
+número de chamadas**.
 
 ## Camada 3 — Entender o código
 
@@ -211,7 +234,7 @@ externo de memória nem arrasta a camada 3.
 | Perfil | Acrescenta |
 |---|---|
 | **Mínimo** (qualquer host) | ferramentas compatíveis da Camada 1; nenhuma memória externa obrigatória |
-| **Claude Code, memória de conversa** | `claude-mem` (opcional; não propor no Codex) |
+| **Memória de conversa** (qualquer host com suporte) | `claude-mem` — rede de segurança do que não chegou ao checkpoint. O pacote traz `.codex-plugin/` e `hooks/codex-hooks.json`, então **o Codex também é alvo**; medir o custo dos 5 hooks antes de instalar lá |
 | **Repo grande** (≳50 arquivos) | `codebase-memory` e/ou Serena |
 | **Trabalho crítico** (dinheiro, dados de terceiros, segurança) | o revisor do **vendor oposto ao host**: `codex` se o host é o Claude Code; a CLI `claude` (+ o runner Opus já empacotado) se o host é o Codex |
 
