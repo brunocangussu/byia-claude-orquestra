@@ -692,3 +692,16 @@ Alteração de `memory/` dentro de worktree é sinal de trabalho órfão, não d
 **Conserto proposto:** `T-076` — resolver `memory/` pelo `git rev-parse --git-common-dir`, que
 devolve o `.git` do **principal** a partir de qualquer worktree. ⚠️ Ele pode vir **relativo ao
 cwd** (da raiz devolve `.git`), então normalize para absoluto antes de mudar de diretório.
+
+## Os verbos de plugin do Codex não são os do Claude — 2026-09-04
+
+`codex plugin update` e `codex plugin marketplace update` **não existem**. O CLI responde com
+*usage* — não com "comando desconhecido" —, o que faz parecer erro de sintaxe do argumento.
+
+| Intenção | Claude | Codex |
+|---|---|---|
+| atualizar o marketplace | `marketplace update <nome>` | **`marketplace upgrade <nome>`** |
+| atualizar o plugin | `plugin update <p>@<mkt>` | **`plugin add <p>@<mkt>`** (reinstala na versão nova) |
+
+O `add` do Codex é idempotente e serve como update. Confirme sempre pelo caminho impresso
+(`Installed plugin root: …/orq/<versão>`), não pela ausência de erro.

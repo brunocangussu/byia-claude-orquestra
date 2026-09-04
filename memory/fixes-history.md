@@ -1720,3 +1720,17 @@ worktrees sujos estão em `docs/arquivo-worktrees-2026-09-04/`.
 board, índice, log e threads editados dentro de worktree e nunca commitados. Boards de 41–52 cards
 contra 74 no principal. É o `T-076` acontecendo há meses, muito antes de qualquer app com worktree
 nativo entrar na conversa.
+
+**Publicação da 0.26.0 — 2026-09-04.** Autorizada pelo dono. Commit `bb68c9f` (45 arquivos,
+5.193 inserções) em `origin/main`, push **fast-forward sem divergência** — checado antes, que é
+exatamente o que faltou na 0.24.0 e custou a reconciliação da T-052. Instalada nos dois hosts:
+Claude por `plugin update` (0.25.0 → 0.26.0), Codex por `marketplace upgrade` + `plugin add`.
+
+⚠️ **Gotcha do CLI do Codex, pago aqui:** os verbos **não** são os do Claude. `codex plugin update`
+e `codex plugin marketplace update` **não existem** — são `codex plugin add` (reinstala na versão
+nova) e `codex plugin marketplace upgrade`. O comando errado sai com *usage*, não com erro claro.
+
+Verificação pós-release feita **a partir de clone detached limpo do SHA publicado**, nunca da
+árvore de trabalho: `verify_installed_cache.py` deu `ok: installed cache matches source` com exit 0
+nos dois hosts, e os três gates repetidos **na fonte limpa** também passaram (219 · validate ·
+lint). O clone foi descartado. Falta apenas o teste comportamental do dono.
