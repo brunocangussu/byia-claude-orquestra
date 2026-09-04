@@ -54,7 +54,7 @@
 
 - [?] `T-077` Runner Anthropic fixa --model opus e barra o Fable no host Codex — feito: --model por alias, prova por prefixo · → threads/T-054-economia-tokens.md
 
-- [ ] `T-076` Board resolvido pelo checkout principal, para sobreviver a worktree por frente · trilha: sistema · faixa: normal · → threads/T-076-board-worktree.md
+- [ ] `T-076` Board resolvido pelo checkout principal, para sobreviver a worktree por frente · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md
 
 - [ ] `T-075` Memória de sessão pode parar de gravar sem ninguém notar — detectar no diagnóstico e no checkpoint · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md @frente-economia
 
@@ -71,7 +71,7 @@
 
 - [ ] `T-054` Guardião funciona no Claude Code, com faixas em tokens — p7 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-055` Pós-compactação injeta estado, não ordem de releitura — p8 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
-- [ ] `T-056` Card do board com teto: a nota longa vai para a thread — p12 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
+- [?] `T-056` Card do board com teto: a nota longa vai para a thread — na 0.26.0; teste: o board responde "onde paramos" sem abrir thread? · → threads/T-054-economia-tokens.md
 - [ ] `T-057` MEMORY.md volta a ser índice, com teto de linhas — p13 · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-058` Thread com teto e um único RETOMAR AQUI vivo — p14 · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-059` Leitura parcial por padrão em quadro e checkpoint — p15 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia

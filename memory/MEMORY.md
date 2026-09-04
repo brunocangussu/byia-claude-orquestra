@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.26.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-01/02 (`bd6d3fc`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-01 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.26.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-01/02 (`bd6d3fc`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-04 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟢 Trabalho mais recente (2026-09-02) — @frente-economia · `T-054`…`T-075`
 

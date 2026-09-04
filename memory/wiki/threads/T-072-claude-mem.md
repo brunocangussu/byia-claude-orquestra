@@ -155,58 +155,22 @@ exatamente este defeito. O plugin **foi instalado** no Codex nesta janela
 
 ## ⏭️ RETOMAR AQUI
 
-**Estado:** `T-072` e `T-073` implementados e em VALIDATE. `T-074` medido, instalado no Codex, mas
-**com recomendação de não ligar ainda**. `T-075` criado no backlog. Gates verdes: 215 testes ·
-`validate` ✔ · lint ✓. **Versão 0.26.0 bumpada, NADA commitado nem publicado.**
+**`T-072` e `T-073` publicados na `0.26.0` e em VALIDATE.** O `T-074` também: o claude-mem **foi
+instalado no Codex** (`codex plugin add claude-mem@claude-mem-local` — atenção ao nome de
+**registro** do marketplace, não `@thedotmack`).
 
-### A primeira coisa a fazer na sessão nova (30 segundos)
+**A decisão que resta é sua:** deixar ligado no Codex ou não. O dado contra é que as **24 sessões
+com `memory_session_id` nulo são todas daquele host**, nenhuma das 285 do Claude — o mesmo defeito
+que travou o observer por 22 h em 02/09.
 
-O claude-mem estava travado há 22 h. A sessão nova deve nascer sem o conflito — **confirme**:
+**Antes de confiar de novo:** o teste não é `plugin list` nem o health da porta 37701, que respondeu
+`ok` durante as 22 h paradas. É o **carimbo do banco**:
 
-```
-python3 -c "import sqlite3,os,datetime;c=sqlite3.connect(os.path.expanduser('~/.claude-mem/claude-mem.db'));r=c.execute('select max(created_at_epoch) from observations').fetchone()[0];print(datetime.datetime.fromtimestamp(r/1000))"
-```
+    python3 -c "import sqlite3,os,datetime;c=sqlite3.connect(os.path.expanduser('~/.claude-mem/claude-mem.db'));print(datetime.datetime.fromtimestamp(c.execute('select max(created_at_epoch) from observations').fetchone()[0]/1000))"
 
-Se a data for **de agora**, destravou. Se ainda for `02/09 00:34`, o contorno não funcionou e o bug
-é mais fundo que "sessão marcada como completa" — reabrir a investigação pelo `observer-health.json`.
+Se a data não avançar depois de trabalho real, continua quebrado — e a investigação recomeça pelo
+`observer-health.json`, não pela fila.
 
-### O que espera o dono
-
-| Card | O que falta |
-|---|---|
-| `T-072` `T-073` | **teste conversacional:** dizer *"lembra quando a gente…"* sobre algo que não está na wiki e ver se a busca do claude-mem é de fato consultada **depois** dela |
-| `T-064` `T-056` | validação em uso |
-| `T-074` | decidir se remove o claude-mem do Codex por ora (`codex plugin remove claude-mem@claude-mem-local`) |
-| `T-065` | aplicar a config da máquina — **agora é seguro**, o `T-073` ligou a busca |
-| `T-075` | **próximo a planejar** — é o pedido explícito do dono nesta janela |
-| — | `AGENTS.md`/`CLAUDE.md`: pendente, o dono não decidiu. **Nada será cortado sem ele ver linha a linha** |
-
-### O que NÃO re-litigar
-
-- Autocompactação: **recusada com motivo** (`_stack.md`). Checkpoint + `/clear` já resolve melhor.
-- `codebase-memory` + `serena`: **ficam os dois** (~570 tok/sessão juntos).
-- Caveman: **nunca esteve instalado**.
-- claude-mem: **fica, com papel de rede de segurança**. Custo real 2,8k/sessão, não 12,1k.
-- Teto de card: **240 bytes**, decidido com o dono. Não voltar a 200.
-
-### O contexto do `T-075`, para planejar sem reler tudo
-
-O dono pediu, com estas palavras: *"instalar alguma coisa no orquestra que ajude a detectar esse
-tipo de erro, para não ficar eternamente travado"*. O caso concreto está na seção "O incidente de
-02/09" acima. O desenho tem que respeitar três coisas aprendidas:
-
-1. **Health/liveness não serve** — o worker respondeu `ok` durante as 22 h paradas. O sinal correto
-   é o **carimbo do que foi gravado** (`max(created_at_epoch)`), comparado com "houve trabalho no
-   período".
-2. **Onde encaixa:** `/orq:stack --verificar` já é o diagnóstico de ferramental ("o revisor sumiu",
-   "a statusline está muda") — é o lar natural. O `/orq:checkpoint` é o segundo candidato, por ser
-   onde o bloco fecha.
-3. **Genérico, não específico do claude-mem** — o plugin é provider-neutral. A checagem deve ser
-   "a memória de sessão declarada como Ativa no `_stack.md` gravou algo desde que começamos?", não
-   "o claude-mem está ok?".
-
-⚠️ **O dono levantou trocar por memória externa (SuperMemory ou outra).** Contraponto registrado:
-o SuperMemory saiu no `T-037` por **falha de conexão recorrente** — mesma classe de problema, e
-externo ainda adiciona rede como ponto de falha. E o que segurou estas 22 h foi a **wiki**: nada se
-perdeu. O problema não é onde a memória mora; é a falha ser **silenciosa**. Se ele insistir, é
-decisão dele — mas leve o dado antes.
+**A config de filtro por tipo** (`OBSERVATION_TYPES`, `OBSERVATIONS=25`, `SESSION_COUNT=5`) ficou
+segura de aplicar **depois** do `T-073`: agora que a busca é nomeada e chamada, o que o filtro
+esconder da injeção continua alcançável sob demanda.

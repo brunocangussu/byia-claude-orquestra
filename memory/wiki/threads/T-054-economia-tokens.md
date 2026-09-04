@@ -396,38 +396,44 @@ Campos, não prosa — a recuperação pós-compactação precisa reencontrá-lo
 
 ## ⏭️ RETOMAR AQUI
 
-**Fase 2 (`T-056`) implementada e verificada; `T-054` e `T-055` replanejados pelo parecer, não
-implementados.**
+**Checkpoint de 2026-09-04. A `0.26.0` está publicada, instalada e verificada nos dois hosts.**
+Nada pendente de commit ou push. Board, elenco e repositório em ordem — o assunto pode mudar.
 
-**A revisão independente do `T-056` foi feita e os achados estão aplicados.** O revisor confirmou as
-quatro decisões de desenho e derrubou três coisas: o fail-open silencioso da medição (virou `📏?`),
-o CRLF empurrando card no limite para fora do teto (descontado), e o endereçamento do arquivo
-coletivo (agora por ID, com índice). Os dois bloqueadores que ele levantou sobre a migração foram
-verificados e **não se materializaram** — zero links relativos, e 48/48 notas conferidas byte a byte
-por ID. Detalhe em `T-054-pareceres.md`.
+### O que esta frente entregou
 
-**Feito nesta janela:**
-- 18 cards criados (`T-054`…`T-071`), 3 deles `[!]` esperando decisão do dono.
-- Validação cross-vendor OpenAI: rodada 1 morreu sem parecer, rodada 2 entregou. Veredito
-  **"corrigir antes"** — parecer e auditoria em `T-054-pareceres.md`.
-- **Board: 104,7 KB → 12,7 KB · 28,4k → 3,6k tokens (−89%).** 48 cards migrados.
-- Produto: teto no `_schema.md`, no template do `init.md`, no `wiki-lint.md` e no `checkpoint.md`;
-  sinal `📏` (e `📏?` quando a medição falha) no `kanban-status.sh`; **`test_kanban_status.py` novo —
-  o parser do board, contrato central do projeto, não tinha teste nenhum**.
-- Gates: **215 testes verdes** (eram 201) · `validate` ✔ · **lint ✗, e isto é esperado**.
+| Card | Estado |
+|---|---|
+| `T-056` teto de card + 48 migrados | 🟣 validar |
+| `T-064` Matriz vence skill de spawn | 🟣 validar |
+| `T-072` `T-073` claude-mem com papel e busca ligada | 🟣 validar |
+| `T-077` runner Anthropic por alias | 🟣 validar |
+| `T-066` ferramental consolidado | ✅ feito |
 
-**O lint vermelho não é defeito, é o guarda do `T-017` funcionando.** Ele acusa que `orq/` foi
-editado e a versão continua `0.25.0`, igual ao cache instalado — ou seja, *o que roda ainda não é o
-que está escrito*. Resolver exige bump nos quatro lugares e release, e **bump precisa do ok do
-dono**. Enquanto ele não decidir, vermelho é o estado honesto.
+**Não implementados, no backlog:** `T-054` `T-055` `T-057`…`T-063` `T-067`…`T-071` `T-075` `T-076`.
 
-**Próxima ação, em ordem:**
-1. **Levar ao gate as três decisões do `T-056`** que divergem do brief: teto **240** em vez de 200 ·
-   unidade **byte UTF-8** · cards `[!]` sem `trilha:`/`faixa:` gravados.
-2. **Implementar `T-055` e `T-054` juntos**, com o desenho corrigido — bloco estruturado
-   (estado · próxima ação · restrições · critérios), parser com `output_tokens`, dois gatilhos.
-3. **`T-069` antes de qualquer injeção automática** de conteúdo de thread no hook.
-3b. `T-070` (índice afirma que o painel de 3 funciona) e `T-071` (regex de arquivado) — os dois
-   nasceram de verificação nesta janela, ambos `leve`.
-4. `T-057` e `T-058` (índice e threads com teto) — o `MEMORY.md` tem 21,8 KB e a thread `T-026`,
-   139 KB. **Nenhum dos dois foi tocado nesta janela.**
+### O que espera decisão sua (`[!]`)
+
+- **`T-065`** — configurações da máquina. `effort high` e os 2 MCPs quebrados **já foram feitos**;
+  faltam `AGENTS.md`/`CLAUDE.md` (nada será cortado sem você ver linha a linha) e a config do
+  claude-mem (`OBSERVATION_TYPES`, `OBSERVATIONS=25`, `SESSION_COUNT=5` — **agora é seguro**, o
+  `T-073` ligou a busca).
+- **`T-074`** — instalar o claude-mem no Codex. Já **está instalado**; a decisão é deixar ligado,
+  sabendo que as 24 sessões com `memory_session_id` nulo são todas daquele host.
+
+### Validação comportamental pendente da `0.26.0`
+
+Abra **sessão nova** nos dois hosts (sessão aberta antes do update segue com a versão antiga) e
+teste em conversa natural. Dois pontos merecem atenção porque nunca rodaram de verdade:
+
+1. *"lembra quando a gente…"* → tem que consultar a wiki **e depois** a busca do claude-mem.
+2. No Codex, `fable` como `planner·interface` e `reviewer` — **habilitado, nunca chamado**. A
+   primeira invocação é que comprova; o runner reprova com exit 7 se vier outro modelo.
+
+### Achado do `wiki-lint` neste checkpoint (N1 — relatado, não corrigido)
+
+`MEMORY.md:248` continua afirmando **no presente** que o painel de três revisores funciona. Já é o
+`T-070`. As outras 23 menções varridas são legítimas: título de card, tabela de Dispensadas e
+blocos datados do log.
+
+⚠️ **`MEMORY.md` está com 250+ linhas** e blocos de agosto ainda vivos — é o `T-057`, e ele encarece
+toda retomada. Bom candidato ao próximo bloco de trabalho desta frente.

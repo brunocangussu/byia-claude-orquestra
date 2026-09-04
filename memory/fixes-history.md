@@ -1734,3 +1734,16 @@ Verificação pós-release feita **a partir de clone detached limpo do SHA publi
 árvore de trabalho: `verify_installed_cache.py` deu `ok: installed cache matches source` com exit 0
 nos dois hosts, e os três gates repetidos **na fonte limpa** também passaram (219 · validate ·
 lint). O clone foi descartado. Falta apenas o teste comportamental do dono.
+
+**Checkpoint de 2026-09-04 — fim do bloco @frente-economia.** Tudo commitado e publicado; o assunto
+pode mudar. O `wiki-lint` rodou por iniciativa (N1, marco de release) e varreu 24 menções a
+vocabulário extinto nas páginas vivas: **23 são legítimas** — título de card que descreve o próprio
+card (`T-051` "aposentar o Kimi", `T-037` "tirar o SuperMemory"), a tabela de Dispensadas do
+`_stack.md` e blocos datados deste log. **A real é uma**, e já tem card: `MEMORY.md:248` continua
+afirmando **no presente** que o painel de três revisores funciona (`T-070`).
+
+Duas contradições entre board e trabalho foram corrigidas no fechamento: o `T-056` estava em
+`[ ]` BACKLOG **tendo sido implementado e publicado** na 0.26.0 — foi para `[?]`; e o `T-076`
+apontava para `threads/T-076-board-worktree.md`, que **nunca existiu** — repontado para a thread da
+frente. Ponteiro de card para arquivo inexistente é o tipo de defeito que só aparece quando alguém
+tenta retomar, meses depois, e não acha o contexto.
