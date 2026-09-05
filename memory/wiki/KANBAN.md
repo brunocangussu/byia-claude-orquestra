@@ -21,6 +21,8 @@
 ---
 
 ## 🟡 Fazendo
+
+- [~] `T-078` AI-Memory global — Claude captura; Codex bloqueado pelo Terminals dono do hooks.json, handoff aberto · trilha: sistema · faixa: pesada · → threads/T-078-ai-memory.md
 - [?] `T-051` Reestruturar o elenco por natureza da tarefa e aposentar o Kimi — 0.25.0 publicada; falta seu teste comportamental (6 critérios, seção 7) · → threads/T-051-elenco-por-tarefa.md
 
 - [~] `T-040` Paridade operacional do Orquestra no Codex — coordena T-041, T-043 e T-042 · → threads/_notas-de-cards.md

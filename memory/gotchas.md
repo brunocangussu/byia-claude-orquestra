@@ -705,3 +705,45 @@ cwd** (da raiz devolve `.git`), então normalize para absoluto antes de mudar de
 
 O `add` do Codex é idempotente e serve como update. Confirme sempre pelo caminho impresso
 (`Installed plugin root: …/orq/<versão>`), não pela ausência de erro.
+
+## Elenco promete `@max`; o wrapper do Codex só aceita até `xhigh` — 2026-09-04
+
+`codex-companion.mjs task --help` lista `--effort <none|minimal|low|medium|high|xhigh>` — sem
+`ultra` nem `max`, mesmo esses existindo em `enabled-reasoning-efforts` do `~/.codex/config.toml`
+(o effort do `codex` binário, não do wrapper). O `_elenco.md` foi atualizado em 2026-09-03/04 para
+`@max` em `planner·sistema` e `reviewer` do host Claude sem checar se o mecanismo real aceita.
+
+**Regra:** antes de gravar um effort no elenco, confirme no `--help` do mecanismo que vai executá-lo
+— não no que o CLI subjacente aceita em outro contexto. Usado `xhigh` como teto real; correção do
+`_elenco.md` pendente.
+
+## `~/.codex/hooks.json` tem dono: o app Terminals reescreve e apaga hooks de terceiros — 2026-09-05
+
+**Como queima.** Instalar hooks de qualquer ferramenta em `~/.codex/hooks.json` funciona… até o app
+Terminals reescrever o arquivo com a versão dele. Medido: hooks do ai-memory capturaram às
+`09:19:38`; arquivo reescrito às `09:24:26` sem eles. **Funciona uma vez e morre em silêncio** — sem
+erro, sem log, e a aprovação de confiança do Codex fica gravada apontando para hooks que já não
+existem.
+
+**Como identificar o dono.** O campo `_managedBy` no topo do JSON declara quem gerencia
+(`"terminals.app"`). Antes de escrever hook em arquivo compartilhado, procure esse campo.
+
+**Onde escrever em vez disso.** `~/.codex/config.toml`, em blocos `[[hooks.<Evento>]]` +
+`[[hooks.<Evento>.hooks]]`. O Codex lê hooks dos **dois** lugares (avisa *"loading hooks from both …
+prefer a single representation"*) e o Terminals não toca no `config.toml`.
+
+⚠️ **Bônus venenoso:** o `codex-cli 0.153.2` **rejeita o arquivo inteiro** se houver campo
+desconhecido no topo — `failed to parse hooks config: unknown field _managedBy`. O próprio marcador
+do Terminals derruba os hooks do Terminals. Enquanto isso vale, o `hooks.json` fica inutilizável
+para todo mundo, e o sintoma é "nenhum hook roda" sem nada explicando.
+
+## Hook que não dispara ≠ hook quebrado — separe as duas coisas antes de acusar — 2026-09-05
+
+Passei tempo suspeitando do ai-memory quando o Codex não capturava. O teste que resolveu em 30
+segundos: **invocar o comando do hook na mão**, com o payload que o host mandaria. Funcionou —
+sessões foram de 1 para 2. Isso provou que comando, binário, servidor e banco estavam certos, e que
+o problema era o **host não chamar** o hook.
+
+**A regra:** diante de "a integração não está capturando", rode o comando do hook manualmente
+**antes** de investigar a ferramenta de destino. Um exit 0 com efeito visível no banco elimina metade
+das hipóteses de uma vez.

@@ -1747,3 +1747,37 @@ Duas contradições entre board e trabalho foram corrigidas no fechamento: o `T-
 apontava para `threads/T-076-board-worktree.md`, que **nunca existiu** — repontado para a thread da
 frente. Ponteiro de card para arquivo inexistente é o tipo de defeito que só aparece quando alguém
 tenta retomar, meses depois, e não acha o contexto.
+
+## [2026-09-05] diagnóstico | o Codex não capturava porque o app Terminals é dono do `hooks.json`
+
+O ai-memory foi instalado globalmente em 04/09 (decisão do dono, `T-078`). O Claude passou a
+capturar normalmente; o **Codex capturou 3 eventos às 09:19 e parou**.
+
+**Root cause:** `~/.codex/hooks.json` é **gerenciado pelo app Terminals** (declarado no campo
+`_managedBy: "terminals.app"`). Ele reescreve o arquivo com a versão dele e apaga hooks de
+terceiros. Arquivo reescrito às **09:24:26**, cinco minutos depois da única captura. Sem erro, sem
+log — a aprovação de confiança do Codex ficou gravada apontando para hooks que já não existiam.
+
+**O teste que separou as hipóteses:** invocar o comando do hook **na mão** funcionou (sessões
+`codex` de 1 → 2). Provou que comando, binário, servidor e banco estavam corretos e que o problema
+era o host **não chamar** o hook. Virou gotcha: diante de "a integração não captura", rode o hook
+manualmente antes de suspeitar da ferramenta de destino.
+
+**Achado colateral, pré-existente e independente:** o `codex-cli 0.153.2` rejeita o `hooks.json`
+**inteiro** por causa de campo desconhecido no topo (`unknown field _managedBy`) — ou seja, o
+marcador do próprio Terminals derrubava os hooks do próprio Terminals. Comprovado pelo backup
+automático que o campo já existia antes da instalação do ai-memory. Removido o campo, o parse voltou
+e o gate "Hooks need review" apareceu; o dono aprovou os 10 hooks.
+
+**Correção:** os 6 hooks do ai-memory saíram do `hooks.json` e foram para o `~/.codex/config.toml`,
+em blocos `[[hooks.<Evento>]]`, que o Terminals não gerencia. O Codex lê hooks dos dois arquivos.
+TOML validado; backup em `config.toml.bak-antes-hooks-toml-2026-09-05`.
+
+**Não fechado:** nenhuma sessão real do Codex capturada até o checkpoint. As duas linhas `codex` no
+banco são a de 09:19 (pré-varredura) e a de 11:29 (teste manual meu, assinatura de um único
+`session-start`). O dono relatou que o Codex só oferece o gate de confiança **ao iniciar chat novo**,
+não ao reabrir o app — a validação continua no Codex, por handoff.
+
+⚠️ **Método:** *"funcionou" precisa ser reconferido depois de um tempo, não só na hora.* Sem a
+pergunta do dono horas depois, eu teria registrado o Codex como capturando — e estaria errado cinco
+minutos após a medição.
