@@ -4,7 +4,29 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.26.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-01/02 (`bd6d3fc`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-04 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.26.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-04 (`bb68c9f`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois, e os três gates repetidos na própria fonte limpa (219 testes · validate · lint). **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-05 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+
+## 🟢 Trabalho mais recente (2026-09-05) — `T-078` · AI-Memory 2.0
+
+**Uma segunda camada de memória automática entra em teste, ao lado do claude-mem.** O dono trouxe
+o `AI-Memory 2.0` (akitaonrails, MIT, Rust) e pediu para rodar pelo ciclo: planner → revisor →
+decisão dele. Retomar em `wiki/threads/T-078-ai-memory.md`.
+
+**O que o ciclo produziu, e vale não re-litigar:** o planner recomendou **não** substituir a wiki
+curada (*"não há causa raiz demonstrada"*), e o revisor derrubou o desenho do piloto por
+esforço sem teto e critérios manipuláveis. A síntese virou **3 estágios com gate**. O Estágio 0
+passou nos 4 critérios num sandbox descartável, com checksum do binário conferido.
+
+⚠️ **Depois disso, o dono decidiu contra a recomendação:** instalar **global, capturando em todos os
+projetos já** — ciente de que isso pula a validação em estágios e inclui projetos com dado de saúde.
+Decisão registrada como dele, executada como pedido. **O que não muda:** `llm: disabled,
+embedding: disabled` — nada do capturado sai da máquina.
+
+**Estado real:** daemon `launchd` persistente rodando; **Claude captura** (8 sessões, 600+
+observações); **Codex NÃO captura**. Root cause achado: o `~/.codex/hooks.json` é **gerenciado pelo
+app Terminals**, que reescreve o arquivo e apaga hooks de terceiros — captura às 09:19:38, arquivo
+varrido às 09:24:26. Os hooks foram movidos para o `~/.codex/config.toml`, que o Terminals não toca;
+**a validação segue no próprio Codex, por handoff.**
 
 ## 🟢 Trabalho mais recente (2026-09-02) — @frente-economia · `T-054`…`T-075`
 
@@ -297,6 +319,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-054-economia-tokens.md`](wiki/threads/T-054-economia-tokens.md) | **Thread ativa** — a frente de economia de tokens: o diagnóstico, o baseline medido, o que o parecer mudou e o **⏭️ RETOMAR AQUI** |
 | [`wiki/threads/T-054-pareceres.md`](wiki/threads/T-054-pareceres.md) | **Evidência durável** — o parecer cross-vendor íntegro e a auditoria do Manager, que corrigiu um achado e confirmou outro |
 | [`wiki/threads/T-072-claude-mem.md`](wiki/threads/T-072-claude-mem.md) | **No gate** — o papel do claude-mem, a fiação de busca que nunca existiu, e a correção de uma medição minha que estava 4,4× errada |
+| [`wiki/threads/T-078-ai-memory.md`](wiki/threads/T-078-ai-memory.md) | **Ativa** — o AI-Memory 2.0: parecer do planner, revisão que derrubou o piloto, os 3 estágios, a decisão do dono contra a recomendação, e o root cause do Codex não capturar |
 | [`wiki/threads/_notas-de-cards.md`](wiki/threads/_notas-de-cards.md) | As notas longas que saíram do board na migração do `T-056`, íntegras, por ID de card. **Não é thread** — não tem RETOMAR AQUI |
 | [`wiki/threads/T-053-fable-51.md`](wiki/threads/T-053-fable-51.md) | O Fable 5.1 no elenco — thread criada na migração, porque o card era o único dos seis maiores sem uma |
 | [`wiki/threads/T-052-ledgers/`](wiki/threads/T-052-ledgers/README.md) | **Prova executável** da reconciliação — três ledgers que reprovam onde a regra não existe (25/25 · 4/4 · 12/12) |

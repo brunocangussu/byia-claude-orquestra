@@ -10,9 +10,10 @@
 |---|---|---|
 | `rtk` | `0.42.4` via Homebrew (há `0.44.0` disponível) | proxy CLI, economia nas operações de git/dev |
 | `context-mode` | plugin, marketplace `mksglu/context-mode` | mantém saída grande de ferramenta fora da janela |
-| `claude-mem` | plugin, marketplace `thedotmack/claude-mem` — **só no Claude**; não instalado no Codex | **Rede de segurança**, não fonte da verdade: guarda o que não chegou ao checkpoint (gotcha de meio de sessão, decisão não registrada, sessão que morreu antes). A wiki guarda o porquê; se discordarem, a wiki vence. Custo medido em 2026-09-02: **~2,8k tokens/sessão** de injeção — desprezível. O que faltava não era corte, era **ligar a busca** (`T-073`) e **filtrar por tipo** em vez de por quantidade |
+| `claude-mem` | plugin, marketplace `thedotmack/claude-mem` — **nos dois hosts** desde 2026-09-02 (no Codex via `claude-mem@claude-mem-local`) | **Rede de segurança**, não fonte da verdade: guarda o que não chegou ao checkpoint (gotcha de meio de sessão, decisão não registrada, sessão que morreu antes). A wiki guarda o porquê; se discordarem, a wiki vence. Custo medido em 2026-09-02: **~2,8k tokens/sessão** de injeção — desprezível. O que faltava não era corte, era **ligar a busca** (`T-073`) e **filtrar por tipo** em vez de por quantidade |
 | Serena | MCP stdio via `uvx` (repo `oraios/serena`) | LSP: símbolo exato + edição cirúrgica |
 | codebase-memory | binário em `~/.local/bin/` (~255 MB) | grafo de relações: quem chama o quê, impacto |
+| `ai-memory` | binário `2.0.0` em `~/Applications/ai-memory/`, serviço `launchd` persistente, loopback `127.0.0.1:49374`, data-dir em `~/Library/Application Support/ai-memory` | **Em avaliação (`T-078`)** — segunda camada de captura automática, ao lado do claude-mem, para comparação. `llm: disabled, embedding: disabled`: nada sai da máquina. Instalado **global, capturando em todos os projetos** por decisão do dono, contra a recomendação do planner e do revisor. ⚠️ **Claude captura; Codex não** — o `hooks.json` é do app Terminals, que o reescreve; hooks movidos para `~/.codex/config.toml`, validação pendente |
 | `codex` | CLI em `/usr/local/bin/codex` | GPT-5.6 Sol como **o** revisor do host Claude (vendor oposto), `--effort xhigh` |
 
 ## Dispensadas (não repropor)

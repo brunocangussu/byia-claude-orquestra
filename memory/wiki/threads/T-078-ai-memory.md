@@ -138,9 +138,40 @@ silenciosa do claude-mem, por causa completamente diferente.
 
 ## ⏭️ RETOMAR AQUI
 
-**Parado no gate. Nada instalado, nada decidido.** Esperando o dono em:
+**Checkpoint de 2026-09-05.** Tudo commitado e publicado. Nada pendente no disco.
 
-1. Aprovar o Estágio 0 (e em qual projeto pessoal rodar) — ou dizer que só queria entender por hoje.
-2. Confirmar se concorda com a crítica do revisor (piloto estruturado em estágios) ou prefere alguma
-   parte do desenho original de 10 dias.
-3. Nada sobre "introduzir no Orquestra" avança antes do Estágio 1 mostrar ganho real.
+**Estado em uma frase:** o AI-Memory está instalado global e persistente; **o Claude captura, o
+Codex não**, e o conserto do Codex está aplicado mas **não validado**.
+
+### A única pendência técnica
+
+Validar a captura no Codex, **de dentro do próprio Codex** — daqui não dá, porque não enxergo a
+sessão dele. O dono levou uma mensagem de handoff para lá. O que precisa acontecer:
+
+1. Iniciar um **chat novo** no Codex (o gate de confiança só aparece em chat novo, não ao reabrir
+   o app) e aprovar os hooks.
+2. Conferir pelo **carimbo do banco**, nunca por exit code ou health:
+   `select agent_kind, count(*) from sessions group by agent_kind` — e olhar as observações da
+   sessão mais recente. Sessão real tem `session-start` + `user-prompt` + `pre/post-tool-use` +
+   `stop`. **Só `session-start` é assinatura de invocação sintética, não vale como prova.**
+3. Se ainda não capturar: rodar o comando do hook na mão. Já testado, funciona (exit 0, banco
+   mexe) — então hook manual OK + automático falhando significa que **o host não está chamando**.
+
+### O que fica esperando decisão do dono (não avança sozinho)
+
+- **`T-074`** — deixar o claude-mem ligado no Codex, agora que há duas camadas de captura em
+  paralelo. A pergunta ganhou peso: rodar as duas ao mesmo tempo era o desenho do piloto, mas o
+  revisor apontou que isso **contamina a comparação** (uma injeta memória que muda o que a outra
+  captura).
+- **Estágio 1** (ganho real contra o claude-mem) e **Estágio 2** (adoção pessoal / entrar no
+  Orquestra) continuam válidos e **não iniciados**. O dono pulou a validação em estágios ao mandar
+  instalar global; o critério de "vale a pena" segue sem resposta.
+- **Excluir projeto sensível da captura** (o `Bruno Vascular` é o candidato): já está sendo
+  capturado, por decisão informada do dono. O mecanismo de marcador por projeto existe e é rápido —
+  não implementado porque não foi pedido.
+
+### Reavaliação combinada
+
+O dono pediu para "usar e reavaliar aqui um tempo". Sugestão: em 1–2 semanas, comparar `ai-memory
+status` (contagem, disco) e o que cada camada achou em retomadas reais. É o Estágio 1 acontecendo
+organicamente, sem ter que escolher um projeto de antemão.
