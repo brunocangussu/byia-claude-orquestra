@@ -120,9 +120,9 @@ reescreve a tabela do host e nunca toca `manager` nem o estado das vias cross-ve
 Contrato canônico em `orq/commands/revisar.md` — aqui só o que muda o desenho:
 
 - **Um revisor só, sempre do vendor oposto ao host.** Host Claude → OpenAI; host Codex → Anthropic
-  (pelo `orq/scripts/run-opus-reviewer.py`, único caminho comprovado para o Opus 5 fora de spawn
-  nativo). Não existe painel, não existe "confirmado por 2+", e o Manager não conta como parecer —
-  ele **audita**.
+  (pelo `orq/scripts/run-opus-reviewer.py --model <alias>`, via Anthropic parametrizada pelo alias
+  do elenco — hoje o reviewer do host Codex é `fable`, Fable 5.1). Não existe painel, não existe
+  "confirmado por 2+", e o Manager não conta como parecer — ele **audita**.
 - **Todo achado é solitário por construção (N=1).** O Manager verifica cada um no código antes de
   aceitar, descarta o que não tem cenário de falha concreto, e desempata sozinho quando discorda.
   Segundo parecer só existe sob pedido explícito do dono, e obedece à mesma regra de vendor — um
@@ -135,10 +135,11 @@ Contrato canônico em `orq/commands/revisar.md` — aqui só o que muda o desenh
 - `--rapido` encolhe só o **briefing** em card pequeno/baixo risco — nunca troca de revisor nem
   dispensa a revisão.
 
-O runner Anthropic (`run-opus-reviewer.py`) sanitiza o briefing, limita 16 KiB por lote (dividindo por
-arquivo/hunk acima disso), anuncia `OPUS_STARTED` no stderr e aplica timeout de 600s — teto que
-acomoda a latência real observada em revisão arquitetural (267,1s), sem remover a proteção contra
-processo órfão. Só libera saída quando `modelUsage` comprova `claude-opus-5`.
+O runner Anthropic (`run-opus-reviewer.py --model <alias>`) sanitiza o briefing, limita 16 KiB por
+lote (dividindo por arquivo/hunk acima disso), anuncia `OPUS_STARTED` no stderr e aplica timeout de
+600s — teto que acomoda a latência real observada em revisão arquitetural (267,1s), sem remover a
+proteção contra processo órfão. Só libera saída quando `modelUsage` comprova o prefixo do alias
+pedido (hoje, `fable` exige `claude-fable-5-1`).
 
 ## Máquina de estados
 

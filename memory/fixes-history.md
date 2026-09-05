@@ -1781,3 +1781,86 @@ não ao reabrir o app — a validação continua no Codex, por handoff.
 ⚠️ **Método:** *"funcionou" precisa ser reconferido depois de um tempo, não só na hora.* Sem a
 pergunta do dono horas depois, eu teria registrado o Codex como capturando — e estaria errado cinco
 minutos após a medição.
+
+## [2026-09-05] fix | @frente-ai-memory · captura automática do Codex validada no banco
+
+O gate nativo do Codex mostrou exatamente **6 hooks novos ou alterados**, correspondentes aos seis
+eventos do AI-Memory movidos para `~/.codex/config.toml`. Eles foram revisados e aprovados pela
+interface normal. Não houve bypass de confiança, escrita manual de `trusted_hash` nem alteração no
+`~/.codex/hooks.json`.
+
+Uma sessão final, nova e iniciada depois da aprovação, executou uma única ferramenta (`pwd`). A
+contagem de sessões `codex` passou de **2 para 5** durante a validação, e o ID final recebeu em ordem:
+`session-start` às 12:18:53; `user-prompt`, `pre-tool-use`, `post-tool-use` e `stop` às 12:19:02.
+É a assinatura exigida de sessão real, não a invocação sintética que grava só `session-start`.
+
+Com isso, a correção de coexistência Terminals × AI-Memory está comprovada: o Terminals segue dono
+do `hooks.json`, enquanto os hooks do AI-Memory vivem no `config.toml` e são chamados pelo Codex.
+O `T-078` vai para VALIDATE para uso por 1–2 semanas e comparação real com o claude-mem.
+
+## [2026-09-05] fix parcial | T-075 · pacote alinhado, exclusão clínica e detector real
+
+O Codex anunciava `claude-mem` `13.24.0`, mas executava bundle `13.23.1`. O log comprovou o loop
+mismatch → `SIGKILL` → respawn do mesmo bytecode. O pacote oficial `13.24.1` foi instalado no Codex;
+manifesto, fonte e cache agora concordam, e o SHA do worker é igual ao cache `13.24.1` do Claude.
+O comando de upgrade do marketplace saiu sem erro duas vezes e não moveu o commit; o checkout
+rastreado estava limpo e foi avançado por fast-forward de `be44b6c8` para `b6e05382`.
+
+Antes de qualquer configuração, foram criados os backups
+`~/.claude-mem/settings.json.bak-antes-t075-2026-09-05-1630` e
+`~/.codex/config.toml.bak-antes-claude-mem-t075-2026-09-05-1650`. A exclusão
+`*Bruno Vascular*` foi aplicada; um canário sintético com `pwd` produziu zero sessão e zero prompt.
+Nenhum conteúdo clínico foi lido.
+
+A atualização eliminou o mismatch, mas não resolveu a captura: quatro canários Codex de dois
+turnos gravaram zero `user_prompts`; dois ficaram sem `memory_session_id`; um observer reportou
+11 falhas de autenticação estruturadas ocorreram entre 16:35:13 e 16:36:06, em sessões novas e
+antigas. O mesmo `UserPromptSubmit`, executado manualmente com payload sintético,
+gravou de imediato. Portanto o handler funciona e o primeiro estágio ausente é o host não disparar
+esse evento do manifesto. Foi adicionado somente o fallback no `config.toml`; `PostToolUse` e `Stop`
+não foram duplicados. Falta o dono aprová-lo no gate nativo de um chat criado pela interface.
+
+Depois do baseline houve zero mismatch, zero `SIGKILL` e zero erro `NOT NULL` estruturados. Uma
+busca bruta contou 11 falsos `NOT NULL` porque o texto do próprio diagnóstico foi capturado em
+metadados do log; a contagem válida filtra `[ERROR]`/`[WARN]` e a mensagem antes dos metadados.
+
+O `claude_mem_status.py` agora detecta a parada pelo SQLite em `mode=ro`, sem selecionar conteúdo,
+com seis estados explícitos. Foram adicionados 12 testes; a suíte completa fechou em 232, e os gates
+de manifesto e coerência passaram. Não houve bump, commit, release, instalação do Orquestra ou push.
+
+## [2026-09-05] feat | T-079 · elenco migrado para GPT-6 Astra, Fable nomeado 5.1
+
+O dono pediu para revisar o elenco, nomear o Fable como **5.1** e promover o **GPT-6 Astra**
+(lançado em 2026-09-03) ao planejamento e à revisão. No gate ele recuou de pôr Astra como
+`reviewer` do host Codex ao ver que isso poria OpenAI revisando OpenAI: a regra "o vendor do host
+nunca revisa a si mesmo" ficou intacta, e o reviewer daquele host segue Anthropic.
+
+**O achado que deu valor ao card não estava no pedido.** `orq/commands/revisar.md` chamava
+`run-opus-reviewer.py` **sem `--model`** e caía no default `opus`. Ou seja: o elenco declarava
+`fable` como reviewer do Codex e a execução entregava **Opus 5**, em silêncio, desde que o `T-077`
+parametrizou o runner. Mudar só a tabela não teria mudado nada. O comando passa a resolver o alias
+da linha `reviewer` e a passá-lo explicitamente.
+
+**Duas afirmações falsas morreram aqui.** (1) "O runner só executa Opus 5" — falso desde o `T-077`,
+ainda escrito em `orq/commands/elenco.md`, README e `arquitetura.md`. (2) "Astra não aceita
+`@ultra`" — invenção do planner, que leu a lista de uma mensagem de erro de um teste com `none` e a
+tomou por catálogo. O dono flagrou pela UI do próprio Codex; o host declara
+`low, medium, high, xhigh, max, ultra` para o `gpt-6-astra`. O `@max` gravado é **escolha dele**,
+tomada com o `ultra` disponível — não limitação técnica. Isso também absolveu o preset `padrao`,
+que já pedia `gpt-5.6-sol@ultra` e nunca foi inexecutável.
+
+**Prova antes de endurecer:** o runner foi chamado de verdade com `--model fable` e devolveu
+`OPUS_MODEL=claude-fable-5-1`, antes de o prefixo do verificador ser apertado. Sem essa chamada, o
+aperto seria fé — os testes usam modelo falso e teriam passado mesmo se o alias resolvesse outra
+coisa, quebrando o único reviewer do host Codex com os três gates verdes.
+
+Revisão independente (OpenAI, vendor oposto ao host) achou dois defeitos reais, ambos confirmados
+contra o código: o índice passou a afirmar que a `0.27.0` estava "publicada, instalada e verificada"
+citando um commit que declara `0.26.0`; e o README ficou meio atualizado, com o revisor do Codex em
+Fable 5.1 e o planner ainda em Sol/ultra. Os dois foram corrigidos por quem implementou.
+
+Escopo retirado de propósito: a guarda de lint que compara a tabela viva com o preset `padrao`
+virou o card `T-080` — a divergência é de 2026-09-03 e tem causa raiz distinta.
+
+Gates: 232 testes · `validate` · lint, verdes e conferidos pelo Manager, não só relatados.
+**Nada commitado, publicado ou instalado.**

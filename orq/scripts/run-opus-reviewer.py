@@ -28,7 +28,7 @@ DEFAULT_MODEL_ALIAS = "opus"
 # atribuída a modelo nenhum, e o runner recusa antes de chamar o CLI.
 MODEL_ALIASES = {
     "opus": "claude-opus-5",
-    "fable": "claude-fable-5",
+    "fable": "claude-fable-5-1",
     "sonnet": "claude-sonnet-5",
     "haiku": "claude-haiku-4-5",
 }
@@ -55,7 +55,7 @@ def resolve_claude() -> str | None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Lê briefing no stdin e retorna somente parecer comprovado do Opus 5."
+        description="Lê briefing no stdin e retorna somente parecer comprovado do modelo Anthropic."
     )
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_SECONDS)
     parser.add_argument("--max-input-bytes", type=int, default=DEFAULT_MAX_INPUT_BYTES)

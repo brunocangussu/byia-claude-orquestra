@@ -172,10 +172,10 @@ arquivo do agente é só o padrão de fábrica.
 
 ```bash
 /orq:elenco                    # mostra a escalação atual
-/orq:elenco planner interface fable   # host Claude; no Codex essa trilha só aceita `opus`
+/orq:elenco planner interface fable   # host Claude — Fable 5.1; no Codex esta trilha hoje é gpt-6-astra@max
 /orq:elenco implementer leve haiku    # troca o degrau barato de quem escreve
 /orq:elenco codex off                 # no host Claude: fica sem revisor independente
-/orq:elenco reviewer gpt-5.6-sol@high # o effort mora no modelo do papel, não na via
+/orq:elenco reviewer gpt-6-astra@high # o effort mora no modelo do papel, não na via
 /orq:elenco perfil economia    # fim do ciclo: troca o time inteiro pelo preset de crédito curto
 /orq:elenco perfil padrao      # crédito voltou: time titular de volta
 ```
@@ -197,12 +197,12 @@ tabela ativa; o host Codex tem a sua, com os modelos OpenAI equivalentes.
 | Papel | Modelo | Por quê |
 |---|---|---|
 | `manager` | *sessão principal* | definido pelo `/model` — não é spawn, não muda por aqui |
-| `planner·interface` | `fable` | trilha perceptual pensa com Anthropic |
-| `planner·sistema` | `gpt-5.6-sol@ultra` | trilha comportamental pensa com OpenAI, read-only por CLI |
+| `planner·interface` | `fable` | trilha perceptual pensa com Anthropic — Fable 5.1 |
+| `planner·sistema` | `gpt-6-astra@max` | trilha comportamental pensa com OpenAI, read-only por CLI |
 | `implementer·pesada` | `opus` | alto risco ou decisão de desenho ainda aberta |
 | `implementer·normal` | `sonnet` | plano fechado, execução dirigida |
 | `implementer·leve` | `haiku` | resultado determinado, verificação mecânica |
-| `reviewer` | `gpt-5.6-sol@xhigh` | independência: sempre o vendor oposto ao host |
+| `reviewer` | `gpt-6-astra@max` | independência: sempre o vendor oposto ao host |
 | `docs` | `sonnet` | escrita objetiva sobre código já pronto |
 | `scout` | `sonnet` | leitura ampla e barata |
 
@@ -219,8 +219,9 @@ réguas ficam escritas uma única vez, em `orq/commands/elenco.md`.
 e barata não se paga em domínio. Valores aceitos nesses três dependem do host: no Claude, `opus` ·
 `sonnet` · `haiku` · `fable` · `inherit` ou um id (`claude-opus-5`); no Codex, os modelos OpenAI
 com effort (`gpt-5.6-terra@xhigh`…). Nos que cruzam, qualquer vendor com célula na Matriz de
-invocação, **desde que o mecanismo daquela célula execute aquele modelo** (a célula
-Anthropic×Codex é o runner de Opus fixo: lá só entra `opus`).
+invocação, **desde que o mecanismo daquela célula execute aquele modelo** (a célula Anthropic×Codex
+é o runner Anthropic parametrizado por `--model <alias>`, que só aceita os aliases do mapa de prova
+— `opus`·`fable`·`sonnet`·`haiku` — e valida o prefixo do modelo antes de aceitar a saída).
 
 **Onde modelo forte se paga:** planner e reviewer. Um erro de plano custa a implementação inteira;
 um review fraco deixa passar o que vai quebrar depois. Docs e scout resolvem com modelo menor.
@@ -234,8 +235,9 @@ mesmo e declara a ausência. Não existe cair num revisor do mesmo fornecedor do
 ## Revisão independente
 
 Um revisor só, **sempre do fornecedor oposto ao do host**: no host Claude quem revisa é o GPT, no
-host Codex é o Opus. A razão de existir do revisor é ser independente de quem escreveu — um revisor
-do mesmo fornecedor devolveria a aparência de revisão sem a independência que a justifica.
+host Codex é o modelo Anthropic do elenco (hoje `fable`, Fable 5.1). A razão de existir do revisor é
+ser independente de quem escreveu — um revisor do mesmo fornecedor devolveria a aparência de revisão
+sem a independência que a justifica.
 
 **Auditoria obrigatória** — com um revisor só, todo achado é solitário por construção:
 
@@ -255,14 +257,15 @@ capacidade** das vias cross-vendor, não uma composição de painel:
 ## Revisores externos
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | ativo | `--model gpt-5.6-sol --effort xhigh` (read-only) |
-| runner-opus | Anthropic | **host Codex**: `planner·interface` e `reviewer`. No host Claude não é via — é o vendor nativo | ativo | `scripts/run-opus-reviewer.py` · comprova `claude-opus-5` · 16 KiB/lote · 600s |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | ativo | `--model gpt-6-astra --effort max` (read-only) |
+| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | ativo | `scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido (hoje `fable` → `claude-fable-5-1`) · 16 KiB/lote · 600s |
 ```
 
 Aqui, ativo significa política habilitada, não saúde de runtime: CLI, autenticação, modelo e saída
-são verificados a cada parecer. O Opus roda por `orq/scripts/run-opus-reviewer.py`: briefings acima
-de 16 KiB são divididos por arquivo/hunk sem truncamento; cada lote tem timeout e só vale se o JSON
-comprovar `claude-opus-5`.
+são verificados a cada parecer. O modelo Anthropic escolhido roda por
+`orq/scripts/run-opus-reviewer.py --model <alias>`: briefings acima de 16 KiB são divididos por
+arquivo/hunk sem truncamento; cada lote tem timeout e só vale se o JSON comprovar o prefixo do alias
+pedido (hoje, `fable` exige `claude-fable-5-1`).
 
 **Capacidade ausente não vira substituição.** Titular fora do ar (binário, autenticação, timeout,
 saída vazia) → **REVISÃO DEGRADADA** com a causa nomeada, e o card não avança sozinho. Diff com dado
@@ -409,7 +412,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.26.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.27.0` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar
 auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
@@ -427,8 +430,9 @@ Codex, a partir da mesma fonte já registrada no Claude (`T-026`, passos 1–4) 
 host-agnóstico** (`T-026`, passo 8): `## Times por host` resolve o time de cada host na leitura,
 sem preset ativável; `## Matriz de invocação` documenta o template por vendor × host com
 procedência; o template do `init` gera as duas seções e migra arquivo antigo de forma aditiva;
-consumidores resolvem host→papel→executor; no Codex, Manager Sol/high, Planner Sol/ultra,
-Implementer Terra/xhigh e revisor Opus 5; diagnóstico separa plugin instalado/habilitado,
+consumidores resolvem host→papel→executor; no Codex, Manager Sol/high, Planner Astra/max (nas duas
+trilhas), Implementer Terra/xhigh e revisor Anthropic pelo alias do elenco (hoje `fable`, Fable 5.1);
+diagnóstico separa plugin instalado/habilitado,
 skill carregada e smoke comportamental ·
 **contratos de contexto para Claude Code e Codex** (`T-043`): no Codex, hooks empacotados observam a telemetria por
 sessão, pré-alertam em 55%, recomendam checkpoint durável em 60% e reforçam o alerta em 70%; são

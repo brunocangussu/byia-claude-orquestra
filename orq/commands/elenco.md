@@ -81,8 +81,9 @@ registro → `sistema · normal`** — o default seguro. Card Trivial: `trilha: 
 
 - **`planner`** cruza pelo **domínio**: a trilha do card escolhe quem pensa melhor naquele tipo de
   problema. Aceita modelo de qualquer vendor com célula na `## Matriz de invocação`, **desde que o
-  mecanismo daquela célula execute aquele modelo** (a célula Anthropic×Codex é o runner de Opus
-  fixo: lá só entra `opus`).
+  mecanismo daquela célula execute aquele modelo** (a célula Anthropic×Codex é o runner Anthropic
+  parametrizado por `--model <alias>`: só entra alias presente no mapa de prova do runner, e a
+  saída só vale com o prefixo daquele alias comprovado no `modelUsage`).
 - **`reviewer`** cruza pela **independência**, e é obrigado a cruzar: sempre o vendor **oposto** ao
   do host, com a mesma checagem de mecanismo.
 - **`implementer`, `docs` e `scout` ficam no vendor do host.** Nos dois primeiros porque **escrevem**
@@ -109,10 +110,10 @@ com um modelo mais forte no planner da trilha que você mais usa"*).
 ## Com argumento — ajustar
 
 `$ARGUMENTS` no formato `<papel> <valor>`. Exemplos (**do host Claude** — no Codex os modelos são
-outros, e a trilha `interface` só aceita `opus`): `planner interface fable` ·
+outros): `planner interface fable` ·
 `implementer leve haiku` · `implementer normal gpt-5.6-terra@xhigh` · `codex off` ·
 `runner-opus on`. O effort **não** se ajusta por aqui: ele mora no modelo do papel
-(`reviewer gpt-5.6-sol@xhigh`), não na via.
+(`reviewer gpt-6-astra@max`), não na via.
 
 **`$ARGUMENTS` começando com `perfil ` (ex.: `perfil economia`) não é papel** — vá direto para a
 seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez desta.
@@ -165,17 +166,20 @@ seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez
      vendor do host é recusa com motivo (a independência é a única coisa que ele entrega).
    - ⛔ **Vendor certo não basta: o MECANISMO daquela célula tem que conseguir executar o modelo.**
      Leia a célula antes de aceitar, e recuse o que ela não roda:
-     - **Anthropic × host Codex** — a célula é o `run-opus-reviewer.py`, que invoca o modelo
-       **`opus` fixo** e só imprime parecer se o JSON comprovar `claude-opus-5`. Logo, no host Codex
-       o único modelo Anthropic aceito é **`opus`** (ou um id comprovadamente equivalente).
-       `fable`, `sonnet`, `haiku` → **recuse citando a limitação**: *"o runner só executa Opus 5;
-       registrar outro modelo aqui gravaria um elenco que a execução não honra"*. Parametrizar o
-       runner é **card novo**, não improviso deste comando.
+     - **Anthropic × host Codex** — a célula é o `run-opus-reviewer.py --model <alias>`. O runner só
+       aceita alias presente no seu mapa de prova (`opus` · `fable` · `sonnet` · `haiku`) e só
+       imprime parecer se o `modelUsage` do JSON comprovar o prefixo daquele alias — pedir `fable` e
+       receber Opus, ou receber `claude-fable-5-0` quando o elenco exige 5.1, reprova com
+       `OPUS_MODEL_MISMATCH`, e alias fora do mapa é recusado **antes** de chamar o CLI. Registrar
+       aqui um alias que o runner não conhece → **recuse citando o mapa**: *"o runner não tem esse
+       alias no mapa de prova; registrar aqui gravaria um elenco que a execução não honra"*.
+       Ensinar o runner um alias novo é **card novo**, não improviso deste comando.
      - **OpenAI × qualquer host** — a célula é `codex exec -m <modelo>`, que aceita o modelo como
        argumento: qualquer modelo OpenAI do catálogo serve, com effort opcional.
      **Por que isto é regra e não zelo:** sem ela o arquivo registra Fable e a execução entrega
-     Opus, calada. Elenco que mente sobre quem trabalhou é pior que elenco ausente — some a
-     procedência, que é justamente o que este arquivo existe para guardar.
+     Opus, calada, ou registra Fable 5.1 e a execução entrega 5.0 sem ninguém notar. Elenco que
+     mente sobre quem trabalhou é pior que elenco ausente — some a procedência, que é justamente o
+     que este arquivo existe para guardar.
    - Valor que não se encaixa em nenhuma dessas → **pergunte** em vez de gravar errado.
 3. Grave **na tabela do host resolvido**, dentro de `## Times por host` (crie o arquivo a partir do
    modelo abaixo se não existir). **Host sem seção `## Perfis` própria** (é o caso de fábrica fora do
@@ -298,12 +302,12 @@ significa “rodando agora”: o Manager verifica a sessão/CLI real antes de an
 | Papel | Modelo | Sandbox / mecanismo |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal |
-| planner·interface | `fable` | spawn nativo, read-only |
-| planner·sistema | `gpt-5.6-sol@ultra` | `codex exec … -s read-only` — comprovado como revisor; como planner, ainda não exercitado |
+| planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 |
+| planner·sistema | `gpt-6-astra@max` | `codex exec … -s read-only` — comprovado como revisor; como planner, ainda não exercitado |
 | implementer·pesada | `opus` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
 | implementer·leve | `haiku` | worktree se houver trabalho paralelo |
-| reviewer | `gpt-5.6-sol@xhigh` | `codex exec … -s read-only` — vendor oposto ao host |
+| reviewer | `gpt-6-astra@max` | `codex exec … -s read-only` — vendor oposto ao host |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
@@ -317,12 +321,12 @@ papel→modelo`; devolvido ao preset, remove-se o desvio. Ver passo 3 de "Com ar
 | Papel | Modelo | Sandbox / mecanismo |
 |---|---|---|
 | manager | `gpt-5.6-sol@high` | sessão principal; verificar, não trocar silenciosamente |
-| planner·interface | `opus` (exigir comprovação de que o alias resolve para Opus 5) | runner Anthropic, read-only |
-| planner·sistema | `gpt-5.6-sol@ultra` | `read-only` |
+| planner·interface | `gpt-6-astra@max` | `codex exec … -s read-only` — vendor nativo do host |
+| planner·sistema | `gpt-6-astra@max` | `read-only` |
 | implementer·pesada | `gpt-5.6-sol@xhigh` | `workspace-write`, em worktree dedicado |
 | implementer·normal | `gpt-5.6-terra@xhigh` | `workspace-write`, em worktree dedicado |
 | implementer·leve | `gpt-5.6-luna` (sem effort declarado — ver nota) | `workspace-write`, em worktree dedicado |
-| reviewer | `opus` (exigir comprovação de que o alias resolve para Opus 5) | runner Anthropic, read-only, sem ferramentas |
+| reviewer | `fable` (exigir comprovação de que o alias resolve para `claude-fable-5-1`) | runner Anthropic, read-only, sem ferramentas — invocar com `--model fable` |
 | docs | `gpt-5.6-sol@low` | arquivos de documentação autorizados |
 | scout | `gpt-5.6-sol@low` | read-only |
 
@@ -344,7 +348,7 @@ vendor oposto, com o que já foi comprovado e quando. O nome na coluna **Via** �
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
 | codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | CLI `codex` no PATH · `codex exec … -s read-only … < /dev/null` · modelo e effort vêm da tabela do host |
-| runner-opus | Anthropic | **host Codex**: `planner·interface` e `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py` · comprova `claude-opus-5` · 16 KiB por lote · timeout 600s |
+| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s |
 
 A coluna **Consumida por** é o que torna o efeito de ligar/desligar anunciável sem chute: uma via só
 afeta os papéis listados, nos hosts listados. Via cujo vendor é o do próprio host não é via nenhuma
@@ -370,7 +374,7 @@ de paciente, PII, prontuário ou credencial.
 
 | Vendor do modelo | Host Claude | Host Codex |
 |---|---|---|
-| Anthropic | spawn nativo com override | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"` — limite 16 KiB/lote, timeout e comprovação `claude-opus-5`; o runner só comprova `claude-opus-5`, então a trilha `interface` aqui pensa com Opus |
+| Anthropic | spawn nativo com override | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — limite 16 KiB/lote, timeout e comprovação do prefixo do alias pedido no `modelUsage`; alias fora do mapa de prova (`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
 | OpenAI | `codex exec -m <modelo> -c model_reasoning_effort=<effort> -s <sandbox> "<briefing>" < /dev/null` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
 
 ## Perfis — times nomeados do host Claude
@@ -387,12 +391,12 @@ perfil os toca, e aplicar um preset **preserva a linha `manager` e a seção "Re
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| planner·interface | fable | trilha perceptual pensa com Anthropic |
-| planner·sistema | gpt-5.6-sol@ultra | trilha comportamental pensa com OpenAI |
+| planner·interface | fable | trilha perceptual pensa com Anthropic — Fable 5.1 |
+| planner·sistema | gpt-6-astra@max | trilha comportamental pensa com OpenAI |
 | implementer·pesada | opus | alto risco ou decisão de desenho ainda aberta |
 | implementer·normal | sonnet | plano fechado, execução dirigida |
 | implementer·leve | haiku | resultado determinado, verificação mecânica |
-| reviewer | gpt-5.6-sol@xhigh | vendor oposto ao host — a independência não se rebaixa |
+| reviewer | gpt-6-astra@max | vendor oposto ao host — a independência não se rebaixa |
 | docs | sonnet | escrita objetiva sobre código já pronto |
 | scout | sonnet | leitura ampla e barata |
 
@@ -404,11 +408,11 @@ perfil não aplica isto (ver passo 2 de "Com argumento `perfil <nome>`"), vale o
 | Papel | Modelo | Por quê |
 |---|---|---|
 | planner·interface | opus | um planner só de Anthropic, sem o degrau extra de raciocínio |
-| planner·sistema | gpt-5.6-sol@high | effort rebaixado dentro do mesmo vendor |
+| planner·sistema | gpt-6-astra@high | effort rebaixado dentro do mesmo vendor |
 | implementer·pesada | sonnet | rebaixado um degrau — evita herdar o modelo caro da sessão |
 | implementer·normal | sonnet | já era o degrau econômico |
 | implementer·leve | haiku | já era o mais barato |
-| reviewer | gpt-5.6-sol@high | effort rebaixado; **vendor não muda** — sem ele, não há revisão independente |
+| reviewer | gpt-6-astra@high | effort rebaixado; **vendor não muda** — sem ele, não há revisão independente |
 | docs | haiku | escrita objetiva; rebaixar aqui custa pouco |
 | scout | haiku | leitura ampla e barata |
 

@@ -8,6 +8,7 @@
 
 ## ⏸️ Esperando você
 
+- [!] `T-075` claude-mem no Claude e Codex — crie chat novo e aprove "Recording prompt in claude-mem" · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
 - [?] `T-064` Superpowers ou a Matriz — quem vence no spawn? — decidido por você: a Matriz vence; escrito na SKILL.md · → threads/T-054-economia-tokens.md @frente-economia
 - [!] `T-065` Configurações fora do plugin — effort e MCPs feitos; falta decidir claude-mem e AGENTS.md · → threads/T-054-economia-tokens.md @frente-economia
 - [x] `T-066` Consolidar o ferramental empilhado — resolvido: caveman nunca esteve lá, os 2 grafos custam ~570 tok/sessão · → threads/T-054-economia-tokens.md
@@ -22,7 +23,8 @@
 
 ## 🟡 Fazendo
 
-- [~] `T-078` AI-Memory global — Claude captura; Codex bloqueado pelo Terminals dono do hooks.json, handoff aberto · trilha: sistema · faixa: pesada · → threads/T-078-ai-memory.md
+- [?] `T-079` GPT-6 Astra no planejamento e na revisão, Fable 5.1 nomeado — implementado e revisado; teste: pergunte "quem planeja e quem revisa?" nos dois hosts · → threads/T-079-gpt6-astra.md @frente-elenco
+
 - [?] `T-051` Reestruturar o elenco por natureza da tarefa e aposentar o Kimi — 0.25.0 publicada; falta seu teste comportamental (6 critérios, seção 7) · → threads/T-051-elenco-por-tarefa.md
 
 - [~] `T-040` Paridade operacional do Orquestra no Codex — coordena T-041, T-043 e T-042 · → threads/_notas-de-cards.md
@@ -35,6 +37,7 @@
 
 ## 🟣 Validar
 
+- [?] `T-078` AI-Memory global — Claude e Codex capturam; usar 1–2 semanas e reavaliar ganho vs. claude-mem · trilha: sistema · faixa: pesada · → threads/T-078-ai-memory.md
 - [?] `T-037` Tirar o SuperMemory do sistema de desenvolvimento — 0.22.3 publicada e instalada; falta sua validação prática · → threads/_notas-de-cards.md
 - [?] `T-043` Proteção preventiva da janela de contexto no Codex — guardião consultivo na 0.22.3; falta sua validação em task reaberta · → threads/_notas-de-cards.md
 
@@ -54,11 +57,10 @@
 
 ## 🔵 Backlog
 
+- [ ] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — guarda papel→modelo; achado no T-079 · → threads/T-079-gpt6-astra.md
 - [?] `T-077` Runner Anthropic fixa --model opus e barra o Fable no host Codex — feito: --model por alias, prova por prefixo · → threads/T-054-economia-tokens.md
 
 - [ ] `T-076` Board resolvido pelo checkout principal, para sobreviver a worktree por frente · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md
-
-- [ ] `T-075` Memória de sessão pode parar de gravar sem ninguém notar — detectar no diagnóstico e no checkpoint · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md @frente-economia
 
 - [?] `T-072` claude-mem volta ao catálogo com o papel escrito — feito em SKILL.md, stack.md e _stack.md · → threads/T-072-claude-mem.md
 - [?] `T-073` O gatilho "lembra quando" nunca chama busca nenhuma — agora nomeia a busca; teste: diga a frase · → threads/T-072-claude-mem.md

@@ -4,9 +4,39 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.26.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-04 (`bb68c9f`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois, e os três gates repetidos na própria fonte limpa (219 testes · validate · lint). **Falta só o teste comportamental do dono** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-05 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.27.0 bumpada localmente — **NADA commitado, publicado ou instalado** (ver seção abaixo). A última versão **publicada, instalada e verificada nos dois hosts** é a **0.26.0** (`bb68c9f`, 2026-09-04): cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois, e os três gates repetidos na própria fonte limpa (219 testes · validate · lint). **Falta o teste comportamental do dono para a 0.26.0** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-05 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
-## 🟢 Trabalho mais recente (2026-09-05) — `T-078` · AI-Memory 2.0
+## 🟢 Trabalho mais recente (2026-09-05) — `T-079` · elenco migrado para GPT-6 Astra, Fable nomeado 5.1
+
+**Quatro células do elenco passam a `gpt-6-astra@max`** (`planner·sistema` nos dois hosts,
+`reviewer` no host Claude, `planner·interface` no host Codex), e o Fable passa a ser identificado
+como **5.1** onde aparece. Retomar em `wiki/threads/T-079-gpt6-astra.md`; plano aprovado em
+`docs/plano_T-079-elenco-astra.md` (a ERRATA no topo do plano vence o corpo onde houver conflito).
+
+**Versão `0.27.0` bumpada nos quatro lugares. NADA commitado, publicado ou instalado — depende do
+dono.** Três gates verdes: 232 testes · `validate` · lint.
+
+**Provas reais que sustentam a mudança (2026-09-05):**
+- **Astra aceita `low|medium|high|xhigh|max|ultra`** — o estado do Codex do dono
+  (`~/.codex/.codex-global-state.json`) declara os seis efforts; a crença anterior de que ele não
+  aceitava `ultra` nasceu de ler a mensagem de erro de um controle negativo (`none`) como se fosse o
+  catálogo completo. `@max` é **escolha do dono**, feita com `ultra` disponível — nunca escrever que
+  é limitação técnica.
+- **`--model fable` contra a API real devolveu `OPUS_MODEL=claude-fable-5-1`**, exit `0`. O runner
+  Anthropic (`run-opus-reviewer.py`) passou a exigir esse prefixo — pedir `fable` e receber
+  `claude-fable-5-0` agora reprova com `OPUS_MODEL_MISMATCH` (TDD: teste escrito e visto falhar
+  antes do ajuste em `MODEL_ALIASES`).
+- **O ponto que dá valor ao card:** `orq/commands/revisar.md` chamava o runner **sem** `--model`,
+  então o reviewer do host Codex sempre rodava Opus (o default do runner) enquanto o elenco já
+  declarava `fable` desde o `T-077`. Corrigido para extrair o alias da linha `reviewer` e passá-lo
+  explicitamente.
+
+O preset `padrao` foi reconciliado com os novos valores da tabela ativa Claude (Astra nos dois
+papéis que mudaram, os três `implementer` em `sonnet`). **Não** foi criada uma guarda de lint
+comparando tabela↔preset — isso virou o card `T-080`, aberto por causa raiz distinta (divergência de
+2026-09-03, não introduzida aqui).
+
+## 🟡 Trabalho anterior (2026-09-05) — `T-078` · AI-Memory 2.0
 
 **Uma segunda camada de memória automática entra em teste, ao lado do claude-mem.** O dono trouxe
 o `AI-Memory 2.0` (akitaonrails, MIT, Rust) e pediu para rodar pelo ciclo: planner → revisor →
@@ -22,11 +52,12 @@ projetos já** — ciente de que isso pula a validação em estágios e inclui p
 Decisão registrada como dele, executada como pedido. **O que não muda:** `llm: disabled,
 embedding: disabled` — nada do capturado sai da máquina.
 
-**Estado real:** daemon `launchd` persistente rodando; **Claude captura** (8 sessões, 600+
-observações); **Codex NÃO captura**. Root cause achado: o `~/.codex/hooks.json` é **gerenciado pelo
-app Terminals**, que reescreve o arquivo e apaga hooks de terceiros — captura às 09:19:38, arquivo
-varrido às 09:24:26. Os hooks foram movidos para o `~/.codex/config.toml`, que o Terminals não toca;
-**a validação segue no próprio Codex, por handoff.**
+**Estado real:** daemon `launchd` persistente rodando; **Claude e Codex capturam**. No Codex, a
+causa era o `~/.codex/hooks.json` **gerenciado pelo app Terminals**, que reescrevia o arquivo e
+apagava hooks de terceiros. Os 6 hooks do AI-Memory foram movidos para o `~/.codex/config.toml` e
+aprovados pelo gate nativo. A sessão final, iniciada às 12:18, gravou no mesmo ID `session-start`,
+`user-prompt`, `pre-tool-use`, `post-tool-use` e `stop`; o banco chegou a 5 sessões Codex. O teste
+técnico passou; falta usar por 1–2 semanas e reavaliar o ganho real contra o claude-mem.
 
 ## 🟢 Trabalho mais recente (2026-09-02) — @frente-economia · `T-054`…`T-075`
 
@@ -70,6 +101,13 @@ difere do que entrou na main). Diffs do que foi removido em `docs/arquivo-worktr
 
 ⏭️ **Falta:** validação em uso de `T-056`, `T-064`, `T-072`, `T-073`; planejar o `T-075`; e o dono
 decidir sobre `AGENTS.md`/`CLAUDE.md` (**nada será cortado sem ele ver linha a linha**).
+
+**2026-09-05 — execução do `T-075`:** `claude-mem` `13.24.1` instalado nos dois hosts, Bruno
+Vascular excluído e detector metadata-only com 12 testes entregue. O `UserPromptSubmit` manual
+funciona, mas o Codex não dispara o hook do manifesto; fallback no `config.toml` aguarda aprovação
+no gate nativo de um chat criado pela interface. Estado literal em
+`wiki/threads/T-072-claude-mem.md`; plano em
+`../docs/superpowers/plans/2026-09-05-t075-claude-mem-paridade.md`.
 
 ## 🟡 Trabalho anterior (2026-09-01) — @frente-elenco · `T-051` + `T-052`
 

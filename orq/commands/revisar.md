@@ -82,19 +82,27 @@ codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
-**Host Codex — titular Anthropic pelo runner.** No host Codex, o titular é o Opus 5 pelo runner, e
-o Manager OpenAI só audita: ele não vira parecer.
+**Host Codex — titular Anthropic pelo runner.** No host Codex, o titular é o modelo Anthropic
+resolvido da linha `reviewer` do elenco (hoje `fable`, Fable 5.1), executado pelo runner; o Manager
+OpenAI só audita: ele não vira parecer.
 
-O briefing do Opus tem orçamento de **16 KiB = 16.384 bytes UTF-8 por lote, medidos depois da
+O briefing tem orçamento de **16 KiB = 16.384 bytes UTF-8 por lote, medidos depois da
 sanitização**. Até esse limite, envie o pacote inteiro. Acima dele, divida por arquivo/hunk em lotes
 independentes, repetindo em cada lote o objetivo, os critérios e o fora de escopo; cubra todos os
 hunks e registre a cobertura. **Nunca corte bytes nem resuma em silêncio** para caber. Um lote
 omitido ou que falhar torna a cobertura do parecer parcial — e isso se declara.
 
+**Nunca chamar o runner sem `--model`:** sem a flag ele cai no default `opus`, e repetiria a
+contradição que motivou este card — elenco declarando um modelo, execução rodando outro.
+
 ```bash
 # ORQ_PACKAGE_ROOT já foi resolvido pela skill para um caminho absoluto.
+REVIEWER_MODEL_ALIAS="<alias resolvido da linha reviewer>"
 OPUS_RUNNER="<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"
-OPUS_OUT=$(printf '%s' "$OPUS_BRIEFING_SANITIZADO" | python3 "$OPUS_RUNNER")
+OPUS_OUT=$(
+  printf '%s' "$OPUS_BRIEFING_SANITIZADO" |
+    python3 "$OPUS_RUNNER" --model "$REVIEWER_MODEL_ALIAS"
+)
 OPUS_EXIT=$?
 if [ "$OPUS_EXIT" -ne 0 ] || [ -z "$OPUS_OUT" ]; then
   echo "REVISÃO DEGRADADA: titular ausente; preserve o diagnóstico do stderr"
@@ -105,14 +113,14 @@ O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 
 acomoda a latência real observada de 267,1s em revisão arquitetural, sem remover a proteção contra
 processo órfão. A validação
 de tamanho ocorre antes do anúncio: `BRIEFING_TOO_LARGE` significa que nenhuma chamada começou;
-redivida o lote e execute, sem contar isso como retry. O runner exige
-`claude-opus-5` no `modelUsage` JSON e não imprime parecer em modelo errado, timeout, erro ou saída
-vazia (`OPUS_EMPTY_RESULT`). `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer lote incompleto →
-**REVISÃO DEGRADADA** com o diagnóstico do stderr;
+redivida o lote e execute, sem contar isso como retry. O runner exige o prefixo do alias pedido no
+`modelUsage` JSON (hoje, `fable` exige `claude-fable-5-1`) e não imprime parecer em modelo errado,
+timeout, erro ou saída vazia (`OPUS_EMPTY_RESULT`). `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer
+lote incompleto → **REVISÃO DEGRADADA** com o diagnóstico do stderr;
 não faça retry automático após chamada iniciada, para não duplicar custo.
-Todo host que usar o alias `opus` como Opus 5 usa o mesmo runner e precisa verificar essa resolução
-antes do parecer. Se ela não puder ser comprovada, trate Opus 5 como ausente e marque **REVISÃO
-DEGRADADA**, sem trocar de modelo.
+Todo host que invocar o runner com um alias precisa verificar que o `modelUsage` comprova o prefixo
+daquele alias antes do parecer. Se a resolução não puder ser comprovada, trate o modelo como ausente
+e marque **REVISÃO DEGRADADA**, sem trocar de modelo nem alargar o prefixo aceito.
 
 ### Titular indisponível → REVISÃO DEGRADADA, e o card não avança sozinho
 

@@ -136,6 +136,22 @@ class OpusReviewerRunnerTest(unittest.TestCase):
         self.assertIn("MODEL_ALIAS=fable", result.stderr)
         self.assertIn("OPUS_MODEL=claude-fable-5-1", result.stderr)
 
+    def test_rejects_fable_5_0_when_fable_5_1_is_required(self) -> None:
+        """Pedir Fable e receber 5.0 é reprovado — o prefixo exige exatamente 5.1.
+
+        `claude-fable-5` como prefixo casaria com `claude-fable-5-0` e daria a
+        prova por comprovada mesmo quando o CLI voltou a versão anterior. O
+        elenco declara Fable 5.1; o verificador precisa exigir esse degrau.
+        """
+        result = self.run_runner(
+            "revise", "--model", "fable",
+            FAKE_EXPECT_MODEL="fable", FAKE_MODEL="claude-fable-5-0",
+        )
+        self.assertEqual(result.returncode, 7)
+        self.assertIn("OPUS_MODEL_MISMATCH", result.stderr)
+        self.assertIn("esperado claude-fable-5-1", result.stderr)
+        self.assertEqual(result.stdout, "")
+
     def test_proof_is_per_alias_not_hardcoded_to_opus(self) -> None:
         """Pedir Fable e receber Opus é reprovado — a prova acompanha o alias.
 
@@ -148,7 +164,7 @@ class OpusReviewerRunnerTest(unittest.TestCase):
             FAKE_EXPECT_MODEL="fable", FAKE_MODEL="claude-opus-5",
         )
         self.assertEqual(result.returncode, 7)
-        self.assertIn("claude-fable-5", result.stderr)
+        self.assertIn("claude-fable-5-1", result.stderr)
         self.assertEqual(result.stdout, "")
 
     def test_unknown_alias_fails_closed_without_calling_claude(self) -> None:

@@ -109,9 +109,13 @@ mesma proporção. ⚠️ **Só filtre depois de ligar a busca:** quem atribui o
 regra, e o que for classificado errado sai da injeção — se a busca não estiver ligada, fica
 inalcançável pelos dois caminhos.
 
-**Detectar:** marketplace `thedotmack` registrado. **Custo:** roda um worker local, e o observer faz
-uma chamada de modelo barato por observação — **medir antes de instalar em host cujo gargalo seja
-número de chamadas**.
+**Detectar:** marketplace `thedotmack` registrado prova só instalação. Para captura, rode
+`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/claude_mem_status.py --platform <claude-ou-codex>`: ele lê
+somente metadados do SQLite e distingue `CAPTURANDO`, `ATRASADO`, `PARADO`, `OCIOSO`,
+`INDETERMINADO` e `EXCLUÍDO`. Health verde sem avanço do banco continua degradado. **Custo:** roda
+um worker local, e o observer faz uma chamada de modelo barato por observação — **medir antes de
+instalar em host cujo gargalo seja número de chamadas**. Como o observer é externo, projetos com
+PHI/PII permanecem excluídos por padrão.
 
 ## Camada 3 — Entender o código
 
@@ -158,9 +162,9 @@ mais o tempo de indexação. Existem **forks populares** — confira que é o re
 
 Modelos diferentes erram diferente — e **fornecedores** diferentes erram de forma menos
 correlacionada que duas instâncias do mesmo modelo. Por isso o revisor do Orquestra é **um só, e
-sempre do vendor oposto ao host**: no host Claude, quem revisa é o GPT; no host Codex, o Opus. Sem a
-via para o outro vendor, **não há revisão independente nenhuma** — não existe cair num revisor do
-mesmo vendor do host.
+sempre do vendor oposto ao host**: no host Claude, quem revisa é o GPT; no host Codex, o modelo
+Anthropic do elenco (hoje `fable`, Fable 5.1). Sem a via para o outro vendor, **não há revisão
+independente nenhuma** — não existe cair num revisor do mesmo vendor do host.
 
 ⚠️ **Esta camada é host-aware: resolva o host ANTES de propor.** A ferramenta a instalar é a do
 **vendor oposto** ao do host — a do próprio vendor do host não entrega revisão nenhuma, por mais
@@ -217,11 +221,12 @@ abre no host Claude, na direção oposta.
 `.zshrc`, que não alcança sessão já aberta.
 
 ⚠️ **CLI respondendo não é revisor funcionando.** O runner só imprime parecer quando o JSON comprova
-`claude-opus-5`; conta sem acesso ao Opus 5 devolve **revisão degradada**, não um parecer mais fraco.
-A sonda viva é o próprio runner (16 KiB por lote, timeout 600s) e é **chamada paga** — use-a só
-quando o sintoma for revisor mudo, sempre com `< /dev/null`.
+o prefixo do modelo selecionado — para o elenco atual, `claude-fable-5-1`; conta sem acesso a esse
+modelo devolve **revisão degradada**, não um parecer mais fraco. A sonda viva é o próprio runner
+(16 KiB por lote, timeout 600s) e é **chamada paga** — use-a só quando o sintoma for revisor mudo,
+sempre com `< /dev/null`.
 
-**Custo:** conta Anthropic com acesso ao Opus 5, cobrança à parte.
+**Custo:** conta Anthropic com acesso ao modelo do elenco, cobrança à parte.
 
 ---
 

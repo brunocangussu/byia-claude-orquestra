@@ -38,7 +38,9 @@ réguas") — aqui ela é resumida, não redefinida.
 **Quem pode vir de outro vendor:** só **`planner`** (pelo domínio) e **`reviewer`** (pela
 independência, e obrigatoriamente do vendor oposto). Aceitam qualquer vendor com célula na
 `## Matriz de invocação`, **desde que o mecanismo daquela célula execute aquele modelo** — a
-célula Anthropic×Codex é o runner de Opus fixo, então lá só entra `opus`. **`implementer`, `docs`
+célula Anthropic×Codex é o runner Anthropic parametrizado por `--model <alias>`: só entra alias
+presente no mapa de prova do runner (`opus`·`fable`·`sonnet`·`haiku`), com o prefixo daquele alias
+comprovado no `modelUsage` antes de virar parecer. **`implementer`, `docs`
 e `scout` ficam no vendor do host**: os dois primeiros porque escrevem; o `scout` porque leitura
 ampla e barata não compra aptidão de domínio e ainda pagaria transferência para terceiro.
 Scout cross-vendor é recusa com motivo. A metade de **escrita** cross-vendor do `T-021` segue fora do
@@ -62,8 +64,8 @@ Regras, cada uma escrita 1×:
 
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | binário `/usr/local/bin/codex` (`codex` no PATH) · modelo `gpt-5.6-sol` @ `xhigh` · comando completo: ver **Matriz de invocação** |
-| runner-opus | Anthropic | **host Codex**: `planner·interface` e `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py` · comprova `claude-opus-5` · 16 KiB por lote · timeout 600s · sonda real em repo + diretório externo passou em 2026-08-09 |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | binário `/usr/local/bin/codex` (`codex` no PATH) · modelo `gpt-6-astra` @ `max` · comando completo: ver **Matriz de invocação** |
+| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s · sonda real com `--model fable` em 2026-09-05 comprovou `claude-fable-5-1` (thread `T-079`) |
 
 A coluna **Consumida por** existe para o efeito de ligar/desligar ser anunciável sem chute: a via
 só afeta os papéis listados, nos hosts listados.
@@ -116,8 +118,8 @@ uma vez, não repetido) · `não testado`.
 
 | Vendor do modelo | host Claude | host Codex |
 |---|---|---|
-| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; **`fable` habilitado no `T-077` (2026-09-04) e ainda sem chamada real — comprovar no primeiro uso** |
-| **OpenAI** | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=<e> -s read-only "<briefing>" < /dev/null` — **comprovado como revisor**; **como planner, não exercitado** (o primeiro Loop A de trilha `sistema` no host Claude é o teste real). Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
+| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus, ou receber `claude-fable-5-0`, reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; `fable` habilitado no `T-077` (2026-09-04) e **comprovado com chamada real em 2026-09-05** (`OPUS_MODEL=claude-fable-5-1`, thread `T-079`) |
+| **OpenAI** | `codex exec -m gpt-6-astra -c model_reasoning_effort=max -s read-only "<briefing>" < /dev/null` — **comprovado como revisor**; **como planner, não exercitado** (o primeiro Loop A de trilha `sistema` no host Claude é o teste real). Smoke de 2026-09-05 comprovou os efforts `low|medium|high|xhigh|max` e a rejeição de `none`; `ultra` está disponível no catálogo do host mas não foi adotado — escolha do dono em 2026-09-05, não limitação técnica. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
 
 ## Times por host
 
@@ -132,8 +134,9 @@ time da outra.
    (pode cruzar vendor, é read-only); `implementer` e `docs` ficam no vendor do host.
 2. **O `reviewer` é único e sempre do vendor oposto ao host** — sem contingência interna, sem
    exceção. Ausência se declara, não se substitui.
-3. **A comprovação do alias `opus`** (que ele resolve para Opus 5) é obrigatória antes de todo
-   parecer que dependa dele; sem comprovação, trate como ausente e não troque de modelo.
+3. **A comprovação do alias do runner Anthropic** (que ele resolve para o prefixo esperado — `opus`
+   para `claude-opus-5`, `fable` para `claude-fable-5-1`) é obrigatória antes de todo parecer que
+   dependa dele; sem comprovação, trate como ausente e não troque de modelo.
 4. **Docs e scout seguem o vendor do host**, no degrau barato — leitura/escrita objetiva não se
    paga em domínio.
 
@@ -142,12 +145,12 @@ time da outra.
 | Papel | Modelo | Por quê |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono**, em qualquer host |
-| planner·interface | `fable` | spawn nativo, read-only |
-| planner·sistema | `gpt-5.6-sol@max` | `codex exec … -s read-only`; mecanismo comprovado como revisor, não como planner |
+| planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 (id `claude-fable-5-1`), comprovado |
+| planner·sistema | `gpt-6-astra@max` | `codex exec … -s read-only`; mecanismo comprovado como revisor, não como planner |
 | implementer·pesada | `sonnet` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
 | implementer·leve | `sonnet` | worktree quando houver trabalho paralelo |
-| reviewer | `gpt-5.6-sol@max` | vendor oposto ao host; `codex exec … -s read-only` |
+| reviewer | `gpt-6-astra@max` | vendor oposto ao host; `codex exec … -s read-only` |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
@@ -158,7 +161,9 @@ termina no modelo antigo; não se refaz nada. Ajuste papel a papel que diverge d
 inclusive com `padrao` ativo — vira `padrao · desvio: papel→modelo`; devolvido ao preset, remove-se
 o desvio. Ver passo 3 de "Com argumento — ajustar" em `/orq:elenco`.)*
 **Procedência dos valores:** revisão completa do dono em **2026-09-03** — as três faixas de
-`implementer` unificadas em `sonnet`, `planner·sistema` e `reviewer` promovidos a `@max`.
+`implementer` unificadas em `sonnet`, `planner·sistema` e `reviewer` promovidos a `@max`. Em
+**2026-09-05** (`T-079`), `planner·sistema` e `reviewer` migraram de `gpt-5.6-sol@max` para
+`gpt-6-astra@max`; o efeito de faixa/cerimônia descrito abaixo continua valendo.
 ⚠️ **Com as três faixas no mesmo modelo, a faixa deixa de escolher executor neste host** e passa a
 medir só cerimônia. A régua continua válida (ela também governa o gate e o piso de Alto risco), mas
 não espere que `pesada` traga um modelo mais forte aqui — não traz mais.
@@ -170,14 +175,21 @@ Motor: a sessão Codex. A linha `manager` é expectativa verificável, não coma
 | Papel | Modelo | Por quê |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono** — verificar o modelo real antes de anunciar |
-| planner·interface | `fable` | decisão do dono em 2026-09-03, **destravada pelo `T-077`**: o runner passou a aceitar `--model` e a provar o prefixo do alias pedido. Invocar com `--model fable`; a prova exige `claude-fable-5` no `modelUsage` |
-| planner·sistema | `gpt-5.6-sol@max` | decisão do dono em 2026-09-03; read-only |
+| planner·interface | `gpt-6-astra@max` | decisão do dono em 2026-09-05 (`T-079`) — ver nota abaixo. `codex exec … -s read-only` |
+| planner·sistema | `gpt-6-astra@max` | decisão do dono em 2026-09-05 (`T-079`); read-only |
 | implementer·pesada | `gpt-5.6-terra@xhigh` | `workspace-write`, writer único em worktree |
 | implementer·normal | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
 | implementer·leve | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03: as três faixas no mesmo modelo. O smoke do `gpt-5.6-luna` fica no histórico, mas o degrau não o usa mais |
-| reviewer | `fable` | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas. Invocar com `--model fable` |
+| reviewer | `fable` | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas. Invocar com `--model fable`; a prova exige `claude-fable-5-1` no `modelUsage`, confirmada em 2026-09-05 |
 | docs | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
 | scout | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
+
+⚠️ **Com `planner·interface` e `planner·sistema` os dois em Astra, a trilha deixa de escolher vendor
+neste host** — ela continua governando classificação e cerimônia (e o piso de Alto risco), mas não
+espere modelo ou executor diferente por trilha aqui. É o mesmo efeito que as três faixas de
+`implementer` já produzem no host Claude desde 2026-09-03. A via `runner-opus` perdeu
+`planner·interface` como consumidor neste host (ver `## Revisores externos`); a via `codex` ganhou
+`planner·sistema` do host Claude com este mesmo modelo (ver `## Matriz de invocação`).
 
 **Perfil ativo:** — este host não tem presets; o ajuste aqui é papel a papel, e criar um `## Perfis`
 para ele é pedido do dono, não iniciativa. Os presets de `## Perfis` são do host Claude e **não** se
@@ -185,6 +197,11 @@ aplicam aqui: trariam modelos Anthropic para `implementer`/`docs`, que só aceit
 
 ### Pendências comprováveis (não prometer antes de rodar)
 
+- **Astra (`gpt-6-astra`) como planner e reviewer** — o modelo e os efforts `low|medium|high|xhigh|
+  max` estão comprovados via CLI Codex (2026-09-05, thread `T-079`), e a rejeição de `none` também.
+  `ultra` está disponível no catálogo do host mas não foi adotado — escolha do dono, não limitação.
+  O que falta é o **comportamento num Loop A completo** (plano de ponta a ponta, revisão de um diff
+  real): a sonda comprovou que o modelo responde, não que o ciclo inteiro funciona.
 - **`gpt-5.6-luna` em `workspace-write`, e o effort suportado, seguem sem medição.** O smoke de
   2026-09-01 destravou o degrau e provou **só** o que segue: o modelo existe no catálogo, está
   autenticado nesta máquina e responde quando endereçado por `--model gpt-5.6-luna` — chamada
@@ -207,6 +224,16 @@ bloco de escrita inteiro para a outra assinatura.
 
 O preset `economia`, na seção `## Perfis` abaixo, é a variante de crédito curto **do host Claude**.
 Equivalente no Codex nasce sob demanda, quando o dono pedir.
+
+**Preços comprovados (tabela do vendor, não custo total do card):** GPT-6 Astra cobra US$ 10/MTok
+de entrada e US$ 50/MTok de saída — mesma tabela do Fable 5. Claude Fable 5.1 fica cerca de 25%
+abaixo do Fable 5 em workloads típicos; não há fonte verificada para um preço absoluto do 5.1, e
+nenhum arquivo deste projeto deriva um.
+
+`economia` é perfil de **crédito e esforço**, não garantia de menor custo total: o Astra cai de
+`@max` para `@high` (mesmo modelo, effort menor), `implementer·leve`, `docs` e `scout` usam degraus
+mais baratos, e `planner·interface` continua trocando de Fable 5.1 para Opus — decisão anterior do
+dono, preservada aqui.
 
 ## Perfis — times nomeados por contexto de crédito (host Claude)
 
@@ -235,12 +262,12 @@ o vendor do host acabaria com a única coisa que ele entrega.
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| planner·interface | fable | trilha perceptual pensa com Anthropic |
-| planner·sistema | gpt-5.6-sol@ultra | trilha comportamental pensa com OpenAI |
-| implementer·pesada | opus | alto risco ou desenho ainda aberto |
+| planner·interface | fable | trilha perceptual pensa com Anthropic — Fable 5.1 |
+| planner·sistema | gpt-6-astra@max | trilha comportamental pensa com OpenAI |
+| implementer·pesada | sonnet | executar plano já aprovado é trabalho dirigido — reconciliado com a tabela ativa |
 | implementer·normal | sonnet | executar plano já aprovado é trabalho dirigido |
-| implementer·leve | haiku | resultado determinado, verificação mecânica |
-| reviewer | gpt-5.6-sol@xhigh | vendor oposto ao host — a independência não se rebaixa |
+| implementer·leve | sonnet | executar plano já aprovado é trabalho dirigido — reconciliado com a tabela ativa |
+| reviewer | gpt-6-astra@max | vendor oposto ao host — a independência não se rebaixa |
 | docs | sonnet | escrita objetiva sobre código já pronto |
 | scout | sonnet | leitura ampla e barata |
 
@@ -256,11 +283,11 @@ com o Opus"* — relida para os dois eixos.
 | Papel | Modelo | Por quê |
 |---|---|---|
 | planner·interface | opus | escolha verbatim do dono para este contexto |
-| planner·sistema | gpt-5.6-sol@high | effort rebaixado dentro do mesmo vendor |
+| planner·sistema | gpt-6-astra@high | effort rebaixado dentro do mesmo vendor |
 | implementer·pesada | sonnet | rebaixado um degrau — evita herdar Opus no perfil de economia |
 | implementer·normal | sonnet | já era o econômico |
 | implementer·leve | haiku | já era o mais barato |
-| reviewer | gpt-5.6-sol@high | effort rebaixado; **vendor não muda** |
+| reviewer | gpt-6-astra@high | effort rebaixado; **vendor não muda** |
 | docs | haiku | escrita objetiva; rebaixar aqui custa pouco |
 | scout | haiku | leitura ampla e barata |
 
