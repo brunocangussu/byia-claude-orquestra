@@ -5,11 +5,35 @@ aparece, e promover o **GPT-6 (Astra)** ao planejamento e à revisão.
 
 ## ⏭️ RETOMAR AQUI
 
-**Implementado em 2026-09-05**, a partir do plano aprovado em `docs/plano_T-079-elenco-astra.md`
-(ERRATA no topo do plano vence o corpo). Os três gates saíram verdes (232 testes · `validate` ·
-lint). **Nada foi commitado, publicado ou instalado** — depende do Manager/dono. Falta a auditoria
-do Manager contra o diff e a validação do dono usando o produto (card fecha em VALIDATE, não em
-"gates verdes"). Ver `## Implementação (2026-09-05)` abaixo para o que mudou por arquivo.
+**Card em VALIDATE. Commit `da69233` feito localmente e NÃO enviado — `main` está `ahead 1`.**
+
+O ciclo fechou por inteiro em 2026-09-05: plano aprovado → implementação → revisão independente
+(OpenAI, vendor oposto ao host) → dois achados confirmados e corrigidos por quem implementou →
+auditoria do Manager contra o diff → commit seletivo. Três gates verdes, conferidos pelo Manager e
+não só relatados: 232 testes · `validate` · lint.
+
+**O que falta, e só o dono pode fazer:**
+
+1. **Publicar** (push + release). Ninguém publicou nem instalou nada — os dois hosts seguem na
+   `0.26.0`, então o elenco novo **ainda não está valendo em lugar nenhum**.
+2. **Teste comportamental**, depois de instalar: perguntar em português natural *"quem planeja e
+   quem revisa?"* em cada host, e conferir as quatro células Astra `@max` mais o Fable 5.1 no
+   reviewer do Codex. O teste que realmente importa é pedir uma revisão no Codex e ver sair
+   `MODEL_ALIAS=fable` / `OPUS_MODEL=claude-fable-5-1` — é a prova de que o reviewer parou de rodar
+   Opus escondido.
+
+**Pendências pequenas, deliberadamente não feitas** (não atrapalham o uso, viram card se o dono
+quiser): o preço do Astra ficou só no `_elenco.md`, fora do README; e os contadores "201/219
+testes" em `README.md`, `distribuicao.md` e `arquitetura.md` estão desatualizados — a suíte tem 232
+(220 do plugin + 12 do `T-075`, de outra frente).
+
+⚠️ **Este checkout é compartilhado com a frente `T-075` (claude-mem), que roda em outra janela.**
+O commit `da69233` deixou de fora, de propósito: `orq/commands/stack.md`, `orq/commands/checkpoint.md`,
+`memory/wiki/_stack.md`, os dois scripts `claude_mem_status*` e as threads `T-072`/`T-078`. Ele
+**carrega**, nos três arquivos compartilhados (board, log e índice), linhas daquelas frentes —
+decisão consciente do dono, registrada no corpo do commit, porque a alternativa deixava os quatro
+anchors de versão incoerentes no HEAD.
+
 
 ## O que a pesquisa comprovou (2026-09-05)
 
