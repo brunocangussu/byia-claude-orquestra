@@ -8,7 +8,7 @@
 
 ## ⏸️ Esperando você
 
-- [!] `T-075` claude-mem no Claude e Codex — crie chat novo e aprove "Recording prompt in claude-mem" · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
+- [!] `T-075` claude-mem no Claude e Codex — plano do patch lifecycle/pool pronto; aguarda aprovação do dono · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
 - [?] `T-064` Superpowers ou a Matriz — quem vence no spawn? — decidido por você: a Matriz vence; escrito na SKILL.md · → threads/T-054-economia-tokens.md @frente-economia
 - [!] `T-065` Configurações fora do plugin — effort e MCPs feitos; falta decidir claude-mem e AGENTS.md · → threads/T-054-economia-tokens.md @frente-economia
 - [x] `T-066` Consolidar o ferramental empilhado — resolvido: caveman nunca esteve lá, os 2 grafos custam ~570 tok/sessão · → threads/T-054-economia-tokens.md
@@ -23,7 +23,7 @@
 
 ## 🟡 Fazendo
 
-- [?] `T-079` GPT-6 Astra no planejamento e na revisão, Fable 5.1 nomeado — implementado e revisado; teste: pergunte "quem planeja e quem revisa?" nos dois hosts · → threads/T-079-gpt6-astra.md @frente-elenco
+- [x] `T-079` GPT-6 Astra no planejamento e na revisão, Fable 5.1 nomeado — validado por você nos dois hosts em 2026-09-06 · → threads/T-079-gpt6-astra.md
 
 - [?] `T-051` Reestruturar o elenco por natureza da tarefa e aposentar o Kimi — 0.25.0 publicada; falta seu teste comportamental (6 critérios, seção 7) · → threads/T-051-elenco-por-tarefa.md
 
@@ -36,6 +36,7 @@
 ---
 
 ## 🟣 Validar
+
 
 - [?] `T-078` AI-Memory global — Claude e Codex capturam; usar 1–2 semanas e reavaliar ganho vs. claude-mem · trilha: sistema · faixa: pesada · → threads/T-078-ai-memory.md
 - [?] `T-037` Tirar o SuperMemory do sistema de desenvolvimento — 0.22.3 publicada e instalada; falta sua validação prática · → threads/_notas-de-cards.md

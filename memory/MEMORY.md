@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.0 bumpada localmente — **NADA commitado, publicado ou instalado** (ver seção abaixo). A última versão **publicada, instalada e verificada nos dois hosts** é a **0.26.0** (`bb68c9f`, 2026-09-04): cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois, e os três gates repetidos na própria fonte limpa (219 testes · validate · lint). **Falta o teste comportamental do dono para a 0.26.0** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-05 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.27.0 — **publicada, instalada e verificada nos dois hosts** em 2026-09-06 (`f194acd`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois, e os três gates repetidos na fonte limpa (232 testes · validate · lint). **Teste comportamental do dono FEITO nos dois hosts** — `T-079` fechado · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-06 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
 
 ## 🟢 Trabalho mais recente (2026-09-05) — `T-079` · elenco migrado para GPT-6 Astra, Fable nomeado 5.1
 

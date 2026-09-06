@@ -3,36 +3,41 @@
 **Pedido do dono em 2026-09-05:** revisar o elenco vigente, **nomear o Fable como 5.1** onde ele
 aparece, e promover o **GPT-6 (Astra)** ao planejamento e à revisão.
 
-## ⏭️ RETOMAR AQUI
+## ✅ CARD FECHADO — 2026-09-06
 
-**Card em VALIDATE. Commit `da69233` feito localmente e NÃO enviado — `main` está `ahead 1`.**
+**Validado pelo dono nos dois hosts.** `0.27.0` publicada (`f194acd`), instalada e verificada:
+`verify_installed_cache.py` deu `ok: installed cache matches source`, exit `0`, nos dois.
 
-O ciclo fechou por inteiro em 2026-09-05: plano aprovado → implementação → revisão independente
-(OpenAI, vendor oposto ao host) → dois achados confirmados e corrigidos por quem implementou →
-auditoria do Manager contra o diff → commit seletivo. Três gates verdes, conferidos pelo Manager e
-não só relatados: 232 testes · `validate` · lint.
+**Host Codex** — respondeu `Astra @ max` nas duas trilhas de planner e `Fable 5.1` no reviewer,
+citando a linha do elenco. **Host Claude** — `fable` (Fable 5.1) na trilha `interface`,
+`gpt-6-astra@max` em `planner·sistema` e no `reviewer`.
 
-**O que falta, e só o dono pode fazer:**
+**A prova que fecha o defeito central**, medida no runner **instalado** do Codex (não no do repo):
 
-1. **Publicar** (push + release). Ninguém publicou nem instalou nada — os dois hosts seguem na
-   `0.26.0`, então o elenco novo **ainda não está valendo em lugar nenhum**.
-2. **Teste comportamental**, depois de instalar: perguntar em português natural *"quem planeja e
-   quem revisa?"* em cada host, e conferir as quatro células Astra `@max` mais o Fable 5.1 no
-   reviewer do Codex. O teste que realmente importa é pedir uma revisão no Codex e ver sair
-   `MODEL_ALIAS=fable` / `OPUS_MODEL=claude-fable-5-1` — é a prova de que o reviewer parou de rodar
-   Opus escondido.
+```
+MODEL_ALIAS=fable · OPUS_MODEL=claude-fable-5-1 · exit 0
+```
 
-**Pendências pequenas, deliberadamente não feitas** (não atrapalham o uso, viram card se o dono
-quiser): o preço do Astra ficou só no `_elenco.md`, fora do README; e os contadores "201/219
-testes" em `README.md`, `distribuicao.md` e `arquitetura.md` estão desatualizados — a suíte tem 232
-(220 do plugin + 12 do `T-075`, de outra frente).
+e o `revisar.md` instalado passa `--model "$REVIEWER_MODEL_ALIAS"`. O elo que fazia o Codex revisar
+com Opus enquanto o elenco declarava Fable está fechado **na versão que roda**, não só na fonte.
 
-⚠️ **Este checkout é compartilhado com a frente `T-075` (claude-mem), que roda em outra janela.**
-O commit `da69233` deixou de fora, de propósito: `orq/commands/stack.md`, `orq/commands/checkpoint.md`,
-`memory/wiki/_stack.md`, os dois scripts `claude_mem_status*` e as threads `T-072`/`T-078`. Ele
-**carrega**, nos três arquivos compartilhados (board, log e índice), linhas daquelas frentes —
-decisão consciente do dono, registrada no corpo do commit, porque a alternativa deixava os quatro
-anchors de versão incoerentes no HEAD.
+### O que continua NÃO comprovado, de propósito registrado
+
+- **Astra como planner nunca rodou de verdade.** O mecanismo `codex exec … -s read-only` está
+  comprovado no papel de **revisor**; como planner, o primeiro Loop A de trilha `sistema` é que será
+  o teste real. Não confundir "configurado" com "exercitado".
+- **A trilha ainda escolhe vendor no host Claude** (Fable vs. Astra), mas **não** no Codex, onde as
+  duas trilhas colapsaram em Astra e a trilha virou só cerimônia — mesma coisa que já acontecera com
+  as três faixas do `implementer` no Claude em 2026-09-03.
+
+### Incidente de release, para não repetir
+
+A primeira publicação (`e19b877`) saiu quebrada: `orq/stack.md:113` citava `claude_mem_status.py`,
+script da frente `T-075` deixado fora do commit seletivo. O Manager rodou os gates no **working
+tree contaminado** (onde o script existia sem estar commitado) e declarou verde; em fonte limpa o
+lint reprovava e dois testes de `test_context_guard` caíam junto, por só invocarem o lint.
+Corrigido em `f194acd`. **A lição não é "rodar os gates" — é rodar no checkout detached limpo antes
+do push, que é exatamente o que o protocolo deste projeto já mandava.**
 
 
 ## O que a pesquisa comprovou (2026-09-05)

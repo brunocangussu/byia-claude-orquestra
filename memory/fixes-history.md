@@ -1864,3 +1864,22 @@ virou o card `T-080` — a divergência é de 2026-09-03 e tem causa raiz distin
 
 Gates: 232 testes · `validate` · lint, verdes e conferidos pelo Manager, não só relatados.
 **Nada commitado, publicado ou instalado.**
+
+## [2026-09-06] validação | T-079 · elenco Astra/Fable 5.1 confirmado nos dois hosts — card fechado
+
+`0.27.0` publicada em `f194acd`, instalada e verificada nos dois hosts (`ok: installed cache matches
+source`, exit `0`). O dono validou por conversa natural: o Codex respondeu Astra `@max` nas duas
+trilhas de planner e Fable 5.1 no reviewer; o Claude respondeu Fable 5.1 na trilha `interface` e
+Astra `@max` em `planner·sistema` e `reviewer`.
+
+O defeito central foi provado fechado **na versão instalada**, não na fonte: o runner do cache do
+Codex, chamado com `--model fable`, devolveu `OPUS_MODEL=claude-fable-5-1` com exit `0`, e o
+`revisar.md` instalado passa o alias explicitamente.
+
+Fica registrado como **não comprovado**: o Astra no papel de *planner* nunca rodou — o mecanismo
+`codex exec -s read-only` só foi exercitado como revisor. O primeiro Loop A de trilha `sistema` é
+que será o teste real.
+
+**Incidente:** a primeira publicação saiu quebrada porque os gates foram rodados no working tree
+contaminado por outra frente, e não em checkout detached limpo como o protocolo manda. Só a fonte
+limpa acusou. Corrigido no mesmo dia.
