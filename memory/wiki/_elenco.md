@@ -158,8 +158,10 @@ time da outra.
 *(A linha vale por host. Trocar o perfil reescreve a tabela acima e vale a partir do **próximo
 spawn, em todas as janelas deste host** — crédito é da conta, não da frente. Agente já em execução
 termina no modelo antigo; não se refaz nada. Ajuste papel a papel que diverge do preset ativo —
-inclusive com `padrao` ativo — vira `padrao · desvio: papel→modelo`; devolvido ao preset, remove-se
-o desvio. Ver passo 3 de "Com argumento — ajustar" em `/orq:elenco`.)*
+inclusive com `padrao` ativo — vira `padrao · desvio: papel→modelo` (mais de um desvio, separe por
+`;`); devolvido ao preset, remove-se o desvio. Gramática completa (as duas formas, o que o valor
+depois de `→` significa) mora em `/orq:elenco`, não aqui — ver passo 3 de "Com argumento —
+ajustar".)*
 **Procedência dos valores:** revisão completa do dono em **2026-09-03** — as três faixas de
 `implementer` unificadas em `sonnet`, `planner·sistema` e `reviewer` promovidos a `@max`. Em
 **2026-09-05** (`T-079`), `planner·sistema` e `reviewer` migraram de `gpt-5.6-sol@max` para

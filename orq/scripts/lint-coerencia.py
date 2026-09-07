@@ -187,6 +187,49 @@ def _linha_unica(texto: str, prefixo: str):
     return achadas[0], "ok"
 
 
+_PAR_CRASE_RE = re.compile(r"^(`+)(.+)\1$", re.DOTALL)
+_PAR_ENFASE_RE = re.compile(r"^(\*{1,2}|_{1,2})(.+)\1$", re.DOTALL)
+
+
+def _desembrulha_marcacao_pareada(valor: str) -> str:
+    """Remove UMA camada de marcação markdown PAREADA das pontas de `valor`
+    — nunca caracteres soltos.
+
+    A versão anterior normalizava com `.strip("`* ")`, que descasca cada
+    crase/asterisco/espaço das duas pontas INDEPENDENTEMENTE, sem checar se
+    formam um par de abre-fecha. Isso apaga conteúdo literal: `` `modelo-teste*` ``
+    (um code span cujo CONTEÚDO termina em asterisco literal — dentro de um
+    code span nada é marcação, CommonMark não processa ênfase ali dentro) e
+    `` `modelo-teste` `` viravam a MESMA string, porque o asterisco do
+    primeiro era descascado junto com as crases. Um modelo literal `` `*` ``
+    virava string vazia pelo mesmo mecanismo (revisão adversarial do T-080,
+    rodada 3, achado 3 — número que já nomeia outro achado da rodada 2, sobre
+    a fronteira decorativa; são achados diferentes, coincidência de número).
+
+    Prioridade: crase primeiro (code span suprime ênfase por dentro, então o
+    resultado de uma crase pareada não passa por outra rodada); sem crase
+    pareada, tenta uma camada de ênfase pareada (`**negrito**`, `*itálico*`,
+    `_itálico_`). Sem nenhuma das duas — inclusive um `*` sozinho, que não
+    tem par possível (o regex exige conteúdo não vazio entre os delimitadores)
+    — devolve `valor` intocado. `implementer·pesada`, sem nenhum delimitador,
+    atravessa as duas tentativas sem mudar.
+    """
+    m = _PAR_CRASE_RE.match(valor)
+    if m:
+        return m.group(2)
+    m = _PAR_ENFASE_RE.match(valor)
+    if m:
+        return m.group(2)
+    return valor
+
+
+def _normaliza_valor_tabela(bruto: str) -> str:
+    """Espaço fora + uma camada de marcação pareada fora — a normalização
+    padrão de célula de tabela e de lado de desvio (`_parse_perfil_ativo`
+    usa a mesma, para o desvio declarado bater com o valor da tabela)."""
+    return _desembrulha_marcacao_pareada(bruto.strip()).strip()
+
+
 def papeis_da_tabela(secao: str):
     """Primeira célula de cada linha de dados de uma tabela markdown.
 
@@ -197,7 +240,8 @@ def papeis_da_tabela(secao: str):
     o lint ficou verde com o template gerando elenco inválido.
 
     Descarta o cabeçalho (primeira célula `Papel`) e o separador (`---`), e
-    normaliza crases/negrito para comparar por valor.
+    normaliza crases/negrito PAREADOS para comparar por valor (não caracteres
+    soltos — ver `_desembrulha_marcacao_pareada`).
     """
     papeis = []
     for linha in secao.splitlines():
@@ -209,11 +253,738 @@ def papeis_da_tabela(secao: str):
         bruta = celulas[1].strip()
         if set(bruta) <= {"-", ":"} and bruta:
             continue
-        nome = bruta.strip("`* ").strip()
+        nome = _normaliza_valor_tabela(bruta)
         if nome.lower() == "papel":
             continue
         papeis.append(nome)
     return papeis
+
+
+# Os oito papéis comparáveis do elenco (T-051) — compartilhados pela guarda de
+# completude do template (`TABELAS_DE_PAPEL`, dentro de `main()`) e pela
+# guarda de perfil ativo × preset (T-080, `validate_elenco_perfis` abaixo).
+# `manager` não é papel de eixo nem fixo: só existe na tabela de HOST, nunca
+# em preset nem em desvio — é a sessão, escolhida pelo dono no `/model`.
+PAPEIS_EIXO = (
+    "planner·interface",
+    "planner·sistema",
+    "implementer·pesada",
+    "implementer·normal",
+    "implementer·leve",
+)
+PAPEIS_FIXOS = ("reviewer", "docs", "scout")
+ESPERADO_HOST = ("manager",) + PAPEIS_EIXO + PAPEIS_FIXOS
+ESPERADO_PRESET = PAPEIS_EIXO + PAPEIS_FIXOS
+
+
+# Um bloco só compete a template canônico se PARECER um elenco — não basta
+# usar a linguagem ```markdown```` (revisão adversarial do T-080, rodada 3,
+# achado 5 — número que já nomeia outro achado da rodada 2, sobre proteção de
+# encoding; são achados diferentes, coincidência de número):
+# um `### Exemplo de anotação` auxiliar, com um bloco ```markdown``` de nota
+# solta (`# Nota` / `Revisão concluída.`), virava "segundo candidato" e
+# reprovava a seção inteira com 8 diagnósticos derivados, mesmo sem ambiguidade
+# real nenhuma. As duas marcas abaixo são as que `main()` já exige do template
+# de verdade (`## Times por host` é seção obrigatória; toda tabela de papel
+# usa o cabeçalho `| Papel | Modelo | ... |`) — um bloco sem NENHUMA das duas
+# não é candidato a template, é conteúdo qualquer que por acaso usa a mesma
+# linguagem de cerca.
+_PARECE_TEMPLATE_ELENCO_RE = re.compile(r"## Times por host|\|\s*Papel\s*\|\s*Modelo\s*\|")
+
+
+def _blocos_markdown_de_topo(texto: str):
+    """Todos os blocos ```` ```markdown ```` de NÍVEL DE TOPO em `texto` que
+    PARECEM um template de elenco (`_PARECE_TEMPLATE_ELENCO_RE`): lista de
+    `(offset_inicio_conteudo, offset_fim_conteudo)`, na ordem em que aparecem,
+    e `cerca_pendente` — `True` quando uma cerca de nível de topo segue
+    ABERTA ao fim de `texto`. `offset_inicio_conteudo` é a posição logo após
+    o texto da cerca de abertura (antes do `\\n` dela), igual à convenção de
+    `secoes_de` — o conteúdo devolvido começa com o `\\n` que fecha a linha
+    da cerca.
+
+    Mesma disciplina de cercas de `_mascara_cercas` (CommonMark: abre com 3+
+    de um caractere, fecha só com o MESMO caractere, comprimento >= abertura,
+    sem info string na linha de fechamento) — mas em vez de mascarar, devolve
+    a posição do conteúdo de cada bloco cuja info string de abertura é
+    `markdown`. Bloco aninhado dentro de outro já aberto não conta — o mesmo
+    tratamento que `_mascara_cercas` dá: uma cerca já aberta só fecha com uma
+    cerca compatível; uma abertura nova enquanto isso é conteúdo, não um
+    segundo bloco.
+
+    `cerca_pendente=True` é ANOMALIA ESTRUTURAL, nunca desaparecimento
+    silencioso: a versão anterior só registrava um candidato quando achava o
+    fechamento, então uma cerca sem fechamento (a segunda de duas, ou uma
+    aberta "por engano" por uma linha de fechamento indentada dentro de um
+    item de lista — `` - ```markdown `` não é reconhecida como abertura por
+    começar com `- `, e a cerca de 3 crases que viria a fechá-la é lida como
+    uma ABERTURA nova, que aí sim nunca fecha) simplesmente sumia da lista, e
+    `_bloco_canonico_elenco` validava o que sobrou como se não houvesse
+    ambiguidade nenhuma (revisão adversarial do T-080, achado 2). O chamador
+    tem que tratar `cerca_pendente=True` como diagnóstico, sempre — não como
+    "só achei um".
+    """
+    achados = []
+    char_aberto = ""
+    tam_aberto = 0
+    info_aberto = ""
+    offset_inicio_conteudo = 0
+    cursor = 0
+    for linha in texto.splitlines(keepends=True):
+        conteudo = linha.rstrip("\n")
+        m = _ABRE_CERCA_RE.match(conteudo)
+        if not char_aberto:
+            if m:
+                char_aberto = m.group(1)[0]
+                tam_aberto = len(m.group(1))
+                info_aberto = m.group(2).strip()
+                offset_inicio_conteudo = cursor + len(conteudo)
+            cursor += len(linha)
+            continue
+        fecha = (
+            m is not None
+            and m.group(1)[0] == char_aberto
+            and len(m.group(1)) >= tam_aberto
+            and m.group(2).strip() == ""
+        )
+        if fecha:
+            if info_aberto.lower() == "markdown" and _PARECE_TEMPLATE_ELENCO_RE.search(
+                texto[offset_inicio_conteudo:cursor]
+            ):
+                achados.append((offset_inicio_conteudo, cursor))
+            char_aberto = ""
+            tam_aberto = 0
+            info_aberto = ""
+        cursor += len(linha)
+    return achados, bool(char_aberto)
+
+
+def _bloco_canonico_elenco(txt_elenco: str):
+    """Isola o bloco ```markdown canônico dentro de `## Modelo do arquivo` de
+    `orq/commands/elenco.md` — é o template que `/orq:init` copia para o
+    `_elenco.md` de um projeto novo.
+
+    Devolve `(bloco, offset, erro)`: `erro` é `None` quando o bloco foi
+    encontrado; `offset` é a posição do primeiro caractere de `bloco` dentro
+    de `txt_elenco`, necessária para traduzir uma posição relativa (achada
+    dentro do bloco) em número de linha real do arquivo (T-080). Fonte única:
+    tanto a guarda de completude de papéis quanto a de perfil ativo × preset
+    chamam esta função — duas extrações independentes já divergiram uma da
+    outra antes (heading por substring, ver `secoes_de`).
+
+    O heading é casado por LINHA INTEIRA e tem que ser ÚNICO
+    (`_secao_unica_offset`, com máscara de cercas): um heading citado dentro
+    de um exemplo cercado não conta, e dois heading reais são ambiguidade —
+    não escolha silenciosa da primeira ocorrência. Dentro da seção aberta
+    pelo heading, o bloco ```markdown também tem que ser único pelo mesmo
+    motivo: dois candidatos, um coerente e um divergente, não podem deixar o
+    divergente escapar por estar em segundo lugar (revisão adversarial do
+    T-080, achado 2 — reproduzido com dois blocos sob o mesmo heading, e com
+    um exemplo histórico cercado por 4 crases contendo o marcador e uma cópia
+    coerente, antes do template real). Um bloco cuja cerca nunca fecha é
+    anomalia estrutural, não desaparecimento silencioso do candidato (achado
+    2, segunda reprodução, rodada 3). E um bloco auxiliar que só por acaso usa
+    a mesma linguagem ```markdown``` (uma nota de exemplo, não um template)
+    não compete — só concorre o que PARECE elenco (rodada 3, achado 5 —
+    número que já nomeia outro achado da rodada 2, sobre proteção de
+    encoding; são achados diferentes — ver `_PARECE_TEMPLATE_ELENCO_RE`).
+    (Sem anotação de retorno: `tuple[str, int, str | None]` elevaria o piso de
+    Python, mesma razão de `secoes_de` — o resto do arquivo se mantém em 3.9.)
+    """
+    secao, offset_secao, estado = _secao_unica_offset(txt_elenco, "## Modelo do arquivo")
+    if estado == "ausente":
+        return (
+            "",
+            0,
+            "não contém heading `## Modelo do arquivo` (linha inteira, fora de bloco cercado)",
+        )
+    if estado != "ok":
+        return (
+            "",
+            0,
+            f"heading `## Modelo do arquivo` {estado} — qual é o template de verdade fica ambíguo",
+        )
+
+    candidatos, cerca_pendente = _blocos_markdown_de_topo(secao)
+    if cerca_pendente:
+        return (
+            "",
+            0,
+            "`## Modelo do arquivo` tem uma cerca de bloco aberta sem fechamento — "
+            "estrutura ambígua, não dá para saber com segurança onde o template termina",
+        )
+    if not candidatos:
+        return "", 0, "não contém bloco ```markdown canônico em ## Modelo do arquivo"
+    if len(candidatos) > 1:
+        return (
+            "",
+            0,
+            f"`## Modelo do arquivo` tem {len(candidatos)} blocos ```markdown "
+            "candidatos — qual é o template de verdade fica ambíguo",
+        )
+    ini, fim = candidatos[0]
+    return secao[ini:fim], offset_secao + ini, None
+
+
+# Fronteira aceita logo após o PREFIXO, em `exato=False`: qualquer coisa que
+# NÃO seja continuação do nome — letra, dígito ou hífen colado (revisão
+# adversarial do T-080, rodada 3, achado 4 — número que já nomeia outro
+# achado da rodada 2, sobre normalização de crases; são achados diferentes,
+# coincidência de número). A primeira versão era uma ALLOWLIST de pontuação
+# aceita (espaço, vírgula, ponto, parênteses…) e toda allowlist esquece algo:
+# `` ### `padrao`(time titular) `` (parêntese de abertura sem espaço) e um
+# espaço não separável (U+00A0) antes do travessão decorativo reprovavam
+# documentação legítima com "preset ausente" — falso positivo.
+# Invertido para DENYLIST: só três coisas são continuação do NOME, tudo o
+# resto é decoração e passa. Calibração comprovada: `## PerfisDeTeste` (letra)
+# e `### `padrao`-antigo` (hífen colado bem depois do fecho de crase) TÊM que
+# continuar sem casar como `## Perfis` / `` ### `padrao` ``.
+_FRONTEIRA_SUBTITULO_DECORATIVO = r"(?![^\W_]|-)"
+
+
+def _secao_unica_offset(texto: str, heading: str, *, exato: bool = True):
+    """Combinação de `secao_unica` com a posição inicial da seção dentro de
+    `texto` — os diagnósticos do T-080 apontam a linha real do arquivo, não só
+    o nome dele.
+
+    `exato=False` casa o heading pelo PREFIXO da linha, não pelo texto
+    inteiro: é o caso de `## Perfis` e dos presets nomeados (`` ### `padrao` ``,
+    `` ### `economia` ``), cujo subtítulo decorativo diverge, de propósito,
+    entre o projeto e o template de fábrica (T-080, pergunta 5) — exigir o
+    heading inteiro reprovaria os dois documentos reais por motivo nenhum.
+    O prefixo exige FRONTEIRA logo em seguida (`_FRONTEIRA_SUBTITULO_DECORATIVO`):
+    sem ela, `## PerfisDeTeste` seria uma segunda ocorrência de `## Perfis`.
+    Mascara cercas antes, como `secoes_de`: um heading citado dentro de um
+    bloco de exemplo não é um heading de verdade (T-080, critério de aceite).
+    """
+    nivel = len(heading) - len(heading.lstrip("#"))
+    mascarado = _mascara_cercas(texto)
+    corpo = re.escape(heading) + (
+        r"[ \t]*$" if exato else _FRONTEIRA_SUBTITULO_DECORATIVO + r".*$"
+    )
+    inicio = re.compile(r"^" + corpo, re.MULTILINE)
+    proximo = re.compile(r"^#{1," + str(nivel) + r"}[ \t]", re.MULTILINE)
+    achadas = []
+    for m in inicio.finditer(mascarado):
+        fim = len(texto)
+        seguinte = proximo.search(mascarado, m.end())
+        if seguinte is not None:
+            fim = seguinte.start()
+        achadas.append((texto[m.end():fim], m.end()))
+    if not achadas:
+        return None, 0, "ausente"
+    if len(achadas) > 1:
+        return None, 0, f"duplicado:{len(achadas)}"
+    secao, offset = achadas[0]
+    return secao, offset, "ok"
+
+
+def _papel_modelo_com_offset(secao: str, offset_secao: int):
+    """`(papel, modelo, offset)` para cada linha de dados de uma tabela
+    markdown, com a POSIÇÃO da linha em vez de só o nome do papel —
+    `papeis_da_tabela` (usada pela guarda de completude do template) descarta
+    as duas coisas de que o T-080 precisa: a segunda célula (Modelo) e a
+    posição de origem. A terceira célula (Por quê) não participa: mudar só a
+    justificativa não pode virar divergência de modelo (T-080, critério de
+    aceite). Mascara cercas antes: uma tabela de exemplo dentro de um bloco
+    cercado não conta como tabela de verdade.
+    """
+    mascarada = _mascara_cercas(secao)
+    resultado = []
+    cursor = 0
+    for linha in mascarada.splitlines(keepends=True):
+        conteudo = linha.rstrip("\n")
+        if conteudo.startswith("|"):
+            celulas = conteudo.split("|")
+            if len(celulas) >= 3:
+                bruta = celulas[1].strip()
+                if not (set(bruta) <= {"-", ":"} and bruta):
+                    papel = _normaliza_valor_tabela(bruta)
+                    if papel.lower() != "papel":
+                        modelo = _normaliza_valor_tabela(celulas[2])
+                        resultado.append((papel, modelo, offset_secao + cursor))
+        cursor += len(linha)
+    return resultado
+
+
+def _linha_unica_offset(texto: str, prefixo: str, offset_texto: int = 0):
+    """Mesma semântica de `_linha_unica`, com a posição da linha em `texto` —
+    e mascarando cercas antes, para uma linha `**Perfil ativo:**` citada
+    dentro de um exemplo não satisfazer a guarda (T-080, critério de aceite).
+    """
+    mascarado = _mascara_cercas(texto)
+    achadas = []
+    cursor = 0
+    for linha in mascarado.splitlines(keepends=True):
+        conteudo = linha.rstrip("\n")
+        if conteudo.startswith(prefixo):
+            achadas.append((conteudo, offset_texto + cursor))
+        cursor += len(linha)
+    if not achadas:
+        return None, 0, "ausente"
+    if len(achadas) > 1:
+        return None, 0, f"duplicado:{len(achadas)}"
+    linha, offset = achadas[0]
+    return linha, offset, "ok"
+
+
+def _extrai_tabela(
+    secao: str,
+    offset_secao: int,
+    esperados: tuple,
+    rotulo: str,
+    caminho: Path,
+    linha_de,
+    problemas: list,
+) -> dict:
+    """`papel -> (modelo, offset)` para uma tabela já delimitada (`secao`),
+    acrescentando a `problemas` toda violação estrutural: papel obrigatório
+    ausente ou duplicado, papel intruso (inclusive `manager` num preset, que
+    nunca é papel de preset — T-080, pergunta 4) e modelo vazio. Aplica, para
+    QUALQUER documento (`_elenco.md` do projeto OU o template de fábrica), a
+    mesma disciplina que `TABELAS_DE_PAPEL` já aplicava só ao template.
+    """
+    linhas = _papel_modelo_com_offset(secao, offset_secao)
+    contagem = Counter(papel for papel, _, _ in linhas)
+    tabela: dict = {}
+    for papel, modelo, offset in linhas:
+        if not modelo:
+            problemas.append(
+                (caminho, linha_de(offset), f"{rotulo}: papel `{papel}` com modelo vazio")
+            )
+        if papel in esperados and contagem[papel] == 1:
+            tabela[papel] = (modelo, offset)
+    for papel in esperados:
+        n = contagem.get(papel, 0)
+        if n == 0:
+            problemas.append((caminho, linha_de(0), f"{rotulo}: papel `{papel}` ausente"))
+        elif n > 1:
+            problemas.append(
+                (caminho, linha_de(0), f"{rotulo}: papel `{papel}` aparece {n}× — esperado 1×")
+            )
+    for intruso in sorted(set(contagem) - set(esperados)):
+        offset_intruso = next(off for papel, _, off in linhas if papel == intruso)
+        motivo = (
+            " (`manager` não é papel de preset)"
+            if intruso == "manager" and "preset" in rotulo
+            else ""
+        )
+        problemas.append(
+            (
+                caminho,
+                linha_de(offset_intruso),
+                f"{rotulo}: papel `{intruso}` não pertence a esta tabela{motivo}",
+            )
+        )
+    return tabela
+
+
+_PREFIXO_PERFIL_ATIVO = "**Perfil ativo:**"
+
+
+def _tem_declaracao_perfil_claude(bloco: str) -> bool:
+    """Sinal POSITIVO — não dependente de reconhecer nenhuma heading por
+    nome — de que o documento declara um perfil ativo do Host Claude.
+
+    A dispensa de `## Perfis` ausente (ver `_validar_perfil_ativo_documento`)
+    só é legítima quando o documento GENUINAMENTE não declara elenco de Host
+    Claude — não quando alguém deformou o heading que a guarda usava para
+    decidir isso. Basear a dispensa só em `secoes_de(bloco, "### Host
+    Claude")` quebrava com QUALQUER deformação do heading: renomear
+    (`### Host Claude antigo`), fechar no estilo ATX (`### Host Claude ###`,
+    sintaxe CommonMark válida que nosso reconhecedor de heading não cobre) ou
+    cercar só a linha do heading como se fosse exemplo, deixando a tabela e a
+    linha `**Perfil ativo:**` vivas logo abaixo — as três formas devolviam
+    `tem_host_claude=False` e, combinadas com renomear `## Perfis`, desarmavam
+    a guarda inteira em silêncio (revisão adversarial do T-080, achado 1).
+
+    A linha `**Perfil ativo:**` é o DADO sendo comparado, não um rótulo de
+    seção — é dela que vem o preset a validar contra a tabela ativa, e um PoC
+    que a esconde também esconde a própria divergência que estaria testando.
+    Por isso ela é o sinal positivo: procurada em QUALQUER LUGAR do bloco
+    (mascarando cercas, como as demais buscas de heading), não só dentro de
+    `### Host Claude` — que é exatamente o heading que pode estar deformado.
+    Limitação aceita: um documento que cerque a seção INTEIRA (heading, tabela
+    e a linha `Perfil ativo` juntos) como "exemplo" também esconde este sinal
+    — mas aí o documento renderizado mostra um bloco de código no lugar da
+    declaração, defeito visível a olho nu, diferente da deformação sutil que
+    este sinal fecha.
+    """
+    mascarado = _mascara_cercas(bloco)
+    return (
+        bool(secoes_de(bloco, "### Host Claude"))
+        or re.search(r"^" + re.escape(_PREFIXO_PERFIL_ATIVO), mascarado, re.MULTILINE)
+        is not None
+    )
+
+
+def _parse_perfil_ativo(linha: str) -> tuple[str, list]:
+    """`(preset, desvios)` a partir de uma linha `**Perfil ativo:**`
+    bem-formada; levanta `ValueError` com o motivo quando não dá para
+    interpretar — preset fora de crases, `sem desvio` e uma lista de desvios
+    ao mesmo tempo, item sem `→`, papel repetido.
+
+    `desvios` é lista de `(papel, modelo)` na ordem declarada; vazia quando a
+    linha diz `sem desvio`. Aceita as duas formas documentadas em
+    `orq/commands/elenco.md`: a forma abreviada (`` `padrao` · desvio:
+    papel→modelo ``, sem data) e a forma completa, com data e `;` separando
+    múltiplos desvios — a data em si não é validada aqui, é metadado (T-080,
+    pergunta 1).
+    """
+    corpo = linha.strip()
+    if not corpo.startswith(_PREFIXO_PERFIL_ATIVO):
+        raise ValueError(f"não começa com '{_PREFIXO_PERFIL_ATIVO}'")
+    corpo = corpo[len(_PREFIXO_PERFIL_ATIVO):].strip()
+    m = re.match(r"^`([^`]*)`\s*(.*)$", corpo)
+    if not m:
+        raise ValueError("nome do preset não está entre crases")
+    preset = m.group(1).strip()
+    if not preset:
+        raise ValueError("nome do preset vazio")
+    resto = m.group(2).strip()
+
+    tem_sem_desvio = re.search(r"\bsem desvio\b", resto, re.IGNORECASE) is not None
+    m_desvio = re.search(r"\bdesvio:\s*(.+?)\.?\s*$", resto, re.IGNORECASE)
+    if tem_sem_desvio and m_desvio:
+        raise ValueError("declara 'sem desvio' e uma lista de desvios ao mesmo tempo")
+    if not tem_sem_desvio and not m_desvio:
+        raise ValueError("não diz 'sem desvio' nem declara 'desvio:' — formato ilegível")
+    if tem_sem_desvio:
+        return preset, []
+
+    desvios: list = []
+    vistos: set = set()
+    for item in m_desvio.group(1).split(";"):
+        item = item.strip().rstrip(".").strip()
+        if not item:
+            raise ValueError("desvio vazio na lista (separador ';' sobrando)")
+        partes = item.split("→")
+        if len(partes) != 2:
+            raise ValueError(
+                "desvio malformado, esperado papel→modelo — múltiplos desvios "
+                f"são separados por `;`, não por vírgula: {item!r}"
+            )
+        # Mesma normalização de `_normaliza_valor_tabela`, usada pela TABELA
+        # (`_papel_modelo_com_offset`): sem ela, `docs→`haiku`` (desvio) nunca
+        # bate com `docs | haiku` (tabela), e o desvio correto é acusado de
+        # divergir do próprio valor que declara (revisão adversarial do
+        # T-080, achado 4, rodada 2). A normalização remove só marcação
+        # PAREADA, nunca caracteres soltos — `docs→`haiku*`` preserva o
+        # asterisco literal e continua divergindo de `haiku` sem o asterisco
+        # (rodada 3, achado 3 — número que já nomeia outro achado da rodada
+        # 2, sobre a fronteira decorativa; são achados diferentes).
+        papel, modelo = (
+            _normaliza_valor_tabela(partes[0]),
+            _normaliza_valor_tabela(partes[1]),
+        )
+        if not papel or not modelo:
+            raise ValueError(f"desvio com papel ou modelo vazio: {item!r}")
+        if papel in vistos:
+            raise ValueError(f"papel `{papel}` repetido na lista de desvios")
+        vistos.add(papel)
+        desvios.append((papel, modelo))
+    return preset, desvios
+
+
+def _validar_perfil_ativo_documento(
+    texto_documento: str,
+    bloco: str,
+    offset_bloco: int,
+    caminho_relatorio: Path,
+) -> list:
+    """Guarda do T-080: a tabela ATIVA do Host Claude (dentro de `## Times por
+    host`) tem que bater com o preset que a linha `**Perfil ativo:**` diz
+    estar em vigor — exatamente, exceto pelos desvios que a própria linha
+    declara. Nada impedia as duas de divergirem enquanto a linha seguia
+    anunciando "sem desvio": os três gates ficaram verdes por três dias em
+    setembro de 2026.
+
+    Compara o documento CONSIGO MESMO — nunca o `_elenco.md` do projeto
+    contra o template de fábrica, nem vice-versa: são superfícies
+    independentes que divergem legitimamente (T-080, pergunta 5). `bloco` é o
+    trecho a validar (o `_elenco.md` inteiro, com `offset_bloco=0`, ou o bloco
+    canônico dentro de `## Modelo do arquivo`); `texto_documento` é o arquivo
+    real, usado só para traduzir posição em número de linha.
+
+    Sem `## Perfis` no documento **e sem `### Host Claude`**, a guarda não se
+    aplica — vale para o `_elenco.md` só-Codex, que não tem presets (T-080,
+    pergunta 3), e não é motivo de reprovação. Perfis são sempre do Host
+    Claude (mesma pergunta): esta função nunca olha para `### Host Codex`.
+
+    Mas `## Perfis` ausente COM `### Host Claude` presente é outra história:
+    é exatamente o defeito que esta guarda existe para impedir num nível
+    acima — remover ou renomear `## Perfis` desarmava a guarda inteira em
+    silêncio (revisão adversarial do T-080, achado 1, com PoC nas duas
+    superfícies). Ausência do restante da declaração (tabela ativa, linha
+    `Perfil ativo`) COM `## Perfis` presente já reprovava antes; agora a
+    ausência do próprio `## Perfis` reprova pelo mesmo motivo quando há Host
+    Claude para exigi-lo.
+    """
+
+    def linha_de(offset_relativo: int) -> int:
+        return texto_documento.count("\n", 0, offset_bloco + offset_relativo) + 1
+
+    problemas: list = []
+
+    # Declaração de Host Claude decide se a ausência de `## Perfis` é dispensa
+    # legítima (host sem Claude, ex.: `_elenco.md` só-Codex) ou diagnóstico
+    # (Host Claude presente exige perfis). Sinal POSITIVO sobre conteúdo, não
+    # só heading por nome (`_tem_declaracao_perfil_claude`, achado 1): heading
+    # renomeado/deformado não faz a tabela nem a linha `Perfil ativo` sumirem.
+    tem_host_claude = _tem_declaracao_perfil_claude(bloco)
+
+    secao_perfis, offset_perfis, estado_perfis = _secao_unica_offset(
+        bloco, "## Perfis", exato=False
+    )
+    if estado_perfis == "ausente":
+        if not tem_host_claude:
+            return []
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(0),
+                "`## Perfis` ausente, mas o documento tem `### Host Claude` — "
+                "perfis são obrigatórios para este host (T-080, pergunta 3); "
+                "ausência não desarma a guarda em silêncio",
+            )
+        )
+        return problemas
+    if estado_perfis != "ok":
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(0),
+                f"`## Perfis` {estado_perfis} — qual seção é a de verdade fica ambíguo",
+            )
+        )
+        return problemas
+
+    secao_times, offset_times, estado_times = _secao_unica_offset(bloco, "## Times por host")
+    if estado_times != "ok":
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(0),
+                f"`## Times por host` {estado_times} — sem ela não há tabela ativa "
+                "para comparar com o preset",
+            )
+        )
+        return problemas
+    secao_host, offset_host_rel, estado_host = _secao_unica_offset(secao_times, "### Host Claude")
+    if estado_host != "ok":
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(0),
+                f"`### Host Claude` {estado_host} dentro de `## Times por host` — "
+                "`## Perfis` só vale para este host (T-080, pergunta 3)",
+            )
+        )
+        return problemas
+    offset_host = offset_times + offset_host_rel
+
+    ativos = _extrai_tabela(
+        secao_host,
+        offset_host,
+        ESPERADO_HOST,
+        "tabela ativa do Host Claude",
+        caminho_relatorio,
+        linha_de,
+        problemas,
+    )
+
+    presets: dict = {}
+    for nome, prefixo in (("padrao", "### `padrao`"), ("economia", "### `economia`")):
+        secao_preset, offset_preset_rel, estado_preset = _secao_unica_offset(
+            secao_perfis, prefixo, exato=False
+        )
+        if estado_preset != "ok":
+            problemas.append(
+                (
+                    caminho_relatorio,
+                    linha_de(0),
+                    f"preset `{nome}` {estado_preset} dentro de `## Perfis`",
+                )
+            )
+            continue
+        offset_preset = offset_perfis + offset_preset_rel
+        presets[nome] = _extrai_tabela(
+            secao_preset,
+            offset_preset,
+            ESPERADO_PRESET,
+            f"preset `{nome}`",
+            caminho_relatorio,
+            linha_de,
+            problemas,
+        )
+
+    linha_ativa, offset_ativa, estado_ativa = _linha_unica_offset(
+        secao_host, _PREFIXO_PERFIL_ATIVO, offset_host
+    )
+    if estado_ativa != "ok":
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(0),
+                f"linha `{_PREFIXO_PERFIL_ATIVO}` {estado_ativa} dentro de "
+                "`### Host Claude` — ausência não desarma a guarda (T-080, pergunta 3)",
+            )
+        )
+        return problemas
+
+    try:
+        preset_ativo_nome, desvios_declarados = _parse_perfil_ativo(linha_ativa)
+    except ValueError as exc:
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(offset_ativa),
+                f"linha `{_PREFIXO_PERFIL_ATIVO}` ilegível: {exc}",
+            )
+        )
+        return problemas
+
+    if preset_ativo_nome not in presets:
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(offset_ativa),
+                f"perfil ativo declara `{preset_ativo_nome}`, que não existe em "
+                "`## Perfis` (nomes conhecidos: padrao, economia)",
+            )
+        )
+        return problemas
+
+    preset_ativo = presets[preset_ativo_nome]
+    ativos_oito = {papel: valor for papel, valor in ativos.items() if papel != "manager"}
+
+    diffs_reais = {
+        papel: (preset_ativo[papel][0], ativos_oito[papel][0], ativos_oito[papel][1])
+        for papel in ESPERADO_PRESET
+        if papel in preset_ativo
+        and papel in ativos_oito
+        and preset_ativo[papel][0] != ativos_oito[papel][0]
+    }
+
+    cobertos: set = set()
+    for papel, modelo_declarado in desvios_declarados:
+        if papel == "manager":
+            problemas.append(
+                (
+                    caminho_relatorio,
+                    linha_de(offset_ativa),
+                    "desvio não pode citar `manager` — não é papel de preset nem de desvio",
+                )
+            )
+            continue
+        if papel not in ESPERADO_PRESET:
+            problemas.append(
+                (
+                    caminho_relatorio,
+                    linha_de(offset_ativa),
+                    f"desvio cita papel `{papel}`, que não é um dos oito papéis comparáveis",
+                )
+            )
+            continue
+        if papel not in preset_ativo or papel not in ativos_oito:
+            # Alguma das duas tabelas já reprovou este papel na extração
+            # estrutural (ausente/duplicado) — sem valor confiável para
+            # comparar, e o problema já foi registrado lá.
+            cobertos.add(papel)
+            continue
+        preset_valor, ativo_valor, _ = (
+            preset_ativo[papel][0],
+            ativos_oito[papel][0],
+            ativos_oito[papel][1],
+        )
+        if preset_valor == ativo_valor:
+            # Não há diferença real neste papel — o desvio é obsoleto MESMO
+            # quando declara o valor "certo": não sobrou nada para justificar.
+            problemas.append(
+                (
+                    caminho_relatorio,
+                    linha_de(offset_ativa),
+                    f"desvio `{papel}→{modelo_declarado}` já é igual ao preset "
+                    f"`{preset_ativo_nome}` — remova o desvio",
+                )
+            )
+        elif modelo_declarado != ativo_valor:
+            problemas.append(
+                (
+                    caminho_relatorio,
+                    linha_de(offset_ativa),
+                    f"Host Claude, perfil {preset_ativo_nome}: desvio declarado "
+                    f"`{papel}→{modelo_declarado}` não bate com o modelo ativo "
+                    f"(`{ativo_valor}`)",
+                )
+            )
+        cobertos.add(papel)
+
+    for papel, (preset_valor, ativo_valor, _ativo_offset) in diffs_reais.items():
+        if papel in cobertos:
+            continue
+        offset_diagnostico = preset_ativo[papel][1]
+        problemas.append(
+            (
+                caminho_relatorio,
+                linha_de(offset_diagnostico),
+                f"Host Claude, perfil {preset_ativo_nome}: {papel} — "
+                f"ativo={ativo_valor}; preset={preset_valor}; diferença sem "
+                "desvio declarado",
+            )
+        )
+
+    return problemas
+
+
+def validate_elenco_perfis(raiz: Path, plugin: Path) -> list:
+    """Contrato de `validate_hooks`/`validate_codex_consultive_language`:
+    devolve problemas como `(Path, linha, mensagem)`. Guarda do T-080: a
+    tabela viva do Host Claude e o preset ativo declarado em `Perfil ativo`
+    não podem divergir em silêncio, nem no `_elenco.md` do projeto nem no
+    template de fábrica — cada documento é validado contra si mesmo
+    (`_validar_perfil_ativo_documento`).
+
+    Leitura de arquivo sem tratamento: um encoding incompatível levantaria
+    `UnicodeDecodeError` e mataria `main()` inteiro, engolindo junto todo
+    problema já acumulado por outras guardas (revisão adversarial do T-080,
+    achado 5). O contrato desta função é devolver `(Path, linha, mensagem)`
+    — falha de leitura também é isso, não uma exceção não tratada.
+    """
+    problemas: list = []
+
+    elenco_projeto = raiz / "memory" / "wiki" / "_elenco.md"
+    if elenco_projeto.is_file():
+        try:
+            texto = elenco_projeto.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            problemas.append(
+                (elenco_projeto.relative_to(raiz), 0, f"não foi possível ler: {exc}")
+            )
+        else:
+            problemas.extend(
+                _validar_perfil_ativo_documento(texto, texto, 0, elenco_projeto.relative_to(raiz))
+            )
+
+    elenco_cmd = plugin / "commands" / "elenco.md"
+    if elenco_cmd.is_file():
+        try:
+            txt_elenco = elenco_cmd.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            problemas.append(
+                (elenco_cmd.relative_to(raiz), 0, f"não foi possível ler: {exc}")
+            )
+        else:
+            bloco, offset, erro = _bloco_canonico_elenco(txt_elenco)
+            if erro is None:
+                problemas.extend(
+                    _validar_perfil_ativo_documento(
+                        txt_elenco, bloco, offset, elenco_cmd.relative_to(raiz)
+                    )
+                )
+            # `erro` (bloco ausente) já é reportado pela extração equivalente
+            # em `main()` — não duplicar o mesmo diagnóstico aqui.
+
+    return problemas
 
 
 def arquivos_a_varrer(raiz: Path, plugin: Path):
@@ -223,6 +994,35 @@ def arquivos_a_varrer(raiz: Path, plugin: Path):
         alvo = raiz / nome
         if alvo.exists():
             yield alvo
+
+
+def _ler_texto_ou_diagnostico(caminho: Path, raiz: Path, problemas: list):
+    """Lê `caminho` como UTF-8; em falha (encoding incompatível, permissão,
+    arquivo removido entre o `is_file()` e a leitura), acrescenta um
+    diagnóstico a `problemas` e devolve `None` — nunca deixa a exceção
+    propagar.
+
+    (Sem anotação de retorno: `str | None` elevaria o piso de Python — mesma
+    razão de `secoes_de`/`_secao_unica_offset` — o resto do arquivo se
+    mantém em 3.9.)
+
+    `validate_elenco_perfis` já protegia a leitura de `_elenco.md` e de
+    `elenco.md`, mas `main()` RELÊ os dois (e dezenas de outros arquivos) em
+    vários pontos independentes — o teto do runner Opus, os contratos do
+    Codex, a checagem de versão, o template do elenco… Proteger só a PRIMEIRA
+    leitura de um arquivo não protege as demais: um `UnicodeDecodeError` em
+    qualquer uma delas matava `main()` inteiro, e a saída saía vazia,
+    perdendo até os diagnósticos já acumulados por guardas anteriores
+    (revisão adversarial do T-080, rodada 3, achado 6 — número que já nomeia
+    outro achado da rodada 2, sobre a mensagem de separador do desvio; são
+    achados diferentes, coincidência de número). Todo ponto de releitura em
+    `main()` e em `validate_codex_consultive_language` chama este helper.
+    """
+    try:
+        return caminho.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        problemas.append((caminho.relative_to(raiz), 0, f"não foi possível ler: {exc}"))
+        return None
 
 
 def validate_hooks(raiz: Path, plugin: Path) -> list[tuple[Path, int, str]]:
@@ -406,7 +1206,9 @@ def validate_codex_consultive_language(
     for arq in arquivos_a_varrer(raiz, plugin):
         if not arq.is_file():
             continue
-        texto = arq.read_text(encoding="utf-8")
+        texto = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if texto is None:
+            continue
         headings: list[tuple[int, str]] = []
         heading_matches = list(re.finditer(r"(?m)^(#{1,6})\s+(.+)$", texto))
         for bloco_match in re.finditer(
@@ -668,7 +1470,10 @@ def main() -> int:
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):
             continue
         rel = arq.relative_to(raiz)
-        for num, linha in enumerate(arq.read_text(encoding="utf-8").splitlines(), 1):
+        texto_arq = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if texto_arq is None:
+            continue
+        for num, linha in enumerate(texto_arq.splitlines(), 1):
             for regex, universo, msg in PADROES:
                 for m in regex.finditer(linha):
                     if m.group(1) not in conhecidos[universo]:
@@ -713,7 +1518,9 @@ def main() -> int:
     for arq, rotulo in ((raiz / "README.md", "README"), (raiz / "memory" / "MEMORY.md", "MEMORY.md")):
         if not arq.exists():
             continue
-        txt = arq.read_text(encoding="utf-8")
+        txt = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if txt is None:
+            continue
         if not re.search(r"\b\d+\.\d+\.\d+\b", txt):
             continue
         nome_ancora, extrair = ANCORAS_VERSAO[rotulo]
@@ -804,23 +1611,19 @@ def main() -> int:
         plugin / "commands" / "implement-next.md",
         plugin / "commands" / "revisar.md",
     ]
-    txt_elenco = elenco_cmd.read_text(encoding="utf-8")
-    try:
-        template_elenco = txt_elenco.split("## Modelo do arquivo", 1)[1]
-        template_elenco = template_elenco.split("```markdown", 1)[1].split("```", 1)[0]
-    except IndexError:
-        template_elenco = ""
-        problemas.append(
-            (
-                elenco_cmd.relative_to(raiz),
-                0,
-                "não contém bloco ```markdown canônico em ## Modelo do arquivo",
-            )
-        )
+    txt_elenco = _ler_texto_ou_diagnostico(elenco_cmd, raiz, problemas)
+    if txt_elenco is None:
+        txt_elenco = ""
+    template_elenco, _offset_template, erro_template = _bloco_canonico_elenco(txt_elenco)
+    if erro_template is not None:
+        problemas.append((elenco_cmd.relative_to(raiz), 0, erro_template))
+    textos_consumidores_elenco = []
+    for arq in consumidores_elenco:
+        texto_consumidor = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if texto_consumidor is not None:
+            textos_consumidores_elenco.append(texto_consumidor)
     for heading in ("## Matriz de invocação", "## Times por host"):
-        exigida = any(
-            heading in arq.read_text(encoding="utf-8") for arq in consumidores_elenco
-        )
+        exigida = any(heading in texto for texto in textos_consumidores_elenco)
         if exigida and secao_unica(template_elenco, heading)[1] != "ok":
             problemas.append(
                 (
@@ -908,7 +1711,9 @@ def main() -> int:
     for arq, fragmentos in CONTRATOS_CODEX.items():
         if not arq.is_file():
             continue
-        txt = arq.read_text(encoding="utf-8")
+        txt = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if txt is None:
+            continue
         for fragmento in fragmentos:
             if fragmento not in txt:
                 problemas.append(
@@ -975,16 +1780,8 @@ def main() -> int:
     # nota fora da tabela): guarda que confirma que um texto existe em algum
     # lugar quando a regra exige que ele exista NUM lugar. Aqui: papel obrigatório
     # exatamente 1×, nenhum papel intruso, `manager` só na tabela de host.
-    PAPEIS_EIXO = (
-        "planner·interface",
-        "planner·sistema",
-        "implementer·pesada",
-        "implementer·normal",
-        "implementer·leve",
-    )
-    PAPEIS_FIXOS = ("reviewer", "docs", "scout")
-    ESPERADO_HOST = ("manager",) + PAPEIS_EIXO + PAPEIS_FIXOS
-    ESPERADO_PRESET = PAPEIS_EIXO + PAPEIS_FIXOS
+    # (PAPEIS_EIXO, PAPEIS_FIXOS, ESPERADO_HOST e ESPERADO_PRESET moram no nível
+    # do módulo — a guarda de perfil ativo × preset, T-080, os reusa.)
     TABELAS_DE_PAPEL = {
         "### Host Claude": ("tabela de host", ESPERADO_HOST),
         "### Host Codex": ("tabela de host", ESPERADO_HOST),
@@ -1025,6 +1822,14 @@ def main() -> int:
                     f"(esperados: {', '.join(esperado)})",
                 )
             )
+
+    # ── Perfil ativo × preset (T-080) ───────────────────────────────────────
+    # Nada impedia a tabela viva do Host Claude e o preset que a linha "Perfil
+    # ativo" diz estar em vigor de divergirem enquanto ela seguia anunciando
+    # "sem desvio" — os três gates ficaram verdes por três dias em 2026-09.
+    # Cada documento (`_elenco.md` do projeto e o template de fábrica) é
+    # validado CONTRA SI MESMO — divergem legitimamente entre si (pergunta 5).
+    problemas.extend(validate_elenco_perfis(raiz, plugin))
 
     # ── Host aposentado (T-051) ────────────────────────────────────────────
     # O suporte ao terceiro host saiu do produto na 0.24.0. O modo de falha nº
@@ -1185,7 +1990,9 @@ def main() -> int:
         arq = raiz / rel
         if not arq.is_file():
             continue
-        conteudo = arq.read_text(encoding="utf-8")
+        conteudo = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if conteudo is None:
+            continue
         for gate, papel in GATES_OBRIGATORIOS:
             if gate not in conteudo:
                 problemas.append(
@@ -1243,7 +2050,10 @@ def main() -> int:
         arq = raiz / rel
         if not arq.is_file():
             continue
-        secao, estado = secao_unica(arq.read_text(encoding="utf-8"), heading)
+        conteudo_procedimento = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if conteudo_procedimento is None:
+            continue
+        secao, estado = secao_unica(conteudo_procedimento, heading)
         if estado != "ok":
             problemas.append(
                 (
@@ -1329,7 +2139,9 @@ def main() -> int:
         for arq in TETO_SUPERFICIES:
             if not arq.is_file():
                 continue
-            conteudo = arq.read_text(encoding="utf-8")
+            conteudo = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+            if conteudo is None:
+                continue
             if arq in TETO_DECLARAM and f"{teto}s" not in conteudo:
                 problemas.append(
                     (
@@ -1358,7 +2170,9 @@ def main() -> int:
     # Consumers não repetem modelos nem dependem da variável exclusiva do
     # Claude: ambos causam drift quando o elenco ou o host muda.
     for arq in (plugin / "commands" / "plan-next.md", plugin / "commands" / "implement-next.md"):
-        txt = arq.read_text(encoding="utf-8")
+        txt = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if txt is None:
+            continue
         for proibido in (
             "${CLAUDE_PLUGIN_ROOT}/commands/elenco.md",
             "gpt-5.6-sol@ultra",
@@ -1417,7 +2231,9 @@ def main() -> int:
     for arq in plugin.rglob("*.md"):
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):
             continue
-        txt = arq.read_text(encoding="utf-8")
+        txt = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if txt is None:
+            continue
         if GRAVA_STATUSLINE_RE.search(txt):
             faltando = [
                 e

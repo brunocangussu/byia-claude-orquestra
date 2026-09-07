@@ -8,8 +8,8 @@
 
 ## ⏸️ Esperando você
 
-- [!] `T-075` claude-mem no Claude e Codex — plano do patch lifecycle/pool pronto; aguarda aprovação do dono · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
-- [?] `T-064` Superpowers ou a Matriz — quem vence no spawn? — decidido por você: a Matriz vence; escrito na SKILL.md · → threads/T-054-economia-tokens.md @frente-economia
+- [!] `T-075` claude-mem no Claude e Codex — caches patchados; restart bloqueado por fila RAM crescente · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
+- [x] `T-064` Superpowers ou a Matriz — fechado em 2026-09-06: decidido pelo dono e escrito na SKILL.md; a sessao do T-079 seguiu a Matriz — um subagente por card
 - [!] `T-065` Configurações fora do plugin — effort e MCPs feitos; falta decidir claude-mem e AGENTS.md · → threads/T-054-economia-tokens.md @frente-economia
 - [x] `T-066` Consolidar o ferramental empilhado — resolvido: caveman nunca esteve lá, os 2 grafos custam ~570 tok/sessão · → threads/T-054-economia-tokens.md
 
@@ -45,12 +45,12 @@
 - [?] `T-036` O `/orq:init` apaga a statusline do dono — trilha: interface · 0.20.0 publicada; teste em projeto vazio: /orq:init não pode gravar chave · → threads/T-036-statusline.md
 - [?] `T-015` Diagnóstico de ambiente dá **falso all-clear** — teste: /orq:stack --verificar tem que comparar CONTEÚDO do cache, não só versão · → threads/_notas-de-cards.md
 - [?] `T-016` Colisão de roteamento na skill — teste: diga "o painel de revisão não está funcionando" — tem que criar card, não fechar em "ambiente ok" · → threads/_notas-de-cards.md
-- [?] `T-017` Release sem bump deixa o cache stale em silêncio — teste: edite orq/ sem bumpar e rode lint-coerencia.py — tem que falhar · → threads/_notas-de-cards.md
+- [x] `T-017` Release sem bump deixa o cache stale em silêncio — fechado em 2026-09-06: a guarda acusou checkpoint.md divergindo do cache sem bump — o teste do card, observado ao vivo
 
-- [?] `T-014` Roteamento automático pelo ciclo — teste: em sessão nova diga "queria melhorar X" — tem que anunciar o plano, não editar arquivo · → threads/_notas-de-cards.md
-- [?] `T-007` Kimi como terceiro revisor do painel — ⚠️ superado pelo T-051: o painel de 3 acabou, revisor é único e cross-vendor · → threads/_notas-de-cards.md
+- [x] `T-014` Roteamento automático pelo ciclo — fechado em 2026-09-06: o pedido do T-079 chegou em linguagem natural e virou card + plano + gate, sem edicao direta
+- [x] `T-007` Kimi como terceiro revisor do painel — fechado sem teste em 2026-09-06: superado pelo T-051 — o painel de 3 acabou e o Kimi foi aposentado; nao ha o que testar
 - [?] `T-013` Protocolo de várias janelas — teste: duas janelas, cards diferentes, checkpoint nas duas — nada pode sumir · → threads/_notas-de-cards.md
-- [?] `T-010` Painel de revisores consertado — ⚠️ superado pelo T-051: revisor é único agora, não painel de dois · → threads/_notas-de-cards.md
+- [x] `T-010` Painel de revisores consertado — fechado sem teste em 2026-09-06: superado pelo T-051 — o revisor e unico e cross-vendor, nao ha painel de dois
 - [?] `T-009` Stack complementar auto-detectada — teste: em sessão nova diga "o que falta instalar aqui?" — tem que detectar e NÃO instalar sozinho · → threads/_notas-de-cards.md
 - [?] `T-022` Relatório final do `/orq:checkpoint` fala com a pessoa errada — teste: rode um checkpoint e veja se o relatório fala com VOCÊ, não com o próximo assistente · → threads/_notas-de-cards.md
 
@@ -58,8 +58,8 @@
 
 ## 🔵 Backlog
 
-- [ ] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — guarda papel→modelo; achado no T-079 · → threads/T-079-gpt6-astra.md
-- [?] `T-077` Runner Anthropic fixa --model opus e barra o Fable no host Codex — feito: --model por alias, prova por prefixo · → threads/T-054-economia-tokens.md
+- [?] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — implementado, 3 rodadas de revisão; teste: mude um implementer só no preset e rode o lint · → threads/T-079-gpt6-astra.md
+- [x] `T-077` Runner Anthropic fixa --model opus e barra o Fable no host Codex — fechado em 2026-09-06: provado no T-079 — runner INSTALADO com --model fable devolveu claude-fable-5-1, exit 0
 
 - [ ] `T-076` Board resolvido pelo checkout principal, para sobreviver a worktree por frente · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md
 
@@ -76,7 +76,7 @@
 
 - [ ] `T-054` Guardião funciona no Claude Code, com faixas em tokens — p7 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-055` Pós-compactação injeta estado, não ordem de releitura — p8 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
-- [?] `T-056` Card do board com teto: a nota longa vai para a thread — na 0.26.0; teste: o board responde "onde paramos" sem abrir thread? · → threads/T-054-economia-tokens.md
+- [x] `T-056` Card do board com teto: a nota longa vai para a thread — fechado em 2026-09-06: o T-079 nasceu com linha curta + thread, e o board respondeu 'onde paramos' sem abrir thread
 - [ ] `T-057` MEMORY.md volta a ser índice, com teto de linhas — p13 · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-058` Thread com teto e um único RETOMAR AQUI vivo — p14 · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-059` Leitura parcial por padrão em quadro e checkpoint — p15 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia

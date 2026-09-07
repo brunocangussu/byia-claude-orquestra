@@ -1883,3 +1883,34 @@ que será o teste real.
 **Incidente:** a primeira publicação saiu quebrada porque os gates foram rodados no working tree
 contaminado por outra frente, e não em checkout detached limpo como o protocolo manda. Só a fonte
 limpa acusou. Corrigido no mesmo dia.
+
+## [2026-09-06] feat | T-080 · guarda impede que o preset `padrao` divirja da tabela viva em silêncio
+
+Fecha a causa que o `T-079` só tinha remendado nos valores: nada impedia a tabela viva do host
+Claude e o preset ativo de divergirem enquanto a linha `Perfil ativo` declarava "sem desvio" —
+foi o que aconteceu por três dias em setembro, com os três gates verdes o tempo todo.
+
+A guarda compara os oito papéis (nunca `manager`) contra o preset **ativo**, e exige que os desvios
+declarados sejam **exatamente** o conjunto de diferenças — assim um desvio legítimo não vira porta
+dos fundos para esconder outra diferença ao lado dele.
+
+**Três rodadas de correção, 11 achados da revisão independente.** O padrão vale registrar: as duas
+primeiras rodadas corrigiram o *caso reproduzido no parecer*, não a *classe*, e por isso os mesmos
+buracos voltaram por outra porta enquanto duas correções criavam falsos positivos novos. A terceira
+rodada só funcionou porque o briefing nomeou a classe de cada defeito — dispensa que depende de
+reconhecer heading, `strip` que não distingue marcação de conteúdo, allowlist de pontuação que
+sempre esquece um caso, contagem de cercas que ignora o conteúdo do bloco.
+
+**Inversão de gravidade que o dono aceitou:** falso positivo é pior que buraco. Um buraco exige
+alguém deformando o documento de propósito; um falso positivo quebra o gate de todos, todo dia.
+O defeito original foi acidente, não sabotagem — a guarda mira o acidente.
+
+**Limites admitidos, não escondidos:** cercar a seção inteira como exemplo ainda esconde o sinal
+(mas aí o defeito fica visível no documento renderizado); e três leituras únicas de arquivos
+internos do plugin seguem sem tratamento de erro, por não serem releituras.
+
+Auditoria final foi do Manager, executando os cenários do parecer contra o código — o teto de duas
+rodadas de revisão já tinha sido atingido. Um dos meus próprios testes de auditoria estava errado
+(a cerca "aberta" era fechada pela abertura do bloco seguinte) e foi refeito antes de virar veredito.
+
+Gates: 291 testes · `validate` · lint. Bump `0.27.1`.

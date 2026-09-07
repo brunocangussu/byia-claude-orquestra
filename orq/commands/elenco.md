@@ -312,9 +312,14 @@ significa “rodando agora”: o Manager verifica a sessão/CLI real antes de an
 | scout | `sonnet` | read-only |
 
 **Perfil ativo:** `padrao` — desde <data de hoje>, sem desvio.
-*(É o formato canônico da linha — a única vez que ele é definido, e vale por host. Ajuste papel a
-papel que diverge do preset ativo — inclusive com `padrao` ativo — vira `padrao · desvio:
-papel→modelo`; devolvido ao preset, remove-se o desvio. Ver passo 3 de "Com argumento — ajustar".)*
+*(É o formato canônico da linha — a única vez que ele é definido, e vale por host. Duas formas
+completas: sem desvio, `` `<preset>` — desde <data>, sem desvio.``; com um ou mais desvios,
+`` `<preset>` — desde <data> · desvio: papel→modelo[; papel→modelo ...]`` — `;` separa múltiplos
+desvios, e o valor depois de `→` é o modelo que está de fato na tabela hoje (o ativo), não o do
+preset. A forma abreviada sem data, `padrao · desvio: papel→modelo`, continua aceita. Ajuste papel a
+papel que diverge do preset ativo — inclusive com `padrao` ativo — grava o desvio; devolvido ao
+preset, **remove-se** o desvio daquele papel — um desvio que já voltou a bater com o preset não pode
+continuar na lista. Ver passo 3 de "Com argumento — ajustar".)*
 
 ### Host Codex
 

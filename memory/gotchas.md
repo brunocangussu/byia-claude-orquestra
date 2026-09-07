@@ -747,3 +747,25 @@ o problema era o **host não chamar** o hook.
 **A regra:** diante de "a integração não está capturando", rode o comando do hook manualmente
 **antes** de investigar a ferramenta de destino. Um exit 0 com efeito visível no banco elimina metade
 das hipóteses de uma vez.
+
+## Bumpar a versão SILENCIA a guarda de cache stale até alguém instalar a versão nova
+
+**Pago em 2026-09-06, no `T-080`.**
+
+A guarda que compara a árvore fonte com o cache instalado só age sobre o cache **da versão declarada
+no manifesto**. Quando o `T-080` bumpou `0.27.0 → 0.27.1`, o diagnóstico que estava aceso —
+`versão 0.27.0 diverge do cache instalado (bytes:commands/checkpoint.md)`, apontando trabalho não
+commitado da frente `T-075` — **desapareceu**, porque `~/.claude/plugins/cache/orquestra/orq/0.27.1/`
+não existe nesta máquina e a guarda silencia de propósito onde não há cache com que comparar.
+
+**Não é bug** — comparar contra um cache inexistente daria falso positivo em toda release. Mas tem
+duas consequências que já quase enganaram o Manager:
+
+1. **Um alerta de outra frente pode sumir por efeito colateral do SEU bump**, sem que ninguém o
+   tenha resolvido. Ele volta quando a versão nova for instalada em algum cache.
+2. **"O lint ficou verde" depois de um bump não prova que a divergência foi corrigida** — prova, no
+   máximo, que a guarda não tinha contra o que comparar. Ao verificar trabalho após bump, compare a
+   lista de diagnósticos **antes e depois**, e desconfie de diagnóstico que sumiu sem correção.
+
+O `T-017` continua válido: editar `orq/` **sem** bumpar ainda é acusado. O buraco é o outro lado —
+editar **e** bumpar move o alvo da comparação para um cache que ainda não existe.
