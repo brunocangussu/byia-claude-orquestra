@@ -234,3 +234,25 @@ revisão independente neste projeto.
 Limites aceitos e documentados: cercar a seção inteira como exemplo ainda esconde o sinal (mas aí o
 defeito fica visível no documento renderizado); três leituras únicas de arquivos internos seguem sem
 tratamento de erro, por não serem releituras.
+
+## ⏭️ RETOMAR AQUI
+
+**Os dois cards estão fechados e validados. O que resta é operacional:**
+
+**A `0.27.1` está publicada (`87b156a`) e NÃO instalada em host nenhum** — os dois caches seguem na
+`0.27.0`. Ou seja: a guarda do `T-080` **não está valendo em lugar nenhum ainda**. Para ativar, o
+dono roda em cada host:
+
+```
+claude plugin marketplace update orquestra
+claude plugin update orq@orquestra
+```
+
+e reinicia. Depois vale conferir os caches a partir de fonte limpa, como manda o `CLAUDE.md`.
+
+**Pendência que atravessa frentes:** o checkout é compartilhado com a frente `T-075` (claude-mem),
+que roda em outra janela e tem 7 arquivos não commitados. Quando aquela frente commitar, deve
+escolher os arquivos dela — `git add .` varreria trabalho de outras frentes junto.
+
+**Ressalva a não perder:** `gpt-6-astra` como **planner** nunca rodou comprovadamente. O primeiro
+Loop A de trilha `sistema` cujo runtime exponha a variante é que fecha essa lacuna.
