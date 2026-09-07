@@ -4,37 +4,28 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.1 bumpada localmente — **NADA commitado, publicado ou instalado** (ver seção abaixo). A última versão **publicada, instalada e verificada nos dois hosts** é a **0.27.0** (`f194acd`, 2026-09-06): cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois, e os três gates repetidos na fonte limpa (232 testes · validate · lint). **Teste comportamental do dono FEITO nos dois hosts** — `T-079` fechado · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-06 · **host padrão a partir de 2026-08-09: Codex** (decisão do dono).
+**Versão:** 0.27.1 — **publicada** em 2026-09-06 (`87b156a`), **ainda NÃO instalada em host nenhum**: os dois caches seguem na `0.27.0`. A última versão **instalada e verificada nos dois hosts** é a **0.27.0** (`f194acd`): `verify_installed_cache.py` com `ok: installed cache matches source`, exit `0` nos dois, a partir de clone detached limpo, e teste comportamental do dono FEITO. Para usar a guarda do `T-080` é preciso atualizar os plugins · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-06 · **host padrão a partir de 2026-08-09: Codex**.
 
-## 🟢 Trabalho mais recente (2026-09-05) — `T-079` · elenco migrado para GPT-6 Astra, Fable nomeado 5.1
+## 🟢 Trabalho mais recente (2026-09-06) — `T-079` + `T-080` · elenco no GPT-6 Astra e a guarda que impede o preset de mentir
 
-**Quatro células do elenco passam a `gpt-6-astra@max`** (`planner·sistema` nos dois hosts,
-`reviewer` no host Claude, `planner·interface` no host Codex), e o Fable passa a ser identificado
-como **5.1** onde aparece. Retomar em `wiki/threads/T-079-gpt6-astra.md`; plano aprovado em
-`docs/plano_T-079-elenco-astra.md` (a ERRATA no topo do plano vence o corpo onde houver conflito).
+**`T-079` (fechado):** quatro células do elenco passam a `gpt-6-astra@max` — `planner·sistema` nos
+dois hosts, `reviewer` no Claude, `planner·interface` no Codex — e o Fable é identificado como
+**5.1**. O `reviewer` do host Codex **continua Anthropic**: o dono recuou de pôr Astra ali ao ver
+que seria OpenAI revisando OpenAI. O defeito que dava valor ao card não estava no pedido:
+`revisar.md` chamava o runner **sem `--model`** e o Codex revisava com **Opus** enquanto o elenco
+declarava `fable` — provado fechado no cache instalado (`OPUS_MODEL=claude-fable-5-1`).
 
-**Versão `0.27.0` bumpada nos quatro lugares. NADA commitado, publicado ou instalado — depende do
-dono.** Três gates verdes: 232 testes · `validate` · lint.
+**`T-080` (fechado):** guarda no lint impede a tabela viva e o preset ativo de divergirem enquanto a
+linha `Perfil ativo` diz "sem desvio". Compara contra o preset **ativo** e exige que os desvios
+declarados sejam **exatamente** o conjunto de diferenças. Validado por demonstração.
 
-**Provas reais que sustentam a mudança (2026-09-05):**
-- **Astra aceita `low|medium|high|xhigh|max|ultra`** — o estado do Codex do dono
-  (`~/.codex/.codex-global-state.json`) declara os seis efforts; a crença anterior de que ele não
-  aceitava `ultra` nasceu de ler a mensagem de erro de um controle negativo (`none`) como se fosse o
-  catálogo completo. `@max` é **escolha do dono**, feita com `ultra` disponível — nunca escrever que
-  é limitação técnica.
-- **`--model fable` contra a API real devolveu `OPUS_MODEL=claude-fable-5-1`**, exit `0`. O runner
-  Anthropic (`run-opus-reviewer.py`) passou a exigir esse prefixo — pedir `fable` e receber
-  `claude-fable-5-0` agora reprova com `OPUS_MODEL_MISMATCH` (TDD: teste escrito e visto falhar
-  antes do ajuste em `MODEL_ALIASES`).
-- **O ponto que dá valor ao card:** `orq/commands/revisar.md` chamava o runner **sem** `--model`,
-  então o reviewer do host Codex sempre rodava Opus (o default do runner) enquanto o elenco já
-  declarava `fable` desde o `T-077`. Corrigido para extrair o alias da linha `reviewer` e passá-lo
-  explicitamente.
+⚠️ **`gpt-6-astra` como PLANNER nunca rodou comprovadamente.** O mecanismo `codex exec -s read-only`
+só foi exercitado como revisor; nas rodadas de planejamento o runtime não expôs a variante nem o
+effort. Uma das revisões rodou em `xhigh`, não no `@max` que o elenco declara. Não confundir
+configurado com exercitado.
 
-O preset `padrao` foi reconciliado com os novos valores da tabela ativa Claude (Astra nos dois
-papéis que mudaram, os três `implementer` em `sonnet`). **Não** foi criada uma guarda de lint
-comparando tabela↔preset — isso virou o card `T-080`, aberto por causa raiz distinta (divergência de
-2026-09-03, não introduzida aqui).
+Retomar em `wiki/threads/T-079-gpt6-astra.md` (cobre os dois cards). Planos aprovados em
+`docs/plano_T-079-elenco-astra.md` (ERRATA no topo vence o corpo) e `docs/plano_T-080-guarda-preset.md`.
 
 ## 🟡 Trabalho anterior (2026-09-05) — `T-078` · AI-Memory 2.0
 
