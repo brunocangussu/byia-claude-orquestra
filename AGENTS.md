@@ -75,9 +75,11 @@ Para iterar numa **skill**, `/reload-plugins` comprovadamente aplica o update na
 rodar comando inexistente — foi assim que `/orquestra:*` sobreviveu a três releases depois da
 renomeação para `orq`. O lint cobre esse buraco: comando, agente, skill e `${CLAUDE_PLUGIN_ROOT}/…`
 citados têm que existir. Ele **ignora `memory/` por padrão** — o log é append-only e cita nomes
-extintos ao descrever bugs passados. **Duas exceções nominais são varridas**, por serem instrução
-viva e não registro: `memory/wiki/distribuicao.md` e `memory/wiki/arquitetura.md`. Falha nelas não é
-falso positivo; `fixes-history.md`, `gotchas.md` e `threads/` continuam fora.
+extintos ao descrever bugs passados. **Três exceções nominais são varridas**, por serem instrução
+viva e não registro: `memory/wiki/distribuicao.md`, `memory/wiki/arquitetura.md` e — só para a
+proibição de `--write` (`T-019`) — `memory/wiki/_elenco.md`, que é a matriz de invocação que os
+comandos mandam consultar e portanto especifica argumentos de chamada real. Falha nelas não é falso
+positivo; `fixes-history.md`, `gotchas.md` e `threads/` continuam fora.
 
 O verificador de cache deve vir da fonte limpa. Não crie exclusões ad hoc: as normalizações
 codificadas em `verify_installed_cache.py` são de dois tipos, e só esses — as allowlists de metadado

@@ -1,5 +1,53 @@
 # Log de mudanças — append-only
 
+## [2026-09-07] release | 0.27.4 — a proibição de `--write` ganha enforcement, e a revisão derrubou a primeira versão dela
+
+`T-019` foi **reescopado** antes de implementado: o ator original (o Kimi, que em 2026-07-28 rodou
+`git checkout -- .` num working tree "read-only") saiu no `T-051`, mas o defeito — *instrução não é
+enforcement* — reapareceu inteiro no revisor de hoje. O Companion resolve
+`sandbox: request.write ? "workspace-write" : "read-only"`: a garantia é dura e depende de uma
+**ausência**, enquanto o agente que monta a chamada tem instrução para acrescentar `--write` por
+padrão, decidindo sozinho se o briefing é exceção.
+
+**O que a revisão independente comprou — ela REPROVOU a rodada 1, com dois bloqueadores que
+procediam:**
+
+1. **A grafia procurada não era a única.** O parser do Companion trata token de hífen único por
+   `token.slice(1)`, então `-write` resolve para a mesma chave booleana. A guarda buscava o literal
+   `--write` e tinha uma fresta — o mesmo defeito do card, em miniatura, dentro da própria correção.
+2. **Os três comandos não eram todos os produtores de argumento.** `skills/orq/SKILL.md` especifica
+   a chamada e é produto distribuído; `memory/wiki/_elenco.md` é a matriz que os comandos mandam
+   consultar. Injetar a flag em qualquer uma passava com o lint em 0.
+
+Ambos corrigidos: regex das duas grafias com fronteira que não casa dentro de `workspace-write`, e
+a lista protegida passou de três para cinco arquivos. A política de `memory/` no `CLAUDE.md` foi de
+duas para três exceções nominais.
+
+⚠️ **O aceite declara a limitação, em vez de escondê-la:** a proibição é **textual**. Ela impede que
+o produto ensine a flag; não impede que a chamada real a receba, porque quem decide continua sendo o
+agente do Companion. Amarrar o papel a read-only na fronteira de execução é o worktree descartável —
+fora deste escopo desde o plano, e merece card próprio. Também ficam registrados: âncora rotulada
+como "exemplo obsoleto" ou em comentário HTML mantém os bytes e passa; e a guarda reprova prosa
+legítima sobre a flag, conservadorismo mantido de propósito, com a mensagem do lint dizendo isso.
+
+**Sobre o mecanismo, não sobre o card** — dois atritos do Companion apareceram nesta rodada e valem
+registro: uma revisão densa em `xhigh` **estourou os 600s de foreground** e virou job de background
+(é o modo de falha do `T-050` em outra via); e o subagente devolveu um `jobId` **inexistente**, o que
+é pior que ausente, porque parece válido. O parecer foi recuperado lendo o job em disco.
+
+## [2026-09-07] operação | 0.27.3 instalada nos dois hosts; `max` do Codex é válido
+
+Após sincronizar `main`, os caches Claude e Codex foram atualizados para 0.27.3. O verificador foi
+executado a partir de checkout detached e limpo de `4229b76`; os dois hosts saíram `0`. O upgrade
+Codex removeu durante a cópia o cache 0.27.2 ainda referenciado por esta conversa; o preflight
+obrigatório permitiu restaurá-lo sem substituir a 0.27.3, encerrando a falha do `context-guard.py`.
+
+No `T-083`, `codex exec --effort max` saiu `2` porque essa flag não existe na CLI 0.153.4. A sonda
+pela configuração suportada, `-c model_reasoning_effort="max"`, anunciou `reasoning effort: max`,
+respondeu `CODEX_MAX_OK` e saiu `0`. Assim, o host Codex mantém os dois planners em
+`gpt-6-astra@max`; somente a via Companion do host Claude usa `@xhigh`. Nenhum anchor de valor do
+Codex precisou mudar.
+
 ## [2026-09-07] release | 0.27.3 — o verificador para de confundir bytecode com cache stale
 
 `T-082`: `verify_installed_cache.py` ganhou normalização de bytecode **bilateral** — a primeira que

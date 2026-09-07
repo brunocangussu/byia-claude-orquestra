@@ -47,6 +47,8 @@ diretamente. Encaminhe ao subagente:
 - primeira chamada do Planner naquele card: `--wait --fresh --json --model <modelo> --effort <effort> <briefing read-only>`;
 - continuação do mesmo Planner no mesmo card: `--wait --resume-thread <threadId> --json --model <modelo> --effort <effort> <apontamento read-only>`.
 
+⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+
 A resposta JSON contém `rawOutput`, `jobId`, `threadId` e `status`. Use `rawOutput` como plano e,
 antes de qualquer nova rodada, grave `{card, papel, jobId, threadId, status}` na thread durável do
 card. `jobId` ou `threadId` ausente reprova o vínculo: declare a degradação e não tente

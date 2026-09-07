@@ -225,6 +225,8 @@ obedece a um vínculo determinístico:
 - **Mesmo card + mesmo papel** → reutilize a task exata. A primeira chamada leva
   `--fresh --json`; a continuação leva `--resume-thread <threadId> --json`. Não use
   `--resume-last`: uma task mais recente de outro card ou papel não pode capturar a continuação.
+
+⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
 - Persista no handoff da thread do card os campos `card`, `papel`, `jobId`, `threadId`, `status`.
   Leia o trabalho em `rawOutput`; IDs ausentes ou status não terminal significam handoff não
   comprovado — não adivinhe nem crie outro vínculo silenciosamente.

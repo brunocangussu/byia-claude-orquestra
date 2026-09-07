@@ -124,6 +124,8 @@ uma vez, não repetido) · `não testado`.
 | **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus, ou receber `claude-fable-5-0`, reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; `fable` habilitado no `T-077` (2026-09-04) e **comprovado com chamada real em 2026-09-05** (`OPUS_MODEL=claude-fable-5-1`, thread `T-079`) |
 | **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
 
+⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+
 ## Times por host
 
 **Esta é a fonte ativa do elenco** — a única. Cada host resolve o próprio time lendo a seção dele,
@@ -184,8 +186,8 @@ Motor: a sessão Codex. A linha `manager` é expectativa verificável, não coma
 | Papel | Modelo | Por quê |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono** — verificar o modelo real antes de anunciar |
-| planner·interface | `gpt-6-astra@max` | decisão do dono em 2026-09-05 (`T-079`) — ver nota abaixo. `codex exec … -s read-only` |
-| planner·sistema | `gpt-6-astra@max` | decisão do dono em 2026-09-05 (`T-079`); read-only |
+| planner·interface | `gpt-6-astra@max` | decisão do dono em 2026-09-05 (`T-079`); `max` comprovado no `codex exec` em 2026-09-07 (`T-083`), read-only |
+| planner·sistema | `gpt-6-astra@max` | mesma prova do `T-083`; read-only |
 | implementer·pesada | `gpt-5.6-terra@xhigh` | `workspace-write`, writer único em worktree |
 | implementer·normal | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
 | implementer·leve | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03: as três faixas no mesmo modelo. O smoke do `gpt-5.6-luna` fica no histórico, mas o degrau não o usa mais |
@@ -207,7 +209,11 @@ aplicam aqui: trariam modelos Anthropic para `implementer`/`docs`, que só aceit
 ### Pendências comprováveis (não prometer antes de rodar)
 
 - **Astra (`gpt-6-astra`) como planner e reviewer** — o modelo e os efforts `low|medium|high|xhigh|
-  max` estão comprovados via CLI Codex (2026-09-05, thread `T-079`), e a rejeição de `none` também.
+  max` estão comprovados via CLI Codex. Em 2026-09-07 (`T-083`), a sonda real
+  `codex exec -c 'model_reasoning_effort="max"' --model gpt-6-astra --sandbox read-only` anunciou
+  `reasoning effort: max`, respondeu corretamente e saiu `0`. A flag literal `--effort` não existe
+  na CLI 0.153.4; isso é sintaxe diferente da via Companion, não recusa de `max`. A rejeição de
+  `none` também foi comprovada no `T-079`.
   `ultra` está disponível no catálogo do host mas não foi adotado — escolha do dono, não limitação.
   O que falta é o **comportamento num Loop A completo** (plano de ponta a ponta, revisão de um diff
   real): a sonda comprovou que o modelo responde, não que o ciclo inteiro funciona.

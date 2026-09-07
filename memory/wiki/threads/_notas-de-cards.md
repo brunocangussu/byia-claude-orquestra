@@ -491,6 +491,17 @@ sem ninguém registrar a degradação — que é a definição de configurado-ma
 `@max` como intenção e exigir que quem invoca traduza e **declare** a queda. Guarda no lint que
 recuse effort inexistente para a via do Companion.
 
+### Resultado do host Codex — 2026-09-07
+
+A sintaxe literal `codex exec --effort max` saiu `2` porque `--effort` não é uma flag da CLI
+0.153.4. Isso não é recusa do valor. A via real, explícita e isolada,
+`codex exec --ephemeral --ignore-user-config --ignore-rules -c 'model_reasoning_effort="max"'
+--model gpt-6-astra --sandbox read-only`, anunciou `reasoning effort: max`, respondeu
+`CODEX_MAX_OK` e saiu `0`. Portanto `planner·interface` e `planner·sistema` do **Host Codex**
+permanecem em `gpt-6-astra@max`. Como nenhum valor mudou nesse host, os quatro anchors de guarda e
+fixture não precisaram de alteração. O card fecha com `@xhigh` somente na via Companion/Claude e
+`@max` comprovado na via nativa Codex.
+
 
 ## `T-019` reescopado (2026-09-07, autorizado pelo dono) — e a superfície é maior que a apurada
 
@@ -534,3 +545,41 @@ próprio, decidido separadamente.
 
 **Critério de aceite:** os três comandos verdes; e a prova de que a guarda morde, exibindo o lint
 vermelho nos dois casos do passo 3 antes de voltar ao verde.
+
+## `T-019` — o parecer REPROVOU a rodada 1, e os dois bloqueadores procediam (2026-09-07)
+
+O revisor (`gpt-6-astra@xhigh`, read-only, `write: false` confirmado no job) reprovou com dois
+bloqueadores. Auditei os dois contra o código instalado antes de aceitar; **os dois procedem**:
+
+- **A grafia procurada não era a única.** O parser do Companion (`lib/args.mjs`) trata token de
+  hífen único por `token.slice(1)`, então **`-write`** resolve para a mesma chave booleana e abre
+  `workspace-write` igual. A guarda buscava o literal `--write` e não via essa porta. Corrigido com
+  regex das duas grafias e fronteira `(?<![\w-])`, que impede o falso positivo dentro de
+  `workspace-write` — provado nos dois sentidos.
+- **Os três comandos não eram todos os produtores de argumento.** `orq/skills/orq/SKILL.md`
+  especifica a chamada e é **produto distribuído**; `memory/wiki/_elenco.md` é a matriz que os
+  próprios comandos mandam consultar. Injetar a flag em qualquer uma das duas passava com o lint
+  retornando 0. As duas entraram na guarda, e a política de `memory/` no `CLAUDE.md`/`AGENTS.md`
+  passou de duas para três exceções nominais.
+
+**Aceito como limitação declarada, não corrigido:**
+
+- **A proibição é textual, não é enforcement de execução.** Quem decide passar a flag continua sendo
+  o agente do Companion (`codex-rescue.md:35`, que manda acrescentá-la por padrão). A guarda impede
+  que o **produto** ensine a flag; não impede que a chamada real a receba. Vincular tecnicamente o
+  papel a read-only é a defesa em profundidade, e é o card do worktree descartável — deliberadamente
+  fora deste escopo desde o plano.
+- **Presença literal não prova normatividade** (achado médio): transformar a âncora em citação
+  rotulada "exemplo obsoleto" ou enterrá-la em comentário HTML mantém os bytes e o lint retorna 0.
+  Exigir "contexto normativo" é caro e vago; fica registrado como limitação conhecida.
+- **A guarda é conservadora e gera falso positivo em prosa legítima** sobre a flag (inclusive
+  `--write=false`). Decisão: manter, porque documentar a flag também é ensiná-la — a mensagem do
+  lint passou a dizer isso, em vez de afirmar que toda ocorrência habilita escrita.
+
+**Verificação da rodada 2:** 307 testes (302 + 5 da guarda), `validate --strict` ✔, lint acusando só
+a divergência de cache por edição sem bump. Dois testes novos: a grafia de hífen único reprova, e
+`workspace-write` fora da âncora **não** reprova — este último cai se alguém afrouxar a fronteira.
+
+⚠️ **Degradação declarada (segunda vez):** as correções do parecer foram aplicadas pelo Manager. Sem
+`SendMessage` neste host não dá para reabrir o implementer, e um worktree novo nasceria do HEAD, sem
+o trabalho não commitado.

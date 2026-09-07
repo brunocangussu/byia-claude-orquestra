@@ -76,6 +76,8 @@ o binário `codex` diretamente. Encaminhe ao subagente:
 - primeira chamada do Reviewer na rodada: `--wait --fresh --json --model <modelo> --effort <effort> <briefing read-only>`;
 - correção e nova checagem pelo mesmo Reviewer: `--wait --resume-thread <threadId> --json --model <modelo> --effort <effort> <apontamento read-only>`.
 
+⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+
 Leia o parecer em `rawOutput` e persista `{card, papel, jobId, threadId, status}` na thread durável
 do card antes da próxima chamada. Se `jobId` ou `threadId` faltar, o vínculo não está comprovado:
 declare revisão degradada e nunca caia em `--resume-last`. Uma segunda revisão deliberadamente

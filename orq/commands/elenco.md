@@ -385,6 +385,8 @@ nunca leva dado de paciente, PII, prontuário ou credencial.
 | Anthropic | spawn nativo com override | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — limite 16 KiB/lote, timeout e comprovação do prefixo do alias pedido no `modelUsage`; alias fora do mapa de prova (`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
 | OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
 
+⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+
 ## Perfis — times nomeados do host Claude
 
 Presets são **por host**: os dois abaixo valem para `### Host Claude` e são aplicados por

@@ -1644,8 +1644,19 @@ def main() -> int:
         if not arq.is_file():
             problemas.append((arq.relative_to(raiz), 0, "runner/teste obrigatório do Opus não existe"))
 
+    # A frase-âncora abaixo tem que ser BYTE-IDÊNTICA nos três arquivos que a
+    # exigem (T-019) — é ela que a guarda "── Proibição de --write..." mais
+    # adiante usa como literal para separar "flag dentro da proibição" de
+    # "flag numa linha de invocação de verdade".
+    ANCORA_PROIBICAO_WRITE = (
+        "⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da "
+        "ausência dessa flag: com ela, o sandbox do Companion vira "
+        "`workspace-write` e o papel deixa de ser read-only."
+    )
+
     CONTRATOS_CODEX = {
         plugin / "skills" / "orq" / "SKILL.md": (
+            ANCORA_PROIBICAO_WRITE,
             "No Codex, a interface oficial é linguagem natural ou `/skills`",
             "`ORQ_PACKAGE_ROOT`",
             ".claude-plugin/plugin.json",
@@ -1659,6 +1670,7 @@ def main() -> int:
         plugin / "commands" / "plan-next.md": (
             "`ORQ_PACKAGE_ROOT/commands/elenco.md`",
             "`codex exec` é o caminho padrão",
+            ANCORA_PROIBICAO_WRITE,
         ),
         plugin / "commands" / "implement-next.md": (
             "`ORQ_PACKAGE_ROOT/commands/elenco.md`",
@@ -1683,6 +1695,7 @@ def main() -> int:
             "BRIEFING_TOO_LARGE",
             "OPUS_EMPTY_RESULT",
             "**no stderr**",
+            ANCORA_PROIBICAO_WRITE,
         ),
         elenco_cmd: (
             "Host Codex: `codex exec` é obrigatório",
@@ -1691,6 +1704,7 @@ def main() -> int:
             "| reviewer | `fable` (exigir comprovação de que o alias resolve para `claude-fable-5-1`)",
             "| reviewer | `gpt-6-astra@xhigh` |",
             "run-opus-reviewer.py",
+            ANCORA_PROIBICAO_WRITE,
         ),
         opus_runner: (
             "BRIEFING_TOO_LARGE",
@@ -1723,6 +1737,85 @@ def main() -> int:
                         f"contrato Codex ausente: {fragmento}",
                     )
                 )
+
+    # ── Proibição de --write nos convites ao Codex Companion (T-019) ───────
+    # `codex-companion.mjs` resolve `sandbox: request.write ? "workspace-write"
+    # : "read-only"` — o read-only depende inteiro de NINGUÉM passar `--write`.
+    # O revisor de 2026-07-28 rodou `git checkout -- .` num working tree que a
+    # instrução dizia ser "read-only": a instrução nunca proibia a flag, só
+    # não a listava, e "não listar" não é enforcement.
+    #
+    # A frase-âncora acima é exigida como fragmento (bloco CONTRATOS_CODEX),
+    # mas presença sozinha não fecha o buraco: alguém podia acrescentar
+    # `--write` numa linha de invocação de verdade e manter a frase intacta
+    # em outro parágrafo. Por isso este guarda CONTA as ocorrências de
+    # `--write` no arquivo inteiro e exige que todas caiam dentro de algum
+    # span literal da própria frase-âncora — sobrar uma só fora dela é a
+    # flag vazando pra uma chamada real.
+    # ⚠️ REVISÃO DE 2026-09-07 — dois bloqueadores fecharam aqui:
+    # (a) procurar só `--write` não bastava. O parser do Companion
+    #     (`lib/args.mjs`) trata token de hífen único por `token.slice(1)`, então
+    #     `-write` resolve para a mesma chave booleana e liga a flag. A busca
+    #     passou a ser por regex das DUAS grafias, com fronteira que não casa
+    #     dentro de `workspace-write`.
+    # (b) a lista cobria só os três comandos. `skills/orq/SKILL.md` também
+    #     especifica os argumentos da chamada (é produto distribuído), e a
+    #     matriz viva `memory/wiki/_elenco.md` é a configuração que os próprios
+    #     comandos mandam consultar. Ambas entraram.
+    ARQUIVOS_SEM_WRITE_FORA_DA_ANCORA = (
+        plugin / "commands" / "revisar.md",
+        plugin / "commands" / "plan-next.md",
+        elenco_cmd,
+        plugin / "skills" / "orq" / "SKILL.md",
+        raiz / "memory" / "wiki" / "_elenco.md",
+    )
+    # `(?<![\w-])` impede o falso positivo em `workspace-write`, onde o trecho
+    # `-write` vem colado a uma letra; `\b` deixa `--write=false` ser acusado,
+    # que é conservadorismo deliberado — documentar a flag também é ensinar a
+    # usá-la, e o lugar de citá-la é dentro da própria proibição.
+    GRAFIAS_WRITE = re.compile(r"(?<![\w-])--?write\b")
+    for arq in ARQUIVOS_SEM_WRITE_FORA_DA_ANCORA:
+        if not arq.is_file():
+            continue
+        txt = _ler_texto_ou_diagnostico(arq, raiz, problemas)
+        if txt is None:
+            continue
+        spans_ancora = []
+        inicio = 0
+        while True:
+            idx = txt.find(ANCORA_PROIBICAO_WRITE, inicio)
+            if idx == -1:
+                break
+            spans_ancora.append((idx, idx + len(ANCORA_PROIBICAO_WRITE)))
+            inicio = idx + len(ANCORA_PROIBICAO_WRITE)
+        if not spans_ancora:
+            problemas.append(
+                (
+                    arq.relative_to(raiz),
+                    0,
+                    "proibição de `--write` ausente — este arquivo especifica os "
+                    "argumentos da chamada ao Codex Companion e precisa carregar "
+                    "a frase-âncora, senão o read-only do papel volta a depender "
+                    "de ninguém lembrar de omitir a flag",
+                )
+            )
+        for achado in GRAFIAS_WRITE.finditer(txt):
+            idx = achado.start()
+            if any(ini <= idx < fim for ini, fim in spans_ancora):
+                continue
+            num = txt.count("\n", 0, idx) + 1
+            problemas.append(
+                (
+                    arq.relative_to(raiz),
+                    num,
+                    f"`{achado.group()}` fora da frase-âncora de proibição — nas "
+                    "duas grafias essa flag vira o sandbox do Codex Companion "
+                    "`workspace-write`. Se é invocação de verdade, remova a flag; "
+                    "se é prosa sobre a flag, ela pertence ao parágrafo da "
+                    "proibição — o guarda é conservador de propósito e não "
+                    "distingue os dois",
+                )
+            )
 
     # O reviewer é ÚNICO e sempre do vendor OPOSTO ao host (T-051). Contar a
     # linha no template inteiro NÃO prova a regra: trocar as duas linhas de
