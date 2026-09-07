@@ -61,7 +61,6 @@
 - [?] `T-074` claude-mem desligado no Codex — plugin e hook fallback off em 2026-09-07; teste: AI-Memory sozinho por 1–2 semanas · → threads/T-072-claude-mem.md
 - [ ] `T-081` `OBSERVATION_TYPES` é chave morta; o filtro real mora no modo e muda a captura · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md
 - [?] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência real — 0.27.3 commitada e publicada; falta reinstalar o cache e sua validação · → threads/_notas-de-cards.md
-- [?] `T-083` Elenco declarava `@max` e a CLI recusa — host Claude passa a `@xhigh` na 0.27.3; falta sua validação e a decisão sobre o host Codex · → threads/_notas-de-cards.md
 
 - [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 
@@ -107,7 +106,7 @@
 - [ ] `T-027` CLI do Codex direto vs subagente `codex:codex-rescue` — decisão sua, não minha — a CLI direta é o caminho que o T-010 provou · → threads/_notas-de-cards.md
 - [ ] `T-021` Motor alternativo quando o Claude está no limite — teto técnico: subagente do Claude só aceita modelo Claude · → threads/_notas-de-cards.md
 
-- [!] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — 3 pontos do produto invocam sem proibir a flag; plano pronto, aguarda seu ok · trilha: sistema · faixa: pesada · → threads/_notas-de-cards.md
+- [~] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — plano aprovado em 2026-09-07; proibição nos 3 pontos + guarda no lint · trilha: sistema · faixa: pesada @frente-readonly · → threads/_notas-de-cards.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md
@@ -118,6 +117,7 @@
 
 ## ✅ Feito
 
+- [x] `T-083` Effort por host corrigido e provado — Companion/Claude usa `@xhigh`; `codex exec` aceita Astra `@max`, que permanece no host Codex · → threads/_notas-de-cards.md
 - [x] `T-065` Globais reduzidos com backup: Codex 20.251→1.442 bytes; Claude 8.723→1.580 bytes; regras essenciais preservadas · → threads/T-054-economia-tokens.md @frente-economia
 - [x] `T-025` Descoberta natural validada pelo dono em 2026-09-07: “quais as possibilidades” abriu o cardápio por situação sem comando digitado · → threads/T-025-gatilhos.md
 - [x] `T-026` Orquestra fora do Claude Code — fechado em 2026-09-07: esta sessão Codex carregou a 0.27.2 e roteou fala natural pelo ciclo, com memória → board → thread · → threads/T-026-host-alternativo.md @release-validacao
