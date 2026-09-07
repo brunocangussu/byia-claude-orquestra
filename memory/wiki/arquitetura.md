@@ -115,6 +115,12 @@ Claude e vice-versa) mais `## Matriz de invocação` (o mecanismo real por vendo
 `## Perfis` (times nomeados por contexto de crédito, só do host Claude hoje; ativar um preset
 reescreve a tabela do host e nunca toca `manager` nem o estado das vias cross-vendor).
 
+No host Claude, papéis read-only OpenAI passam pelo `codex:codex-rescue`/Codex Companion. A unidade
+de isolamento e reúso é `card+papel`: primeira chamada fresca, continuação pela `threadId` exata;
+mudou card ou papel, nasce outra task. O handoff durável guarda `card`, `papel`, `jobId`,
+`threadId` e `status`, e o resultado vem de `rawOutput`. Isso evita uma task por mensagem sem
+misturar Planner e Reviewer nem depender da ambiguidade de "última task".
+
 ## A revisão independente
 
 Contrato canônico em `orq/commands/revisar.md` — aqui só o que muda o desenho:
@@ -192,11 +198,13 @@ um único hook de bloqueio (`T-001`, `T-002` continuam em backlog). O que existe
 
 Nenhuma delas **impede** nada — todas só relatam. Bloquear de verdade continua sendo o `T-001`.
 
-**Revisor sem sandbox precisa de worktree descartável, não de instrução.** `codex exec -s
-read-only` é garantia; o prompt "não edite nada" é pedido, não ACL. Um host que já esteve neste
-projeto (removido do produto desde a `0.24.0`) não tinha flag equivalente e rodou `git checkout --
-.` numa revisão read-only, destruindo o working tree (`T-019`) — a lição é a mesma do `T-001`, e
-segue registrada no `gotchas.md`.
+**Revisor sem sandbox precisa de worktree descartável, não de instrução.** No host Codex,
+`codex exec -s read-only` é garantia. No host Claude, o Companion precisa receber pedido
+READ-ONLY e nunca a flag `--write`; ainda assim, use worktree descartável como contenção. O prompt
+"não edite nada" sozinho é pedido, não ACL. Um host que já esteve neste projeto (removido do
+produto desde a `0.24.0`) não tinha flag equivalente e rodou `git checkout -- .` numa revisão
+read-only, destruindo o working tree (`T-019`) — a lição é a mesma do `T-001`, e segue registrada
+no `gotchas.md`.
 
 ## Os três gates automatizados (release e review de instruções)
 

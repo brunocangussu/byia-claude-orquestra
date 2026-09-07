@@ -37,9 +37,21 @@ fábrica completo de `ORQ_PACKAGE_ROOT/commands/elenco.md` — a skill já preci
   — **desde que a coluna `Estado` da via esteja `ativo`**. Via desligada pelo dono não se usa nem
   para planejar: mantenha o card em PLANNING e pergunte se ele quer religá-la ou planejar na
   trilha do vendor do host. Estando ativa, copie o comando da célula vendor×host da Matriz, com
-  sandbox `read-only`. No host Codex,
-  `codex exec` é o caminho padrão; só use a primitiva nativa se o `_elenco.md` registrar que o
-  override foi comprovado por chamada real.
+  sandbox `read-only`. No host Codex, `codex exec` é o caminho padrão; só use a primitiva nativa
+  se o `_elenco.md` registrar que o override foi comprovado por chamada real.
+
+**OpenAI × host Claude — Codex Companion.** Invoque o subagente `codex:codex-rescue` e faça uma
+única chamada foreground ao runtime `codex-companion.mjs task`. Não invoque o binário `codex`
+diretamente. Encaminhe ao subagente:
+
+- primeira chamada do Planner naquele card: `--wait --fresh --json --model <modelo> --effort <effort> <briefing read-only>`;
+- continuação do mesmo Planner no mesmo card: `--wait --resume-thread <threadId> --json --model <modelo> --effort <effort> <apontamento read-only>`.
+
+A resposta JSON contém `rawOutput`, `jobId`, `threadId` e `status`. Use `rawOutput` como plano e,
+antes de qualquer nova rodada, grave `{card, papel, jobId, threadId, status}` na thread durável do
+card. `jobId` ou `threadId` ausente reprova o vínculo: declare a degradação e não tente
+`--resume-last`. Mudança de card ou de papel sempre volta a `--fresh --json`; por isso um Reviewer
+nunca herda a task do Planner.
 
 Modelo, CLI ou override indisponível → não troque de modelo em silêncio. Mantenha o card em
 PLANNING, registre a capacidade ausente e peça ao dono a escolha do fallback.

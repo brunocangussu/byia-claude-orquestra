@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.1 — **publicada, instalada e verificada nos dois hosts** em 2026-09-07 (`af3201c`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. ⚠️ **O host Claude pede restart para aplicar** — sem ele, a sessão viva continua na `0.27.0`. Teste comportamental do dono FEITO para a `0.27.0` (elenco Astra/Fable 5.1) e para a guarda do `T-080` por demonstração · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.2 — candidata local da `T-075`, instalada e verificada nos caches Claude/Codex, ainda sem commit, push ou publicação. A `0.27.1` permanece a última versão publicada (`af3201c`) e seu cache foi preservado para tarefas antigas. A `0.27.2` incorpora essa base e acrescenta o reúso determinístico do Codex Companion por `card+papel` · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
 
 ## 🟢 Trabalho mais recente (2026-09-06) — `T-079` + `T-080` · elenco no GPT-6 Astra e a guarda que impede o preset de mentir
 
@@ -48,7 +48,9 @@ causa era o `~/.codex/hooks.json` **gerenciado pelo app Terminals**, que reescre
 apagava hooks de terceiros. Os 6 hooks do AI-Memory foram movidos para o `~/.codex/config.toml` e
 aprovados pelo gate nativo. A sessão final, iniciada às 12:18, gravou no mesmo ID `session-start`,
 `user-prompt`, `pre-tool-use`, `post-tool-use` e `stop`; o banco chegou a 5 sessões Codex. O teste
-técnico passou; falta usar por 1–2 semanas e reavaliar o ganho real contra o claude-mem.
+técnico passou; falta usar por 1–2 semanas e reavaliar o ganho real contra o claude-mem. Para
+essa medição valer, o claude-mem foi **desligado no Codex** em 2026-09-07 (`T-074`): as duas
+camadas em paralelo se contaminam, porque uma injeta memória que muda o que a outra captura.
 
 ## 🟢 Trabalho mais recente (2026-09-02) — @frente-economia · `T-054`…`T-075`
 

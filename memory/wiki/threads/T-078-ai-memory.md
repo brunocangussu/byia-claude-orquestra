@@ -126,10 +126,13 @@ e o aviso "Hooks need review" finalmente apareceu — o dono aprovou os 10 hooks
 aviso *"loading hooks from both … prefer a single representation"*). TOML validado; backup em
 `config.toml.bak-antes-hooks-toml-2026-09-05`.
 
-**Estado ao fechar:** nenhuma sessão real do Codex capturada ainda. As duas linhas `codex` no banco
-são: a de 09:19 (antes do arquivo ser varrido) e a de 11:29 (**meu teste manual** — tem só um
-`session-start`, assinatura de invocação sintética). O dono reiniciou o app, mas relatou que o
-Codex só pergunta sobre confiança **ao iniciar um chat novo**, não ao reabrir o app.
+**Validação concluída de dentro do Codex:** o gate nativo mostrou exatamente **6 hooks novos ou
+alterados**, um em cada evento esperado. Eles foram revisados e aprovados pela própria interface,
+sem `--dangerously-bypass-hook-trust` e sem escrever `trusted_hash` manualmente. A sessão final,
+nova e já confiável, executou `pwd` e gravou no mesmo ID: `session-start` → `user-prompt` →
+`pre-tool-use` → `post-tool-use` → `stop`, entre 12:18:53 e 12:19:02. A contagem `codex` passou de
+2 para 5 durante a validação. Isso prova captura automática de sessão real; o teste manual de
+fallback não foi necessário.
 
 **Aprendizado de método, que vale além deste card:** *"funcionou" precisa ser reconferido depois de
 um tempo, não só na hora.* Se o dono não tivesse voltado a perguntar, eu teria registrado que o
@@ -138,24 +141,20 @@ silenciosa do claude-mem, por causa completamente diferente.
 
 ## ⏭️ RETOMAR AQUI
 
-**Checkpoint de 2026-09-05.** Tudo commitado e publicado. Nada pendente no disco.
+**Checkpoint de recuperação pós-compactação de 2026-09-05.** A captura automática do Codex foi
+validada; há documentação local pendente de commit pelo dono.
 
-**Estado em uma frase:** o AI-Memory está instalado global e persistente; **o Claude captura, o
-Codex não**, e o conserto do Codex está aplicado mas **não validado**.
+**Estado em uma frase:** o AI-Memory está instalado global e persistente; **Claude e Codex
+capturam**, com LLM e embedding desligados.
 
-### A única pendência técnica
+### Validação técnica concluída
 
-Validar a captura no Codex, **de dentro do próprio Codex** — daqui não dá, porque não enxergo a
-sessão dele. O dono levou uma mensagem de handoff para lá. O que precisa acontecer:
-
-1. Iniciar um **chat novo** no Codex (o gate de confiança só aparece em chat novo, não ao reabrir
-   o app) e aprovar os hooks.
-2. Conferir pelo **carimbo do banco**, nunca por exit code ou health:
-   `select agent_kind, count(*) from sessions group by agent_kind` — e olhar as observações da
-   sessão mais recente. Sessão real tem `session-start` + `user-prompt` + `pre/post-tool-use` +
-   `stop`. **Só `session-start` é assinatura de invocação sintética, não vale como prova.**
-3. Se ainda não capturar: rodar o comando do hook na mão. Já testado, funciona (exit 0, banco
-   mexe) — então hook manual OK + automático falhando significa que **o host não está chamando**.
+- Configuração parseada: um comando AI-Memory em cada um dos 6 eventos; backup datado presente;
+  nenhum comando AI-Memory nem `_managedBy` no `hooks.json`.
+- Gate nativo: 6 pendências vistas e aprovadas; depois da aprovação, todos os seis ficaram ativos.
+- Banco: sessão Codex real entre 12:18:53 e 12:19:02 com os cinco carimbos esperados, no mesmo ID
+  e em ordem; 5 sessões Codex no total.
+- Nenhum bypass, hash manual, edição do `hooks.json` ou teste sintético usado como prova.
 
 ### O que fica esperando decisão do dono (não avança sozinho)
 

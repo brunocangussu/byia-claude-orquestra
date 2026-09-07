@@ -93,6 +93,20 @@ negativa do contrato e corrija o sinal quebrado; texto equivalente não registra
 
 **Com thread ativa:** ela termina em **⏭️ RETOMAR AQUI**?
 
+**Com `claude-mem` instalado:** registre também o estado metadata-only do projeto, sem transformar
+memória externa em requisito do checkpoint:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/claude_mem_status.py --platform <host-real>
+```
+
+O script usa o basename do diretório atual; se o ID da sessão do host estiver disponível, passe
+`--content-session-id <id-da-sessão>`. `CAPTURANDO` é evidência real; `OCIOSO` significa “sem
+trabalho correlacionável”, não “saudável”. `ATRASADO`, `PARADO` e `INDETERMINADO` devem aparecer na
+seção `✅ Verificação` como degradação, mesmo com health verde. `EXCLUÍDO` é o resultado correto para
+projeto deliberadamente fora da captura. Nenhum desses estados bloqueia o handshake: a wiki é a
+fonte de verdade e o checkpoint continua seguro sem memória externa.
+
 **Vai afirmar que dá pra FECHAR a janela?** Então tudo que você põe na seção ⏸️ tem que sobreviver
 sem ela — em card **`[!]`** com a pergunta escrita (decisão) ou **`[?]`** com o que testar (validação).
 São os dois estados que o `/orq:quadro` mostra como espera dele. Card em `[>]` ou `[~]` cai em

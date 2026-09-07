@@ -174,8 +174,11 @@ seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez
        aqui um alias que o runner não conhece → **recuse citando o mapa**: *"o runner não tem esse
        alias no mapa de prova; registrar aqui gravaria um elenco que a execução não honra"*.
        Ensinar o runner um alias novo é **card novo**, não improviso deste comando.
-     - **OpenAI × qualquer host** — a célula é `codex exec -m <modelo>`, que aceita o modelo como
-       argumento: qualquer modelo OpenAI do catálogo serve, com effort opcional.
+     - **OpenAI × host Claude** — a célula usa `codex:codex-rescue` e
+       `codex-companion.mjs task --model <modelo> --effort <effort>`; o Companion aceita o modelo
+       do catálogo e devolve `jobId` + `threadId` para reúso por `card+papel`.
+     - **OpenAI × host Codex** — a célula usa `codex exec -m <modelo>`; qualquer modelo OpenAI do
+       catálogo serve, com effort opcional.
      **Por que isto é regra e não zelo:** sem ela o arquivo registra Fable e a execução entrega
      Opus, calada, ou registra Fable 5.1 e a execução entrega 5.0 sem ninguém notar. Elenco que
      mente sobre quem trabalhou é pior que elenco ausente — some a procedência, que é justamente o
@@ -303,11 +306,11 @@ significa “rodando agora”: o Manager verifica a sessão/CLI real antes de an
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal |
 | planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 |
-| planner·sistema | `gpt-6-astra@max` | `codex exec … -s read-only` — comprovado como revisor; como planner, ainda não exercitado |
+| planner·sistema | `gpt-6-astra@max` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
 | implementer·pesada | `opus` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
 | implementer·leve | `haiku` | worktree se houver trabalho paralelo |
-| reviewer | `gpt-6-astra@max` | `codex exec … -s read-only` — vendor oposto ao host |
+| reviewer | `gpt-6-astra@max` | Codex Companion read-only; vendor oposto ao host, retomada pelo `threadId` exato |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
@@ -352,7 +355,7 @@ vendor oposto, com o que já foi comprovado e quando. O nome na coluna **Via** �
 
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | CLI `codex` no PATH · `codex exec … -s read-only … < /dev/null` · modelo e effort vêm da tabela do host |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato |
 | runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s |
 
 A coluna **Consumida por** é o que torna o efeito de ligar/desligar anunciável sem chute: uma via só
@@ -373,14 +376,14 @@ diagnósticos diferentes e o dono precisa saber qual dos dois foi).
 
 ## Matriz de invocação
 
-Resolva sempre **host → papel → vendor → mecanismo**. Toda CLI recebe `< /dev/null`; sem TTY os
-dois vendors podem bloquear lendo stdin. O briefing para terceiro é sanitizado e nunca leva dado
-de paciente, PII, prontuário ou credencial.
+Resolva sempre **host → papel → vendor → mecanismo**. CLI chamada diretamente recebe
+`< /dev/null`; sem TTY ela pode bloquear lendo stdin. O briefing para terceiro é sanitizado e
+nunca leva dado de paciente, PII, prontuário ou credencial.
 
 | Vendor do modelo | Host Claude | Host Codex |
 |---|---|---|
 | Anthropic | spawn nativo com override | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — limite 16 KiB/lote, timeout e comprovação do prefixo do alias pedido no `modelUsage`; alias fora do mapa de prova (`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
-| OpenAI | `codex exec -m <modelo> -c model_reasoning_effort=<effort> -s <sandbox> "<briefing>" < /dev/null` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
+| OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
 
 ## Perfis — times nomeados do host Claude
 

@@ -69,15 +69,19 @@ e "o binário não respondeu" pedem ações opostas.
 Primeiro **identifique o host** e resolva a linha `reviewer` em `## Times por host`; depois use a
 célula da `## Matriz de invocação`. O Manager que audita não conta como parecer independente.
 
-**Host Claude — titular OpenAI pela CLI `codex`**, read-only:
+**OpenAI × host Claude — titular pelo Codex Companion**, read-only. Invoque o subagente
+`codex:codex-rescue`, que fará uma única chamada foreground a `codex-companion.mjs task`; não rode
+o binário `codex` diretamente. Encaminhe ao subagente:
 
-```bash
-codex exec -m <modelo do elenco> -c model_reasoning_effort=<effort> -s read-only "<briefing>" < /dev/null
-```
+- primeira chamada do Reviewer na rodada: `--wait --fresh --json --model <modelo> --effort <effort> <briefing read-only>`;
+- correção e nova checagem pelo mesmo Reviewer: `--wait --resume-thread <threadId> --json --model <modelo> --effort <effort> <apontamento read-only>`.
 
-> ⚠️ **`< /dev/null` não é opcional.** Sem ele o `codex exec` fica bloqueado lendo stdin (não há TTY
-> aqui), trava até o timeout e não produz nada — mesmo com o prompt passado como argumento. Com o
-> stdin fechado responde em segundos.
+Leia o parecer em `rawOutput` e persista `{card, papel, jobId, threadId, status}` na thread durável
+do card antes da próxima chamada. Se `jobId` ou `threadId` faltar, o vínculo não está comprovado:
+declare revisão degradada e nunca caia em `--resume-last`. Uma segunda revisão deliberadamente
+independente, pedida pelo dono, usa outra task com `--fresh --json`; não retoma o Reviewer titular.
+Task terminada só é arquivada depois de registrar o resultado e os IDs, e apenas se o host oferecer
+uma operação suportada de arquivo — não cancele nem delete para limpar a barra lateral.
 
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.

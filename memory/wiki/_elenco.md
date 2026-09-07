@@ -59,12 +59,12 @@ Regras, cada uma escrita 1×:
   decidido por omissão pelo `default_model` de um config de terceiro.
 - **O vendor do host nunca revisa a si mesmo.** É a razão de existir da via: no host Claude o
   revisor é OpenAI; no host Codex, Anthropic.
-- **Toda invocação por CLI exige `< /dev/null`** — sem TTY, os CLIs bloqueiam lendo stdin e travam
-  até o timeout.
+- **Toda CLI chamada diretamente exige `< /dev/null`** — sem TTY, ela bloqueia lendo stdin e trava
+  até o timeout. O host Claude não chama o binário Codex diretamente: usa o Companion.
 
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | binário `/usr/local/bin/codex` (`codex` no PATH) · modelo `gpt-6-astra` @ `max` · comando completo: ver **Matriz de invocação** |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo `gpt-6-astra` @ `max` · `jobId` + `threadId` sustentam o reúso exato · ver **Matriz de invocação** |
 | runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s · sonda real com `--model fable` em 2026-09-05 comprovou `claude-fable-5-1` (thread `T-079`) |
 
 A coluna **Consumida por** existe para o efeito de ligar/desligar ser anunciável sem chute: a via
@@ -98,17 +98,20 @@ equivalente…"). **Aqui moram só os templates** — esta seção não reescrev
 **Ordem das flags — regra por CLI, não generalizável** (a mesma família de erro derrubou a revisão
 duas vezes em 2026-08-05, por causas opostas — ver `gotchas.md`):
 - **`claude`:** prompt **antes** das flags — a `--tools` é variádica e engole o que vem depois dela.
-- **`codex`:** prompt posicional no fim (`codex exec ... "<briefing>"`) — ordem já em uso.
+- **`codex` direto, somente no host Codex:** prompt posicional no fim
+  (`codex exec ... "<briefing>"`) — ordem já em uso.
 
-**`< /dev/null` em TODA invocação por CLI** — sem TTY, os dois bloqueiam lendo stdin e travam até
-o timeout.
+**`< /dev/null` em TODA CLI chamada diretamente** — sem TTY, ela bloqueia lendo stdin e trava até
+o timeout. No host Claude, o subagente do Companion encapsula a chamada e não autoriza montar
+`codex exec` à mão.
 
-**Briefing:** `codex exec` **lê o repositório sozinho** → isolamento em worktree/clone descartável
-(nunca diretório vazio — repo ausente faz o briefing explodir; nunca o repo vivo — dano sem
-contenção) + briefing curto + `git add -N .` antes de gerar o patch, para arquivo novo não sumir do
-diff. `claude -p` invocado de dentro de outro agente **não lê arquivos** → o briefing carrega o
-conteúdo **verbatim, numerado por linha**; o parecer é sobre o texto colado, e quem audita declara
-essa natureza.
+**Briefing:** no host Codex, `codex exec` **lê o repositório sozinho** → isolamento em
+worktree/clone descartável (nunca diretório vazio — repo ausente faz o briefing explodir; nunca o
+repo vivo — dano sem contenção) + briefing curto + `git add -N .` antes de gerar o patch, para
+arquivo novo não sumir do diff. No host Claude, o Companion recebe o mesmo diretório isolado e um
+briefing READ-ONLY explícito. `claude -p` invocado de dentro de outro agente **não lê arquivos** →
+o briefing carrega o conteúdo **verbatim, numerado por linha**; o parecer é sobre o texto colado, e
+quem audita declara essa natureza.
 
 **Saída conferida antes de virar parecer** (tamanho + formato) — 51 bytes não é parecer, é revisor
 que não rodou.
@@ -119,7 +122,7 @@ uma vez, não repetido) · `não testado`.
 | Vendor do modelo | host Claude | host Codex |
 |---|---|---|
 | **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus, ou receber `claude-fable-5-0`, reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; `fable` habilitado no `T-077` (2026-09-04) e **comprovado com chamada real em 2026-09-05** (`OPUS_MODEL=claude-fable-5-1`, thread `T-079`) |
-| **OpenAI** | `codex exec -m gpt-6-astra -c model_reasoning_effort=max -s read-only "<briefing>" < /dev/null` — **comprovado como revisor**; **como planner, não exercitado** (o primeiro Loop A de trilha `sistema` no host Claude é o teste real). Smoke de 2026-09-05 comprovou os efforts `low|medium|high|xhigh|max` e a rejeição de `none`; `ultra` está disponível no catálogo do host mas não foi adotado — escolha do dono em 2026-09-05, não limitação técnica. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
+| **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
 
 ## Times por host
 
@@ -146,11 +149,11 @@ time da outra.
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono**, em qualquer host |
 | planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 (id `claude-fable-5-1`), comprovado |
-| planner·sistema | `gpt-6-astra@max` | `codex exec … -s read-only`; mecanismo comprovado como revisor, não como planner |
+| planner·sistema | `gpt-6-astra@max` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
 | implementer·pesada | `sonnet` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
 | implementer·leve | `sonnet` | worktree quando houver trabalho paralelo |
-| reviewer | `gpt-6-astra@max` | vendor oposto ao host; `codex exec … -s read-only` |
+| reviewer | `gpt-6-astra@max` | vendor oposto ao host; Codex Companion read-only e retomada pelo `threadId` exato |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
@@ -214,7 +217,8 @@ aplicam aqui: trariam modelos Anthropic para `implementer`/`docs`, que só aceit
   effort declarado**; (b) o comportamento em `-s workspace-write`, que é o modo real do
   implementer — o smoke foi read-only. *Responder a uma chamada trivial* não é *escrever código
   confiável em worktree*: o primeiro card `leve` real no Codex é que diz.
-- **`codex exec -s read-only` produzindo plano** — comprovado como revisor, não como planner.
+- **Codex Companion produzindo plano read-only** — modelo e runtime estão comprovados como
+  revisor; o Loop A completo como planner ainda não foi exercitado.
 - **`haiku` na faixa leve** — precedente indireto (docs/scout no `economia`), sem medição.
 
 ## Custo

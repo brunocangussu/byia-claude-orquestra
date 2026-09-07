@@ -769,3 +769,65 @@ duas consequências que já quase enganaram o Manager:
 
 O `T-017` continua válido: editar `orq/` **sem** bumpar ainda é acusado. O buraco é o outro lado —
 editar **e** bumpar move o alvo da comparação para um cache que ainda não existe.
+
+## Atualizar plugin pode remover o cache que tarefas antigas ainda usam — 2026-09-07
+
+Na instalação local do Orquestra `0.27.2`, o Codex registrou a versão nova e criou seu cache
+corretamente, mas removeu o diretório `0.27.1`. A tarefa que executava a atualização já tinha
+carregado o hook de `0.27.1`; no retorno do próprio comando, tentou abrir
+`0.27.1/scripts/context-guard.py`, recebeu `ENOENT` e repetiu a falha no `Stop`. O erro do hook fez
+a instalação concluída parecer uma instalação fracassada.
+
+**A regra:** antes do update, faça backup do cache vigente. Depois, confira separadamente o registro
+da versão nova e a identidade do cache novo. Se ainda houver tarefas antigas vivas, restaure o
+cache anterior **lado a lado**, sem sobrescrever o novo; ele pode ser removido somente depois que
+essas tarefas encerrarem. Saída de hook pós-comando não é prova de que o comando principal falhou.
+
+Na mesma sequência, a auditoria final encontrou outro plugin (`claude-mem`) ainda instalado, mas
+com `enabled` trocado de `true` para `false` no `config.toml`; o backup pré-instalação provou a
+mudança. Portanto o checklist pós-update também compara os registros dos **outros plugins críticos**
+e corrige somente a chave divergente, sempre com backup novo antes da edição.
+
+## Config que aceita a chave e ignora em silêncio: `OBSERVATION_TYPES` do claude-mem — 2026-09-07
+
+`CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES` está na lista de chaves que o endpoint HTTP de settings do
+claude-mem aceita e grava. Ela **não é lida em lugar nenhum**: zero ocorrências no
+`context-generator.cjs`, que é quem monta a injeção. Escrever ali grava no arquivo, não dá erro, e
+não muda comportamento nenhum — a pior combinação possível, porque a wiki passou a mandar aplicar
+uma configuração inerte como se fosse a solução do problema de sinal.
+
+**A regra:** antes de recomendar uma chave de configuração de terceiro, prove que **alguém a lê** —
+`grep` no bundle que consome, não na lista de chaves aceitas. Endpoint de settings aceitar a chave
+é evidência de superfície de API, não de efeito.
+
+**O que a chave sugeria fazer, e por que o caminho real é mais perigoso:** o filtro por tipo mora em
+`getActiveMode().observation_types` (`modes/code.json`), e esses mesmos tipos alimentam o
+`type_guidance` do prompt do observer. Reduzir a lista não filtra a leitura — **muda o vocabulário
+de classificação**, portanto muda o que é capturado e gravado. Um "filtro de injeção" vira perda de
+dado no banco sem nada avisando. Ver `T-081`.
+
+## `claude-mem` desabilitado no Codex é decisão, não regressão — 2026-09-07
+
+O gotcha anterior sobre update de plugin manda comparar os registros dos plugins críticos e
+"corrigir a chave divergente". **Não vale para o `claude-mem` no host Codex.** Desde 2026-09-07 ele
+está `enabled = false` em `~/.codex/config.toml`, e o `[[hooks.UserPromptSubmit]]` de fallback
+escrito direto no arquivo está comentado — os dois **de propósito** (`T-074`), para que o piloto do
+AI-Memory (`T-078`) meça uma camada só. No Claude Code o claude-mem continua ligado.
+
+**A regra:** antes de "restaurar" um `enabled` divergente, procure o card. Uma auditoria que trate
+toda divergência como acidente religa decisões que custaram análise — e, neste caso, contaminaria a
+comparação que o `T-078` existe para fazer.
+
+**Isto não é hipótese: aconteceu 10 minutos depois desta página ser escrita.** Às 10:59 o
+claude-mem foi desligado no Codex pelo `T-074`. Às 11:04 a sessão paralela (Codex, conduzindo o
+`T-075`) rodou sua auditoria pós-instalação, leu `enabled = false`, concluiu *"o instalador havia
+desligado o claude-mem"* e **religou a chave** — com backup e boa-fé, seguindo exatamente o
+checklist do gotcha anterior. Reverteu metade: o plugin voltou a `true`, o hook fallback comentado
+ficou comentado, e o host terminou num estado híbrido que nenhuma das duas sessões queria.
+
+**As duas lições, e a segunda é a que importa:** (1) a decisão foi reaplicada e o `config.toml`
+agora carrega uma nota inline ao lado da chave, porque a wiki não é lida por quem audita config —
+o aviso tem que morar onde a mão vai. (2) **Duas janelas trabalhando no mesmo host se desfazem em
+silêncio.** Nenhuma das duas errou: uma cumpriu o card, a outra cumpriu o checklist. Falta o
+protocolo de várias janelas cobrir *configuração de host*, não só arquivos do repositório — o
+`T-013` e o `T-032` tratam do board e do worktree, e este caso passou por fora dos dois.

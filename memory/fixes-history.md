@@ -1,5 +1,43 @@
 # Log de mudanças — append-only
 
+## [2026-09-07] config | claude-mem off no Codex (T-074), contagens do T-065 e o T-081 nascido
+
+**O dono mandou resolver os três cards `[!]` pelas recomendações do board.** Um deles (`T-075`)
+estava sendo promovido por outra janela ao vivo — 6 dos 10 arquivos reescritos no meio da leitura —
+e foi deixado intocado por isso; aquela sessão terminou em 10/10 mais o teste novo. Os outros dois
+vivem fora do repositório e foram executados aqui.
+
+**`T-074` — claude-mem desligado no Codex, em dois pontos.** A razão é a do parecer registrado no
+`T-078`: as duas camadas em paralelo contaminam a comparação, porque uma injeta memória que muda o
+que a outra captura. Além do `enabled = false` no plugin, havia um `[[hooks.UserPromptSubmit]]`
+escrito direto no `config.toml`, fora do plugin, chamando `worker-service.cjs hook codex
+session-init` — **quem parasse no plugin teria continuado capturando a cada prompt achando que
+desligou**. O bloco foi comentado com nota de reversão. Depois: `claude-mem` zerado nos seis eventos
+do Codex, `ai-memory` intacto nos seis, Claude Code inalterado.
+
+**`T-065` — dois terços aplicados.** `CONTEXT_OBSERVATIONS` 50→25 e `CONTEXT_SESSION_COUNT` 10→5,
+com backup datado; o `diff` contra o backup mostrou exatamente essas duas linhas.
+
+**`T-081` nasceu no lugar do terço que faltava.** `CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES` é aceita
+pelo endpoint de settings e lida por ninguém — zero ocorrências no `context-generator.cjs`. O filtro
+real vem de `getActiveMode().observation_types`, e esses tipos alimentam o `type_guidance` do prompt
+do observer: mexer ali **muda a captura, não a leitura**. A premissa do `T-065` ("filtrar a
+injeção") não se sustenta nesse caminho, então virou card em vez de virar mudança.
+
+**Incidente no mesmo dia, 11:04 — a decisão foi revertida por outra janela e reaplicada.** A sessão
+Codex que conduzia o `T-075` rodou a auditoria pós-instalação, leu `enabled = false`, concluiu que o
+instalador havia desligado o claude-mem e **religou a chave**. Reverteu metade: o plugin voltou a
+`true`, o fallback comentado ficou comentado — estado híbrido que nenhuma das duas sessões queria.
+Nenhuma errou: uma cumpria o card, a outra cumpria o checklist do gotcha de update de plugin. A
+decisão foi restaurada e o `config.toml` ganhou **nota inline ao lado da chave**, porque quem audita
+configuração de host não lê a wiki. O buraco de processo — protocolo de várias janelas não cobre
+config de host, só board e worktree — ficou registrado em `gotchas.md`.
+
+**Estado da verificação ao fim:** suíte 294 OK, manifesto OK, lint de coerência **vermelho** por uma
+divergência real e preexistente — a documentação do `claude_mem_status.py` em `checkpoint.md` e
+`stack.md` está na fonte `0.27.2` e não no cache `0.27.2` instalado. É a guarda do `T-080`
+funcionando; a correção é da janela que conduz o `T-075`.
+
 ## [2026-09-02] release | 0.25.0 publicada, instalada e verificada nos dois hosts (T-051 + T-052)
 
 **O dia começou com um pedido simples e terminou numa reconciliação de dois ramos.** O dono pediu

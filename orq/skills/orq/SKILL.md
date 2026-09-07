@@ -216,6 +216,29 @@ fala com o dono. Os workers pedem; o Manager decide.
 faz o agente arrastar premissas da tarefa anterior. No Claude Code isso é de graça: cada spawn é
 um contexto novo.
 
+### Reúso durável do Codex Companion
+
+No host Claude, quando um papel read-only do vendor OpenAI é executado pelo
+`codex:codex-rescue`, o worker lógico continua fresco por card, mas a task persistente do Codex
+obedece a um vínculo determinístico:
+
+- **Mesmo card + mesmo papel** → reutilize a task exata. A primeira chamada leva
+  `--fresh --json`; a continuação leva `--resume-thread <threadId> --json`. Não use
+  `--resume-last`: uma task mais recente de outro card ou papel não pode capturar a continuação.
+- Persista no handoff da thread do card os campos `card`, `papel`, `jobId`, `threadId`, `status`.
+  Leia o trabalho em `rawOutput`; IDs ausentes ou status não terminal significam handoff não
+  comprovado — não adivinhe nem crie outro vínculo silenciosamente.
+- **Mudou o card ou o papel** → comece com `--fresh --json`. Continuação do Planner reutiliza o
+  Planner; correção e nova checagem da mesma rodada reutilizam o Reviewer; uma segunda revisão
+  deliberadamente independente nasce fresca, mesmo sobre o mesmo card.
+- Quando o papel chegar a um estado terminal, registre resultado e IDs antes de arquivar a task.
+  Arquivar é limpeza reversível e só ocorre se o host expuser essa capacidade; caso contrário,
+  registre a limpeza pendente. Nunca cancele uma task concluída e **nunca delete** uma task do
+  Companion.
+
+Esse reúso reduz a poluição da barra lateral sem misturar contextos: a unidade de isolamento segue
+sendo `card+papel`, não cada mensagem e não o projeto inteiro.
+
 ## Máquina de estados
 
 ```

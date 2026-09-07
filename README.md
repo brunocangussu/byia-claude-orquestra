@@ -412,7 +412,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.27.1` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.27.2` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar
 auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
@@ -422,6 +422,7 @@ corpus real (não inventados) · cardápio por situação (`/orq:ajuda`) · pol�
 `economia`) pra trocar o time inteiro por contexto de crédito · teto do N2 numa **cláusula única**
 (sem regra duplicada) · o que o `--rapido` encolhe é decidido num lugar só (`/orq:revisar`), nunca
 pelo nome do perfil · template do elenco com seção de vias externas literal e
+reúso determinístico da task do Codex Companion por `card+papel` ·
 auto-cura da seção Perfis em arquivo pré-0.16.0 (ao trocar de perfil ou ajustar um papel — não migra
 nota de preset) · **`AGENTS.md` = `CLAUDE.md`, byte-idênticos** (identidade vira gate mecânico no
 lint, não mais "dever de sincronizar") · `/orq:init` grava o mesmo bloco `orquestra:start` nos dois

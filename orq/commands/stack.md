@@ -43,13 +43,14 @@ Idem para `--help | head`: a lista é alfabética e o `head` corta. Verifique o 
 | Checagem | Como | Sintoma se falhar |
 |---|---|---|
 | Plugin desatualizado ou cache stale | versão **e conteúdo** — bloco "Plugin: versão E conteúdo" abaixo | comportamento antigo com o `list` dizendo que está tudo certo |
+| `claude-mem` realmente grava | `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/claude_mem_status.py --platform <claude-ou-codex>` — bloco "carimbo do banco" abaixo | worker e health verdes enquanto prompts/observações não avançam |
 | Escopo do plugin | mesma saída — `user` ou `project`? | funciona num projeto e some no outro |
 | Revisor externo presente | a via **ativa** em `memory/wiki/_elenco.md`: resolver o binário (PATH → caminho conhecido) e rodar `--version` — **sem chamada de modelo** | fica sem revisor nenhum, calado |
 | Board legível | rodar o script **e conferir os três sinais** — bloco "Board: os três sinais" abaixo | statusline muda **ou** progresso errado sem `⚠` |
 | Contrato da memória | há `memory/` **e** falta `memory/wiki/_schema.md`? | instalação pré-0.6.0: `checkpoint` e `wiki-lint` degradam para o contrato inline — **informativo, não defeito** |
 | Agente colidindo | `ls .claude/agents/orq-*.md ~/.claude/agents/orq-*.md 2>/dev/null` — projeto **e** usuário | colisão de nome com o plugin, resolução indefinida |
 
-### Codex: nove camadas, sem falso “não instalado”
+### Codex: dez camadas, sem falso “não instalado”
 
 Quando o host ou o sintoma envolver Codex, reporte separadamente:
 
@@ -61,11 +62,40 @@ Quando o host ou o sintoma envolver Codex, reporte separadamente:
 6. estrutura Orquestra do projeto e elenco resolvidos;
 7. hooks do plugin carregados e com **confiança** confirmada em `/hooks`;
 8. guardião de contexto com telemetria disponível e `PLUGIN_DATA` gravável;
-9. **smoke comportamental** aprovado em conversa nova.
+9. **smoke comportamental** aprovado em conversa nova;
+10. carimbo do banco do `claude-mem` avançando na sessão e no projeto corretos.
 
 No Codex, a interface é linguagem natural ou `/skills`; `/orq:*` pertence ao Claude Code. Pare na
 camada que falhou e mostre a evidência. Não condense PATH, autenticação, cache, carregamento e smoke
 em “plugin ausente”.
+
+### `claude-mem`: carimbo do banco, nunca só health
+
+Plugin listado, processo vivo, porta aberta, hook com exit zero e `health=ok` não provam captura.
+Quando o `claude-mem` estiver instalado, rode:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/claude_mem_status.py \
+  --platform <claude-ou-codex> \
+  --project "<nome-exato-do-projeto-no-banco>"
+```
+
+O script abre `~/.claude-mem/claude-mem.db` em `mode=ro` e consulta somente IDs técnicos,
+contagens, status e timestamps — nunca texto de prompt, observação ou resumo. Se o ID da sessão do
+host estiver disponível, acrescente `--content-session-id <id>`; num canário, acrescente também
+`--since-epoch-ms <watermark>` e, depois de `Stop`, `--expect-summary`.
+
+Interprete o campo `state`, não apenas o exit code:
+
+- `CAPTURANDO`: prompt, observação e, quando exigido, resumo avançaram na sessão correta;
+- `ATRASADO`: o evento ainda está dentro do SLO padrão de 15 minutos;
+- `PARADO`: o SLO expirou, falta vínculo/commit ou há evento posterior ao encerramento;
+- `OCIOSO`: não houve sessão/trabalho correlacionável — não prova saúde;
+- `INDETERMINADO`: banco, schema ou identidade não permitem conclusão — falhe fechado;
+- `EXCLUÍDO`: o projeto casa com a política de exclusão e não deve ser capturado.
+
+Para projeto clínico ou com PII, o estado esperado é `EXCLUÍDO` enquanto o observer usar serviço
+externo. Não abra arquivos nem faça canário com conteúdo real para “provar” a exclusão.
 
 Para o backstop de compactação, leia `model_context_window` observado e calcule
 `round(model_context_window * 0.90)`. Mostre, sem editar, a proposta:

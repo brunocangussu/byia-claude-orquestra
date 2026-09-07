@@ -9,7 +9,7 @@
 ## ⏸️ Esperando você
 
 - [x] `T-064` Superpowers ou a Matriz — fechado em 2026-09-06: decidido pelo dono e escrito na SKILL.md; a sessao do T-079 seguiu a Matriz — um subagente por card
-- [!] `T-065` Configurações fora do plugin — effort e MCPs feitos; falta decidir claude-mem e AGENTS.md · → threads/T-054-economia-tokens.md @frente-economia
+- [!] `T-065` Configurações fora do plugin — effort, MCPs e claude-mem feitos; falta decidir AGENTS.md · → threads/T-054-economia-tokens.md @frente-economia
 - [x] `T-066` Consolidar o ferramental empilhado — resolvido: caveman nunca esteve lá, os 2 grafos custam ~570 tok/sessão · → threads/T-054-economia-tokens.md
 
 - [?] `T-025` Comandos que nunca disparam sozinhos — 0.15.0 entregue, aguarda seu teste: diga "quais as possibilidades" e veja se vem cardápio por situação · → threads/T-025-gatilhos.md
@@ -21,8 +21,6 @@
 ---
 
 ## 🟡 Fazendo
-
-- [~] `T-075` claude-mem no Claude e Codex — restart forçado concluído; canários + reúso explícito de task do Companion em implementação · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
 
 - [x] `T-079` GPT-6 Astra no planejamento e na revisão, Fable 5.1 nomeado — validado por você nos dois hosts em 2026-09-06 · → threads/T-079-gpt6-astra.md
 
@@ -38,6 +36,7 @@
 
 ## 🟣 Validar
 
+- [?] `T-075` claude-mem nos 2 hosts — patch, restart, Companion e Orquestra 0.27.2 locais verificados; canários verdes; falta prova do pool 3 + validação do dono · sistema/pesada · → threads/T-072-claude-mem.md @frente-economia
 
 - [?] `T-078` AI-Memory global — Claude e Codex capturam; usar 1–2 semanas e reavaliar ganho vs. claude-mem · trilha: sistema · faixa: pesada · → threads/T-078-ai-memory.md
 - [?] `T-037` Tirar o SuperMemory do sistema de desenvolvimento — 0.22.3 publicada e instalada; falta sua validação prática · → threads/_notas-de-cards.md
@@ -66,7 +65,8 @@
 
 - [?] `T-072` claude-mem volta ao catálogo com o papel escrito — feito em SKILL.md, stack.md e _stack.md · → threads/T-072-claude-mem.md
 - [?] `T-073` O gatilho "lembra quando" nunca chama busca nenhuma — agora nomeia a busca; teste: diga a frase · → threads/T-072-claude-mem.md
-- [!] `T-074` Avaliar instalar o claude-mem no Codex — plano e custo prontos; falta sua decisão de instalar · → threads/T-072-claude-mem.md
+- [?] `T-074` claude-mem desligado no Codex — plugin e hook fallback off em 2026-09-07; teste: AI-Memory sozinho por 1–2 semanas · → threads/T-072-claude-mem.md
+- [ ] `T-081` `OBSERVATION_TYPES` é chave morta; o filtro real mora no modo e muda a captura · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md
 
 - [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 
