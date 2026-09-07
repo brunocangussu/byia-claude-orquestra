@@ -1914,3 +1914,8 @@ rodadas de revisão já tinha sido atingido. Um dos meus próprios testes de aud
 (a cerca "aberta" era fechada pela abertura do bloco seguinte) e foi refeito antes de virar veredito.
 
 Gates: 291 testes · `validate` · lint. Bump `0.27.1`.
+
+## [2026-09-06] validação | T-080 · guarda do preset validada pelo dono e publicada
+
+Demonstração aceita: alterar `implementer·pesada` só no preset fez o lint reprovar nomeando papel,
+valor ativo e valor do preset (`_elenco.md:269`); desfazer devolveu o verde. Card fechado.

@@ -8,7 +8,6 @@
 
 ## ⏸️ Esperando você
 
-- [!] `T-075` claude-mem no Claude e Codex — caches patchados; restart bloqueado por fila RAM crescente · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
 - [x] `T-064` Superpowers ou a Matriz — fechado em 2026-09-06: decidido pelo dono e escrito na SKILL.md; a sessao do T-079 seguiu a Matriz — um subagente por card
 - [!] `T-065` Configurações fora do plugin — effort e MCPs feitos; falta decidir claude-mem e AGENTS.md · → threads/T-054-economia-tokens.md @frente-economia
 - [x] `T-066` Consolidar o ferramental empilhado — resolvido: caveman nunca esteve lá, os 2 grafos custam ~570 tok/sessão · → threads/T-054-economia-tokens.md
@@ -22,6 +21,8 @@
 ---
 
 ## 🟡 Fazendo
+
+- [~] `T-075` claude-mem no Claude e Codex — restart forçado concluído; canários + reúso explícito de task do Companion em implementação · trilha: sistema · faixa: pesada · → threads/T-072-claude-mem.md @frente-economia
 
 - [x] `T-079` GPT-6 Astra no planejamento e na revisão, Fable 5.1 nomeado — validado por você nos dois hosts em 2026-09-06 · → threads/T-079-gpt6-astra.md
 
@@ -58,7 +59,7 @@
 
 ## 🔵 Backlog
 
-- [?] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — implementado, 3 rodadas de revisão; teste: mude um implementer só no preset e rode o lint · → threads/T-079-gpt6-astra.md
+- [x] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — validado por você em 2026-09-06: a divergência foi acusada com papel, valor ativo e valor do preset · → threads/T-079-gpt6-astra.md
 - [x] `T-077` Runner Anthropic fixa --model opus e barra o Fable no host Codex — fechado em 2026-09-06: provado no T-079 — runner INSTALADO com --model fable devolveu claude-fable-5-1, exit 0
 
 - [ ] `T-076` Board resolvido pelo checkout principal, para sobreviver a worktree por frente · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md

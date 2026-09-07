@@ -207,3 +207,30 @@ git diff --check                                                                
   já contado em 215/219 anteriores + `test_claude_mem_status.py`, que já estava no working tree
   antes deste card, sem relação com o T-079 + o teste novo deste card). Esses contadores não
   constavam da lista de arquivos do plano; ficam como achado fora de escopo.
+
+## ✅ T-080 fechado — 2026-09-06
+
+A guarda que impede o preset `padrao` de divergir da tabela viva foi implementada, revisada em
+**três rodadas** (11 achados) e **validada pelo dono** por demonstração: alterar `implementer·pesada`
+apenas no preset produziu
+
+```
+memory/wiki/_elenco.md:269  Host Claude, perfil padrao: implementer·pesada —
+  ativo=sonnet; preset=opus; diferença sem desvio declarado
+```
+
+e o verde voltou ao desfazer. É exatamente o defeito que passou três dias despercebido em setembro.
+
+**A lição de processo, que vale mais que a guarda:** as duas primeiras rodadas de correção falharam
+porque trataram o *caso reproduzido no parecer* em vez da *classe do defeito* — os mesmos buracos
+voltaram por outra porta e duas correções criaram falsos positivos novos. A terceira funcionou
+porque o briefing nomeou a classe de cada um. **Ao devolver achados a quem implementou, nomeie a
+classe, não repita o exemplo.**
+
+**Os três gates estavam verdes nas três rodadas.** Nenhum dos 11 achados seria pego por teste,
+`validate` ou lint — só pelo leitor adversarial de vendor oposto. É a justificativa empírica da
+revisão independente neste projeto.
+
+Limites aceitos e documentados: cercar a seção inteira como exemplo ainda esconde o sinal (mas aí o
+defeito fica visível no documento renderizado); três leituras únicas de arquivos internos seguem sem
+tratamento de erro, por não serem releituras.
