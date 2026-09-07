@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.3 — **publicada e instalada nos caches Claude/Codex** (2026-09-07); ambos conferidos contra checkout detached e limpo de `4229b76`. A `0.27.3` traz o `T-082` (o verificador de cache deixa de ler bytecode como divergência) e o `T-083` (o elenco do host Claude declara o effort que a CLI aceita) · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.3 — **publicada e instalada nos caches Claude/Codex** (2026-09-07); ambos conferidos contra checkout detached e limpo de `4229b76`. A `0.27.3` traz o `T-082` (o verificador de cache deixa de ler bytecode como divergência) e o `T-083` (o elenco do host Claude declara o effort que a CLI aceita). ⚠️ **Instalado não é carregado:** cada host só passa a rodar a 0.27.3 depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
 
 **Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
 saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`
