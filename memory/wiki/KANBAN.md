@@ -60,8 +60,8 @@
 - [?] `T-073` O gatilho "lembra quando" nunca chama busca nenhuma — agora nomeia a busca; teste: diga a frase · → threads/T-072-claude-mem.md
 - [?] `T-074` claude-mem desligado no Codex — plugin e hook fallback off em 2026-09-07; teste: AI-Memory sozinho por 1–2 semanas · → threads/T-072-claude-mem.md
 - [ ] `T-081` `OBSERVATION_TYPES` é chave morta; o filtro real mora no modo e muda a captura · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md
-- [!] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência real — implementado e revisado; falta seu ok para bump 0.27.3 + commit · trilha: sistema · faixa: leve @frente-cache · → threads/_notas-de-cards.md
-- [ ] `T-083` Elenco declara `@max` e a CLI do Companion rejeita — só vai até `xhigh`; reviewer e planner·sistema caem em degradação silenciosa · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
+- [?] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência real — 0.27.3 commitada e publicada; falta reinstalar o cache e sua validação · → threads/_notas-de-cards.md
+- [?] `T-083` Elenco declarava `@max` e a CLI recusa — host Claude passa a `@xhigh` na 0.27.3; falta sua validação e a decisão sobre o host Codex · → threads/_notas-de-cards.md
 
 - [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 

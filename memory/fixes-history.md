@@ -1,5 +1,35 @@
 # Log de mudanças — append-only
 
+## [2026-09-07] release | 0.27.3 — o verificador para de confundir bytecode com cache stale
+
+`T-082`: `verify_installed_cache.py` ganhou normalização de bytecode **bilateral** — a primeira que
+não é installed-only. A assimetria com as allowlists anteriores é deliberada: `.in_use` e
+`migrated-command-skills/` são metadado **de um host**; `__pycache__/` é ruído do interpretador em
+qualquer lado. Antes, um `__pycache__` sobrevivente de uma execução sem `PYTHONDONTWRITEBYTECODE=1`
+produzia um vermelho indistinguível de cache stale — e lint que grita por artefato gerado treina o
+leitor a ignorar o grito.
+
+**O que a revisão independente comprou:** dois achados, os dois aplicados. A garantia *"bytecode
+nunca é conteúdo do plugin"* estava **presumida** e virou guarda executável; e `instalar.md`
+prometia normalizar somente `migrated-command-skills/` — frase que **já era falsa antes desta
+mudança**, porque as allowlists do host Claude nunca foram citadas ali. O revisor achou a
+contradição nova; a antiga apareceu ao auditar o achado dele.
+
+`T-083`: a CLI do Companion **recusa** `max` (`Unsupported reasoning effort "max". Use one of:
+none, minimal, low, medium, high, xhigh`). O `MEMORY.md` já suspeitava disso no `T-079` — *"uma das
+revisões rodou em xhigh, não no @max que o elenco declara"* — atribuído então a "o runtime não
+expôs o effort". Agora há a mensagem literal. O host Claude passa a declarar `@xhigh`; o host Codex
+**não foi tocado**, porque lá a via é `codex exec` e a recusa não foi comprovada — e porque cada
+host só edita a própria seção.
+
+⚠️ **O effort estava acoplado ao contrato de vendor:** além do elenco e do template, `@max` estava
+cravado no lint (no guarda que exige o reviewer do vendor oposto) e na fixture da tabela ativa.
+Trocar um effort obrigou a editar quatro lugares — o guarda protege o vendor, mas ancora numa
+string que carrega o effort junto. Não virou card ainda.
+
+⚠️ **Degradação declarada:** as correções do parecer foram aplicadas pelo Manager, não pelo
+implementer — este host não expõe `SendMessage` para reabrir o subagente com o contexto dele.
+
 ## [2026-09-07] processo | @frente-economia · dívida real separada de validação antiga
 
 O pedido para resolver “Esperando você” começou por recuperar um contexto compactado e terminou
