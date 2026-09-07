@@ -231,6 +231,117 @@ class InstallationComparatorTests(unittest.TestCase):
             [("bytes", "link", "symlink target differs")],
         )
 
+    def test_pycache_only_in_source_is_not_reported(self) -> None:
+        # Cenário do T-082: pyc gerado por uma execução anterior sobrevive no
+        # lado da fonte (nunca chegou a existir no cache instalado). Cobre
+        # profundidade arbitrária, não só scripts/.
+        self.write(
+            self.source,
+            "scripts/__pycache__/lint-coerencia.cpython-311.pyc",
+            b"stale bytecode\n",
+        )
+        self.write(
+            self.source,
+            "agents/nested/__pycache__/helper.cpython-311.pyc",
+            b"stale bytecode\n",
+        )
+        self.write_both("scripts/lint-coerencia.py")
+        # agents/nested/ precisa existir também em conteúdo real nos dois
+        # lados, senão o próprio diretório "sumido" (não o __pycache__ que
+        # está sendo testado) seria a divergência — o mesmo cuidado que
+        # scripts/ já tem via lint-coerencia.py acima.
+        self.write_both("agents/nested/README.md")
+
+        self.assertEqual(self.compare("claude"), [])
+        self.assertEqual(self.compare("codex"), [])
+
+    def test_pycache_only_in_installed_is_not_reported(self) -> None:
+        # Espelho do caso acima: o host pode ter gerado bytecode no cache
+        # instalado sem que a fonte jamais tenha um __pycache__ ali.
+        self.write(
+            self.installed,
+            "scripts/__pycache__/lint-coerencia.cpython-311.pyc",
+            b"stale bytecode\n",
+        )
+        self.write_both("scripts/lint-coerencia.py")
+
+        self.assertEqual(self.compare("claude"), [])
+        self.assertEqual(self.compare("codex"), [])
+
+    def test_pycache_with_different_bytes_on_each_side_is_not_reported(self) -> None:
+        # Bytecode em ambos os lados, com conteúdo diferente (compilado em
+        # datas/interpretadores diferentes) — normalizado por completo, não
+        # só quando ausente de um lado.
+        self.write(
+            self.source,
+            "scripts/__pycache__/lint-coerencia.cpython-311.pyc",
+            b"source bytecode\n",
+        )
+        self.write(
+            self.installed,
+            "scripts/__pycache__/lint-coerencia.cpython-311.pyc",
+            b"installed bytecode\n",
+        )
+
+        self.assertEqual(self.compare("claude"), [])
+
+    def test_loose_pyc_and_pyo_outside_pycache_are_not_reported(self) -> None:
+        # Decisão: .pyc/.pyo soltos fora de __pycache__/ também são ruído de
+        # host, não conteúdo do plugin — o próprio .gitignore (`*.py[cod]`)
+        # já trata essas extensões como geradas, dentro ou fora do diretório
+        # de cache.
+        self.write(self.source, "scripts/legacy.pyc", b"stale\n")
+        self.write(self.installed, "scripts/other.pyo", b"stale\n")
+
+        self.assertEqual(self.compare("claude"), [])
+
+    def test_real_python_file_missing_from_installed_still_reported(self) -> None:
+        # O ponto crítico: normalizar bytecode não pode mascarar um .py real
+        # que sumiu do cache — esse é exatamente o defeito que T-017/T-080
+        # existem para pegar. scripts/other.py garante que o diretório
+        # scripts/ em si já existe nos dois lados, isolando check.py como a
+        # única divergência real.
+        self.write_both("scripts/other.py")
+        self.write(self.source, "scripts/check.py", b"real content\n")
+        self.write(
+            self.source,
+            "scripts/__pycache__/check.cpython-311.pyc",
+            b"stale\n",
+        )
+
+        self.assertEqual(
+            self.compare("claude"),
+            [("missing", "scripts/check.py", "")],
+        )
+
+    def test_real_file_inside_pycache_named_directory_still_reported(self) -> None:
+        # Decisão: cobrir o diretório __pycache__ inteiro em qualquer
+        # profundidade NÃO significa silenciar qualquer coisa dentro dele —
+        # só bytecode (.pyc/.pyo). Um arquivo real estacionado ali (nome de
+        # diretório usado como esconderijo) continua divergindo, e o próprio
+        # diretório para de ser "vazio" e também aparece.
+        self.write(
+            self.source,
+            "scripts/__pycache__/segredo.txt",
+            b"isto nao e bytecode\n",
+        )
+
+        claude_paths = [path for _, path, _ in self.compare("claude")]
+        self.assertIn("scripts/__pycache__", claude_paths)
+        self.assertIn("scripts/__pycache__/segredo.txt", claude_paths)
+
+
+    def test_symlink_named_like_bytecode_is_still_reported(self) -> None:
+        # A normalização casa somente arquivo regular. Um symlink com nome de
+        # bytecode continua sendo comparado pelo alvo: ele pode apontar para
+        # fora da árvore, então é conteúdo, não ruído do interpretador.
+        (self.source / "atalho.pyc").symlink_to("outside")
+
+        self.assertEqual(
+            self.compare("claude"),
+            [("missing", "atalho.pyc", "")],
+        )
+
 
 class InstallationVerifierCliTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -461,3 +572,37 @@ class VerifierCommandContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+class BytecodeDistributionGuardTests(unittest.TestCase):
+    def test_no_bytecode_artifact_is_tracked_inside_the_plugin(self) -> None:
+        plugin_root = Path(__file__).resolve().parents[1]
+        repo_root = plugin_root.parent
+        inside_checkout = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if inside_checkout.returncode != 0:
+            self.skipTest("fora de um checkout git: a arvore instalada nao tem indice")
+
+        tracked = subprocess.run(
+            ["git", "ls-files", "--", plugin_root.name],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.splitlines()
+
+        # verify_installed_cache.py normaliza bytecode nos DOIS lados presumindo
+        # que ele nunca e conteudo do plugin. Enquanto essa premissa so estava
+        # escrita, um .pyc versionado tornaria a normalizacao um falso verde:
+        # o arquivo sumiria do cache sem ninguem acusar. Aqui ela e verificada.
+        bytecode = [path for path in tracked if path.endswith((".pyc", ".pyo"))]
+        self.assertEqual(
+            bytecode,
+            [],
+            "bytecode versionado dentro de orq/ derruba a premissa da "
+            "normalizacao em verify_installed_cache.py: remova o arquivo ou "
+            "reveja a normalizacao antes de distribui-lo",
+        )

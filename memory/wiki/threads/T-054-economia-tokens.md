@@ -437,3 +437,32 @@ blocos datados do log.
 
 ⚠️ **`MEMORY.md` está com 250+ linhas** e blocos de agosto ainda vivos — é o `T-057`, e ele encarece
 toda retomada. Bom candidato ao próximo bloco de trabalho desta frente.
+
+### Checkpoint de recuperação — 2026-09-07, limpeza de “Esperando você” e decisão T-065
+
+A compactação ocorreu durante a auditoria pedida pelo dono. O estado foi recuperado por
+`memory/MEMORY.md`, `KANBAN.md` e pelas threads T-054/T-072; os seis arquivos modificados pela
+janela Claude foram preservados, sem checkout, commit ou push.
+
+O bloco “Esperando você” continha dívida de organização: `T-064` e `T-066` já estavam `[x]`, e
+`T-023`/`T-026` ganharam evidência posterior suficiente. Os quatro foram movidos para Feito.
+Continuam aqui somente os três testes comportamentais realmente exclusivos do dono (`T-025`,
+`T-020`, `T-030`) e a decisão global `T-065`.
+
+O `T-065` não tem mais seis escolhas. `effort high`, MCPs e a separação do claude-mem já foram
+resolvidos por cards posteriores. A única decisão viva é: **autorizar ou recusar a redução de
+`~/.codex/AGENTS.md` (20.251 bytes/463 linhas) e `~/.claude/CLAUDE.md` (8.723 bytes/137 linhas) para
+até 3 KB cada**. Recomendação do Manager: autorizar os dois, com backup datado, mantendo
+RTK/graphify/context-mode, protocolo de compactação, preferência graph-first, ponteiro curto para
+as skills Plaud, delegação cross-vendor e regra LGPD. No Codex, o maior corte é o bloco Plaud
+duplicado de quase 400 linhas; no Claude, é a explicação global de wiki já coberta pelo Orquestra e
+pelos arquivos de cada projeto. Nenhum global foi alterado antes de o dono ver o texto final.
+
+### Fechamento do `T-065` — 2026-09-07
+
+O dono autorizou a alternativa recomendada. Antes da troca foram criados backups datados:
+`~/.codex/AGENTS.md.bak-t065-20260907-131759` e
+`~/.claude/CLAUDE.md.bak-t065-20260907-131759`. Os arquivos ativos ficaram, respectivamente,
+com **1.442 bytes/22 linhas** e **1.580 bytes/23 linhas**, contra **20.251** e **8.723 bytes** nos
+backups. Permaneceram RTK, graphify, context-mode, recuperação graph-first, protocolo de
+compactação, ponteiro Plaud, delegação cross-vendor e regra LGPD. Nenhum commit ou push foi feito.

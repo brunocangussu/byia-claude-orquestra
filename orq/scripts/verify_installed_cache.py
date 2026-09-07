@@ -56,6 +56,53 @@ def _is_allowed_installed_metadata(
     )
 
 
+_BYTECODE_SUFFIXES = {".pyc", ".pyo"}
+_BYTECODE_CACHE_DIRNAME = "__pycache__"
+
+
+def _is_bytecode_artifact(relative: PurePosixPath, kind: str) -> bool:
+    """Identify a Python bytecode file the host runtime, not the plugin, wrote."""
+
+    return kind == "file" and relative.suffix in _BYTECODE_SUFFIXES
+
+
+def _strip_bytecode_noise(entries: dict[str, _Entry]) -> dict[str, _Entry]:
+    """Drop bytecode files and the __pycache__ dirs left empty once they're gone.
+
+    Aplicado igualmente às árvores de fonte e de instalado — diferente das
+    allowlists de metadado acima, que só valem no lado instalado, bytecode é
+    ruído de host nos DOIS lados: um __pycache__/ deixado por um teste rodado
+    sem PYTHONDONTWRITEBYTECODE=1 é tão falso na fonte quanto no cache. Só
+    saem arquivos que batem com `.pyc`/`.pyo` (as extensões que o .gitignore
+    já trata como geradas, `*.py[cod]`) e diretórios `__pycache__` que ficam
+    sem nenhum descendente depois disso. Qualquer outro arquivo estacionado
+    dentro de um diretório chamado `__pycache__` é conteúdo real e continua
+    aparecendo como divergência normal — o nome do diretório nunca vira porta
+    dos fundos.
+    """
+    kept = {
+        path: entry
+        for path, entry in entries.items()
+        if not _is_bytecode_artifact(PurePosixPath(path), entry.kind)
+    }
+    removed = True
+    while removed:
+        removed = False
+        for path, entry in list(kept.items()):
+            is_pycache_dir = (
+                entry.kind == "directory"
+                and PurePosixPath(path).name == _BYTECODE_CACHE_DIRNAME
+            )
+            if not is_pycache_dir:
+                continue
+            prefix = f"{path}/"
+            if any(other.startswith(prefix) for other in kept if other != path):
+                continue
+            del kept[path]
+            removed = True
+    return kept
+
+
 def _read_regular_file(path: Path) -> bytes:
     flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
     descriptor = os.open(path, flags)
@@ -141,6 +188,13 @@ def find_installation_divergences(
         host=host,
         installed=True,
     )
+
+    # Bytecode gerado pelo host (__pycache__/, *.pyc, *.pyo) nunca é conteúdo
+    # do plugin — o próprio .gitignore confirma — e pode ter sobrevivido em
+    # qualquer um dos dois lados a uma execução anterior sem
+    # PYTHONDONTWRITEBYTECODE=1 (teste manual, import de IDE etc.).
+    source_entries = _strip_bytecode_noise(source_entries)
+    installed_entries = _strip_bytecode_noise(installed_entries)
 
     # O Codex pode criar o diretório-pai apenas para abrigar a subárvore
     # allowlisted. O pai é metadado implícito somente quando a fonte não o tem e

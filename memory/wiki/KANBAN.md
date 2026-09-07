@@ -8,14 +8,7 @@
 
 ## ⏸️ Esperando você
 
-- [x] `T-064` Superpowers ou a Matriz — fechado em 2026-09-06: decidido pelo dono e escrito na SKILL.md; a sessao do T-079 seguiu a Matriz — um subagente por card
-- [!] `T-065` Configurações fora do plugin — effort, MCPs e claude-mem feitos; falta decidir AGENTS.md · → threads/T-054-economia-tokens.md @frente-economia
-- [x] `T-066` Consolidar o ferramental empilhado — resolvido: caveman nunca esteve lá, os 2 grafos custam ~570 tok/sessão · → threads/T-054-economia-tokens.md
-
-- [?] `T-025` Comandos que nunca disparam sozinhos — 0.15.0 entregue, aguarda seu teste: diga "quais as possibilidades" e veja se vem cardápio por situação · → threads/T-025-gatilhos.md
-- [?] `T-023` `/reload-plugins` **aplica** update de cache — 0.14.0, revisado e corrigido; teste pós-restart: README "Problemas conhecidos" com data em cada ✅ · → threads/T-023-reload-vs-restart.md
 - [?] `T-020` Perfis de elenco — 0.16.0 entregue, aguarda seu teste: diga *"tô com pouco crédito"* e o time inteiro tem que trocar sem comando digitado · → threads/T-020-perfis-elenco.md
-- [?] `T-026` Orquestra fora do Claude Code — 0.19.0 nos três hosts; falta o smoke no Codex e sua validação prática · → threads/T-026-host-alternativo.md @release-validacao
 - [?] `T-030` Correções do painel de três revisores sobre as releases 0.14.0–0.16.0 — 0.17.0 fechada; teste: "agora não" tem que repropor 1× depois · → threads/T-030-correcoes-painel.md
 
 ---
@@ -36,7 +29,7 @@
 
 ## 🟣 Validar
 
-- [?] `T-075` claude-mem nos 2 hosts — patch, restart, Companion e Orquestra 0.27.2 locais verificados; canários verdes; falta prova do pool 3 + validação do dono · sistema/pesada · → threads/T-072-claude-mem.md @frente-economia
+- [?] `T-075` claude-mem nos 2 hosts — patch, restart, caches e canários verificados; pool 3 provado com quatro sessões reais; falta validação prática do dono · sistema/pesada · → threads/T-072-claude-mem.md @frente-economia
 
 - [?] `T-078` AI-Memory global — Claude e Codex capturam; usar 1–2 semanas e reavaliar ganho vs. claude-mem · trilha: sistema · faixa: pesada · → threads/T-078-ai-memory.md
 - [?] `T-037` Tirar o SuperMemory do sistema de desenvolvimento — 0.22.3 publicada e instalada; falta sua validação prática · → threads/_notas-de-cards.md
@@ -67,7 +60,8 @@
 - [?] `T-073` O gatilho "lembra quando" nunca chama busca nenhuma — agora nomeia a busca; teste: diga a frase · → threads/T-072-claude-mem.md
 - [?] `T-074` claude-mem desligado no Codex — plugin e hook fallback off em 2026-09-07; teste: AI-Memory sozinho por 1–2 semanas · → threads/T-072-claude-mem.md
 - [ ] `T-081` `OBSERVATION_TYPES` é chave morta; o filtro real mora no modo e muda a captura · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md
-- [ ] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência real · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
+- [!] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência real — implementado e revisado; falta seu ok para bump 0.27.3 + commit · trilha: sistema · faixa: leve @frente-cache · → threads/_notas-de-cards.md
+- [ ] `T-083` Elenco declara `@max` e a CLI do Companion rejeita — só vai até `xhigh`; reviewer e planner·sistema caem em degradação silenciosa · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 
 - [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 
@@ -113,7 +107,7 @@
 - [ ] `T-027` CLI do Codex direto vs subagente `codex:codex-rescue` — decisão sua, não minha — a CLI direta é o caminho que o T-010 provou · → threads/_notas-de-cards.md
 - [ ] `T-021` Motor alternativo quando o Claude está no limite — teto técnico: subagente do Claude só aceita modelo Claude · → threads/_notas-de-cards.md
 
-- [ ] `T-019` 🔴 **O Kimi rodou `git checkout -- .` numa tarefa read-only e destruiu o working tree** — hook que barra escrita em worker read-only · → threads/_notas-de-cards.md
+- [!] `T-019` 🔴 Worker read-only sem enforcement — Kimi aposentado; o elo hoje é o Companion poder ganhar `--write`. Decisão: reescopar, fechar ou manter · → threads/_notas-de-cards.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md
@@ -123,6 +117,13 @@
 ---
 
 ## ✅ Feito
+
+- [x] `T-065` Globais reduzidos com backup: Codex 20.251→1.442 bytes; Claude 8.723→1.580 bytes; regras essenciais preservadas · → threads/T-054-economia-tokens.md @frente-economia
+- [x] `T-025` Descoberta natural validada pelo dono em 2026-09-07: “quais as possibilidades” abriu o cardápio por situação sem comando digitado · → threads/T-025-gatilhos.md
+- [x] `T-026` Orquestra fora do Claude Code — fechado em 2026-09-07: esta sessão Codex carregou a 0.27.2 e roteou fala natural pelo ciclo, com memória → board → thread · → threads/T-026-host-alternativo.md @release-validacao
+- [x] `T-023` `/reload-plugins` aplica update da skill na sessão viva — fechado em 2026-09-07 por prova empírica posterior; restart segue obrigatório para fechar card · → threads/T-023-reload-vs-restart.md
+- [x] `T-066` Consolidar o ferramental empilhado — resolvido: caveman nunca esteve lá, os 2 grafos custam ~570 tok/sessão · → threads/T-054-economia-tokens.md
+- [x] `T-064` Superpowers ou a Matriz — fechado em 2026-09-06: decidido pelo dono e escrito na SKILL.md; a sessão do T-079 seguiu a Matriz — um subagente por card · → threads/T-054-economia-tokens.md
 
 - [x] `T-045` Piloto Cartographer — fechado; decisão: portar ideias, sem instalar o Cartographer · → threads/_notas-de-cards.md
 

@@ -1,5 +1,27 @@
 # Log de mudanças — append-only
 
+## [2026-09-07] processo | @frente-economia · dívida real separada de validação antiga
+
+O pedido para resolver “Esperando você” começou por recuperar um contexto compactado e terminou
+com quatro movimentos sustentados por evidência. `T-064` e `T-066` já estavam fechados, mas ainda
+moravam na seção errada. `T-023` fechou pela prova empírica posterior de que `/reload-plugins`
+recarrega a skill na sessão viva, preservando a regra de restart para validação final. `T-026`
+fechou nesta própria sessão Codex: a 0.27.2 foi carregada e a fala natural do dono percorreu
+memória, board e thread sem comando digitado.
+
+O log do restart autorizado de 06/09 forneceu a evidência que faltava ao `T-075`: três sessões
+reais ocuparam o pool, a quarta recebeu `Pool limit reached (3/3), waiting for slot...`, e começou
+12 ms depois que uma das três terminou. O card continua em VALIDATE apenas pela confirmação prática
+do dono. O `T-065` foi reduzido à decisão verdadeira — autorizar ou recusar a redução dos globais
+`AGENTS.md`/`CLAUDE.md` para até 3 KB — e nenhum dos dois foi alterado antes de o texto proposto ser
+mostrado. `T-074` não foi antecipado: o teste de AI-Memory sozinho começou hoje e exige 1–2 semanas.
+
+Na continuação do mesmo bloco, o dono autorizou a redução recomendada. Backups datados preservaram
+os globais anteriores; os ativos passaram de 20.251 para 1.442 bytes no Codex e de 8.723 para
+1.580 bytes no Claude, com as regras essenciais mantidas. A pergunta natural “quais as
+possibilidades?” também acionou o cardápio situacional instalado, fechando o canário do `T-025`.
+Nenhum commit ou push foi executado.
+
 ## [2026-09-07] processo | commit d798248 publicado; T-082 nasceu de um lint vermelho mal lido
 
 **A 0.27.2 saiu do limbo.** Por decisão do dono, o trabalho entrelaçado das duas janelas foi

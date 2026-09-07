@@ -1689,7 +1689,7 @@ def main() -> int:
             "política habilitada, não capacidade comprovada",
             "a independência ganha do domínio, sempre",
             "| reviewer | `fable` (exigir comprovação de que o alias resolve para `claude-fable-5-1`)",
-            "| reviewer | `gpt-6-astra@max` |",
+            "| reviewer | `gpt-6-astra@xhigh` |",
             "run-opus-reviewer.py",
         ),
         opus_runner: (
@@ -1733,7 +1733,7 @@ def main() -> int:
     # (a) a linha do vendor oposto presente 1× e (b) a linha do OUTRO host
     # ausente. A linha do host Codex carrega junto a comprovação do alias
     # correspondente (hoje `fable` → `claude-fable-5-1`), que continua obrigatória.
-    REVIEWER_CLAUDE = "| reviewer | `gpt-6-astra@max` |"
+    REVIEWER_CLAUDE = "| reviewer | `gpt-6-astra@xhigh` |"
     REVIEWER_CODEX = "| reviewer | `fable` (exigir comprovação de que o alias resolve para `claude-fable-5-1`)"
     REVIEWER_POR_HOST = {
         "### Host Claude": (REVIEWER_CLAUDE, REVIEWER_CODEX, "titular OpenAI"),

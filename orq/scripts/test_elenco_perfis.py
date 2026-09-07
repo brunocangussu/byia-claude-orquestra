@@ -184,11 +184,11 @@ PAPEIS_PRESET_ORDEM = PAPEIS_HOST_ORDEM[1:]
 ATIVOS_BASE = {
     "manager": "modelo da sessão",
     "planner·interface": "fable",
-    "planner·sistema": "gpt-6-astra@max",
+    "planner·sistema": "gpt-6-astra@xhigh",
     "implementer·pesada": "sonnet",
     "implementer·normal": "sonnet",
     "implementer·leve": "sonnet",
-    "reviewer": "gpt-6-astra@max",
+    "reviewer": "gpt-6-astra@xhigh",
     "docs": "sonnet",
     "scout": "sonnet",
 }

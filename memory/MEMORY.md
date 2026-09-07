@@ -4,7 +4,18 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.2 — **commitada e publicada** em `d798248` (2026-09-07); caches Claude/Codex sincronizados com essa fonte e conferidos. O cache `0.27.1` foi preservado lado a lado para tarefas antigas. A `0.27.2` acrescenta o reúso determinístico do Codex Companion por `card+papel` · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.3 — **commitada, ainda não instalada** (2026-09-07); os caches seguem em `0.27.2` até a reinstalação, e é por isso que o lint acusa divergência. A `0.27.3` traz o `T-082` (o verificador de cache deixa de ler bytecode como divergência) e o `T-083` (o elenco do host Claude declara o effort que a CLI aceita) · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
+
+**Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
+saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`
+mais os testes conversacionais `T-025`/`T-020`/`T-030`. A prova técnica final do `T-075` também
+apareceu no log real: com o pool `3/3`, uma quarta sessão esperou e assumiu a vaga 12 ms após a
+liberação. Retomar em `wiki/threads/T-054-economia-tokens.md` e `wiki/threads/T-072-claude-mem.md`.
+
+**Fechamento posterior, 2026-09-07:** o dono autorizou o `T-065` recomendado; os globais foram
+reduzidos com backups datados e ficaram abaixo de 3 KB, preservando as regras essenciais. A frase
+natural **“quais as possibilidades?”** acionou o cardápio por situação e fechou o canário do
+`T-025`. Em “Esperando você” restam somente `T-020` e `T-030`. Detalhes nas threads T-054 e T-025.
 
 ## 🟢 Trabalho mais recente (2026-09-07) — `T-074` · uma camada de memória por host, e dois cards nascidos de conferência
 

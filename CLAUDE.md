@@ -79,8 +79,11 @@ extintos ao descrever bugs passados. **Duas exceções nominais são varridas**,
 viva e não registro: `memory/wiki/distribuicao.md` e `memory/wiki/arquitetura.md`. Falha nelas não é
 falso positivo; `fixes-history.md`, `gotchas.md` e `threads/` continuam fora.
 
-O verificador de cache deve vir da fonte limpa. Não crie exclusões ad hoc: as únicas normalizações
-são as allowlists instaladas-only e host-aware codificadas em `verify_installed_cache.py`.
+O verificador de cache deve vir da fonte limpa. Não crie exclusões ad hoc: as normalizações
+codificadas em `verify_installed_cache.py` são de dois tipos, e só esses — as allowlists de metadado
+de runtime, instaladas-only e host-aware, e a normalização simétrica de bytecode Python
+(`__pycache__/`, `*.pyc`, `*.pyo`), aplicada aos dois lados e aos dois hosts porque bytecode é ruído
+do interpretador, nunca conteúdo do plugin, como o `.gitignore` confirma.
 
 - **Commit:** `feat(0.X.0): descrição em minúscula, sem acento no assunto` — travessão pro subtítulo.
 - **Versão:** mexeu em `orq/` → o mesmo commit bumpa `orq/.claude-plugin/plugin.json`, a seção

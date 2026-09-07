@@ -149,11 +149,11 @@ time da outra.
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono**, em qualquer host |
 | planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 (id `claude-fable-5-1`), comprovado |
-| planner·sistema | `gpt-6-astra@max` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
+| planner·sistema | `gpt-6-astra@xhigh` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
 | implementer·pesada | `sonnet` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
 | implementer·leve | `sonnet` | worktree quando houver trabalho paralelo |
-| reviewer | `gpt-6-astra@max` | vendor oposto ao host; Codex Companion read-only e retomada pelo `threadId` exato |
+| reviewer | `gpt-6-astra@xhigh` | vendor oposto ao host; Codex Companion read-only e retomada pelo `threadId` exato |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
@@ -168,7 +168,11 @@ ajustar".)*
 **Procedência dos valores:** revisão completa do dono em **2026-09-03** — as três faixas de
 `implementer` unificadas em `sonnet`, `planner·sistema` e `reviewer` promovidos a `@max`. Em
 **2026-09-05** (`T-079`), `planner·sistema` e `reviewer` migraram de `gpt-5.6-sol@max` para
-`gpt-6-astra@max`; o efeito de faixa/cerimônia descrito abaixo continua valendo.
+`gpt-6-astra@max`; o efeito de faixa/cerimônia descrito abaixo continua valendo. Em
+**2026-09-07** (`T-083`), os dois caíram para `@xhigh`: a CLI do Companion recusa `max`
+(`Unsupported reasoning effort "max". Use one of: none, minimal, low, medium, high, xhigh`), então
+`@max` era intenção declarada e nunca effort exercitado. **A tabela do host Codex não foi tocada** —
+lá a via é `codex exec`, onde essa recusa não foi comprovada, e cada host só edita a própria seção.
 ⚠️ **Com as três faixas no mesmo modelo, a faixa deixa de escolher executor neste host** e passa a
 medir só cerimônia. A régua continua válida (ela também governa o gate e o piso de Alto risco), mas
 não espere que `pesada` traga um modelo mais forte aqui — não traz mais.
@@ -269,11 +273,11 @@ o vendor do host acabaria com a única coisa que ele entrega.
 | Papel | Modelo | Por quê |
 |---|---|---|
 | planner·interface | fable | trilha perceptual pensa com Anthropic — Fable 5.1 |
-| planner·sistema | gpt-6-astra@max | trilha comportamental pensa com OpenAI |
+| planner·sistema | gpt-6-astra@xhigh | trilha comportamental pensa com OpenAI |
 | implementer·pesada | sonnet | executar plano já aprovado é trabalho dirigido — reconciliado com a tabela ativa |
 | implementer·normal | sonnet | executar plano já aprovado é trabalho dirigido |
 | implementer·leve | sonnet | executar plano já aprovado é trabalho dirigido — reconciliado com a tabela ativa |
-| reviewer | gpt-6-astra@max | vendor oposto ao host — a independência não se rebaixa |
+| reviewer | gpt-6-astra@xhigh | vendor oposto ao host — a independência não se rebaixa |
 | docs | sonnet | escrita objetiva sobre código já pronto |
 | scout | sonnet | leitura ampla e barata |
 

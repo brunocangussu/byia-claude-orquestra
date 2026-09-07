@@ -706,3 +706,17 @@ ver. **Não religar o claude-mem no Codex** enquanto o `T-078` não tiver respos
 **Cards prontos para planejar, nenhum começado:** `T-081` (modo derivado para filtrar tipo sem
 mexer no vocabulário do observer) e `T-082` (bytecode na allowlist do comparador, não exclusão ad
 hoc). Nada pendente de commit nesta frente.
+
+### Checkpoint de recuperação — 2026-09-07, prova natural do pool 3
+
+A pendência técnica final do `T-075` foi encontrada nos logs do próprio restart autorizado, sem
+criar chat sintético. Em 2026-09-06 às 22:14:27–22:14:33, as sessões reais `511`, `495` e `519`
+ocuparam os três processos SDK. Às 22:14:45, a quarta sessão real (`480`, projeto
+`Oss - Agente Pessoal`) entrou em espera com a mensagem literal `Pool limit reached (3/3), waiting
+for slot...`. A sessão `519` terminou e liberou a vaga às 22:15:10.894; a query SDK da `480`
+começou às 22:15:10.906 — 12 ms depois — e capturou `memory_session_id` às 22:15:11.211.
+
+Isso comprova limite de três, espera da quarta sessão e substituição imediata após liberação. O
+`T-075` permanece em `[?]` somente porque commit, testes e telemetria não substituem a validação
+prática do dono. `T-074` também permanece `[?]`: sua janela de AI-Memory sozinho começou em
+2026-09-07 e precisa de 1–2 semanas reais; não religar o claude-mem no Codex antes da avaliação.

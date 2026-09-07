@@ -113,7 +113,7 @@ com um modelo mais forte no planner da trilha que você mais usa"*).
 outros): `planner interface fable` ·
 `implementer leve haiku` · `implementer normal gpt-5.6-terra@xhigh` · `codex off` ·
 `runner-opus on`. O effort **não** se ajusta por aqui: ele mora no modelo do papel
-(`reviewer gpt-6-astra@max`), não na via.
+(`reviewer gpt-6-astra@xhigh`), não na via.
 
 **`$ARGUMENTS` começando com `perfil ` (ex.: `perfil economia`) não é papel** — vá direto para a
 seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez desta.
@@ -306,11 +306,11 @@ significa “rodando agora”: o Manager verifica a sessão/CLI real antes de an
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal |
 | planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 |
-| planner·sistema | `gpt-6-astra@max` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
+| planner·sistema | `gpt-6-astra@xhigh` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
 | implementer·pesada | `opus` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
 | implementer·leve | `haiku` | worktree se houver trabalho paralelo |
-| reviewer | `gpt-6-astra@max` | Codex Companion read-only; vendor oposto ao host, retomada pelo `threadId` exato |
+| reviewer | `gpt-6-astra@xhigh` | Codex Companion read-only; vendor oposto ao host, retomada pelo `threadId` exato |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
@@ -400,11 +400,11 @@ perfil os toca, e aplicar um preset **preserva a linha `manager` e a seção "Re
 | Papel | Modelo | Por quê |
 |---|---|---|
 | planner·interface | fable | trilha perceptual pensa com Anthropic — Fable 5.1 |
-| planner·sistema | gpt-6-astra@max | trilha comportamental pensa com OpenAI |
+| planner·sistema | gpt-6-astra@xhigh | trilha comportamental pensa com OpenAI |
 | implementer·pesada | opus | alto risco ou decisão de desenho ainda aberta |
 | implementer·normal | sonnet | plano fechado, execução dirigida |
 | implementer·leve | haiku | resultado determinado, verificação mecânica |
-| reviewer | gpt-6-astra@max | vendor oposto ao host — a independência não se rebaixa |
+| reviewer | gpt-6-astra@xhigh | vendor oposto ao host — a independência não se rebaixa |
 | docs | sonnet | escrita objetiva sobre código já pronto |
 | scout | sonnet | leitura ampla e barata |
 

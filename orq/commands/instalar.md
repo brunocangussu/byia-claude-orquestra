@@ -103,7 +103,9 @@ python3 <fonte-local>/orq/scripts/verify_installed_cache.py \
 ```
 
 O verificador deve vir da **fonte limpa**, nunca do cache que está sendo verificado. Ele normaliza
-somente `.codex-plugin/migrated-command-skills/` no lado instalado e falha para qualquer outro
+duas coisas, e só essas: o metadado de runtime do lado instalado, que é host-aware (`.in_use` e
+`.orphaned_at` no Claude, `.codex-plugin/migrated-command-skills/` no Codex), e o bytecode Python
+(`__pycache__/`, `*.pyc`, `*.pyo`), este nos dois lados e nos dois hosts. Falha para qualquer outro
 extra, ausência, mudança de tipo ou byte drift. Use-o **somente** para `<versão>` recém-instalada.
 Exit `1` exige ler `tipo:caminho`: corrija a árvore instalada ou a fonte e reinstale a candidata;
 não faça bump automático. Exit `2` é erro de host, raiz ou leitura e deixa a instalação não

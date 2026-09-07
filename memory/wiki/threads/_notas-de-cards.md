@@ -396,3 +396,97 @@ gerado treina o leitor a ignorar o grito; foi assim que o `/orquestra:*` sobrevi
 allowlists de `verify_installed_cache.py`, e artefato de bytecode se qualifica pelo mesmo critério
 das que já existem (gerado pelo host, nunca conteúdo do plugin). O paliativo desta sessão foi
 `rm -rf orq/scripts/__pycache__`, que deixa o lint verde e não impede a reincidência.
+
+## Atualização do card `T-019` (2026-09-07) — a premissa mudou de ator, não de natureza
+
+**O Kimi saiu; o buraco ficou.** O `T-051` aposentou o Kimi do produto — hoje ele só aparece em
+`orq/scripts/lint-coerencia.py`, como guarda que impede o retorno. As opções (a)/(b)/(c) da nota
+original foram escritas contra um ator que não existe mais. **O card não está obsoleto:** o defeito
+que ele descreve — *instrução não é enforcement* — reaparece inteiro no revisor de hoje.
+
+**Verificado nesta sessão, com o cache instalado:**
+
+- **Host Codex → reviewer `fable`: protegido de verdade.** `run-opus-reviewer.py:104-119` monta a
+  CLI com `--permission-mode plan`, `--tools ""`, `--setting-sources ""` e
+  `--disable-slash-commands`. Não é promessa textual: o processo não recebe ferramenta de escrita.
+- **Host Claude → reviewer `gpt-6-astra@max`: protegido por interpretação, não por flag.** O
+  `codex-companion.mjs:491` resolve `sandbox: request.write ? "workspace-write" : "read-only"` — a
+  garantia dura existe e depende de **uma ausência**: ninguém passar `--write`. Só que o agente do
+  Companion instrui o contrário (`agents/codex-rescue.md:35`): *"Default to a write-capable Codex
+  run by adding `--write` unless the user explicitly asks for read-only behavior or only wants
+  review, diagnosis, or research"*. Quem decide se a exceção se aplica é o subagente, lendo o
+  briefing.
+- **`orq/commands/revisar.md` não fecha esse elo.** Ele lista as flags da chamada
+  (`--wait --fresh --json --model … --effort …`) e exige *"prompt READ-ONLY explícito"*, mas **em
+  nenhum ponto proíbe `--write`** — a palavra não aparece no arquivo. `worktree`, `clone` e
+  `descartável` também não: o isolamento que o `_elenco.md` deste projeto descreve (*"o Companion
+  recebe o mesmo diretório isolado"*) **não existe no produto distribuído**, então um projeto de
+  terceiro roda o revisor no repo vivo.
+
+**Cenário de falha concreto:** a rodada 2 do próprio `revisar.md` se chama *"correção e nova
+checagem pelo mesmo Reviewer"*. Um briefing que diga "aplique o apontamento e recheque" satisfaz,
+ao pé da letra, a condição que o `codex-rescue.md:35` usa para acrescentar `--write` — o sandbox
+vira `workspace-write` e o revisor passa a poder editar o checkout vivo. É o `T-019` com o Codex no
+lugar do Kimi: a instrução textual não segura, porque o elo de decisão é o subagente, não uma flag.
+
+**Correção candidata (barata, textual):** `revisar.md` passa a declarar a flag negativa —
+*"nunca acrescente `--write`; a chamada do Reviewer é read-only por ausência dessa flag"* — e o
+lint ganha guarda que falha se `--write` aparecer no caminho do revisor. O worktree descartável
+para o revisor no host Claude é decisão separada, de custo maior.
+
+⚠️ **Decisão do dono (segurança, N3):** reescopar o `T-019` para este ator, fechá-lo como superado
+pelo `T-051`, ou mantê-lo como está. Nada foi implementado.
+
+
+## Nota do card `T-082` (implementado e revisado em 2026-09-07)
+
+**Correção:** `verify_installed_cache.py` ganhou `_is_bytecode_artifact` + `_strip_bytecode_noise`,
+aplicados **simetricamente** às duas árvores dentro de `find_installation_divergences`, antes da
+lógica de ancestrais allowlisted do Codex. É a primeira normalização **bilateral e não host-aware**
+do verificador — as anteriores são installed-only —, e a justificativa é a natureza do artefato:
+bytecode é ruído do interpretador nos dois lados, não metadado de um host.
+
+**O parecer (`gpt-6-astra`, read-only, sem `--write`) trouxe dois achados, os dois aceitos:**
+
+- **P1 — falso verde para `.pyc`/`.pyo` distribuído.** O predicado casa por sufixo e não pergunta a
+  origem; um bytecode versionado sumindo do cache passaria despercebido. Hoje é hipotético
+  (`git ls-files -- orq/` não devolve nenhum), mas a garantia era **presumida**. Virou guarda:
+  `BytecodeDistributionGuardTests` falha se algum `.pyc`/`.pyo` estiver rastreado dentro de `orq/`
+  (pula fora de checkout git, porque a árvore instalada não tem índice).
+- **P2 — contradição com `orq/commands/instalar.md`.** Ele prometia normalizar *somente*
+  `migrated-command-skills/`. ⚠️ **A frase já era falsa antes desta mudança:** as allowlists do host
+  Claude (`.in_use`, `.orphaned_at`) nunca foram citadas ali. Reconciliado descrevendo os dois tipos
+  reais. `CLAUDE.md` e `AGENTS.md` receberam o mesmo tratamento e seguem byte-idênticos.
+
+Acrescentado ainda o caso de symlink com nome de bytecode, lacuna que o revisor apontou: symlink
+continua comparado pelo alvo, porque pode apontar para fora da árvore.
+
+**Verificação:** 302 testes, `validate --strict` ✔. O lint segue vermelho por
+`bytes:commands/instalar.md` — é o alarme de `orq/` editado sem bump (`T-017`/`T-080` funcionando),
+e só fecha com bump + reinstalação.
+
+⚠️ **Handoff do Companion parcialmente comprovado:** `threadId 01a07cb8-dcc7-7880-8b91-4d3f8a5dbe27`,
+`status 0`, **`jobId` ausente** no JSON devolvido. Pela regra do reúso `card+papel`, vínculo sem
+`jobId` não está comprovado — uma continuação desta revisão nasce `--fresh`, nunca por
+`--resume-last`.
+
+⚠️ **Degradação declarada:** as correções do parecer foram aplicadas **pelo Manager**, não pelo
+implementer — este host não expõe `SendMessage` para reabrir o subagente com o contexto dele. Perde-se
+o contexto fresco de quem escreveu o código, e a auditoria das correções passou a ser do Manager.
+
+## Nota do card `T-083` (nasceu em 2026-09-07, durante a revisão do `T-082`)
+
+**O elenco promete um effort que a CLI recusa.** `_elenco.md` declara `gpt-6-astra@max` para
+`reviewer` e `planner·sistema` no host Claude. A chamada com `--effort max` voltou:
+`Unsupported reasoning effort "max". Use one of: none, minimal, low, medium, high, xhigh.` A revisão
+do `T-082` rodou em `xhigh`.
+
+**Por que é card e não nota de rodapé:** o `MEMORY.md` já registrava, no `T-079`, que *"uma das
+revisões rodou em `xhigh`, não no `@max` que o elenco declara"* — atribuído então a "o runtime não
+expôs a variante". Agora há a mensagem literal do erro: **`max` não existe nessa CLI**. Enquanto o
+elenco declarar `@max`, toda invocação por essa via ou falha na primeira tentativa ou cai em `xhigh`
+sem ninguém registrar a degradação — que é a definição de configurado-mas-não-exercitado.
+
+**Escopo candidato:** decidir entre corrigir o elenco para `@xhigh` (honesto com a CLI) ou manter
+`@max` como intenção e exigir que quem invoca traduza e **declare** a queda. Guarda no lint que
+recuse effort inexistente para a via do Companion.
