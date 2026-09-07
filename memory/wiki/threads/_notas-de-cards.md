@@ -490,3 +490,47 @@ sem ninguém registrar a degradação — que é a definição de configurado-ma
 **Escopo candidato:** decidir entre corrigir o elenco para `@xhigh` (honesto com a CLI) ou manter
 `@max` como intenção e exigir que quem invoca traduza e **declare** a queda. Guarda no lint que
 recuse effort inexistente para a via do Companion.
+
+
+## `T-019` reescopado (2026-09-07, autorizado pelo dono) — e a superfície é maior que a apurada
+
+**Título novo:** o read-only do Codex Companion é garantido só pela **ausência** de `--write`.
+
+A nota de mais cedo hoje apontou `revisar.md`. Ao desenhar a correção, apareceram **três** pontos do
+produto que montam a chamada do Companion, e **nenhum** proíbe a flag:
+
+- `orq/commands/revisar.md:76-77` — Reviewer, primeira chamada e retomada;
+- `orq/commands/plan-next.md:47-48` — `planner·sistema`, mesma dupla de linhas;
+- `orq/commands/elenco.md:386` — a Matriz de invocação, que é de onde os outros dois copiam a forma.
+
+Os três dizem *"briefing read-only"* e listam as flags **sem** `--write`. Nenhum diz que a flag é
+proibida. Do outro lado, `agents/codex-rescue.md:35` manda acrescentá-la por padrão, salvo quando o
+subagente **julgar** que o pedido é só revisão ou diagnóstico. O enforcement real existe
+(`codex-companion.mjs:491` → `sandbox: request.write ? "workspace-write" : "read-only"`), mas quem o
+aciona é uma omissão, não uma regra escrita.
+
+**Cenário de falha, com as palavras do próprio produto:** a rodada 2 do `revisar.md` se chama
+*"correção e nova checagem pelo mesmo Reviewer"*, e a linha manda enviar um *"apontamento"*. Um
+briefing assim satisfaz ao pé da letra a condição que o `codex-rescue.md` usa para virar
+write-capable. O sandbox abre e o revisor passa a poder escrever no checkout vivo — que é
+literalmente o `T-019` de 2026-07-28, com o Codex no lugar do Kimi.
+
+### Plano proposto (aguardando o gate do dono)
+
+1. **Proibição explícita nos três pontos.** Cada um passa a declarar, junto da lista de flags, que
+   `--write` é proibido e que o read-only vem da ausência dela. Texto igual nos três, para o lint
+   poder exigi-lo como string.
+2. **Guarda no lint.** `lint-coerencia.py` já mantém tuplas de strings obrigatórias por arquivo
+   (`revisar.md` na linha 1667, `elenco.md` na 1687). Acrescentar a frase da proibição às tuplas de
+   `revisar.md`, `plan-next.md` e `elenco.md`, mais uma regra que **falhe** se `--write` aparecer no
+   caminho de um papel read-only. Sem isso, a proibição é mais uma instrução sem enforcement — que é
+   o defeito que este card existe para matar.
+3. **Teste.** Caso vermelho: remover a frase de um dos três → lint falha; injetar `--write` numa das
+   linhas de invocação → lint falha. Controle negativo: os arquivos reais passam.
+
+**Fora deste escopo, deliberadamente:** worktree descartável para o revisor no host Claude. É a
+defesa em profundidade (vale mesmo se a flag vazar), mas custa mais e muda o fluxo — merece card
+próprio, decidido separadamente.
+
+**Critério de aceite:** os três comandos verdes; e a prova de que a guarda morde, exibindo o lint
+vermelho nos dois casos do passo 3 antes de voltar ao verde.

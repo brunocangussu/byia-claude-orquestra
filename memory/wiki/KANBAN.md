@@ -107,7 +107,7 @@
 - [ ] `T-027` CLI do Codex direto vs subagente `codex:codex-rescue` — decisão sua, não minha — a CLI direta é o caminho que o T-010 provou · → threads/_notas-de-cards.md
 - [ ] `T-021` Motor alternativo quando o Claude está no limite — teto técnico: subagente do Claude só aceita modelo Claude · → threads/_notas-de-cards.md
 
-- [!] `T-019` 🔴 Worker read-only sem enforcement — Kimi aposentado; o elo hoje é o Companion poder ganhar `--write`. Decisão: reescopar, fechar ou manter · → threads/_notas-de-cards.md
+- [!] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — 3 pontos do produto invocam sem proibir a flag; plano pronto, aguarda seu ok · trilha: sistema · faixa: pesada · → threads/_notas-de-cards.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md
