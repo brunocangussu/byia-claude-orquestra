@@ -1919,3 +1919,16 @@ Gates: 291 testes · `validate` · lint. Bump `0.27.1`.
 
 Demonstração aceita: alterar `implementer·pesada` só no preset fez o lint reprovar nomeando papel,
 valor ativo e valor do preset (`_elenco.md:269`); desfazer devolveu o verde. Card fechado.
+
+## [2026-09-07] release | 0.27.1 instalada e verificada nos dois hosts
+
+`claude plugin marketplace update orquestra` + `claude plugin update orq@orquestra` levaram o host
+Claude de `0.27.0` para `0.27.1` (CLI avisa **"Restart to apply changes"** — sem restart a sessão
+viva segue na anterior). O cache do Codex já estava na `0.27.1`.
+
+Verificação a partir de **clone detached limpo** do SHA publicado `af3201c`, `git status --porcelain`
+vazio: `ok: installed cache matches source`, exit `0` nos dois hosts. A guarda do `T-080` passa a
+valer nos dois assim que cada host reiniciar.
+
+Reconciliação com a frente `T-075` confirmada sem conflito: ela trabalha em worktree próprio
+(`/private/tmp/orq-t075-companion-reuse`), partindo do mesmo `af3201c`, e não usa `git add .`.

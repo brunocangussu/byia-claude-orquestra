@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.1 — **publicada** em 2026-09-06 (`87b156a`), **ainda NÃO instalada em host nenhum**: os dois caches seguem na `0.27.0`. A última versão **instalada e verificada nos dois hosts** é a **0.27.0** (`f194acd`): `verify_installed_cache.py` com `ok: installed cache matches source`, exit `0` nos dois, a partir de clone detached limpo, e teste comportamental do dono FEITO. Para usar a guarda do `T-080` é preciso atualizar os plugins · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-06 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.1 — **publicada, instalada e verificada nos dois hosts** em 2026-09-07 (`af3201c`). Cache Claude e Codex conferidos com `verify_installed_cache.py` a partir de **clone detached limpo** do SHA publicado: `ok: installed cache matches source`, exit `0` nos dois. ⚠️ **O host Claude pede restart para aplicar** — sem ele, a sessão viva continua na `0.27.0`. Teste comportamental do dono FEITO para a `0.27.0` (elenco Astra/Fable 5.1) e para a guarda do `T-080` por demonstração · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
 
 ## 🟢 Trabalho mais recente (2026-09-06) — `T-079` + `T-080` · elenco no GPT-6 Astra e a guarda que impede o preset de mentir
 
