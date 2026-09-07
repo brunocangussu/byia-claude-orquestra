@@ -831,3 +831,21 @@ o aviso tem que morar onde a mão vai. (2) **Duas janelas trabalhando no mesmo h
 silêncio.** Nenhuma das duas errou: uma cumpriu o card, a outra cumpriu o checklist. Falta o
 protocolo de várias janelas cobrir *configuração de host*, não só arquivos do repositório — o
 `T-013` e o `T-032` tratam do board e do worktree, e este caso passou por fora dos dois.
+
+## Guarda que impede GERAR não protege contra o artefato PREEXISTENTE — 2026-09-07
+
+O `lint-coerencia.py` declara `sys.dont_write_bytecode = True` com um comentário explicando que é
+para não criar `__pycache__` no lado comparado e produzir falso vermelho autoinfligido. A guarda
+está certa e funciona — e mesmo assim o lint ficou vermelho com
+`missing:scripts/__pycache__`, porque o diretório havia sido criado **na véspera**, por outra
+execução. A guarda cobre o instante da execução; a **comparação** não filtra nada
+(`verify_installed_cache.py` não menciona `pycache` nem `.pyc`).
+
+**A regra:** ao proteger contra um artefato, pergunte se você está protegendo contra **criá-lo** ou
+contra **encontrá-lo**. São defesas diferentes e a primeira não implica a segunda. Um comentário
+descrevendo a intenção correta faz a lacuna parecer coberta na leitura do código — foi o que
+atrasou o diagnóstico aqui.
+
+**Agravante de leitura:** a saída é indistinguível de cache realmente stale, que é o defeito que o
+`T-017` e o `T-080` existem para pegar. Lint que grita por artefato gerado ensina o leitor a ignorar
+o grito. Ver `T-082`.

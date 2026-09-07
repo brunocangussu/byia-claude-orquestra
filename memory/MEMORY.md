@@ -4,9 +4,31 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.2 — candidata local da `T-075`, instalada e verificada nos caches Claude/Codex, ainda sem commit, push ou publicação. A `0.27.1` permanece a última versão publicada (`af3201c`) e seu cache foi preservado para tarefas antigas. A `0.27.2` incorpora essa base e acrescenta o reúso determinístico do Codex Companion por `card+papel` · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.2 — **commitada e publicada** em `d798248` (2026-09-07); caches Claude/Codex sincronizados com essa fonte e conferidos. O cache `0.27.1` foi preservado lado a lado para tarefas antigas. A `0.27.2` acrescenta o reúso determinístico do Codex Companion por `card+papel` · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
 
-## 🟢 Trabalho mais recente (2026-09-06) — `T-079` + `T-080` · elenco no GPT-6 Astra e a guarda que impede o preset de mentir
+## 🟢 Trabalho mais recente (2026-09-07) — `T-074` · uma camada de memória por host, e dois cards nascidos de conferência
+
+**`T-074` (validar):** o claude-mem fica ligado **só no Claude Code**. No Codex ele foi desligado
+para o piloto do `T-078` medir uma camada só — rodar as duas em paralelo contamina a comparação,
+porque uma injeta memória que muda o que a outra captura. O desligamento tem **dois** pontos: o
+`enabled` do plugin e um `[[hooks.UserPromptSubmit]]` escrito direto no `config.toml`, fora do
+plugin. Quem parasse no primeiro seguiria capturando a cada prompt achando que desligou.
+
+⚠️ **A decisão foi revertida por outra janela no mesmo dia e reaplicada.** A sessão que conduzia o
+`T-075` leu `enabled = false`, concluiu que fora acidente do instalador e religou. Nenhuma das duas
+errou: uma cumpria o card, a outra cumpria o checklist de update de plugin. O `config.toml` ganhou
+**nota inline ao lado da chave**, porque quem audita config de host não lê a wiki. O protocolo de
+várias janelas (`T-013`, `T-032`) cobre board e worktree — **não cobre configuração de host**.
+
+**Dois cards nasceram de conferir em vez de aceitar:** `T-081` — a chave
+`CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES` que a wiki mandava configurar é aceita pelo endpoint de
+settings e **lida por ninguém**; o filtro real mora no modo e mexer nele muda a **captura**, não a
+leitura. `T-082` — o lint acusou divergência de cache que era `__pycache__` da véspera; a guarda
+`sys.dont_write_bytecode` impede **gerar**, não **comparar**.
+
+Retomar em `wiki/threads/T-072-claude-mem.md`.
+
+## 🟡 Trabalho anterior (2026-09-06) — `T-079` + `T-080` · elenco no GPT-6 Astra e a guarda que impede o preset de mentir
 
 **`T-079` (fechado):** quatro células do elenco passam a `gpt-6-astra@max` — `planner·sistema` nos
 dois hosts, `reviewer` no Claude, `planner·interface` no Codex — e o Fable é identificado como

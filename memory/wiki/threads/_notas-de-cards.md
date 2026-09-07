@@ -372,3 +372,27 @@ validado pelo dono em 2026-08-29 com “prossiga”. Microbench congelado: stack
 
 perfil opt-in, backup/merge/rollback e limite explícito sem board em release local `0.23.0`; plano em `docs/superpowers/plans/2026-08-09-statusline-nativa-codex.md`. Executar somente depois de `T-043`. @frente-paridade-codex
 
+
+## Nota do card `T-082` (nasceu em 2026-09-07)
+
+**O sintoma:** com os caches `0.27.2` recém-sincronizados e corretos, o lint de coerência acusou
+`versão 0.27.2 diverge do cache instalado (missing:scripts/__pycache__)`. A fonte tinha
+`orq/scripts/__pycache__/` com três `.pyc` gerados na véspera; os caches instalados, corretamente,
+não tinham. O `.gitignore` já ignora `__pycache__/`, então o diretório nunca esteve no repositório —
+é artefato do host, exatamente a classe de problema que o `T-049` tratou no instalador.
+
+**A causa raiz, e ela é sutil.** O `lint-coerencia.py` **já conhece** o risco: nas linhas 24-25 ele
+declara `sys.dont_write_bytecode = True` justamente para não criar `__pycache__` no lado comparado e
+produzir um falso vermelho autoinfligido. Essa guarda cobre a **geração durante a própria execução**
+— e não a **comparação**. Um `__pycache__` deixado por qualquer execução anterior (teste rodado sem
+`PYTHONDONTWRITEBYTECODE=1`, importação manual, IDE) sobrevive à guarda e vira divergência.
+`verify_installed_cache.py`, que é quem compara, tem **zero** menções a `pycache` ou `.pyc`.
+
+**Por que é vermelho caro:** a divergência é indistinguível, na saída, de um cache realmente stale —
+que é o defeito real que o `T-017` e o `T-080` existem para pegar. Um lint que grita por artefato
+gerado treina o leitor a ignorar o grito; foi assim que o `/orquestra:*` sobreviveu a três releases.
+
+**A correção não é exclusão ad hoc.** O `CLAUDE.md` é explícito: as normalizações moram nas
+allowlists de `verify_installed_cache.py`, e artefato de bytecode se qualifica pelo mesmo critério
+das que já existem (gerado pelo host, nunca conteúdo do plugin). O paliativo desta sessão foi
+`rm -rf orq/scripts/__pycache__`, que deixa o lint verde e não impede a reincidência.

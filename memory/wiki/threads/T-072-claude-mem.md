@@ -568,6 +568,22 @@ registro e a identidade do `0.27.2`, restaurar o cache legado `0.27.1` somente p
 com tarefas antigas e então concluir as provas e a promoção seletiva. Checkpoint verificado;
 execução continua.
 
+**Reinstalação final dos caches Orquestra 0.27.2 — 2026-09-07:** a fonte usada foi um worktree
+detached limpo no commit remoto aprovado `d7982486498e516649c65aa8ce97d86680e2e670`. Antes da
+reinstalação, o verificador encontrou divergência real apenas no cache Claude
+(`commands/checkpoint.md` e `commands/stack.md`); o cache Codex já coincidia. Os dois caches foram
+sincronizados novamente a partir dessa fonte, preservando `.in_use` no Claude e `.codex-plugin` no
+Codex. Backup anterior: `~/Library/Application Support/orquestra-backups/t075-20260907-113424`.
+
+Prova pós-instalação com o verificador vindo da fonte limpa: `host=claude` e `host=codex` saíram
+`ok`; os hashes de `scripts/claude_mem_status.py`, `commands/checkpoint.md` e `commands/stack.md`
+ficaram idênticos entre fonte e os dois caches. Gates completos com Python 3.12: 294/294 testes,
+`claude plugin validate ./orq --strict` verde e `lint-coerencia.py .` verde. O
+`~/.codex/config.toml` manteve o mesmo SHA-256
+`971c44772912b3c90271beb018b208847b3af64a075b0f1ef4484e7890d2c5c7`: plugin claude-mem no Codex
+continua `enabled=false`, fallback direto ativo = 0 e fallback comentado = 1. Nenhum commit, push,
+publicação, mudança de card ou chat novo foi feito nesta conclusão.
+
 **Promoção local concluída — 2026-09-07:** o Companion final foi sincronizado no marketplace
 local e nos caches Claude/Codex `openai-codex/codex/1.0.6`. O runtime
 `scripts/codex-companion.mjs` tem SHA-256
@@ -650,3 +666,43 @@ também alimentam o `type_guidance` do prompt do observer. Cortar `discovery` e 
 filtra a leitura — muda o vocabulário de classificação do observer**, ou seja, mexe na captura. A
 premissa do `T-065` ("filtrar a injeção") não se sustenta nesse caminho: o que o filtro esconder
 some do banco, não da tela. Por isso o `T-081` nasceu em vez de a mudança ser aplicada.
+
+**Checkpoint de recuperação — 2026-09-07, correção cross-session:** após compactação,
+`memory/MEMORY.md`, o board, esta thread e a thread T-078 foram relidos. O estado canônico vence a
+inferência anterior: `claude-mem@claude-mem-local` fica `enabled=false` no Codex e o fallback direto
+de `UserPromptSubmit` fica comentado durante a avaliação isolada do AI-Memory; no Claude Code o
+claude-mem permanece ligado. `main` e `origin/main` estão no commit limpo `d798248`. O pedido atual
+é somente reinstalar os caches Orquestra `0.27.2` a partir dessa fonte commitada e repetir
+`verify_installed_cache.py` nos hosts Claude e Codex. Não religar o claude-mem no Codex, não
+descomentar o fallback e não criar commit, push, publicação ou chat novo. Checkpoint verificado;
+execução continua.
+
+**Fechamento do bloco — 2026-09-07, publicado e com os caches sincronizados.** O dono autorizou o
+commit e o push: `d798248` em `origin/main`, 21 arquivos, as duas frentes num commit só porque
+tocam os mesmos arquivos. A sessão Codex leu o aviso, desfez a própria reversão do `T-074` e
+sincronizou os caches `0.27.2` dos dois hosts com a fonte commitada.
+
+**A conferência independente do lint pagou o custo dela.** A sessão paralela reportou "lint verde";
+a repetição aqui mostrou vermelho — divergência **diferente** da anterior. A antiga
+(`bytes:commands/checkpoint.md`) estava mesmo resolvida; a nova era `missing:scripts/__pycache__`,
+artefato de bytecode da véspera na fonte, ausente (corretamente) nos caches. Virou `T-082`, com a
+causa raiz registrada em `_notas-de-cards.md`: a guarda `sys.dont_write_bytecode` do lint impede
+**gerar**, não **comparar**, e `verify_installed_cache.py` não filtra bytecode. Paliativo aplicado.
+
+**Estado do claude-mem, canônico e conferido nesta janela:** `enabled = false` no Codex, fallback
+`UserPromptSubmit` do `config.toml` comentado, nota inline ao lado da chave para a próxima
+auditoria não reverter; ligado no Claude Code. O AI-Memory segue nos seis eventos do Codex, agora
+como camada única — que é a condição para o `T-078` medir alguma coisa.
+
+## ⏭️ RETOMAR AQUI
+
+**O `T-075` continua em `[?]`, não fechado.** Falta a prova do pool de três — observar uma quarta
+sessão real assumir vaga sem criar chat sintético — e a confirmação do dono usando o produto.
+
+**Espera o dono:** `T-074` (`[?]`) usar o Codex 1–2 semanas com AI-Memory sozinho e dizer se a
+captura serve; `T-065` (`[!]`) decidir `AGENTS.md`/`CLAUDE.md`, linha a linha, nada cortado sem ele
+ver. **Não religar o claude-mem no Codex** enquanto o `T-078` não tiver resposta.
+
+**Cards prontos para planejar, nenhum começado:** `T-081` (modo derivado para filtrar tipo sem
+mexer no vocabulário do observer) e `T-082` (bytecode na allowlist do comparador, não exclusão ad
+hoc). Nada pendente de commit nesta frente.

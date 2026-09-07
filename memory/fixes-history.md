@@ -1,5 +1,27 @@
 # Log de mudanças — append-only
 
+## [2026-09-07] processo | commit d798248 publicado; T-082 nasceu de um lint vermelho mal lido
+
+**A 0.27.2 saiu do limbo.** Por decisão do dono, o trabalho entrelaçado das duas janelas foi
+commitado junto (`d798248`, 21 arquivos) e publicado em `origin/main` — o patch T-075 do Companion e
+a wiki do T-074/T-065/T-081 tocam os mesmos arquivos (`MEMORY.md`, thread do T-072), então separar
+em dois commits exigiria staging parcial e mentiria sobre a ordem real dos fatos.
+
+**A sessão Codex recebeu a mensagem e desfez a reversão por conta própria**, registrando na thread
+que `enabled=false` é estado canônico. Depois sincronizou os caches dos dois hosts com a fonte
+commitada e reportou "manifesto estrito e lint: verdes".
+
+**O lint não estava verde — e a checagem independente é o que produziu o card.** A divergência
+antiga (`bytes:commands/checkpoint.md`) tinha mesmo sido resolvida, mas surgiu outra:
+`missing:scripts/__pycache__`. Não era cache stale: a fonte tinha `.pyc` gerados na véspera e os
+caches, corretamente, não. `T-082` nasceu daí. A causa raiz é sutil e vale mais que o sintoma — o
+lint **já** declara `sys.dont_write_bytecode = True` contra exatamente esse falso positivo, mas a
+guarda cobre o instante da execução, não a comparação; `verify_installed_cache.py` não filtra
+bytecode. Paliativo aplicado (`rm -rf`), lint verde, reincidência não impedida.
+
+**A lição de processo:** relatório de sessão paralela é evidência, não veredito. Rodar o lint de
+novo custou um comando e trouxe um card.
+
 ## [2026-09-07] config | claude-mem off no Codex (T-074), contagens do T-065 e o T-081 nascido
 
 **O dono mandou resolver os três cards `[!]` pelas recomendações do board.** Um deles (`T-075`)
