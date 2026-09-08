@@ -412,7 +412,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.27.5` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.27.6` — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar
 auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**

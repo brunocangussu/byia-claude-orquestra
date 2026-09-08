@@ -171,11 +171,13 @@ que travou o observer por 22 h em 02/09.
 Se a data não avançar depois de trabalho real, continua quebrado — e a investigação recomeça pelo
 `observer-health.json`, não pela fila.
 
-**A config de filtro por tipo** (`OBSERVATION_TYPES`, `OBSERVATIONS=25`, `SESSION_COUNT=5`) ficou
-segura de aplicar **depois** do `T-073`: agora que a busca é nomeada e chamada, o que o filtro
-esconder da injeção continua alcançável sob demanda.
+**Conclusão superada pelo `T-081`:** este registro refletia a hipótese de que
+`OBSERVATION_TYPES` ficaria seguro depois do `T-073`. A hipótese foi descartada: a chave de
+settings não é lida e o caminho por modo altera a captura do observer, não somente a leitura. As
+contagens efetivas (`OBSERVATIONS=25`, `SESSION_COUNT=5`) permanecem; não configurar filtro por
+tipo durante a comparação isolada do `T-078`.
 
-## ⏭️ RETOMAR AQUI
+## ⏭️ RETOMAR AQUI — superado em 2026-09-08
 
 **Checkpoint de recuperação verificado em 2026-09-05.** O pedido atual do dono continua sendo
 corrigir e provar o `claude-mem` no Claude Code e no Codex antes da comparação com o AI-Memory. O
@@ -694,7 +696,7 @@ causa raiz registrada em `_notas-de-cards.md`: a guarda `sys.dont_write_bytecode
 auditoria não reverter; ligado no Claude Code. O AI-Memory segue nos seis eventos do Codex, agora
 como camada única — que é a condição para o `T-078` medir alguma coisa.
 
-## ⏭️ RETOMAR AQUI
+## ⏭️ RETOMAR AQUI — superado em 2026-09-08
 
 **O `T-075` continua em `[?]`, não fechado.** Falta a prova do pool de três — observar uma quarta
 sessão real assumir vaga sem criar chat sintético — e a confirmação do dono usando o produto.
@@ -720,3 +722,75 @@ Isso comprova limite de três, espera da quarta sessão e substituição imediat
 `T-075` permanece em `[?]` somente porque commit, testes e telemetria não substituem a validação
 prática do dono. `T-074` também permanece `[?]`: sua janela de AI-Memory sozinho começou em
 2026-09-07 e precisa de 1–2 semanas reais; não religar o claude-mem no Codex antes da avaliação.
+
+### T-081 — planejamento no host Codex (2026-09-08)
+
+O Manager Codex retomou o contexto após compactação, releu `memory/MEMORY.md`, o quadro e a thread
+ativa, e isolou esta frente na worktree `codex/t081-observation-types`. O checkout principal está
+sendo alterado pela janela Claude na frente de coexistência; nenhum arquivo dela foi tocado.
+
+O diagnóstico vigente não autoriza criar um modo derivado: `observation_types` alimenta tanto a
+consulta de contexto quanto o vocabulário do observer. Remover tipos reduziria a captura e mudaria
+o experimento do `T-078`. A abordagem recomendada é retirar a promessa falsa das instruções vivas,
+impedir sua reintrodução e manter o estado local do claude-mem inalterado.
+
+Plano completo: `docs/superpowers/plans/2026-09-08-t081-observation-types.md`.
+
+**Gate aprovado pelo dono em 2026-09-08:** implementar a opção A. A autorização cobre o código e a
+documentação da opção escolhida; não cobre bump, commit, push, publicação, instalação ou restart.
+Não editar configuração em `~/.claude-mem`, hooks nem caches.
+
+## ⏭️ RETOMAR AQUI
+
+**Checkpoint de recuperação pós-compactação — 2026-09-08, segunda passagem.** O Manager releu
+`memory/MEMORY.md`, o quadro, esta thread e o procedimento instalado do Orquestra, preservando o
+pedido corrente. A worktree isolada foi reconciliada sem conflito e está em `4d09483`, igual a
+`origin/main`; o checkout principal mantém apenas três arquivos da outra frente, que não foram
+tocados.
+
+`T-081` segue em READY/DEV_REVIEW (`[~]`, `@codex`). A opção A recebeu duas rodadas do revisor
+Anthropic comprovado como `claude-fable-5-1`: a segunda reprovou a varredura de diretórios de
+runtime e a ausência do separador JSON/YAML. O mesmo implementer corrigiu esses bloqueadores e os
+riscos aceitos pelo Manager. A prova devolvida foi 14/14 na guarda, 332/332 na suíte Python 3.12,
+manifesto estrito e `git diff --check` verdes; o lint ficou vermelho somente porque a fonte nova
+ainda não existe no cache instalado 0.27.5.
+
+**Estado superado pela auditoria final do Manager:** a correção e as verificações de fonte foram
+auditadas; o fechamento documental abaixo registra o estado vigente. O card aguarda o gate
+específico de bump/release. Continuam fora da autorização: bump, commit, push, publicação,
+instalação, restart e alterações de configuração ou hooks. A restauração isolada do
+`context-guard.py` no cache legado 0.27.4 foi autorizada e concluída; nenhum outro arquivo daquele
+cache foi restaurado.
+
+### Fechamento documental do `T-081` — 2026-09-08
+
+Após a auditoria final do Manager, a revisão Docs no Codex confirmou o contrato vigente nas duas
+superfícies de produto: `docs/brief-economia-tokens-2026-09-02.md` e
+`memory/wiki/threads/T-054-economia-tokens.md` já descrevem apenas
+`CLAUDE_MEM_CONTEXT_OBSERVATIONS=25` e `CLAUDE_MEM_CONTEXT_SESSION_COUNT=5` como chaves efetivas
+e independentes. Elas também deixam explícito que não se configura filtro por tipo no contexto,
+pois o caminho disponível por modo altera a captura do observer, não somente a leitura. Não houve
+mudança nesses dois documentos nesta passagem.
+
+Nesta thread, a menção a `CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES` permanece somente como diagnóstico
+negativo e histórico: a chave não serve para injeção. A guarda preserva esse registro e bloqueia a
+prescrição funcional em instruções vivas; a suíte completa sob Python 3.12 passou com 332 testes,
+e o manifesto estrito e `git diff --check` saíram com código 0. O lint de coerência permanece
+deliberadamente bloqueado por uma única divergência de cache instalado 0.27.5 —
+`missing:scripts/test_observation_types_guard.py` —, que não autoriza instalar, reiniciar ou
+alterar configuração local nesta frente.
+
+**Autorização exercida em 2026-09-08:** o dono aprovou o bump para 0.27.6, o commit e o push do
+`T-081`, mantendo publicação, instalação e restart fora do escopo. Os quatro anchors de versão
+foram alinhados; os caches continuam em 0.27.5 e nenhuma configuração ou hook de host foi alterado.
+
+**Próximo gate:** `AUTORIZO PUBLICAR A 0.27.6, INSTALAR NOS HOSTS CLAUDE E CODEX E REINICIAR PARA
+VALIDAR O T-081.` Até essa decisão, o card permanece em `[!] @codex` e o lint/verificador de cache
+continua deliberadamente bloqueado pela diferença entre a fonte 0.27.6 e os caches 0.27.5.
+
+**Checkpoint de recuperação — 2026-09-08:** após compactação, foram relidos `memory/MEMORY.md`,
+o board e esta thread; o pedido corrente foi preservado. A autorização cobre somente bump 0.27.6,
+commit e push do `T-081`. A afirmação imediatamente acima sobre o lint estar bloqueado ficou
+superada pela verificação final da fonte: 332 testes, manifesto estrito, lint de coerência e
+`git diff --check` estão verdes. O que permanece pendente é a verificação dos caches 0.27.6,
+inaplicável enquanto publicação, instalação e restart seguem expressamente fora do escopo.

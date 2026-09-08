@@ -8,6 +8,7 @@
 
 ## ⏸️ Esperando você
 
+- [!] `T-081` `OBSERVATION_TYPES` é chave morta — 0.27.6 pronta em fonte; autoriza publicar, instalar nos dois hosts e reiniciar para validar? · → threads/T-072-claude-mem.md @frente-economia @codex
 - [x] `T-020` Perfis de elenco — validado em 2026-09-07: agente sem contexto de teste ouviu a frase e trocou o time inteiro, com o que muda, o que se perde e como reverter · → threads/T-020-perfis-elenco.md
 - [?] `T-030` Correções do painel de três revisores sobre as releases 0.14.0–0.16.0 — 0.17.0 fechada; teste: "agora não" tem que repropor 1× depois · → threads/T-030-correcoes-painel.md
 
@@ -59,7 +60,6 @@
 - [?] `T-072` claude-mem volta ao catálogo com o papel escrito — feito em SKILL.md, stack.md e _stack.md · → threads/T-072-claude-mem.md
 - [?] `T-073` O gatilho "lembra quando" nunca chama busca nenhuma — agora nomeia a busca; teste: diga a frase · → threads/T-072-claude-mem.md
 - [?] `T-074` claude-mem desligado no Codex — plugin e hook fallback off em 2026-09-07; teste: AI-Memory sozinho por 1–2 semanas · → threads/T-072-claude-mem.md
-- [ ] `T-081` `OBSERVATION_TYPES` é chave morta; o filtro real mora no modo e muda a captura · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md
 - [x] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência — validado em 2026-09-07: o comparador 0.27.2 acusa `missing`, o 0.27.4 sai `ok` na mesma árvore · → threads/_notas-de-cards.md
 
 - [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia

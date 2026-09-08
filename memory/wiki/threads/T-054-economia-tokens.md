@@ -414,9 +414,10 @@ Nada pendente de commit ou push. Board, elenco e repositório em ordem — o ass
 ### O que espera decisão sua (`[!]`)
 
 - **`T-065`** — configurações da máquina. `effort high` e os 2 MCPs quebrados **já foram feitos**;
-  faltam `AGENTS.md`/`CLAUDE.md` (nada será cortado sem você ver linha a linha) e a config do
-  claude-mem (`OBSERVATION_TYPES`, `OBSERVATIONS=25`, `SESSION_COUNT=5` — **agora é seguro**, o
-  `T-073` ligou a busca).
+  faltam `AGENTS.md`/`CLAUDE.md` (nada será cortado sem você ver linha a linha) e a config efetiva
+  do claude-mem (`CLAUDE_MEM_CONTEXT_OBSERVATIONS=25`,
+  `CLAUDE_MEM_CONTEXT_SESSION_COUNT=5`). Não configurar filtro por tipo: o caminho por modo altera
+  a captura do observer, não apenas a leitura; ver `T-081`.
 - **`T-074`** — instalar o claude-mem no Codex. Já **está instalado**; a decisão é deixar ligado,
   sabendo que as 24 sessões com `memory_session_id` nulo são todas daquele host.
 

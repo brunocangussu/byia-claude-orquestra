@@ -137,7 +137,7 @@ Sugestão: **começar em 400k**, fazer as propostas 8 e 12–15, e então descer
     **Divisão de trabalho a adotar** (é o que torna os dois complementares em vez de redundantes):
     - **wiki/checkpoint** = o *porquê* e as *consequências*, escrita deliberada no fim do bloco. Continua sendo a fonte da verdade.
     - **claude-mem** = rede de segurança para o que **não** chegou ao checkpoint: gotcha operacional de meio de sessão, decisão tomada e não registrada, sessão que morreu sem checkpoint.
-    **Configuração alvo (mesma nos dois hosts):** `CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES=decision,bugfix,gotcha,security_alert,security_note` · `CLAUDE_MEM_CONTEXT_OBSERVATIONS=25` · `CLAUDE_MEM_CONTEXT_SESSION_COUNT=5` · `CLAUDE_MEM_EXCLUDED_PROJECTS` vazio. Injeção cai de ~2,3k para ~0,6k tokens **e passa a carregar sinal em vez de diário**.
+    **Configuração efetiva (nos hosts em que o claude-mem estiver ativo):** `CLAUDE_MEM_CONTEXT_OBSERVATIONS=25` · `CLAUDE_MEM_CONTEXT_SESSION_COUNT=5` · `CLAUDE_MEM_EXCLUDED_PROJECTS` vazio. As duas contagens são independentes e continuam válidas. **Não configurar filtro por tipo no contexto:** o caminho disponível por modo altera a captura do observer, não somente a leitura; portanto fica fora da comparação isolada do `T-078`.
 
 6. `~/.codex/AGENTS.md` 20 KB → ≤ 3 KB; `~/.claude/CLAUDE.md` 8,7 KB → ≤ 3 KB (regra de projeto vai para o projeto; procedimento vai para skill).
 
