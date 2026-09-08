@@ -745,3 +745,48 @@ ao `handleReviewCommand`. Ainda assim `revisar.md`, `plan-next.md` e o `_elenco.
 argumentos, modelo, effort nem sandbox efetivo. O `write: false` que li prova o que foi **lançado**,
 não o que o runtime **reconheceu**. A validação continua de pé — a linha de comando não tinha a flag
 —, mas a evidência é mais fraca do que afirmei, e isso fica escrito em vez de corrigido em silêncio.
+
+## `T-086` — a revisão REPROVOU a rodada 1, e o bloqueador era um comentário mentindo (2026-09-08)
+
+O revisor (`gpt-6-astra@xhigh`, read-only) reprovou. Auditei cada achado reproduzindo o regex; **os
+principais procedem**.
+
+**🔴 P1 — texto incidental satisfazia a declaração de posse.** A guarda usava `@(claude|codex)\b`, e
+o comentário ao lado afirmava que isso excluía `@claude-legado`. **É falso:** entre `e` e `-` existe
+fronteira de palavra, então o token casava. Passavam também `x@claude`, `` `@claude` `` entre crases
+e `<!-- @claude -->` num comentário HTML. Um card sem responsável visível terminava o lint em 0 —
+falso verde, que é pior que acusar falta, porque parece conferido.
+Corrigido: `(?<![\w@])@(claude|codex)(?![\w-])`, e trechos citados (crase, comentário HTML, link)
+são removidos antes da busca — posse se declara na prosa da linha, não em citação.
+
+**P2 — um título com "Arquiv" desligava a guarda até o fim do arquivo.** `[Aa]rquiv` casava em
+`## Arquivos compartilhados`. Corrigido para `[Aa]rquivad[oa]s?` com fronteira, e blocos cercados
+por crases passaram a ser ignorados — `## Arquivado` dentro de um exemplo não é a seção real.
+
+**P2 — linha que parecia card escapava inteira.** Indentada, com outro bullet, ID sem crase ou
+espaço a mais: o regex estrito não casava e a linha sumia da verificação. Agora ela é **denunciada**
+como fora do contrato, em vez de silenciosamente ignorada.
+
+**P2 — os testes não travavam o que prometiam.** A mutação do revisor provou: tirar `[?]` e `[x]` da
+proibição deixava os quatro testes verdes. Agora cada estado proibido é exercitado separadamente, e
+os falsos verdes acima viraram teste. São 11 casos na guarda, contra 4.
+
+**Decisão que estava pendente e agora tem regra:** em `[!]` a marca **permanece** — a pausa preserva
+a posse de quem estacionou —, a guarda ali só recusa os dois hosts juntos, e **quem retoma reafirma
+ou transfere explicitamente**. Sem isso, o cenário do revisor se realiza: uma janela estaciona
+`[!] @claude`, a outra retoma lendo a marca como histórica, e o lint aprova posse alheia.
+
+**Duas correções de instrução que o parecer cobrou, e que valem além deste card:**
+
+- a regra agora diz que **quem está marcado no card commita aquele trabalho** — a decisão do dono de
+  não ter integrador fixo não estava escrita em lugar nenhum operacional;
+- a afirmação *"só o board é disputado"* saiu da `SKILL.md`. Era falsa: `MEMORY.md`, `_elenco.md`, o
+  log e o manifesto de versão também são escritos pelas duas janelas.
+
+**Sobre os cards que estacionei:** o revisor confirmou que foi honesto não inventar host para
+`T-040` e `T-031`, mas apontou que `[ ]` apaga a informação de que já tinham sido iniciados. Cada um
+passou a registrar o estado anterior.
+
+⚠️ **Degradação declarada (terceira vez):** as correções do parecer foram aplicadas pelo Manager.
+Este host não expõe `SendMessage` para reabrir o implementer com o contexto dele, e um worktree novo
+nasceria do HEAD, sem o trabalho não commitado.

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -28,6 +29,28 @@ assert lint_spec is not None and lint_spec.loader is not None
 lint_module = importlib.util.module_from_spec(lint_spec)
 sys.modules[lint_spec.name] = lint_module
 lint_spec.loader.exec_module(lint_module)
+
+
+# Isola a cópia efêmera do board da guarda de posse do T-086: o board vivo muda
+# a cada card assumido, e um card em `[>]`/`[~]` sem marcador reprovaria aqui
+# por um motivo alheio ao que este módulo mede. Este módulo testa T-080 (perfil × preset), não T-086: sem isto, todo
+# controle negativo que copia o repositório real reprovaria por um motivo
+# alheio ao que está sendo medido aqui. Marca só a CÓPIA efêmera, nunca o
+# arquivo rastreado pelo git — duplicada com o mesmo nome em
+# `test_write_flag_guard.py` de propósito, mesma disciplina de duplicação
+# que o resto da suíte já aplica a fragmentos do lint.
+def neutralizar_marcador_host_kanban(root: Path) -> None:
+    board = root / "memory" / "wiki" / "KANBAN.md"
+    if not board.is_file():
+        return
+    texto = board.read_text(encoding="utf-8")
+
+    def marca(m: "re.Match[str]") -> str:
+        linha = m.group(0)
+        return linha if ("@claude" in linha or "@codex" in linha) else linha + " @claude"
+
+    marcado = re.sub(r"(?m)^- \[[>~]\] `[^`]+`.*$", marca, texto)
+    board.write_text(marcado, encoding="utf-8")
 
 
 def run_lint_main(root: Path, home: Path) -> tuple[int, str]:
@@ -83,6 +106,7 @@ class ElencoPerfisRedIntegrationTest(unittest.TestCase):
             self.root,
             ignore=shutil.ignore_patterns(".git"),
         )
+        neutralizar_marcador_host_kanban(self.root)
         self.home = Path(self.tmp.name) / "home"
         self.home.mkdir()
 

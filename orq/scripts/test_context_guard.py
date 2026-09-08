@@ -1976,12 +1976,18 @@ class ContextGuardCacheComparisonTest(unittest.TestCase):
         return home, cache
 
     def run_lint_main(self, home: Path) -> tuple[int, str]:
+        # `raiz` aqui é o repositório REAL (`PLUGIN_ROOT.parent`), não uma
+        # cópia — esta classe mede comparação de cache, não o board. A guarda
+        # de posse do T-086 é neutralizada porque o board vivo muda a cada card
+        # assumido: um card em `[>]`/`[~]` sem marcador reprovaria o controle
+        # negativo daqui por um motivo alheio ao que esta classe testa.
         output = io.StringIO()
         argv = [str(LINT_PATH), str(PLUGIN_ROOT.parent)]
         with (
             mock.patch.object(Path, "home", return_value=home),
             mock.patch.object(sys, "argv", argv),
             mock.patch("sys.stdout", output),
+            mock.patch.object(lint_module, "validate_marcador_host_kanban", return_value=[]),
         ):
             result = lint_module.main()
         return result, output.getvalue()

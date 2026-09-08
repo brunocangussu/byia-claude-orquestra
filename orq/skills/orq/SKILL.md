@@ -359,8 +359,18 @@ sobrescrevem **em silêncio**.
 2. **Edite a linha, nunca o arquivo.** Reescrever o `KANBAN.md` inteiro a partir de uma cópia velha
    é o que apaga o trabalho das outras janelas. A concorrência não é o problema; a reescrita é.
 3. **Card em curso leva `@frente`** no fim da nota. Não pegue card marcado com frente alheia.
-4. **Trabalho em curso mora na thread da frente** (`threads/<frente>.md`) — arquivo de dono único,
-   livre de conflito por construção. Só o board é disputado.
+4. **Card em curso também leva o host** (`T-086`): `@claude` ou `@codex`, junto do `@frente`.
+   Escreva ao entrar em `[>]`/`[~]`, remova ao sair para `[ ]`, `[?]` ou `[x]` — a guarda do lint
+   reprova ausência, os dois juntos, e marca sobrando nesses três. Em `[!]` a marca **permanece**:
+   a pausa preserva a posse, e quem retoma reafirma ou transfere explicitamente. Identifica o
+   **host**, não a sessão: duas janelas do mesmo host ainda colidem; quem resolve por construção é
+   o worktree por tarefa (`T-092`).
+5. **Quem está marcado no card commita aquele trabalho.** Não há integrador fixo do repositório —
+   há o dono do card, agora.
+6. **Trabalho em curso mora na thread da frente** (`threads/<frente>.md`) — arquivo de dono único,
+   livre de conflito por construção. ⚠️ **O board não é o único disputado:** `MEMORY.md`,
+   `_elenco.md`, o log e o manifesto de versão também são escritos pelas duas janelas. A thread é
+   o que tem dono único; o resto exige editar a linha, nunca o arquivo.
 
 **A pendência não precisa de janela aberta.** Se algo depende de decisão dele, mova o card para
 `[!]` **com a pergunta exata escrita**, grave o "RETOMAR AQUI" na thread e **diga que pode fechar a

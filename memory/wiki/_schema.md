@@ -80,6 +80,7 @@ metadado, não nota — e migrar isso quebra o consumidor em silêncio.
 | `trilha: … · faixa: …` | `/orq:plan-next`, `/orq:implement-next`, `/orq:elenco` |
 | **release alvo** (`0.23.0`) em card que tem uma | `ContextGuardReleaseVersionTest` |
 | `@frente` | o protocolo de várias janelas |
+| `@claude`/`@codex` (`T-086`, só em `[>]`/`[~]`) | `orq/scripts/lint-coerencia.py` e o protocolo de várias janelas |
 | o ponteiro `→ threads/…` | quem precisa achar o resto |
 
 ⚠️ **Isto não é teoria — aconteceu na migração de 2026-09-02.** A nota do `T-042` citava a release
@@ -145,7 +146,7 @@ e troca uma linha. Cenário real: a janela A ativa o perfil `economia`; a janela
 no contexto, ajusta um papel e regrava a tabela inteira — a troca de A desaparece **em silêncio**, e a
 B segue spawnando com o time errado achando que está tudo certo.
 
-### As três regras que evitam a colisão
+### As regras que evitam a colisão
 
 1. **Releia antes de escrever.** Sempre. O arquivo em disco pode ter mudado desde que você o leu —
    outra janela trabalhou nesse meio-tempo. Não confie na cópia que está no seu contexto.
@@ -154,12 +155,30 @@ B segue spawnando com o time errado achando que está tudo certo.
    é a causa da perda, não a concorrência em si.
 3. **Card em curso leva a marca da frente**, no fim da nota: `@auth`, `@billing`. Uma janela **não
    pega** card marcado com frente alheia. Card sem marca é livre.
+4. **Card em curso também leva a marca do host** (`T-086`) — `@claude` ou `@codex`, junto da marca
+   da frente. **Escrita** quando o card entra em `[>]` (planejando) ou `[~]` (implementando);
+   **removida** quando sai para `[?]` (validar) ou `[x]` (feito) — senão vira lixo que mente sobre
+   quem está trabalhando. `orq/scripts/lint-coerencia.py` reprova: card em curso sem marcador, os
+   dois marcadores juntos na mesma linha (posse ambígua é o mesmo defeito que posse ausente), e
+   marca sobrando em `[ ]`, `[?]` ou `[x]`.
+   **Em `[!]` (aguardando o dono) a marca permanece:** a pausa preserva a posse de quem estacionou o
+   card, e a guarda ali só recusa os dois hosts juntos. **Quem retoma um card parado reafirma ou
+   transfere a posse explicitamente** — herdar a marca alheia sem tocá-la é o caminho pelo qual duas
+   janelas voltam a achar que o card é seu.
+5. **Quem está marcado no card é quem commita aquele trabalho.** Não existe um integrador fixo do
+   repositório: existe o dono do card, agora. Arquivo compartilhado (`MEMORY.md`, `_elenco.md`, log,
+   manifesto de versão) é integrado por quem está com o card que o alterou, editando **só a sua
+   linha**.
 
 ```
-- [~] `T-042` Rotacionar o token — bloqueado no rate limit @auth
+- [~] `T-042` Rotacionar o token — bloqueado no rate limit @auth @claude
 ```
 
 A marca vai depois do travessão, então não interfere no parser (o título termina no primeiro `—`).
+
+⚠️ **O marcador identifica o host, não a sessão.** Duas janelas do **mesmo** host continuam podendo
+colidir — isto torna a colisão **visível**, não impossível. Quem resolve por construção é o
+worktree por tarefa (`T-092`), que é outro card.
 
 **Encontrou conflito mesmo assim?** (o card mudou de estado entre a sua leitura e a sua escrita)
 **Não sobrescreva.** Releia, entenda o que a outra janela fez, e decida — se não der para conciliar,

@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.4 — **publicada e instalada** em `f1aadef` (2026-09-07); os dois caches conferidos contra clone detached e limpo do SHA remoto, `exit 0` em Claude e Codex. A `0.27.4` traz o `T-019`: o produto proíbe `--write` nos cinco pontos que especificam a chamada ao Codex Companion, com guarda no lint nas duas grafias que o parser aceita. ⚠️ **Instalado não é carregado:** cada host só roda a versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.5 — **commitada e publicada** (2026-09-08); **ainda não instalada** — os caches seguem na `0.27.4`. A `0.27.5` traz o `T-086`: cada card em curso declara qual host o assumiu (`@claude`/`@codex`), com guarda no lint que recusa marcador ausente, duplicado ou sobrando, e denuncia linha que só parece card. ⚠️ **Instalado não é carregado:** cada host só roda a versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-07 · **host padrão a partir de 2026-08-09: Codex**.
 
 **Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
 saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`

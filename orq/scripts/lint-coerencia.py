@@ -1025,6 +1025,146 @@ def _ler_texto_ou_diagnostico(caminho: Path, raiz: Path, problemas: list):
         return None
 
 
+# ── Marcador de host no board (T-086) ───────────────────────────────────────
+# Duas janelas (Claude e Codex) trabalham no mesmo checkout e colidiam em
+# silêncio: um commit já levou junto o trabalho não commitado da outra janela
+# porque nada no card dizia qual janela estava com ele; noutro incidente, na
+# mesma sessão, uma janela reescreveu o commit local da outra (esse segundo
+# caso é classe própria e não é o que esta guarda cobre — ver
+# `docs/plano_coexistencia_hosts.md`). O marcador `@claude`/`@codex`, ao lado
+# do `@frente` que já existe (`_schema.md`), declara posse; esta guarda é o
+# que torna ausência, duplicidade ou esquecimento do marcador um erro que o
+# lint acusa, não um silêncio que persiste.
+#
+# Mesmo contrato de linha de `kanban-status.sh`/`_schema.md`
+# (`` /^- \[[ >!~?x]\] `[^`]+`/ `` — estrito de propósito): sem indentação, sem
+# negrito/crase envolvendo marcador ou ID.
+_CARD_HOST_RE = re.compile(r"^- \[([ >!~?x])\] `([^`]+)`")
+# Linha que PARECE card mas não segue o contrato estrito acima: indentada, com
+# outro bullet, ID sem crase, espaço a mais. A revisão de 2026-09-08 mostrou que
+# ela escapava inteira da guarda e o lint terminava verde — falso verde pior que
+# a ausência do marcador, porque parece conferido. Agora é denunciada.
+_CARD_FROUXO_RE = re.compile(r"^\s*[-*]\s*\[[ >!~?x]\]")
+# ⚠️ `\b` NÃO serve aqui: entre `e` e `-` existe fronteira de palavra, então
+# `@claude\b` casava dentro de `@claude-legado`. A versão anterior deste comentário
+# afirmava o contrário e estava errada — reproduzido na revisão. `(?![\w-])` fecha
+# à direita; `(?<![\w@])` impede colar em palavra ou num `@` duplicado.
+_HOST_MARK_RE = re.compile(r"(?<![\w@])@(claude|codex)(?![\w-])")
+# Só a seção de ARQUIVADOS desliga a guarda. `[Aa]rquiv` casava também em
+# "## Arquivos compartilhados", e um título assim apagava a verificação até o
+# fim do arquivo — reproduzido na revisão.
+_ARQUIV_HEADING_RE = re.compile(r"^#{2,}\s+[📦\s]*[Aa]rquivad[oa]s?\b")
+_CERCA_CODIGO_RE = re.compile(r"^\s*(```|~~~)")
+# Marcador dentro de crase, comentário HTML ou link é CONTEÚDO, não declaração
+# de posse: um card que documente o token `@claude` não está reivindicando nada.
+_TRECHO_NAO_DECLARATIVO_RE = re.compile(r"`[^`]*`|<!--.*?-->|\[[^\]]*\]\([^)]*\)")
+
+# Só os dois estados "em curso" exigem marcador. `[!]` (aguardando o dono) fica
+# de fora de propósito: o card aprovado (T-086) não define o que acontece com
+# o marcador quando o trabalho pausa para uma pergunta do dono, e esta guarda
+# não inventa uma regra que ninguém pediu — decisão a registrar no handoff, não
+# a resolver aqui.
+_ESTADOS_EXIGEM_HOST_KANBAN = {">", "~"}
+_ESTADOS_PROIBEM_HOST_KANBAN = {" ", "?", "x"}
+
+
+def validate_marcador_host_kanban(raiz: Path) -> list:
+    """Contrato de `validate_hooks`/`validate_elenco_perfis`: devolve problemas
+    como `(Path, linha, mensagem)`. Guarda do T-086 — três violações, todas
+    sobre a MESMA linha do card, nunca comparando cards entre si:
+
+    1. card em `[>]` ou `[~]` sem `@claude` nem `@codex`;
+    2. card com os dois marcadores juntos na mesma linha (`@claude` e
+       `@codex`) — posse ambígua é o mesmo defeito que posse ausente;
+    3. card em `[ ]`, `[?]` ou `[x]` com marcador sobrando — ele mentiria
+       sobre quem ainda está com o card depois que o card já saiu de cena.
+
+    Ignora a seção arquivada, como `kanban-status.sh`: card encerrado não tem
+    posse para declarar. Lê `KANBAN.md` diretamente — não passa por
+    `arquivos_a_varrer`/`DIRS_IGNORADOS`, mesma escolha de
+    `validate_elenco_perfis` para `_elenco.md`: o board é instrução viva sobre
+    quem está trabalhando agora, não registro histórico.
+    """
+    board = raiz / "memory" / "wiki" / "KANBAN.md"
+    if not board.is_file():
+        return []
+    rel = board.relative_to(raiz)
+    problemas: list = []
+    texto = _ler_texto_ou_diagnostico(board, raiz, problemas)
+    if texto is None:
+        return problemas
+
+    arquivado = False
+    dentro_de_codigo = False
+    for num, linha in enumerate(texto.splitlines(), 1):
+        if _CERCA_CODIGO_RE.match(linha):
+            dentro_de_codigo = not dentro_de_codigo
+            continue
+        if dentro_de_codigo:
+            continue
+        if _ARQUIV_HEADING_RE.match(linha):
+            arquivado = True
+        if arquivado:
+            continue
+        m = _CARD_HOST_RE.match(linha)
+        if not m:
+            if _CARD_FROUXO_RE.match(linha):
+                problemas.append(
+                    (
+                        rel,
+                        num,
+                        "linha parece card mas não segue o contrato "
+                        "``- [estado] `ID` `` — sem indentação, com crases no ID e um "
+                        "espaço só; assim escrita, ela escapa da guarda de posse",
+                    )
+                )
+            continue
+        estado, card_id = m.group(1), m.group(2)
+        # a posse é declarada na prosa da linha, nunca em trecho citado
+        declarativo = _TRECHO_NAO_DECLARATIVO_RE.sub(" ", linha)
+        marcadores = set(_HOST_MARK_RE.findall(declarativo))
+        if estado in _ESTADOS_EXIGEM_HOST_KANBAN:
+            if not marcadores:
+                problemas.append(
+                    (
+                        rel,
+                        num,
+                        f"card `{card_id}` em `[{estado}]` sem marcador de host "
+                        "(`@claude` ou `@codex`) — T-086",
+                    )
+                )
+            elif len(marcadores) > 1:
+                problemas.append(
+                    (
+                        rel,
+                        num,
+                        f"card `{card_id}` em `[{estado}]` tem `@claude` e `@codex` "
+                        "juntos na mesma linha — escolha um host",
+                    )
+                )
+        elif estado == "!" and len(marcadores) > 1:
+            problemas.append(
+                (
+                    rel,
+                    num,
+                    f"card `{card_id}` em `[!]` tem `@claude` e `@codex` juntos — "
+                    "a pausa preserva a posse de quem estacionou, e posse ambígua "
+                    "é o mesmo defeito que posse ausente",
+                )
+            )
+        elif estado in _ESTADOS_PROIBEM_HOST_KANBAN and marcadores:
+            sobrando = "/".join(f"@{nome}" for nome in sorted(marcadores))
+            problemas.append(
+                (
+                    rel,
+                    num,
+                    f"card `{card_id}` em `[{estado}]` ainda tem marcador de host "
+                    f"({sobrando}) — remova ao sair de planejando/implementando",
+                )
+            )
+    return problemas
+
+
 def validate_hooks(raiz: Path, plugin: Path) -> list[tuple[Path, int, str]]:
     hooks_path = plugin / "hooks" / "hooks.json"
     if not hooks_path.exists():
@@ -1465,6 +1605,7 @@ def main() -> int:
     problemas = []
     problemas.extend(validate_hooks(raiz, plugin))
     problemas.extend(validate_codex_consultive_language(raiz, plugin))
+    problemas.extend(validate_marcador_host_kanban(raiz))
 
     for arq in arquivos_a_varrer(raiz, plugin):
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):

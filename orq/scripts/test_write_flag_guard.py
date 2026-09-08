@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -105,6 +106,28 @@ INJECAO_HIFEN_UNICO = (
 )
 
 
+# Isola a cópia efêmera do board da guarda de posse do T-086: o board vivo muda
+# a cada card assumido, e um card em `[>]`/`[~]` sem marcador reprovaria aqui
+# por um motivo alheio ao que este módulo mede. Este módulo testa T-019 (proibição de `--write`), não T-086: sem isto, todo
+# controle negativo que copia o repositório real reprovaria por um motivo
+# alheio ao que está sendo medido aqui. Marca só a CÓPIA efêmera, nunca o
+# arquivo rastreado pelo git — duplicada com o mesmo nome em
+# `test_elenco_perfis.py` de propósito, mesma disciplina de duplicação que o
+# resto da suíte já aplica a fragmentos do lint.
+def neutralizar_marcador_host_kanban(root: Path) -> None:
+    board = root / "memory" / "wiki" / "KANBAN.md"
+    if not board.is_file():
+        return
+    texto = board.read_text(encoding="utf-8")
+
+    def marca(m: "re.Match[str]") -> str:
+        linha = m.group(0)
+        return linha if ("@claude" in linha or "@codex" in linha) else linha + " @claude"
+
+    marcado = re.sub(r"(?m)^- \[[>~]\] `[^`]+`.*$", marca, texto)
+    board.write_text(marcado, encoding="utf-8")
+
+
 def run_lint_main(root: Path, home: Path) -> tuple[int, str]:
     """Roda a CÓPIA do lint que mora dentro de `root` (não o módulo importado
     no topo deste arquivo) como **subprocesso** — mesmo motivo documentado em
@@ -145,6 +168,7 @@ class WriteFlagGuardTest(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name) / "repo"
         shutil.copytree(REPO_ROOT, self.root, ignore=shutil.ignore_patterns(".git"))
+        neutralizar_marcador_host_kanban(self.root)
         self.home = Path(self.tmp.name) / "home"
         self.home.mkdir()
 
