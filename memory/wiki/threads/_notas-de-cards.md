@@ -691,3 +691,28 @@ está instalado. Duas versões coexistem e a escolha não é declarada em lugar 
 verificar, no handoff, que as flags exigidas estavam presentes (o `jobId`/`threadId` já são exigidos
 — faltam as flags), ou a chamada deixa de ser encaminhada em prosa e passa a ser um contrato
 verificável. O `T-085` toca no mesmo ponto por outro lado.
+
+
+## Nota do card `T-088` (nasceu em 2026-09-07, durante a validação do `T-020`)
+
+**Achado pelo próprio teste, o que é o melhor tipo de achado.** Ao validar o `T-020`, o agente
+trocou o perfil ativo para `economia` — o caminho que o produto oferece — e a suíte ficou vermelha
+em 1 de 307: `test_elenco_perfis.py:113`,
+`test_implementer_pesada_alterado_so_no_preset_reprova`.
+
+**Causa:** o teste chama `mutar_preset_padrao(...)` e espera que o lint acuse divergência entre o
+preset e a tabela ativa. Isso só vale enquanto **`padrao` for o perfil ativo**. Com `economia`
+ativo, o lint compara contra `economia`, a mutação em `padrao` não gera diagnóstico, `rc` vira 0 e
+o teste quebra.
+
+**Por que importa:** a guarda do `T-080` e o teste dela estão **acoplados ao estado vivo deste
+repositório**. Como o Orquestra é desenvolvido com o próprio Orquestra, uma troca de perfil
+legítima — que é exatamente o que o `T-020` existe para permitir, e que o dono faz quando o crédito
+aperta — derruba a suíte do projeto. O defeito não é do `T-020` nem da troca: é do teste presumir
+um estado que o produto permite mudar.
+
+**Correção candidata:** mutar o preset que a linha `Perfil ativo` **declara**, em vez de `padrao`
+fixo. O `lint-coerencia.py` já lê essa linha para comparar, então o dado está disponível.
+
+⚠️ **A troca para `economia` foi descartada** junto com o worktree do teste: era exercício de
+validação, não pedido do dono. O elenco vivo permanece em `padrao`.

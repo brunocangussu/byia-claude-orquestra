@@ -8,7 +8,7 @@
 
 ## ⏸️ Esperando você
 
-- [?] `T-020` Perfis de elenco — 0.16.0 entregue, aguarda seu teste: diga *"tô com pouco crédito"* e o time inteiro tem que trocar sem comando digitado · → threads/T-020-perfis-elenco.md
+- [x] `T-020` Perfis de elenco — validado em 2026-09-07: agente sem contexto de teste ouviu a frase e trocou o time inteiro, com o que muda, o que se perde e como reverter · → threads/T-020-perfis-elenco.md
 - [?] `T-030` Correções do painel de três revisores sobre as releases 0.14.0–0.16.0 — 0.17.0 fechada; teste: "agora não" tem que repropor 1× depois · → threads/T-030-correcoes-painel.md
 
 ---
@@ -60,7 +60,7 @@
 - [?] `T-073` O gatilho "lembra quando" nunca chama busca nenhuma — agora nomeia a busca; teste: diga a frase · → threads/T-072-claude-mem.md
 - [?] `T-074` claude-mem desligado no Codex — plugin e hook fallback off em 2026-09-07; teste: AI-Memory sozinho por 1–2 semanas · → threads/T-072-claude-mem.md
 - [ ] `T-081` `OBSERVATION_TYPES` é chave morta; o filtro real mora no modo e muda a captura · trilha: sistema · faixa: normal · → threads/T-072-claude-mem.md
-- [?] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência real — 0.27.3 instalada e conferida nos 2 hosts; falta o restart e sua validação · → threads/_notas-de-cards.md
+- [x] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência — validado em 2026-09-07: o comparador 0.27.2 acusa `missing`, o 0.27.4 sai `ok` na mesma árvore · → threads/_notas-de-cards.md
 
 - [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 
@@ -106,11 +106,12 @@
 - [ ] `T-027` CLI do Codex direto vs subagente `codex:codex-rescue` — decisão sua, não minha — a CLI direta é o caminho que o T-010 provou · → threads/_notas-de-cards.md
 - [ ] `T-021` Motor alternativo quando o Claude está no limite — teto técnico: subagente do Claude só aceita modelo Claude · → threads/_notas-de-cards.md
 
-- [?] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — 0.27.4 instalada e conferida nos 2 hosts; falta o restart e sua validação · → threads/_notas-de-cards.md
+- [x] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — validado em 2026-09-07 por chamada real: linha sem a flag e `write: false` no runtime · → threads/_notas-de-cards.md
 - [ ] `T-084` A âncora do `T-019` quebra a lista de bullets no `SKILL.md:229` — formatação, não enforcement; juntar com a próxima mudança de produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [!] `T-085` Toda chamada ao Companion cria uma thread visível no Codex — `persistThread` é fixo no `task`, e é o mesmo mecanismo do reúso `card+papel`; decisão sua entre 4 saídas · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
 - [!] `T-086` O board não diz QUAL host pegou o card — `@frente` separa assunto, não LLM; duas janelas podem colidir no mesmo card sem nada acusar · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
 - [ ] `T-087` O subagente do Companion omite flag pedida — `--fresh` sumiu da linha de comando numa chamada verificada; o reúso `card+papel` depende dela · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
+- [ ] `T-088` A guarda do `T-080` derruba a suíte quando o perfil ativo não é `padrao` — o teste muta `padrao` fixo, e trocar de perfil é caminho normal do produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md
