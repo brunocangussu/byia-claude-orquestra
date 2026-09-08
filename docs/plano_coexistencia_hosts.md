@@ -174,3 +174,28 @@ pura, porque dá para verificar antes de publicar:
 
 Nenhum dos dois incidentes causou perda de dado — os dois causaram **histórico que mente sobre quem
 fez o quê**, que é o que torna a arqueologia futura não confiável.
+
+
+## Decisão do dono (2026-09-08) — worktree por tarefa, também para o Manager
+
+Palavras dele: *"sempre que for assumir uma resolução de tarefa, criar a worktree isolada; somente
+tem que lembrar que deve ser finalizada quando terminar a tarefa e mergear no main, para não ficar
+poluição de worktrees"*.
+
+**Isto é mais forte do que o `T-086` aprovado**, e vale registrar a diferença. O marcador de host
+torna a colisão **visível**; o worktree por tarefa a torna **impossível**: duas janelas em worktrees
+distintos não escrevem no mesmo checkout, ponto. O que continua sendo ponto único é o merge no
+`main` — e esse é serializado por natureza, o que é aceitável.
+
+**O que muda em relação à regra atual:** a regra 7 do Orquestra (*"tarefa que escreve roda em
+worktree próprio"*) hoje se aplica ao **implementer spawnado**. A decisão do dono estende isso ao
+**Manager** — a própria sessão que conversa com ele.
+
+**A parte que ele mesmo apontou como risco, e que o card tem que resolver:** worktree criado e não
+removido vira poluição — a mesma classe de problema do `T-085`, com outro objeto. O ciclo precisa
+ser fechado: criar ao assumir, remover ao integrar. Nesta sessão foram criados três worktrees de
+subagente e os três foram removidos após trazer o diff; isso funcionou por atenção, não por
+mecanismo.
+
+Vira o `T-092`. Não substitui o `T-086`: marcador e isolamento resolvem coisas diferentes — um diz
+**quem** está com o card, o outro impede que dois se atropelem no disco.
