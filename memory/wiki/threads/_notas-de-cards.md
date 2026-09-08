@@ -790,3 +790,16 @@ passou a registrar o estado anterior.
 ⚠️ **Degradação declarada (terceira vez):** as correções do parecer foram aplicadas pelo Manager.
 Este host não expõe `SendMessage` para reabrir o implementer com o contexto dele, e um worktree novo
 nasceria do HEAD, sem o trabalho não commitado.
+
+
+## `T-047` — a assimetria se repetiu na instalação da 0.27.5 (2026-09-08)
+
+Segunda medição, mesmo resultado: instalar a `0.27.5` deixou o cache do **Claude com 12 versões**
+(`0.22.4` … `0.27.5`) e o do **Codex com 1** (`0.27.5` apenas) — a `0.27.4` que estava lá **sumiu**.
+
+Não é evento isolado nem efeito de quem executou: ontem foram 19 versões referenciadas por sessões
+Codex contra 1 sobrevivente; hoje, com uma instalação limpa e o preflight de backup rodado antes, o
+comportamento se repetiu. **O caminho de instalação do Codex substitui; o do Claude acumula.**
+
+O preflight desta vez tinha backup — mas ele só protege o que ainda existia no momento em que rodou.
+As versões antigas já haviam sido removidas em instalações anteriores, então não há o que restaurar.
