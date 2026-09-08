@@ -604,3 +604,61 @@ backup — o backup desta sessão foi tirado depois, e só tinha a `0.27.4` para
 Consequência prática: qualquer task Codex antiga reaberta hoje aponta para um diretório inexistente.
 O preflight do `instalar.md` só protege quem o executa — e quem instalou desta vez não o executou,
 ou não restaurou depois.
+
+
+## Nota do card `T-085` (nasceu em 2026-09-07, do incômodo do dono)
+
+**O sintoma, na palavra dele:** "ficam aparecendo chats no mesmo projeto lá dentro do Codex quando
+você aqui chama o Codex como revisor, como implementador".
+
+**A causa é estrutural, não um descuido.** `codex-companion.mjs:493` passa `persistThread: true`
+**fixo** no subcomando `task` — não há flag para desligar. E a thread persistida é exatamente o que
+dá o `--resume-thread <threadId>`, que o Orquestra usa desde a `0.27.2` (`T-081`) para o reúso
+determinístico por `card+papel`. **A poluição e o reúso são o mesmo mecanismo**: matar um mata o
+outro.
+
+**O que o companion NÃO oferece:** não existe `archive` nem `delete` na CLI (os subcomandos são
+`setup`, `review`, `adversarial-review`, `task`, `transfer`, `status`, `result`, `cancel`). Então
+"eu mesmo fecho depois" não é executável hoje pelo caminho suportado — e a `SKILL.md` proíbe
+explicitamente cancelar task concluída ou deletar task do Companion.
+
+**Quatro saídas, e a escolha é do dono porque cada uma perde algo diferente:**
+
+1. **Aceitar a thread e limpar depois**, apagando a sessão do Codex quando o handoff já estiver
+   registrado na wiki. Custo: contraria a regra "nunca delete uma task do Companion" da `SKILL.md`,
+   que existe para não perder contexto — a regra teria que ser revisitada, não burlada.
+2. **Trocar `task` por `review`/`adversarial-review` no papel Reviewer.** Esses não persistem thread
+   (`codex-companion.mjs:411` chama `runAppServerTurn` sem `persistThread`). Custo alto: o prompt é
+   construído internamente, então **acaba o briefing sob medida**, e não há `--effort`.
+3. **Manter e organizar**: nomear as threads por `card+papel` para ficarem agrupadas e óbvias.
+   Não elimina, só torna legível.
+4. **Pedir upstream** uma flag `--no-persist` no `task`. Sem prazo, e some o reúso quando usada.
+
+⚠️ **Nenhuma delas é gratuita.** A pergunta para o dono é qual ele prefere perder: o reúso
+determinístico, o briefing sob medida, ou a tela limpa.
+
+## Nota do card `T-086` (nasceu em 2026-09-07, do incômodo do dono)
+
+**O sintoma, na palavra dele:** trabalhando com Claude e Codex no mesmo repositório, "eventualmente
+tem alguma task que tem interseção com outra e acaba surgindo a possibilidade de ter que editar,
+mesmo que não seja a ação principal" — e isso "quase gerou problemas previamente".
+
+**Não é hipótese: aconteceu duas vezes hoje, nesta janela.**
+
+1. Uma edição do `MEMORY.md` falhou porque a outra janela reescreveu a linha entre a minha leitura e
+   a minha escrita.
+2. No mesmo comando, commitei junto o trabalho não commitado da outra janela, sem intenção.
+
+**O que existe hoje e por que não basta:** o `@frente` do protocolo (`T-013`, `T-032`) separa
+**assunto**, não **executor**. Duas janelas de hosts diferentes podem pegar cards distintos da mesma
+frente, ou tocar o mesmo arquivo compartilhado (board, índice, log) sem nada acusar. O protocolo
+manda "releia antes de escrever" e "edite a linha, nunca o arquivo" — as duas regras seguradas por
+disciplina, não por mecanismo.
+
+**Desenho candidato (a decidir):** marcar o **host** no card em curso, não só a frente — algo como
+`@claude` / `@codex` junto do `@frente`, escrito quando o card sai de `[ ]` e apagado quando entra
+em `[?]`. Some a isso uma guarda no lint que recuse dois hosts no mesmo card. O ponto de atenção é
+que marcador em arquivo disputado **também** é disputado: se as duas janelas escreverem o marcador
+ao mesmo tempo, o marcador não protege nada. Um arquivo por card (dono único por construção, como as
+threads já são) resolve isso sem depender de disciplina — e é a alternativa que o plano precisa
+comparar.
