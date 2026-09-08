@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.6 — fonte do `T-081` pronta, sem publicação, instalação ou restart; os caches permanecem em 0.27.5. A guarda impede que `CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES`, chave sem consumidor no gerador de contexto, volte a ser prescrita como filtro de injeção; as duas contagens efetivas continuam documentadas. A `0.27.5` publicada em `b4d56ca` trouxe o `T-086`: cada card em curso declara qual host o assumiu (`@claude`/`@codex`) · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-08 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.6 — **publicada e instalada** em `fd33de6` (2026-09-08); os dois caches conferidos contra clone detached e limpo do SHA remoto, `exit 0` em Claude e Codex. A `0.27.6` traz o `T-081`: guarda que impede `CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES`, chave sem consumidor, de voltar a ser recomendada. ⚠️ **Instalado não é carregado:** cada host só roda a versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-08 · **host padrão a partir de 2026-08-09: Codex**.
 
 **Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
 saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`

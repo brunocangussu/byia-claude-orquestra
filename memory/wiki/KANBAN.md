@@ -8,7 +8,7 @@
 
 ## ⏸️ Esperando você
 
-- [!] `T-081` `OBSERVATION_TYPES` é chave morta — 0.27.6 pronta em fonte; autoriza publicar, instalar nos dois hosts e reiniciar para validar? · → threads/T-072-claude-mem.md @frente-economia @codex
+- [?] `T-081` `OBSERVATION_TYPES` é chave morta — 0.27.6 publicada e instalada nos 2 hosts por @claude, `exit 0`; falta restart e sua validação · → threads/T-072-claude-mem.md @frente-economia @codex
 - [x] `T-020` Perfis de elenco — validado em 2026-09-07: agente sem contexto de teste ouviu a frase e trocou o time inteiro, com o que muda, o que se perde e como reverter · → threads/T-020-perfis-elenco.md
 - [?] `T-030` Correções do painel de três revisores sobre as releases 0.14.0–0.16.0 — 0.17.0 fechada; teste: "agora não" tem que repropor 1× depois · → threads/T-030-correcoes-painel.md
 
