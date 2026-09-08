@@ -156,12 +156,13 @@ capturam**, com LLM e embedding desligados.
   e em ordem; 5 sessões Codex no total.
 - Nenhum bypass, hash manual, edição do `hooks.json` ou teste sintético usado como prova.
 
-### O que fica esperando decisão do dono (não avança sozinho)
+### Decisões vigentes e pendências
 
-- **`T-074`** — deixar o claude-mem ligado no Codex, agora que há duas camadas de captura em
-  paralelo. A pergunta ganhou peso: rodar as duas ao mesmo tempo era o desenho do piloto, mas o
-  revisor apontou que isso **contamina a comparação** (uma injeta memória que muda o que a outra
-  captura).
+- **`T-074` — decisão provisória vigente:** manter o claude-mem desligado no Codex durante a janela
+  de avaliação do `T-078`. O dono está ciente da alternativa de religar as duas camadas e decidiu,
+  por ora, preservar o planejamento atual: o Codex fica com o AI-Memory sozinho, evitando que o
+  contexto injetado pelo claude-mem altere o trabalho que o AI-Memory captura. A reativação só será
+  reconsiderada após a janela de 1–2 semanas ou por nova decisão explícita do dono.
 - **Estágio 1** (ganho real contra o claude-mem) e **Estágio 2** (adoção pessoal / entrar no
   Orquestra) continuam válidos e **não iniciados**. O dono pulou a validação em estágios ao mandar
   instalar global; o critério de "vale a pena" segue sem resposta.
@@ -173,4 +174,6 @@ capturam**, com LLM e embedding desligados.
 
 O dono pediu para "usar e reavaliar aqui um tempo". Sugestão: em 1–2 semanas, comparar `ai-memory
 status` (contagem, disco) e o que cada camada achou em retomadas reais. É o Estágio 1 acontecendo
-organicamente, sem ter que escolher um projeto de antemão.
+organicamente, sem ter que escolher um projeto de antemão. Até essa reavaliação, o estado esperado
+é: AI-Memory ativo em Claude e Codex; claude-mem ativo no Claude Code e desligado nos dois pontos de
+ativação do Codex (plugin e fallback `UserPromptSubmit`).

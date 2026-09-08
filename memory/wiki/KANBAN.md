@@ -108,10 +108,12 @@
 
 - [x] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — validado em 2026-09-07 por chamada real: linha sem a flag e `write: false` no runtime · → threads/_notas-de-cards.md
 - [ ] `T-084` A âncora do `T-019` quebra a lista de bullets no `SKILL.md:229` — formatação, não enforcement; juntar com a próxima mudança de produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
-- [!] `T-085` Toda chamada ao Companion cria uma thread visível no Codex — `persistThread` é fixo no `task`, e é o mesmo mecanismo do reúso `card+papel`; decisão sua entre 4 saídas · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
-- [!] `T-086` O board não diz QUAL host pegou o card — `@frente` separa assunto, não LLM; duas janelas podem colidir no mesmo card sem nada acusar · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
-- [ ] `T-087` O subagente do Companion omite flag pedida — `--fresh` sumiu da linha de comando numa chamada verificada; o reúso `card+papel` depende dela · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
-- [ ] `T-088` A guarda do `T-080` derruba a suíte quando o perfil ativo não é `padrao` — o teste muta `padrao` fixo, e trocar de perfil é caminho normal do produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
+- [!] `T-085` Toda chamada ao Companion cria thread visível no Codex — plano pronto; decida: persistir só quando houver rechecada, com arquivamento reversível? · → docs/plano_coexistencia_hosts.md
+- [!] `T-086` O board não diz QUAL host pegou o card — plano pronto; decida: migrar para um arquivo por card, com o `KANBAN.md` virando visão gerada? · → docs/plano_coexistencia_hosts.md
+- [!] `T-087` REESCRITO — o que chega ao runtime não é o que o produto documenta; minha premissa anterior caiu. Decida: adaptador determinístico? · → docs/plano_coexistencia_hosts.md
+- [ ] `T-088` A guarda do `T-080` derruba a suíte se o perfil ativo não for `padrao` — o teste muta `padrao` fixo · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
+- [ ] `T-089` 🔴 O reúso `card+papel` da 0.27.2 não funciona — `--resume-thread` não existe no cache 1.0.5, que é o escolhido · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
+- [ ] `T-090` O produto manda passar `--wait` ao `task`, que não é opção dele — está em `revisar.md`, `plan-next.md` e no `_elenco.md` · trilha: sistema · faixa: leve · → docs/plano_coexistencia_hosts.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md

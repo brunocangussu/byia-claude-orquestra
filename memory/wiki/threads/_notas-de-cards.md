@@ -716,3 +716,32 @@ fixo. O `lint-coerencia.py` já lê essa linha para comparar, então o dado est�
 
 ⚠️ **A troca para `economia` foi descartada** junto com o worktree do teste: era exercício de
 validação, não pedido do dono. O elenco vivo permanece em `padrao`.
+
+
+## `T-087` reescrito, `T-089` e `T-090` abertos (2026-09-07, corrida noturna)
+
+⚠️ **O `T-087` como eu o escrevi estava errado, e o erro era meu.** Registrei que o subagente
+"omitiu uma flag pedida" ao não passar `--fresh`. Auditando o plugin instalado:
+`codex-cli-runtime/SKILL.md:34` manda **remover** esse token, e `codex-rescue.md:39` o define como
+controle de roteamento do lado Claude ("não adicione `--resume-last`"), não como flag a repassar.
+**O subagente fez o certo.**
+
+O defeito real continua de pé, e é outro: **três contratos divergem sobre as mesmas flags** — o
+Orquestra documenta uma linha, a skill do plugin manda transformá-la, o parser aceita um terceiro
+conjunto — e **ninguém verifica o que chegou**. Por isso o card foi reescrito, não fechado.
+
+**`T-089` é o achado grave da noite.** `--resume-thread` **não existe** no cache `codex/1.0.5`
+(`grep -c` → 0; no `1.0.6` → 6), e o subagente escolheu o `1.0.5` nas duas chamadas observadas,
+havendo três caches instalados. Onde o produto manda continuar com `--resume-thread <threadId>`, a
+flag vira texto do briefing e a chamada nasce nova: **o reúso `card+papel` que a `0.27.2` entregou
+não está funcionando, e nada acusa.** Foi validado por teste unitário e nunca exercitado contra o
+cache real — que é exatamente a lacuna que o `T-017` descreve em outro contexto.
+
+**`T-090`:** `--wait` não é opção do `task`. O `handleTask` aceita `model, effort, cwd, prompt-file,
+resume-thread` e os booleanos `json, write, resume-last, resume, fresh, background`; `wait` pertence
+ao `handleReviewCommand`. Ainda assim `revisar.md`, `plan-next.md` e o `_elenco.md` mandam passá-la.
+
+⚠️ **Consequência para o `T-019`, que dei por validado hoje:** o JSON do `task` não devolve
+argumentos, modelo, effort nem sandbox efetivo. O `write: false` que li prova o que foi **lançado**,
+não o que o runtime **reconheceu**. A validação continua de pé — a linha de comando não tinha a flag
+—, mas a evidência é mais fraca do que afirmei, e isso fica escrito em vez de corrigido em silêncio.
