@@ -583,3 +583,24 @@ a divergência de cache por edição sem bump. Dois testes novos: a grafia de h�
 ⚠️ **Degradação declarada (segunda vez):** as correções do parecer foram aplicadas pelo Manager. Sem
 `SendMessage` neste host não dá para reabrir o implementer, e um worktree novo nasceria do HEAD, sem
 o trabalho não commitado.
+
+
+## Evidência nova para o `T-047` (medida em 2026-09-07, no preflight da 0.27.4)
+
+O preflight obrigatório do `instalar.md` — que existe justamente para preservar caches que tasks
+abertas ainda carregam por caminho absoluto — mediu o seguinte:
+
+- **19 versões** aparecem referenciadas em `~/.codex/sessions` e `~/.codex/archived_sessions`,
+  de `0.18.0` a `0.27.4`;
+- no cache do Codex sobrou **1** diretório (`0.27.4`);
+- no cache do Claude sobraram **11** (`0.22.4` … `0.27.4`).
+
+**Os dois hosts não se comportam igual, e isso é o achado.** O `T-047` estava escrito como
+"sessões antigas apontam para caches já ausentes", no genérico. A assimetria diz onde o defeito
+mora: o caminho de instalação do Codex **remove** as versões anteriores, enquanto o do Claude as
+**preserva**. As 18 versões referenciadas que sumiram do Codex já não podem ser restauradas por
+backup — o backup desta sessão foi tirado depois, e só tinha a `0.27.4` para copiar.
+
+Consequência prática: qualquer task Codex antiga reaberta hoje aponta para um diretório inexistente.
+O preflight do `instalar.md` só protege quem o executa — e quem instalou desta vez não o executou,
+ou não restaurou depois.
