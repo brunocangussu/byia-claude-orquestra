@@ -108,9 +108,9 @@
 
 - [x] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — validado em 2026-09-07 por chamada real: linha sem a flag e `write: false` no runtime · → threads/_notas-de-cards.md
 - [ ] `T-084` A âncora do `T-019` quebra a lista de bullets no `SKILL.md:229` — formatação, não enforcement; juntar com a próxima mudança de produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
-- [!] `T-085` Toda chamada ao Companion cria thread visível no Codex — plano pronto; decida: persistir só quando houver rechecada, com arquivamento reversível? · → docs/plano_coexistencia_hosts.md
-- [!] `T-086` O board não diz QUAL host pegou o card — plano pronto; decida: migrar para um arquivo por card, com o `KANBAN.md` virando visão gerada? · → docs/plano_coexistencia_hosts.md
-- [!] `T-087` REESCRITO — o que chega ao runtime não é o que o produto documenta; minha premissa anterior caiu. Decida: adaptador determinístico? · → docs/plano_coexistencia_hosts.md
+- [~] `T-085` Thread do Codex só persiste quando houver rechecada, com arquivamento reversível — APROVADO pelo dono em 2026-09-08 · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
+- [~] `T-086` Marcar no card qual host pegou — APROVADO em 2026-09-08 (opção barata: avisa, não impede); o marcador também declara quem commita · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
+- [~] `T-087` Adaptador determinístico monta os argumentos por código — APROVADO em 2026-09-08; o intermediário deixa de montar a chamada · trilha: sistema · faixa: pesada · → docs/plano_coexistencia_hosts.md
 - [ ] `T-088` A guarda do `T-080` derruba a suíte se o perfil ativo não for `padrao` — o teste muta `padrao` fixo · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [ ] `T-089` 🔴 O reúso `card+papel` da 0.27.2 não funciona — `--resume-thread` não existe no cache 1.0.5, que é o escolhido · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
 - [ ] `T-090` O produto manda passar `--wait` ao `task`, que não é opção dele — está em `revisar.md`, `plan-next.md` e no `_elenco.md` · trilha: sistema · faixa: leve · → docs/plano_coexistencia_hosts.md

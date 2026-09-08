@@ -88,4 +88,3 @@ como capacidade assumida.
 
 Nenhum card foi pulado por risco. Nada foi implementado, instalado, publicado ou decidido no lugar
 do dono. **Nenhum push** — os commits são locais e esperam ele acordar.
-

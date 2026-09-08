@@ -109,3 +109,43 @@ ausência de arquivos tocados **não são prova equivalente** de confinamento.
 
 Limpeza em massa de threads antigas, deleção de sessões, edição manual do estado do Codex, patch em
 cache do Companion, instalações, troca de modelos e implementação dos hooks globais de segurança.
+
+
+---
+
+# Decisões do dono — 2026-09-08
+
+| Questão | Decisão |
+|---|---|
+| `T-085` — thread do Codex | **Aprovado:** persistir só quando houver rechecada prevista; arquivamento reversível ao encerrar o papel |
+| `T-087` — quem monta o comando | **Aprovado:** o Orquestra monta por código. O intermediário do plugin deixa de montar a chamada |
+| `T-086` — colisão entre janelas | **Aprovado o caminho barato:** marcar no card qual host pegou, com guarda no lint. A ficha por card fica como destino possível, não agora |
+| Integrador fixo | **Recusado como regra fixa — e a resposta dele é melhor que a pergunta:** *"se eu tiver resolvendo uma tarefa com o Claude como principal, acho que é o Claude naquele momento; se for o Codex como principal, é com o Codex"* |
+
+## O que a recusa do integrador fixo ensina
+
+A pergunta original assumia um integrador **permanente**. O dono trabalha por **frente**, e a frente
+muda de host conforme o assunto. Então o desenho certo não é eleger uma janela para sempre: é o
+**marcador do `T-086` declarar, por card, quem está com ele** — e quem está com o card é quem
+commita aquele trabalho.
+
+Isso funde as duas decisões numa só: **o marcador de posse é também o marcador de quem integra**.
+Não existe "o chefe do repositório"; existe "o dono deste card, agora".
+
+## Regra de commit e push com duas janelas (proposta, aguardando o ok)
+
+O dono perguntou: *"e em relação aos commits e os pushs? como resolver isso quando tiver com o
+Claude e o Codex?"* Proposta em cinco linhas, todas derivadas de erro real cometido nesta sessão:
+
+1. **Antes de commitar, `git pull --rebase`.** Pega o que a outra janela publicou.
+2. **Commit por allowlist, nunca `git add .`** — só os arquivos do card que você pegou.
+3. **Confira o que está staged antes de confirmar.** Se aparecer arquivo que você não editou, tire.
+   Foi exatamente assim que um commit meu levou junto o trabalho não commitado da outra janela.
+4. **Push logo depois do commit**, para a outra janela não trabalhar sobre base velha.
+5. **Arquivo compartilhado** (board, `MEMORY.md`, log, elenco): edite **a sua linha**, nunca
+   reescreva o arquivo — e releia imediatamente antes, porque o disco pode ter mudado.
+
+⚠️ **O que essa regra não resolve, e é honesto dizer:** os passos 1 a 4 são disciplina, não
+mecanismo. A parte automatizável é o passo 3 — uma guarda pode comparar o que está staged com o
+card que a janela declarou ter pegado, e recusar o que sobrar. Sem isso, a regra vale o quanto a
+atenção de quem a segue.
