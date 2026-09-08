@@ -107,6 +107,7 @@
 - [ ] `T-021` Motor alternativo quando o Claude está no limite — teto técnico: subagente do Claude só aceita modelo Claude · → threads/_notas-de-cards.md
 
 - [?] `T-019` 🔴 Read-only do Companion garantido só pela AUSÊNCIA de `--write` — 0.27.4 instalada e conferida nos 2 hosts; falta o restart e sua validação · → threads/_notas-de-cards.md
+- [ ] `T-084` A âncora do `T-019` quebra a lista de bullets no `SKILL.md:229` — formatação, não enforcement; juntar com a próxima mudança de produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md
