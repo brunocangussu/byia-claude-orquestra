@@ -115,6 +115,7 @@
 - [~] `T-087` Adaptador determinístico monta os argumentos por código — APROVADO em 2026-09-08; o intermediário deixa de montar a chamada · trilha: sistema · faixa: pesada @claude · → docs/plano_coexistencia_hosts.md
 - [ ] `T-088` A guarda do `T-080` derruba a suíte se o perfil ativo não for `padrao` — o teste muta `padrao` fixo · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [ ] `T-089` 🔴 O reúso `card+papel` da 0.27.2 não funciona — `--resume-thread` não existe no cache 1.0.5, que é o escolhido · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
+- [!] `T-093` 🔴 Atualizar o plugin MATA a sessão viva do Codex — o cache antigo é apagado e o hook resolvido no boot aponta pro que sumiu · trilha: sistema · faixa: pesada · → memory/gotchas.md
 - [ ] `T-090` O produto manda passar `--wait` ao `task`, que não é opção dele — está em `revisar.md`, `plan-next.md` e no `_elenco.md` · trilha: sistema · faixa: leve · → docs/plano_coexistencia_hosts.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md

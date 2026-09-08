@@ -849,3 +849,36 @@ atrasou o diagnóstico aqui.
 **Agravante de leitura:** a saída é indistinguível de cache realmente stale, que é o defeito que o
 `T-017` e o `T-080` existem para pegar. Lint que grita por artefato gerado ensina o leitor a ignorar
 o grito. Ver `T-082`.
+
+
+## Atualizar o Orquestra derruba a sessão viva do Codex (`T-093`, 2026-09-08)
+
+**Sintoma, na palavra do dono:** *"toda vez que atualiza, o Codex quebra e fica lá travando os
+hooks… às vezes tem trabalho que está rodando que eu ia esperar acabar, mas o trabalho acaba"*.
+
+**O erro literal:**
+
+```
+can't open file '/Users/brunocangucu/.codex/plugins/cache/orquestra/orq/0.27.5/scripts/context-guard.py':
+[Errno 2] No such file or directory
+```
+
+**Causa raiz, apurada com o Codex ainda rodando:** a sessão do Codex resolve o caminho do hook **no
+boot**, com a versão que estava instalada naquele momento, e guarda o caminho **absoluto, com a
+versão dentro**. Instalar uma versão nova no host Codex **apaga** a anterior — diferente do host
+Claude, que acumula (medido duas vezes: Claude com 12 diretórios, Codex com 1). A sessão viva
+continua chamando um caminho que deixou de existir, o hook falha a cada chamada e o trabalho em
+andamento morre.
+
+⚠️ **Não é o `config.toml` nem o `hooks.json`** — nenhum dos dois referencia `context-guard` hoje. O
+caminho vive **na memória da sessão**, o que explica por que reiniciar resolve e por que o erro
+reaparece na atualização seguinte.
+
+**Consequência prática, até o card fechar:** não instale versão nova no Codex enquanto houver
+trabalho rodando lá. Se instalar, a sessão viva precisa reiniciar — e o que ela estava fazendo se
+perde.
+
+**Direção candidata (a decidir no card):** preservar a versão anterior no cache do Codex em vez de
+substituir — é o que o host Claude já faz e o que o preflight do `instalar.md` tenta proteger, sem
+sucesso, porque o instalador remove depois. Restaurar o diretório apagado destrava a sessão viva sem
+reiniciá-la.
