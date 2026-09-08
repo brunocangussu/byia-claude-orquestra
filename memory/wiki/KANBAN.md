@@ -110,6 +110,7 @@
 - [ ] `T-084` A âncora do `T-019` quebra a lista de bullets no `SKILL.md:229` — formatação, não enforcement; juntar com a próxima mudança de produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [!] `T-085` Toda chamada ao Companion cria uma thread visível no Codex — `persistThread` é fixo no `task`, e é o mesmo mecanismo do reúso `card+papel`; decisão sua entre 4 saídas · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
 - [!] `T-086` O board não diz QUAL host pegou o card — `@frente` separa assunto, não LLM; duas janelas podem colidir no mesmo card sem nada acusar · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
+- [ ] `T-087` O subagente do Companion omite flag pedida — `--fresh` sumiu da linha de comando numa chamada verificada; o reúso `card+papel` depende dela · trilha: sistema · faixa: normal · → threads/_notas-de-cards.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md

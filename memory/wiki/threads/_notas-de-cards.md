@@ -662,3 +662,32 @@ que marcador em arquivo disputado **também** é disputado: se as duas janelas e
 ao mesmo tempo, o marcador não protege nada. Um arquivo por card (dono único por construção, como as
 threads já são) resolve isso sem depender de disciplina — e é a alternativa que o plano precisa
 comparar.
+
+
+## Nota do card `T-087` (nasceu em 2026-09-07, durante a validação do `T-019`)
+
+**Medido, não suposto.** Ao validar o `T-019` com uma chamada real, pedi ao subagente
+`codex:codex-rescue` exatamente `--wait --fresh --json --model gpt-6-astra --effort low`. A linha
+que ele executou, que ele mesmo devolveu:
+
+```
+node ".../codex/1.0.5/scripts/codex-companion.mjs" task "<briefing>" --wait --json --model gpt-6-astra --effort low
+```
+
+**`--fresh` não está lá.** Duas consequências, e a segunda é a que assusta:
+
+1. **O contrato do reúso `card+papel` (`T-081`, `0.27.2`) não foi cumprido.** A primeira chamada de
+   um par card+papel tem que levar `--fresh`; sem ela, o companion pode encadear numa thread
+   anterior e misturar contextos — exatamente o que o `T-081` existe para impedir.
+2. **É a prova empírica da limitação declarada no aceite do `T-019`.** Quem monta a linha de comando
+   é o subagente. Se ele **omite** uma flag pedida, nada garante que não **acrescente** uma não
+   pedida — e a flag não pedida perigosa é `--write`. A proibição textual reduz a chance; não
+   elimina o elo.
+
+**Terceiro fato, colateral:** ele usou o cache `codex/1.0.5` do companion, não o `1.0.6` que também
+está instalado. Duas versões coexistem e a escolha não é declarada em lugar nenhum.
+
+**Direção candidata:** parar de depender do subagente para montar a linha. Ou o Orquestra passa a
+verificar, no handoff, que as flags exigidas estavam presentes (o `jobId`/`threadId` já são exigidos
+— faltam as flags), ou a chamada deixa de ser encaminhada em prosa e passa a ser um contrato
+verificável. O `T-085` toca no mesmo ponto por outro lado.
