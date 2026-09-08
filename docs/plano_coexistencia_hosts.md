@@ -149,3 +149,28 @@ Claude e o Codex?"* Proposta em cinco linhas, todas derivadas de erro real comet
 mecanismo. A parte automatizável é o passo 3 — uma guarda pode comparar o que está staged com o
 card que a janela declarou ter pegado, e recusar o que sobrar. Sem isso, a regra vale o quanto a
 atenção de quem a segue.
+
+
+## Evidência decisiva para o `T-086` (2026-09-08) — as duas janelas erraram, em direções opostas
+
+1. **2026-09-07, janela Claude:** um commit meu levou junto o trabalho **não commitado** da janela
+   Codex, porque `MEMORY.md` e `KANBAN.md` tinham as duas mãos no mesmo arquivo.
+2. **2026-09-08, janela Codex:** o commit `3030a11` carrega a **mensagem do meu commit noturno** —
+   incluindo a linha *"Sem push: o dono esta dormindo"* — e contém dentro dele
+   `memory/wiki/threads/T-078-ai-memory.md`, que é trabalho da janela Codex. Meu commit local foi
+   **reescrito** para acomodar o dela, e a mensagem resultante não menciona o `T-078` e afirma algo
+   falso sobre push.
+
+**O que isso ensina, e que nenhuma das duas notas anteriores capturava:** o risco não é apenas
+"duas janelas editam o mesmo arquivo". É **uma janela reescrever o commit da outra**. Marcador de
+posse no card não teria impedido o item 2 — `amend`/`rebase` sobre commit alheio é uma classe
+própria de colisão.
+
+**Consequência para a regra de commit:** falta um sexto item, e ele é o único que não é disciplina
+pura, porque dá para verificar antes de publicar:
+
+> **6. Nunca reescreva (`amend`, `rebase`, `reset`) um commit que você não criou.** Se o trabalho da
+> outra janela precisa entrar, ele entra num commit próprio, com a mensagem dele.
+
+Nenhum dos dois incidentes causou perda de dado — os dois causaram **histórico que mente sobre quem
+fez o quê**, que é o que torna a arqueologia futura não confiável.

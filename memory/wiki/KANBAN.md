@@ -110,6 +110,7 @@
 - [ ] `T-084` A âncora do `T-019` quebra a lista de bullets no `SKILL.md:229` — formatação, não enforcement; juntar com a próxima mudança de produto · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [~] `T-085` Thread do Codex só persiste quando houver rechecada, com arquivamento reversível — APROVADO pelo dono em 2026-09-08 · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
 - [~] `T-086` Marcar no card qual host pegou — APROVADO em 2026-09-08 (opção barata: avisa, não impede); o marcador também declara quem commita · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
+- [ ] `T-091` Conferir o staged contra o card declarado antes do commit — exige a janela declarar sua identidade; extraído do `T-086` · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
 - [~] `T-087` Adaptador determinístico monta os argumentos por código — APROVADO em 2026-09-08; o intermediário deixa de montar a chamada · trilha: sistema · faixa: pesada · → docs/plano_coexistencia_hosts.md
 - [ ] `T-088` A guarda do `T-080` derruba a suíte se o perfil ativo não for `padrao` — o teste muta `padrao` fixo · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [ ] `T-089` 🔴 O reúso `card+papel` da 0.27.2 não funciona — `--resume-thread` não existe no cache 1.0.5, que é o escolhido · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
