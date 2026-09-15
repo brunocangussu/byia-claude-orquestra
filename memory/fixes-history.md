@@ -1,5 +1,17 @@
 # Log de mudanças — append-only
 
+## [2026-09-15] release | 0.27.7 — board operacional único entre worktrees
+
+`T-076`: o board operacional passa a ser resolvido pelo checkout principal, enquanto cada frente
+continua proprietária das próprias threads. Os consumidores deixam de depender da cópia stale do
+worktree; falhas de resolução são visíveis e não recaem silenciosamente no `KANBAN.md` local.
+
+A implementação foi construída em RED/GREEN e submetida a seis revisões Fable. A R6 cobriu
+240.137/240.137 bytes em 28 lotes, todos com `claude-fable-5-1`, e terminou aprovada com ressalvas,
+sem bloqueador. Contrato + guardião fecharam 130/130 nos Pythons 3.12 e 3.9.6. A suíte descoberta
+manteve somente quatro falhas basais externas já registradas. Esta entrada descreve a candidata da
+fonte; publicação, instalação, restart e teste comportamental continuam separados.
+
 ## [2026-09-07] release | 0.27.4 — a proibição de `--write` ganha enforcement, e a revisão derrubou a primeira versão dela
 
 `T-019` foi **reescopado** antes de implementado: o ator original (o Kimi, que em 2026-07-28 rodou

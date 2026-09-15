@@ -765,7 +765,12 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
 
         context = result["hookSpecificOutput"]["additionalContext"]
         self.assertIn("memory/MEMORY.md", context)
-        self.assertIn("KANBAN", context)
+        self.assertIn("BOARD_CANONICO", context)
+        self.assertIn("Comprove `ORQ_PACKAGE_ROOT`", context)
+        self.assertIn("thread_root", context)
+        self.assertIn("`state: ok` com `exists: false`", context)
+        self.assertIn("`/orq:init`", context)
+        self.assertIn("não leia o `board` e encaminhe para `/orq:init`", context)
         self.assertEqual(
             guard.load_state(self.data_dir, "session-a"),
             guard.default_state(),
@@ -911,7 +916,12 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
 
         context = result["hookSpecificOutput"]["additionalContext"]
         self.assertIn("memory/MEMORY.md", context)
-        self.assertIn("KANBAN", context)
+        self.assertIn("BOARD_CANONICO", context)
+        self.assertIn("Comprove `ORQ_PACKAGE_ROOT`", context)
+        self.assertIn("thread_root", context)
+        self.assertIn("`state: ok` com `exists: false`", context)
+        self.assertIn("`/orq:init`", context)
+        self.assertIn("não leia o `board` e encaminhe para `/orq:init`", context)
         self.assertNotIn("checkpoint de recuperação", context.lower())
         reset = guard.load_state(self.data_dir, "session-a")
         self.assertEqual(reset["phase"], "normal")

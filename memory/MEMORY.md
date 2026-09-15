@@ -4,7 +4,21 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.6 — **publicada e instalada** em `fd33de6` (2026-09-08); os dois caches conferidos contra clone detached e limpo do SHA remoto, `exit 0` em Claude e Codex. A `0.27.6` traz o `T-081`: guarda que impede `CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES`, chave sem consumidor, de voltar a ser recomendada. ⚠️ **Instalado não é carregado:** cada host só roda a versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-08 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.7 — candidata do `T-076`, ainda **não publicada nem instalada**. A versão em execução nos hosts continua sendo a 0.27.6 publicada em `fd33de6` (2026-09-08). ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-15 · **host padrão a partir de 2026-08-09: Codex**.
+
+**Candidata 0.27.7, 2026-09-15 — `T-076`:** o dono aprovou a opção B: board operacional no
+checkout principal e threads na frente proprietária. Os dois bloqueios da R5 foram corrigidos em
+RED/GREEN: o checkpoint só permite handshake sem thread quando não há card ativo desta frente, e a
+skill usa a thread `T-NNN.md` apontada pelo card, com a frente em `@frente-<slug>`. Contrato +
+guardião fecharam 130/130 nos Pythons 3.12 e 3.9.6; a suíte executou 374 testes e manteve somente as
+quatro falhas basais externas. A única R6 cobriu 240.137/240.137 bytes em 28 lotes; todos saíram `0`
+e provaram `claude-fable-5-1`. Foram 6 `APROVADO` e 22 `APROVADO_COM_RESSALVAS`, sem bloqueador.
+O Manager auditou as ressalvas como riscos não bloqueantes de manutenção, cobertura e clareza
+histórica. O review fecha **APROVADO COM RESSALVAS**; não executar R7. Plano em
+`docs/superpowers/plans/2026-09-13-t076-board-principal.md` e estado em
+`wiki/threads/T-076-board-principal.md`. O contador fechou em `6/6 · extensão: +4`; a candidata
+foi autorizada para bump, commit, push e integração. Publicação, instalação, restart e validação
+comportamental permanecem em gates separados.
 
 **Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
 saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`

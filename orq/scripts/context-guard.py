@@ -28,6 +28,18 @@ MAX_TAIL_BYTES = 32 * 1024 * 1024
 STATE_LOCK_WAIT_SECONDS = 0.75
 STATE_VERSION = 2
 CHECKPOINT_REARM_DELTA = 10.0
+PROVA_ORQ_PACKAGE_ROOT = "Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível."
+POLITICA_FALHA_RESOLVER = "Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`."
+POLITICA_BOARD_INEXISTENTE = "Com `state: ok` com `exists: false`, não leia o `board` e encaminhe para `/orq:init`."
+POLITICA_HANDSHAKE_ERRO = "Em `state: erro`, não emita handshake positivo de checkpoint."
+POLITICA_HANDSHAKE_THREAD_AUSENTE = "Com card ativo desta frente cuja thread obrigatória falta em `THREAD_ROOT`, o sinal falha e não autoriza handshake; somente projeto sem card ativo desta frente pode registrar que não havia thread a verificar."
+CONTRATO_THREAD_ROOT = "THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback."
+INSTRUCAO_BOARD_CANONICO = (
+    f"{PROVA_ORQ_PACKAGE_ROOT} Comprove `ORQ_PACKAGE_ROOT` como raiz existente do pacote antes da chamada; então resolva BOARD_CANONICO "
+    'via sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .; '
+    f"{POLITICA_FALHA_RESOLVER} {POLITICA_BOARD_INEXISTENTE} {POLITICA_HANDSHAKE_ERRO} {POLITICA_HANDSHAKE_THREAD_AUSENTE} {CONTRATO_THREAD_ROOT} "
+    "Leia o `board` devolvido e a thread ativa antes de continuar."
+)
 STATE_KEYS = (
     "state_version",
     "phase",
@@ -482,22 +494,21 @@ def _session_context(
     if source == "clear":
         return _additional_context(
             event_name,
-            "Novo chat após /clear: antes de trabalhar, leia memory/MEMORY.md, "
-            "memory/wiki/KANBAN.md e a thread ativa; confirme o contexto carregado.",
+            "Novo chat após /clear: antes de trabalhar, leia memory/MEMORY.md. "
+            f"{INSTRUCAO_BOARD_CANONICO} Confirme o contexto carregado.",
         )
     if source == "compact":
         if checkpoint_verified:
             return _additional_context(
                 event_name,
                 "Compactação concluída depois de checkpoint verificado. Antes de continuar, "
-                "releia memory/MEMORY.md, memory/wiki/KANBAN.md e a thread ativa; confirme "
-                "o contexto carregado.",
+                f"releia memory/MEMORY.md. {INSTRUCAO_BOARD_CANONICO} Confirme o contexto carregado.",
             )
         return _additional_context(
             event_name,
-            "Houve compactação sem checkpoint verificado. Releia memory/MEMORY.md, "
-            "memory/wiki/KANBAN.md e a thread ativa; mantenha o pedido atual e registre um "
-            "checkpoint de recuperação no próximo ponto seguro.",
+            "Houve compactação sem checkpoint verificado. Releia memory/MEMORY.md. "
+            f"{INSTRUCAO_BOARD_CANONICO} Mantenha o pedido atual e registre um checkpoint de "
+            "recuperação no próximo ponto seguro.",
         )
     return None
 

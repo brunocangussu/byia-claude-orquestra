@@ -1594,6 +1594,207 @@ def validate_codex_consultive_language(
     return problemas
 
 
+ANCORA_BOARD_CANONICO = "BOARD_CANONICO"
+INVOCACAO_RESOLVER_QUALIFICADA = 'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .'
+INVOCACAO_RESOLVER_NUA_RE = re.compile(
+    r"(?<!\$\{CLAUDE_PLUGIN_ROOT\}/scripts/)(?<!\$\{ORQ_PACKAGE_ROOT\}/scripts/)"
+    r"kanban-status\.sh(?:[\"'`])?\s+--resolver\b"
+)
+INVOCACAO_RESOLVER_DESPROTEGIDA_RE = re.compile(
+    r"(?:sh|bash)\s+\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh\s+--resolver\b"
+)
+INVOCACAO_KANBAN_DESPROTEGIDA_RE = re.compile(
+    r"(?:sh|bash)\s+\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh(?:\s+(?!--resolver\b)|$)"
+)
+INVOCACAO_DIRETA_DESPROTEGIDA_RE = re.compile(
+    r"(?<![\"'`])(?<!sh )(?<!bash )\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh\b"
+)
+CONSUMIDORES_BOARD_CANONICO = (
+    Path("orq/commands/quadro.md"),
+    Path("orq/commands/plan-next.md"),
+    Path("orq/commands/implement-next.md"),
+    Path("orq/commands/checkpoint.md"),
+    Path("orq/commands/stack.md"),
+    Path("orq/commands/init.md"),
+    Path("orq/scripts/context-guard.py"),
+    Path("orq/skills/orq/SKILL.md"),
+    Path("memory/wiki/_schema.md"),
+)
+CONSUMIDOR_INICIALIZACAO_BOARD_CANONICO = Path("orq/commands/init.md")
+INSTRUCAO_PRESCRITIVA_BOARD_LOCAL_RE = re.compile(
+    r"\b(?:leia|ler|leitura|lendo|abra|abrir|consulte|consultar|crie|criar|cria|criando|"
+    r"escreva|escrever|escreve|edite|editar|edita|editando|altere|alterar|altera|"
+    r"mova|mover|move|movendo|marque|marcar|marca|atualiz\w*|registr\w*|grav\w*|"
+    r"salv\w*|adicion\w*|remov\w*|apag\w*|use|rode|execute|aplique|read|edit|write|"
+    r"cat|sed|grep)\b[^\n]{0,240}?`?(?:(?:memory/)?wiki/)?KANBAN\.md`?",
+    re.IGNORECASE,
+)
+POLITICA_FALHA_RESOLVER = (
+    "Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, "
+    "`exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como "
+    "`state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e "
+    "`stderr`; com JSON de erro, informe `code`."
+)
+CONTRATO_THREAD_ROOT = (
+    "THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do "
+    "projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` "
+    "do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente "
+    "a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem "
+    "ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para "
+    "outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: "
+    "não crie, duplique, troque de frente nem use fallback."
+)
+INSTRUCAO_FALLBACK_THREAD_RE = re.compile(
+    r"\b(?:procure|buscar|busque|consulte|consultar|leia|ler|use)\b[^\n]{0,160}?"
+    r"\b(?:thread|cópia)\b[^\n]{0,160}?\b(?:principal|outra\s+worktree|worktree)\b",
+    re.IGNORECASE,
+)
+POLITICA_ERRO_RESOLUCAO_INIT_RE = re.compile(
+    r"`state:\s*erro`[\s\S]{0,260}?`exists:\s*false`[\s\S]{0,260}?"
+    r"(?:não\s+prova\s+ausência|nunca\s+autoriza\s+criar)",
+    re.IGNORECASE,
+)
+POLITICA_INEXISTENCIA_VERDADEIRA_INIT_RE = re.compile(
+    r"`state:\s*ok`[\s\S]{0,180}?`exists:\s*false`[\s\S]{0,180}?"
+    r"\bcrie\b[\s\S]{0,180}?caminho\s+`board`\s+devolvido",
+    re.IGNORECASE,
+)
+
+
+def _instrucao_esta_negada(texto: str, posicao: int) -> bool:
+    inicio_linha = texto.rfind("\n", 0, posicao) + 1
+    prefixo = re.split(r"[,;:!?]|\.(?=\s)", texto[inicio_linha:posicao])[-1]
+    prefixo = re.split(r"\b(?:mas|porém|contudo|entretanto)\b", prefixo, flags=re.IGNORECASE)[-1]
+    return re.search(r"\b(?:não|nunca|jamais|evite)\b[^.;:\n]{0,120}$", prefixo, re.IGNORECASE) is not None
+
+
+def _achados_sobrepostos(padrao: re.Pattern, texto: str):
+    """Encontra violações depois de uma ocorrência negada que as consome.
+
+    `finditer` retoma no fim do primeiro trecho: em “Não leia o board relativo,
+    mas edite memory/wiki/KANBAN.md”, o casamento iniciado em “leia” alcança a
+    edição posterior e a negação ocultaria a violação. Recomeçar em `start + 1`
+    preserva o segundo início (“edite”) e garante avanço mesmo se um padrão futuro
+    aceitar trecho vazio.
+    """
+    inicio = 0
+    while inicio < len(texto):
+        achado = padrao.search(texto, inicio)
+        if achado is None:
+            return
+        yield achado
+        inicio = max(inicio + 1, achado.start() + 1)
+
+
+def validate_board_canonico(raiz: Path, plugin: Path) -> list:
+    """Impede que um consumidor volte ao board relativo de sua worktree.
+
+    `raiz` e `plugin` são parâmetros de propósito: testes do lint usam uma
+    fixture completa em diretório temporário, que não pode consultar a fonte
+    real. A âncora mantém a política única e auditável nos textos operacionais.
+    """
+    problemas: list = []
+    for relativo in CONSUMIDORES_BOARD_CANONICO:
+        if relativo.parts[0] == "orq":
+            caminho = plugin.joinpath(*relativo.parts[1:])
+        else:
+            caminho = raiz / relativo
+        try:
+            texto = caminho.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            problemas.append((relativo, 0, f"não foi possível ler contrato do board: {exc}"))
+            continue
+        if ANCORA_BOARD_CANONICO not in texto or INVOCACAO_RESOLVER_QUALIFICADA not in texto:
+            problemas.append(
+                (
+                    relativo,
+                    0,
+                    "falta declarar BOARD_CANONICO via resolver qualificado",
+                )
+            )
+            continue
+        if POLITICA_FALHA_RESOLVER not in texto:
+            problemas.append(
+                (
+                    relativo,
+                    0,
+                    "falha de resolver sem `state: erro` explícito permite fallback ambíguo",
+                )
+            )
+        for padrao, mensagem in (
+            (INVOCACAO_RESOLVER_NUA_RE, "invocação nua de kanban-status.sh --resolver não é executável"),
+            (INVOCACAO_RESOLVER_DESPROTEGIDA_RE, "invocação desprotegida de kanban-status.sh --resolver não é executável"),
+            (INVOCACAO_KANBAN_DESPROTEGIDA_RE, "invocação desprotegida de kanban-status.sh não é executável"),
+            (INVOCACAO_DIRETA_DESPROTEGIDA_RE, "invocação direta desprotegida de kanban-status.sh não é executável"),
+        ):
+            for invocacao in padrao.finditer(texto):
+                if _instrucao_esta_negada(texto, invocacao.start()):
+                    continue
+                linha = texto.count("\n", 0, invocacao.start()) + 1
+                problemas.append((relativo, linha, mensagem))
+        for instrucao in _achados_sobrepostos(INSTRUCAO_PRESCRITIVA_BOARD_LOCAL_RE, texto):
+            if _instrucao_esta_negada(texto, instrucao.start()):
+                continue
+            linha = texto.count("\n", 0, instrucao.start()) + 1
+            problemas.append(
+                (
+                    relativo,
+                    linha,
+                    "instrução prescritiva local para memory/wiki/KANBAN.md bifurca o board canônico",
+                )
+            )
+        if relativo == CONSUMIDOR_INICIALIZACAO_BOARD_CANONICO:
+            if not POLITICA_ERRO_RESOLUCAO_INIT_RE.search(texto):
+                problemas.append(
+                    (
+                        relativo,
+                        0,
+                        "erro de resolução (`state: erro`) não pode autorizar criar pelo `exists: false`",
+                    )
+                )
+            if not POLITICA_INEXISTENCIA_VERDADEIRA_INIT_RE.search(texto):
+                problemas.append(
+                    (
+                        relativo,
+                        0,
+                        "inexistência verdadeira requer `state: ok` e `exists: false` antes da criação",
+                    )
+                )
+    return problemas
+
+
+def validate_thread_root(raiz: Path, plugin: Path) -> list:
+    """Mantém a thread na frente dona, independente do board operacional."""
+    problemas: list = []
+    for relativo in CONSUMIDORES_BOARD_CANONICO:
+        caminho = plugin.joinpath(*relativo.parts[1:]) if relativo.parts[0] == "orq" else raiz / relativo
+        try:
+            texto = caminho.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            problemas.append((relativo, 0, f"não foi possível ler contrato da thread: {exc}"))
+            continue
+        if CONTRATO_THREAD_ROOT not in texto:
+            problemas.append(
+                (
+                    relativo,
+                    0,
+                    "falta declarar THREAD_ROOT da frente, independente do BOARD_CANONICO",
+                )
+            )
+        for instrucao in _achados_sobrepostos(INSTRUCAO_FALLBACK_THREAD_RE, texto):
+            if _instrucao_esta_negada(texto, instrucao.start()):
+                continue
+            linha = texto.count("\n", 0, instrucao.start()) + 1
+            problemas.append(
+                (
+                    relativo,
+                    linha,
+                    "instrução de fallback de thread para principal/worktree é proibida",
+                )
+            )
+    return problemas
+
+
 def main() -> int:
     raiz = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     plugin = raiz / "orq"
@@ -1606,6 +1807,8 @@ def main() -> int:
     problemas.extend(validate_hooks(raiz, plugin))
     problemas.extend(validate_codex_consultive_language(raiz, plugin))
     problemas.extend(validate_marcador_host_kanban(raiz))
+    problemas.extend(validate_board_canonico(raiz, plugin))
+    problemas.extend(validate_thread_root(raiz, plugin))
 
     for arq in arquivos_a_varrer(raiz, plugin):
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):

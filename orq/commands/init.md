@@ -9,6 +9,16 @@ Você vai instalar o **Orquestra** neste projeto. Leia a skill `orq` primeiro (a
 decida o que faz sentido *aqui*, e só então proponha. Um script Python de 200 linhas não precisa do
 mesmo time que um monorepo com backend, CRM e workflows.
 
+## Board canônico — regra de inicialização
+
+Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
+Antes de classificar, ler, criar ou mover card, resolva `BOARD_CANONICO` com
+`sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, e decodifique o JSON inteiro. Em
+`state: erro`, pare e relate a degradação: mesmo que o JSON traga `exists: false`, isso não prova
+ausência e nunca autoriza criar um board. Somente em `state: ok` com `exists: false`, crie o board
+no caminho `board` devolvido. Havendo board canônico, use-o mesmo se a worktree não o tiver. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback.
+Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
+
 ---
 
 ## FASE 1 — Investigar (paralelo, read-only)
@@ -67,22 +77,27 @@ Levante:
      investigação, para que a pergunta certa já esteja pronta na FASE 3.
 
      ⚠️ **F3 depende de o board existir, e nesta fase ele pode ainda não existir** (projeto novo é o
-     caso mais comum — quem cria `memory/wiki/KANBAN.md` é a FASE 4, passo 1, que roda **depois**
-     desta investigação). Se `memory/wiki/KANBAN.md` **já existe** (projeto que já usa o Orquestra,
-     `--reinstalar`), rode o critério completo de F3 aqui mesmo — sinal textual (a) e confirmação por
-     execução (b), ver FASE 4, passo 4. **Se ainda não existe, o que fica em aberto é só quando o
+     caso mais comum — a FASE 4, passo 1, cria o `BOARD_CANONICO` devolvido pelo resolver somente
+     após `state: ok` com `exists: false`, e roda **depois** desta investigação). Se o
+     `BOARD_CANONICO` **já existe** (projeto que já usa o Orquestra, `--reinstalar`), rode o critério
+     completo de F3 aqui mesmo — sinal textual (a) e confirmação por execução (b), ver FASE 4, passo
+     4. **Se ainda não existe, o que fica em aberto é só quando o
      sinal textual (a) já passa:** rodar (b) agora sempre daria saída vazia (o `kanban-status.sh` sai
      sem imprimir nada quando o arquivo do board ainda não existe) e classificaria como "não mostra"
-     um caso que, depois de a FASE 4 criar o board, mostraria — duas conclusões opostas na mesma
+     um caso que, depois de a FASE 4 criar o `BOARD_CANONICO`, mostraria — duas conclusões opostas na mesma
      execução do comando. Nesse caso (a passa, b pendente), registre a classificação com **só o
      sinal textual (a)**, marcada como **provisória**, e diga à FASE 3 para relatar como pendente de
      reconfirmação — não cravar "já mostra" nem "não mostra" ainda. A confirmação por execução (b)
-     roda de novo na FASE 4, passo 4, **depois** de o passo 1 já ter criado o board — só esse
+     roda de novo na FASE 4, passo 4, **depois** de o passo 1 já ter criado o `BOARD_CANONICO` — só esse
      resultado entra no relato final. **Se (a) já falha** (nenhum sinal de `kanban-status`/`KANBAN.md`
      no `command`, ou no que ele invoca), a conclusão já está decidida sem esperar o board existir —
      os dois critérios de F3 são obrigatórios (achado C7, ver FASE 4, passo 4), e falhando o
      primeiro a barra já **não mostra o board**: registre "não mostra" direto, sem marcar como
      provisória.
+
+     Se o resolver devolveu `state: erro`, não trate o `exists: false` desse erro como ausência: o
+     board está indisponível, não há criação na FASE 4 e a reconfirmação de F3 fica bloqueada até a
+     resolução voltar a `state: ok`.
 
      Nenhuma escrita acontece nesta fase — gravar ou copiar: só depois da FASE 3, com aprovação.
 
@@ -184,7 +199,8 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 
 1. **Memória** (só o que faltar — **nunca sobrescrever o que existe**):
    `memory/MEMORY.md` (índice) · `memory/fixes-history.md` (log) · `memory/gotchas.md` ·
-   `memory/wiki/KANBAN.md` (board, com o backlog real que você achou) · `memory/wiki/threads/` ·
+   `BOARD_CANONICO` (board, com o backlog real que você achou; só no caminho devolvido após
+   `state: ok` com `exists: false`) · `THREAD_ROOT/threads/` ·
    `memory/wiki/_schema.md` (o contrato — passo 1b) · as páginas de tópico aprovadas.
 
    **Já existe algo com essa função em OUTRO caminho?** (ex.: `MEMORY.md` na raiz, `NOTES.md`,
@@ -208,6 +224,9 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 
        - [ ] `T-001` Título curto — nota livre depois do travessão
 
+   - `board` = `BOARD_CANONICO`: único caminho absoluto que o Manager lê ou altera;
+   - `thread_root` = `THREAD_ROOT`: campo JSON absoluto entregue pelo resolver, igual a `<front_root>/memory/wiki`; nunca é `front_root`, caminho relativo nem a raiz da frente;
+   - o ponteiro no card é sempre `threads/...` relativo sob `THREAD_ROOT`, nunca caminho do board;
    - o marcador é o 4º caractere e só pode ser um destes seis: `[ ]` BACKLOG · `[>]` PLANNING ·
      `[!]` AWAITING_OWNER · `[~]` READY/DEV_REVIEW · `[?]` VALIDATE · `[x]` DONE;
    - o ID vem **entre crases**, logo depois do marcador — é ele que distingue card de checklist;
@@ -215,7 +234,7 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    - **nada de negrito ou crase envolvendo o marcador ou o ID**, e **sem indentação**;
    - **só card usa `- [` na coluna 0** — item de processo solto não é card;
    - uma seção cujo título case com `## …arquiv…` **encerra a contagem** de progresso;
-   - **a linha inteira cabe em 240 bytes UTF-8** — o que não couber vai para `threads/T-NNN.md`,
+   - **a linha inteira cabe em 240 bytes UTF-8** — o que não couber vai para `THREAD_ROOT/threads/T-NNN.md`,
      e o card fica com título, estado, como validar e o ponteiro para a thread.
 
    ## O teto da linha de card
@@ -239,8 +258,8 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    Uma janela = uma FRENTE; nunca duas janelas na mesma frente.
    1. releia antes de escrever — o disco pode ter mudado;
    2. edite só as linhas dos seus cards, nunca reescreva o board inteiro;
-   3. card em curso leva `@frente` no fim da nota;
-   4. trabalho em curso mora em `threads/<frente>.md` (dono único, sem conflito).
+   3. card em curso leva `@frente-<slug>` no fim da nota, com slug conceitual estável escolhido pela frente;
+   4. trabalho em curso mora na thread apontada pelo card, `THREAD_ROOT/threads/T-NNN.md` (dono único, sem conflito). A frente vive somente em `@frente-<slug>` na nota do card, nunca no nome da thread.
    Pendência de decisão do dono → card `[!]` com a pergunta exata + "RETOMAR AQUI" na thread.
    Aí a janela **pode fechar**: manter janela viva só pra não esquecer é usar contexto como memória.
    ```
@@ -456,14 +475,14 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      **Procedimento de MIGRAÇÃO (aprovação nominal na pergunta 4 — um "sim" geral às perguntas 1-3
      não autoriza; recusado ou não perguntado → mantém a instalação legada e relata o risco de novo
      no próximo `/orq:init`):**
-     1. Copiar o par `${CLAUDE_PLUGIN_ROOT}/scripts/statusline.sh` +
-        `${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh` para o destino do **mesmo escopo** em que a
+     1. Copiar o par `"${ORQ_PACKAGE_ROOT}/scripts/statusline.sh"` +
+        `"${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"` para o destino do **mesmo escopo** em que a
         chave legada vive hoje (`.claude/` do projeto se a chave é de projeto; `~/.claude/orq/` se é
         de usuário — nunca muda o escopo por conta própria), com stamp. Aplique a **guarda de
         destino ocupado** (acima) antes de copiar — a cópia em si é sempre arquivo nosso, conhecido,
         mas o que já pode estar **naquele caminho** não é.
      2. **Testar a cópia nova antes de tocar em settings (achado D2, rodada 3):** `echo
-        '{"workspace":{"project_dir":"<abs-do-projeto>"}}' | sh <cópia-nova>/statusline.sh` — exigir
+        '{"workspace":{"project_dir":"<abs-do-projeto>"}}' | sh "<cópia-nova>/statusline.sh"` — exigir
         `exit 0` e saída contendo `📋` ou `⚠`. Falhou → **não mexa em settings**; relate a falha da
         cópia nova e mantenha a instalação legada intacta.
      3. **Backup do settings antes de escrever (achado D2):**
@@ -554,8 +573,8 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      existe. Com o stdin `echo '{"workspace":{"project_dir":"<abs-do-projeto>"}}'`, mesmo `cwd` deste
      projeto, confira que a saída contém `📋` ou `⚠`.
 
-     ⚠️ **Classificação provisória da FASE 1** (o board não existia até aqui): repita (b) agora — o
-     passo 1 desta fase já criou `memory/wiki/KANBAN.md`, então esta é a primeira vez que a
+     ⚠️ **Classificação provisória da FASE 1** (o resolver devolveu `state: ok` com `exists: false`
+     até aqui): repita (b) agora — o passo 1 desta fase já criou o `BOARD_CANONICO` devolvido, então esta é a primeira vez que a
      confirmação por execução tem uma saída real para conferir. É só esse resultado, e não o da
      FASE 1, que entra no relato final. Nada é escrito por essa reconfirmação — F3 nunca escreve.
 
@@ -568,14 +587,14 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      de terceiros — relate isso, sempre, sem prometer conserto futuro** e mostre o bloco que a pessoa
      pode acrescentar por conta própria, ajustando ao seu script:
      ```sh
-     # Kanban do projeto (memory/wiki/KANBAN.md) — vazio se não houver quadro
+     # Board canônico resolvido pelo script — vazio se não houver quadro
      kanban_str=""
      if [ -r "<caminho-de-uma-cópia-de-kanban-status.sh>" ]; then
        kanban_str=$(sh "<mesmo-caminho>" "$PWD" 2>/dev/null)
      fi
      [ -n "$kanban_str" ] && kanban_str=" | ${kanban_str}"
      ```
-     Diga que `${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh` pode ser copiado para um caminho
+     Diga que `"${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"` pode ser copiado para um caminho
      estável fora do plugin (nunca aponte para dentro do plugin no script dela — R3) e usado no lugar
      do placeholder. Cite em uma linha que a barra completa do Orquestra (F1) existe como alternativa
      — **nunca** proponha substituir a statusline dela. Nenhuma escrita acontece neste ramo: nem em
@@ -620,7 +639,7 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 **Não basta dizer o que fez — prove que funciona.** Rode o smoke test e mostre o resultado:
 
 1. **O board é legível pela statusline?**
-   `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` — e confira **os três sinais**, porque
+   `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .` — e confira **os três sinais**, porque
    saída não-vazia **não** prova que está certo:
    - saída **vazia** com cards no board → FALHA: nenhum card foi reconhecido;
    - **`⚠N`** no fim → N linhas parecem card e não casam o contrato;
@@ -766,12 +785,12 @@ conseguiu corrigir, **diga isso** em vez de declarar sucesso.
   linha 2 (formato exato: `# orq v<versão> — instalado por /orq:init em <AAAA-MM-DD>; fonte:
   orq/scripts/<nome>. Não editar à mão; re-sync: /orq:init --reinstalar`). **Com stamp:** compare a
   versão do stamp com a versão deste plugin **e** rode `diff` contra a fonte correspondente
-  (`${CLAUDE_PLUGIN_ROOT}/scripts/statusline.sh` ou `${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh`)
+  (`"${ORQ_PACKAGE_ROOT}/scripts/statusline.sh"` ou `"${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"`)
   **ignorando a linha do stamp** — a fonte no plugin não leva stamp (é a linha 2 dela, código de
   verdade lá; comentário só na cópia), então comparar bruto acusa a linha do stamp em toda cópia,
-  sempre, mesmo sem nenhum drift real: `diff <(sed '2d' <cópia>) <fonte>`. **Sem stamp** (achada só
+  sempre, mesmo sem nenhum drift real: `diff <(sed '2d' "<cópia>") "${ORQ_PACKAGE_ROOT}/scripts/<nome>.sh"`. **Sem stamp** (achada só
   pelo comando efetivo, como o legado do dono, ou arquivo de terceiros que só coincide de nome):
-  ainda assim rode `diff <cópia> <fonte>` — divergiu ou não, é **sempre** relato, nunca ação (script
+  ainda assim rode `diff "<cópia>" "${ORQ_PACKAGE_ROOT}/scripts/<nome>.sh"` — divergiu ou não, é **sempre** relato, nunca ação (script
   sem o nosso stamp não é nosso para consertar). Divergiu, com ou sem stamp → **proponha** re-sync
   (recopiar com stamp novo); **nunca aplique sozinho**.
 

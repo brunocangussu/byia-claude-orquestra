@@ -55,7 +55,7 @@
 - [x] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — validado por você em 2026-09-06: a divergência foi acusada com papel, valor ativo e valor do preset · → threads/T-079-gpt6-astra.md
 - [x] `T-077` Runner Anthropic fixa --model opus e barra o Fable no host Codex — fechado em 2026-09-06: provado no T-079 — runner INSTALADO com --model fable devolveu claude-fable-5-1, exit 0
 
-- [ ] `T-076` Board resolvido pelo checkout principal, para sobreviver a worktree por frente · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md
+- [?] `T-076` Board único entre worktrees — candidata 0.27.7 integrada; falta publicar, instalar, reiniciar e validar · → threads/T-076-board-principal.md
 
 - [?] `T-072` claude-mem volta ao catálogo com o papel escrito — feito em SKILL.md, stack.md e _stack.md · → threads/T-072-claude-mem.md
 - [?] `T-073` O gatilho "lembra quando" nunca chama busca nenhuma — agora nomeia a busca; teste: diga a frase · → threads/T-072-claude-mem.md

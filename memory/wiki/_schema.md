@@ -3,6 +3,14 @@
 > Regras de formato que **outras coisas leem por parser**. Mudar aqui sem mudar o consumidor quebra
 > em silêncio. O `/orq:checkpoint` e o `/orq:wiki-lint` procuram este arquivo.
 
+## Board canônico entre worktrees
+
+Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
+`BOARD_CANONICO` é resolvido com `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal; o
+JSON completo fornece o único caminho `board` que Manager pode ler ou alterar. `state: erro` não
+autoriza fallback para `memory/wiki/KANBAN.md` local. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback.
+Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
+
 ## Formato do board (contrato — não improvise)
 
 Card, exatamente assim:
@@ -42,7 +50,7 @@ custo real em tokens, que é o motivo do teto existir.
 | marcador + ID | ~14 B | fixo pelo contrato |
 | título | **80 B** | até o primeiro travessão |
 | ponteiro de thread | **50 B** | `→ threads/T-NNN-nome.md` |
-| nota (estado, `trilha:`, `faixa:`, como validar, `@frente`) | o que sobrar | ~96 B |
+| nota (estado, `trilha:`, `faixa:`, como validar, `@frente-<slug>`) | o que sobrar | ~96 B |
 
 **Por que 240 e não 200.** A migração de 2026-09-02 mediu: com teto de 200, **três dos nove
 primeiros cards estouraram** e tiveram o "como validar" reescrito até caber — perda que não aparece
@@ -79,7 +87,7 @@ metadado, não nota — e migrar isso quebra o consumidor em silêncio.
 |---|---|
 | `trilha: … · faixa: …` | `/orq:plan-next`, `/orq:implement-next`, `/orq:elenco` |
 | **release alvo** (`0.23.0`) em card que tem uma | `ContextGuardReleaseVersionTest` |
-| `@frente` | o protocolo de várias janelas |
+| `@frente-<slug>` | o protocolo de várias janelas; slug conceitual estável, nunca basename automático |
 | `@claude`/`@codex` (`T-086`, só em `[>]`/`[~]`) | `orq/scripts/lint-coerencia.py` e o protocolo de várias janelas |
 | o ponteiro `→ threads/…` | quem precisa achar o resto |
 

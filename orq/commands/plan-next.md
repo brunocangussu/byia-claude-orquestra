@@ -5,13 +5,22 @@ argument-hint: "[T-NNN para escolher um card específico, ou descrição de uma 
 
 Você é o **Manager** (leia a skill `orq`). Rode o **Loop A — Planejamento**.
 
+Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
+**BOARD_CANONICO:** antes de escolher, criar ou marcar card, use
+`sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, e decodifique o JSON sem separá-lo por linhas.
+Só o `board` devolvido pode ser lido/escrito; `state: erro` para o loop e nunca autoriza fallback ao
+board local. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback.
+Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
+Com `state: ok` com `exists: false`, pare antes de criar ou marcar card e encaminhe para `/orq:init`; só continue com um board existente.
+
 ## 1. Escolher o card
 - `$ARGUMENTS` com `T-NNN` → esse card.
 - `$ARGUMENTS` com texto livre → **crie** o card no BACKLOG primeiro (ID novo) e planeje ele.
 - Vazio → o primeiro `[ ]` do BACKLOG (respeitando 🔴 e a ordem).
 - Nada no backlog → diga isso e ofereça criar um card. **Não invente trabalho.**
 
-Marque o card como `[>]` PLANNING no `memory/wiki/KANBAN.md`.
+Card novo é somente o criado nesta invocação; escolha um slug conceitual estável, registre a frente dona no fim da nota como `@frente-<slug>` e só então crie sua thread. Card legado do BACKLOG é pré-existente, sem ponteiro/thread e sem `@frente-<slug>`: esta frente o reivindica e marca antes de criar a thread. Não derive o slug do basename do diretório. Card já marcado para outra frente para e relata indisponibilidade independentemente de a thread existir. Card existente com ponteiro cuja thread falta em `THREAD_ROOT` também para e relata indisponibilidade — não cria, duplica, troca de frente nem usa fallback.
+Marque o card como `[>]` PLANNING no `BOARD_CANONICO` somente depois dessa checagem de posse; a criação permitida vem depois da marcação que registra a reivindicação.
 
 ## 2. Classificar o card nos dois eixos
 
