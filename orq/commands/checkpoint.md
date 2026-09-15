@@ -7,10 +7,19 @@ Você é um **mantenedor disciplinado de wiki**, não um chatbot. Faça um **CHE
 registre o conhecimento FORA da janela, para ela poder ser reiniciada ou compactada sem perder nada.
 Contexto = RAM (descartável); memória em disco = HD (durável).
 
+## Board canônico — antes de qualquer leitura ou escrita
+
+Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
+Resolva `BOARD_CANONICO` com `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, e
+decodifique o JSON inteiro, nunca por linhas. Só o caminho `board` retornado pode ser relido ou
+alterado: `state: erro` é degradação visível e proíbe fallback ao `memory/wiki/KANBAN.md` local;
+`exists: false` é ausência legítima. Com `state: ok` com `exists: false`, não leia o `board` e encaminhe para `/orq:init`. Em `state: erro`, não emita handshake positivo de checkpoint. Com card ativo desta frente cuja thread obrigatória falta em `THREAD_ROOT`, o sinal falha e não autoriza handshake; somente projeto sem card ativo desta frente pode registrar que não havia thread a verificar. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback.
+Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
+
 ## 1. Descobrir a estrutura
 Procure nesta ordem: `memory/wiki/_schema.md` (regras da wiki e **formato do board** — **se existir**;
 instalações anteriores à 0.6.0 não têm, e a ausência dele não é erro) · `memory/MEMORY.md` (índice) ·
-`memory/fixes-history.md` (log) · `memory/wiki/threads/` (trabalho em curso) · `docs/plano_*.md`.
+`memory/fixes-history.md` (log) · `THREAD_ROOT/threads/` (trabalho em curso) · `docs/plano_*.md`.
 
 **Vai mexer no board?** Siga o formato do `_schema.md`. Sem ele, o contrato é este — o parser lê por
 posição: o ID **vem entre crases**, e negrito ou crase **envolvendo** o marcador ou o ID tira a
@@ -18,11 +27,11 @@ linha da contagem (ela reaparece como `⚠N`, mas o denominador encolhe sem alar
 
     - [ ] `T-001` Título curto — nota livre depois do travessão
 
-**A linha inteira cabe em 240 bytes UTF-8.** O que não couber vai para `threads/T-NNN.md`, e o card
+**A linha inteira cabe em 240 bytes UTF-8.** O que não couber vai para `THREAD_ROOT/threads/T-NNN.md`, e o card
 fica com título, estado, como validar e o ponteiro. O board é relido inteiro a cada retomada e a
 cada compactação — nota longa no card é custo cobrado em toda sessão, enquanto na thread ela só é
 lida por quem precisa. ⚠️ Ao encurtar um card, **não mova o que outra coisa lê da linha**:
-`trilha:`/`faixa:`, a release alvo e o `@frente` ficam no card. Ver `_schema.md`, "O que NUNCA
+`trilha:`/`faixa:`, a release alvo e o `@frente-<slug>` ficam no card. Ver `_schema.md`, "O que NUNCA
 migra para a thread".
 
 **Se o projeto NÃO tem wiki**, crie o mínimo: `memory/MEMORY.md` (índice) + `memory/fixes-history.md`
@@ -37,12 +46,12 @@ por quê" não-derivável. **Não** cole diffs nem listas de arquivos (o git já
 O dono trabalha com **várias janelas abertas no mesmo projeto**, cada uma numa frente. O arquivo em
 disco pode ter mudado desde que você o leu.
 
-- **Releia `KANBAN.md`, o log e as páginas que você vai tocar — agora**, mesmo que já estejam no seu
+- **Releia `BOARD_CANONICO`, o log e as páginas que você vai tocar — agora**, mesmo que já estejam no seu
   contexto. A cópia que você tem pode estar velha.
-- **Ao reler o board, rode** `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` **e guarde a
+- **Ao reler o board, rode** `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .` **e guarde a
   saída**: é a âncora da seção `📋 Board` do relatório final (passo 5). **Não** a chame de "antes" —
   ela já contém o que esta sessão moveu antes do checkpoint.
-- **Altere apenas as linhas que são suas.** Nunca reescreva o `KANBAN.md` inteiro a partir da versão
+- **Altere apenas as linhas que são suas.** Nunca reescreva o `BOARD_CANONICO` inteiro a partir da versão
   que você leu no começo da sessão: é isso que apaga o trabalho das outras janelas.
 - **Mudou algo que você não fez?** Outra janela trabalhou. **Não sobrescreva** — incorpore e siga.
   Se não der para conciliar, registre no card e leve ao dono.
@@ -58,10 +67,10 @@ O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁ
   ainda não tem página e é recorrente, **crie**. (Isto não é a "iniciativa própria" que o N1 da
   skill `orq` restringe — o checkpoint só roda quando o dono pede, mesmo em frase natural como
   "terminamos"; a correção de página aqui vale sem pedir ok de novo.)
-- **THREAD ativa** (`memory/wiki/threads/*.md`): status das fases (✅/🔄/⬜), decisões novas (com o
+- **THREAD ativa** (`THREAD_ROOT/threads/*.md`): status das fases (✅/🔄/⬜), decisões novas (com o
   porquê, pra não re-litigar), perguntas abertas e — obrigatório — **⏭️ RETOMAR AQUI** com a próxima
-  ação concreta. Thread concluída → sintetize nas páginas de tópico e mova pra `threads/_concluidas/`.
-- **BOARD** (`wiki/KANBAN.md`): mova o que ESTA sessão moveu de fato e registre card que nasceu —
+  ação concreta. Thread concluída → sintetize nas páginas de tópico e mova pra `THREAD_ROOT/threads/_concluidas/`.
+- **BOARD** (`BOARD_CANONICO`): mova o que ESTA sessão moveu de fato e registre card que nasceu —
   formato do passo 1, regras de janelas do 2b. Guarde a lista de movimentos pro relatório.
 - **GOTCHA** novo → `gotchas.md`.
 - **ÍNDICE** (`MEMORY.md`): registre página/thread nova; atualize a linha de resumo do que mudou.
@@ -84,7 +93,7 @@ conforme o host real:
 Nunca emita as duas frases na mesma resposta. Se uma verificação falhar, emita somente a frase
 negativa do contrato e corrija o sinal quebrado; texto equivalente não registra `checkpoint_verified`.
 
-**Com board**, rode de novo `sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` e confira:
+**Com board**, rode de novo `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .` e confira:
 
 1. saída **vazia havendo cards escritos** no board → nenhum card reconhecido *(board legitimamente
    sem card sai vazio e está correto — não é falha)*;
@@ -115,8 +124,10 @@ pendência desaparece do lugar onde ele olha. Nesse caso, mova o card ou afirme 
 o handshake do host. Fechar a janela é irreversível: o transcript vai embora, e só o disco resta.
 
 **Falhou qualquer um → corrija e verifique de novo; não afirme "seguro" por cima de verificação
-falhando.** Falha que não é sua (outra janela)? Reporte-a no lugar da afirmação. O que o projeto não
-tem (board, thread) não se verifica — e não bloqueia.
+falhando.** Falha que não é sua (outra janela)? Reporte-a no lugar da afirmação. Thread ausente só
+não se verifica quando não há card ativo desta frente; card ativo que aponta para thread obrigatória
+ausente é sinal falhado e não autoriza handshake. Somente `state: ok` com `exists: false` encaminha
+board ausente para `/orq:init`; em `state: erro`, pare e reporte.
 
 ## 5. Confirmar — a audiência é o DONO, não o próximo assistente
 
@@ -172,11 +183,11 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
   própria (N1) neste checkpoint?** O achado dele entra como bullet **aqui** — é evidência de verificação,
   não seção à parte, mas **não é sinal de verificação falhada**: o N1 só lê e nunca corrige (nem o
   trivial — ver skill `orq`), então o achado nunca troca o título para `⚠️ Verificação falhou` nem
-  impede o handshake do host. Projeto sem board nem thread? Ela
-  aparece dizendo o que **não** havia a verificar, e autoriza:
+  impede o handshake do host. Projeto sem card ativo desta frente — portanto sem thread obrigatória —
+  registra o que não havia a verificar e autoriza:
 
       ### ✅ Verificação
-      - projeto sem board nem thread — nada a verificar
+      - sem card ativo desta frente — nenhuma thread obrigatória a verificar
       **<handshake exato do host: Claude ou Codex>**
 
 - **Falhou um sinal?** Título vira `### ⚠️ Verificação falhou`, diga **qual** sinal e **o que corrigir**,

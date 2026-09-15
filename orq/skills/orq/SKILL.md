@@ -1,7 +1,7 @@
 ---
 name: orq
 description: >
-  Use when a project contains `memory/wiki/KANBAN.md` and the user requests any work change,
+  Use when a project uses Orquestra (or is being initialized with it) and the user requests any work change,
   implementation, fix, improvement, refactor, review, validation, or continuation. Also use for
   project status and resumption, recording decisions/cards, checkpoints and context cleanup, model
   roster or LLM-credit changes, memory recall, removal/adoption audits, tool/setup diagnosis,
@@ -13,6 +13,26 @@ description: >
 ---
 
 # Orquestra — a disciplina
+
+## Prova da raiz do pacote
+
+Antes de qualquer chamada ou leitura de command, resolva uma vez a raiz do pacote instalado e
+chame-a de `ORQ_PACKAGE_ROOT`: no Claude é `${CLAUDE_PLUGIN_ROOT}`. No Codex, suba a partir desta
+skill até o ancestral do pacote que contém `.claude-plugin/plugin.json`, onde `skills/` e
+`commands/` são irmãos — nunca use `skills/orq/commands/`. Em qualquer outro host, se `commands/`
+existir ao lado desta skill, essa é a raiz; senão, suba como no Codex. Só prossiga quando a raiz for
+absoluta, existir e contiver `scripts/kanban-status.sh`; se não puder comprová-la, pare e declare a
+raiz ausente. Não invente caminho nem passe `${CLAUDE_PLUGIN_ROOT}` literal fora do Claude.
+
+## Board canônico
+
+Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
+Antes de qualquer leitura, criação ou movimento de card, resolva `BOARD_CANONICO` com
+`sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, e decodifique o JSON completo. Use
+somente o caminho `board` devolvido. Em `state: erro`, pare e declare a indisponibilidade: o
+`exists: false` desse erro não prova ausência nem permite criar board. Somente `state: ok` com
+`exists: false` permite que o init crie o board devolvido. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback.
+Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
 
 ## 🔴 ROTEAMENTO AUTOMÁTICO — leia antes de tudo
 
@@ -147,7 +167,7 @@ silêncio.
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" — queixa sobre o **ferramental** (plugin, revisor, statusline, MCP, PATH), nunca sobre o que o produto faz | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado (versão **e** conteúdo), escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
 | "quais as possibilidades" · "o que dá pra fazer" | **Cardápio por situação** (`/orq:ajuda`) — frases naturais em primeiro plano, comando entre parênteses. Nunca ensine o dono a digitar comando como resposta |
 | "tem um comando pra instalar o Orquestra no Codex?" · "quero testar o Orquestra em outra LLM" — só dispara aqui quando a frase **nomeia o host** (Codex) ou **o Orquestra** em si; sem isso, é ambíguo e cai num dos desempates ao lado | **Instalação em outro host** (`/orq:instalar`) — descobre a fonte, instala no host escolhido e **verifica que instalou**. Desempate contra `/orq:elenco` (acima): ali o pedido troca **quem toca o papel** no time atual, nunca leva o produto pra outro CLI. Desempate contra `/orq:stack` (acima): ali o objeto é uma ferramenta que falta **neste projeto**; aqui o objeto é **o Orquestra**, indo para outro host. Desempate por destino: pedido para **este projeto** (o CLI onde você já está) é `/orq:init`, mesmo citando "o Orquestra" — só dispara aqui quando o destino declarado é **outro** CLI |
-| "vou abrir outra janela pra isso" · "deixa essa parte pra depois" · "essa janela é pra X" | **Registre a frente**: nomeie a thread, marque os cards em curso com `@frente`, e diga em uma linha o que fica onde |
+| "vou abrir outra janela pra isso" · "deixa essa parte pra depois" · "essa janela é pra X" | **Registre a frente**: escolha slug conceitual estável, nomeie a thread, marque os cards em curso com `@frente-<slug>`, e diga em uma linha o que fica onde |
 | "vou dormir" · "adianta o que der" · "trabalha enquanto isso" | **Modo noturno** (`/orq:dormir`) — só planejamento, com limites |
 | "bom dia" · "voltei" · "e aí, o que rolou?" (após modo noturno) | **Relatório** (`/orq:acordar`) |
 | Início de sessão num projeto **com** `memory/` | **Leia `memory/MEMORY.md`** e diga em 2 linhas onde paramos. Sem despejar arquivo |
@@ -356,10 +376,10 @@ sobrescrevem **em silêncio**.
 **Uma janela = uma frente.** Nunca duas janelas na mesma frente.
 
 1. **Releia antes de escrever.** Sempre — o disco pode ter mudado desde que você leu.
-2. **Edite a linha, nunca o arquivo.** Reescrever o `KANBAN.md` inteiro a partir de uma cópia velha
+2. **Edite a linha, nunca o arquivo.** Reescrever o `BOARD_CANONICO` inteiro a partir de uma cópia velha
    é o que apaga o trabalho das outras janelas. A concorrência não é o problema; a reescrita é.
-3. **Card em curso leva `@frente`** no fim da nota. Não pegue card marcado com frente alheia.
-4. **Card em curso também leva o host** (`T-086`): `@claude` ou `@codex`, junto do `@frente`.
+3. **Card em curso leva `@frente-<slug>`** no fim da nota; escolha o slug conceitual estável, sem derivá-lo do basename. Não pegue card marcado com frente alheia.
+4. **Card em curso também leva o host** (`T-086`): `@claude` ou `@codex`, junto do `@frente-<slug>`.
    Escreva ao entrar em `[>]`/`[~]`, remova ao sair para `[ ]`, `[?]` ou `[x]` — a guarda do lint
    reprova ausência, os dois juntos, e marca sobrando nesses três. Em `[!]` a marca **permanece**:
    a pausa preserva a posse, e quem retoma reafirma ou transfere explicitamente. Identifica o
@@ -367,8 +387,9 @@ sobrescrevem **em silêncio**.
    o worktree por tarefa (`T-092`).
 5. **Quem está marcado no card commita aquele trabalho.** Não há integrador fixo do repositório —
    há o dono do card, agora.
-6. **Trabalho em curso mora na thread da frente** (`threads/<frente>.md`) — arquivo de dono único,
-   livre de conflito por construção. ⚠️ **O board não é o único disputado:** `MEMORY.md`,
+6. **Trabalho em curso mora na thread apontada pelo card** (`THREAD_ROOT/threads/T-NNN.md`) — arquivo
+   de dono único, livre de conflito por construção. A frente é identificada por `@frente-<slug>`,
+   nunca pelo nome do arquivo. ⚠️ **O board não é o único disputado:** `MEMORY.md`,
    `_elenco.md`, o log e o manifesto de versão também são escritos pelas duas janelas. A thread é
    o que tem dono único; o resto exige editar a linha, nunca o arquivo.
 
@@ -385,8 +406,8 @@ O board diz *onde estamos*; a wiki diz *o que o sistema é*.
 
 - `memory/MEMORY.md` — índice (ler primeiro)
 - `memory/wiki/<tópico>.md` — como funciona **hoje** (reescrita)
-- `memory/wiki/threads/<nome>.md` — trabalho em curso com "RETOMAR AQUI"
-- `memory/wiki/KANBAN.md` — o board
+- `THREAD_ROOT/threads/<nome>.md` — trabalho em curso com "RETOMAR AQUI"
+- `BOARD_CANONICO` — o board operacional, resolvido antes de qualquer leitura ou escrita de card
 - `memory/fixes-history.md` — log append-only
 - `memory/gotchas.md` — armadilhas
 

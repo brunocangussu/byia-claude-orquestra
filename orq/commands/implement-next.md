@@ -5,6 +5,14 @@ argument-hint: "[T-NNN para escolher um card específico]"
 
 Você é o **Manager** (leia a skill `orq`). Rode o **Loop B — Implementação**.
 
+Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
+**BOARD_CANONICO:** antes de validar ou mover o card, resolva
+`sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, e use exclusivamente o caminho `board` do JSON
+completo. `state: erro` é bloqueio visível, não licença para ler cópia local. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback.
+Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
+Com `state: ok` e `exists: false`, pare e encaminhe para `/orq:init`: não há board para ler, validar ou mover neste loop.
+Passe `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` como caminhos absolutos em cada briefing; o Manager resolve uma vez, e os papéis despachados não re-resolvem nem mudam a raiz de memória.
+
 ## 0. Pré-condições (não negociáveis)
 - O card precisa estar **READY** (`[~]`) com plano **aprovado**. Se não estiver, pare e diga que
   falta passar pelo `/orq:plan-next`.
@@ -39,7 +47,7 @@ rebaixou, diga em uma linha por quê.
 Sem modelo, CLI, worktree ou sandbox exigido → **não escreva**. Devolva o card com a degradação
 nomeada.
 
-O briefing inclui: o card, o **plano aprovado**, os critérios de aceite, as convenções do projeto
+O briefing inclui: `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` absolutos, o card, o **plano aprovado**, os critérios de aceite, as convenções do projeto
 (build/teste) e o que está fora de escopo.
 
 Exija de volta: o que foi feito, como testou, o que **não** conseguiu fazer, e as decisões tomadas
@@ -47,7 +55,7 @@ no caminho.
 
 ## 2. Revisar (parecer independente, read-only)
 Rode a **revisão** (`/orq:revisar`): **um** revisor, sempre do **vendor oposto ao host**, com o
-briefing do diff, os critérios de aceite e o que está fora de escopo.
+briefing do diff, `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` absolutos, os critérios de aceite e o que está fora de escopo. O reviewer não re-resolve nem muda a raiz de memória.
 
 **Audite antes de agir:** com um revisor só, todo achado é solitário por construção — você
 **verifica cada um no código** antes de aceitar, e descarta o que não tiver cenário de falha
@@ -61,7 +69,7 @@ degradada, ou ausência de revisor declarada): quem decide isso é o `/orq:revis
 revise de novo. Máximo 2 rodadas; persistindo, escale pro dono.
 
 ## 3. Documentar (sobre o código FINAL)
-Só depois do review fechado, spawn do `orq-docs` — senão a documentação descreve algo que mudou.
+Só depois do review fechado, spawn do `orq-docs` com `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` absolutos — senão a documentação descreve algo que mudou. O papel não re-resolve nem muda a raiz de memória.
 Documentação é **atemporal**: descreve como é agora, não a história da mudança.
 
 Atualize também a **página de tópico** da wiki afetada (é aqui que a memória se paga).

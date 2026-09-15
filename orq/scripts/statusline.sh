@@ -111,7 +111,6 @@ rate_limit_str="${rate_limit_str}$(format_rl "$rl_5h_pct" "$rl_5h_reset" "5h")"
 repo_root=$(cd "$current_dir" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null || echo "$current_dir")
 dir_display=$(basename "$repo_root")
 
-# Kanban do projeto (memory/wiki/KANBAN.md) — vazio se o projeto não tiver quadro.
 # Achado por vizinhança, não por caminho fixo: a irmã mora ao lado deste
 # script, onde quer que o par tenha sido copiado (.claude/ do projeto ou
 # ~/.claude/orq/) — é o que satisfaz R3 sem hardcode.

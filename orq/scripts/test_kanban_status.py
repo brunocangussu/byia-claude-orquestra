@@ -11,13 +11,20 @@ noutra. O teste roda com um locale explícito para provar que a régua não depe
 do ambiente.
 """
 
+from __future__ import annotations
+
+import json
 import os
+import shutil
 import subprocess
+import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent / "kanban-status.sh"
+STATUSLINE = Path(__file__).resolve().parent / "statusline.sh"
 TETO = 240
 
 
@@ -217,6 +224,573 @@ class KanbanStatusFalhaDaMedicaoTest(unittest.TestCase):
         self.assertIn("📏?", r.stdout, "falha silenciosa: o sinal sumiu em vez de virar 📏?")
         self.assertIn("(0/1)", r.stdout, "o resto da statusline tem que continuar funcionando")
         self.assertEqual(r.returncode, 0, "statusline não pode matar o prompt")
+
+
+class KanbanStatusCheckoutPrincipalTest(unittest.TestCase):
+    def test_worktree_antigo_le_o_board_do_checkout_principal(self):
+        """O board operacional não pode bifurcar entre worktrees Git."""
+        with tempfile.TemporaryDirectory() as tmp:
+            principal = Path(tmp) / "principal"
+            principal.mkdir()
+            subprocess.run(["git", "init", str(principal)], check=True, capture_output=True, text=True)
+            subprocess.run(["git", "-C", str(principal), "config", "user.email", "teste@example.com"], check=True)
+            subprocess.run(["git", "-C", str(principal), "config", "user.name", "Teste"], check=True)
+
+            board = principal / "memory" / "wiki" / "KANBAN.md"
+            board.parent.mkdir(parents=True)
+            board.write_text("# board\n" + card(" ", "T-001", "primeiro") + "\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(principal), "add", "memory/wiki/KANBAN.md"], check=True)
+            subprocess.run(["git", "-C", str(principal), "commit", "-m", "board inicial"], check=True, capture_output=True, text=True)
+
+            board.write_text(
+                "# board\n" + card(" ", "T-001", "primeiro") + "\n" + card(" ", "T-002", "segundo") + "\n",
+                encoding="utf-8",
+            )
+            subprocess.run(["git", "-C", str(principal), "add", "memory/wiki/KANBAN.md"], check=True)
+            subprocess.run(["git", "-C", str(principal), "commit", "-m", "board atual"], check=True, capture_output=True, text=True)
+
+            worktree = Path(tmp) / "frente-antiga"
+            subprocess.run(
+                ["git", "-C", str(principal), "worktree", "add", "--detach", str(worktree), "HEAD~1"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            resultado = subprocess.run(
+                ["sh", str(SCRIPT), str(worktree)], capture_output=True, text=True, check=False
+            )
+
+            self.assertEqual(resultado.returncode, 0, resultado.stderr)
+            self.assertIn("(0/2)", resultado.stdout)
+
+
+class KanbanStatusResolverTest(unittest.TestCase):
+    def _git(self, directory: Path, *args: str, **kwargs) -> subprocess.CompletedProcess:
+        return subprocess.run(["git", "-C", str(directory), *args], check=True, capture_output=True, text=True, **kwargs)
+
+    def _iniciar_repo(self, principal: Path, board_texto: str | None) -> None:
+        principal.mkdir()
+        subprocess.run(["git", "init", str(principal)], check=True, capture_output=True, text=True)
+        self._git(principal, "config", "user.email", "teste@example.com")
+        self._git(principal, "config", "user.name", "Teste")
+        if board_texto is not None:
+            board = principal / "memory" / "wiki" / "KANBAN.md"
+            board.parent.mkdir(parents=True)
+            board.write_text(board_texto, encoding="utf-8")
+            self._git(principal, "add", "memory/wiki/KANBAN.md")
+            self._git(principal, "commit", "-m", "board inicial")
+
+    def _resolver(self, directory: Path, *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            ["sh", str(SCRIPT), "--resolver", str(directory)], capture_output=True, text=True, env=env, check=False
+        )
+
+    def _fake_git(self, directory: Path, body: str) -> dict[str, str]:
+        real_git = shutil.which("git")
+        self.assertIsNotNone(real_git)
+        fake = directory / "bin"
+        fake.mkdir(exist_ok=True)
+        (fake / "git").write_text("#!/bin/sh\n" + body, encoding="utf-8")
+        (fake / "git").chmod(0o755)
+        env = dict(os.environ)
+        env["PATH"] = f"{fake}{os.pathsep}{env.get('PATH', '')}"
+        env["REAL_GIT"] = str(real_git)
+        return env
+
+    def test_raiz_subpasta_e_detached_usam_o_mesmo_board_principal_com_caminho_complexo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            principal = Path(tmp) / "principal espaço ü\nquebra"
+            self._iniciar_repo(principal, "# board\n" + card(" ", "T-001", "primeiro") + "\n")
+            board = principal / "memory" / "wiki" / "KANBAN.md"
+            board.write_text(
+                "# board\n" + card(" ", "T-001", "primeiro") + "\n" + card(" ", "T-002", "segundo") + "\n",
+                encoding="utf-8",
+            )
+            self._git(principal, "add", "memory/wiki/KANBAN.md")
+            self._git(principal, "commit", "-m", "board atual")
+
+            worktree = Path(tmp) / "frente espaço ü\nquebra"
+            self._git(principal, "worktree", "add", "--detach", str(worktree), "HEAD~1")
+            subpasta = worktree / "sub espaço ü\nquebra"
+            subpasta.mkdir()
+
+            esperado = os.path.realpath(principal / "memory" / "wiki" / "KANBAN.md")
+            for origem in (worktree, subpasta):
+                structured = self._resolver(origem)
+                self.assertEqual(structured.returncode, 0, structured.stderr)
+                info = json.loads(structured.stdout)
+                self.assertEqual(
+                    info,
+                    {
+                        "state": "ok",
+                        "code": None,
+                        "board": esperado,
+                        "front_root": os.path.realpath(worktree),
+                        "thread_root": os.path.realpath(worktree / "memory" / "wiki"),
+                        "exists": True,
+                        "provenance": "worktree",
+                    },
+                )
+                normal = subprocess.run(["sh", str(SCRIPT), str(origem)], capture_output=True, text=True, check=False)
+                self.assertEqual(normal.returncode, 0, normal.stderr)
+                self.assertIn("(0/2)", normal.stdout)
+
+    def test_sem_git_mantem_board_local_e_principal_sem_board_nao_usa_copia_antiga(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sem_git = Path(tmp) / "sem-git"
+            sem_git.mkdir()
+            local = self._resolver(sem_git)
+            self.assertEqual(local.returncode, 0, local.stderr)
+            self.assertEqual(
+                json.loads(local.stdout),
+                {
+                    "state": "ok",
+                    "code": None,
+                    "board": os.path.realpath(sem_git / "memory" / "wiki" / "KANBAN.md"),
+                    "front_root": os.path.realpath(sem_git),
+                    "thread_root": os.path.realpath(sem_git / "memory" / "wiki"),
+                    "exists": False,
+                    "provenance": "local",
+                },
+            )
+
+            principal = Path(tmp) / "principal"
+            self._iniciar_repo(principal, "# board\n" + card(" ", "T-001", "antigo") + "\n")
+            self._git(principal, "rm", "memory/wiki/KANBAN.md")
+            self._git(principal, "commit", "-m", "remove board")
+            worktree = Path(tmp) / "frente-antiga"
+            self._git(principal, "worktree", "add", "--detach", str(worktree), "HEAD~1")
+
+            structured = self._resolver(worktree)
+            self.assertEqual(structured.returncode, 0, structured.stderr or structured.stdout)
+            info = json.loads(structured.stdout)
+            self.assertFalse(info["exists"])
+            self.assertEqual(info["provenance"], "worktree")
+            normal = subprocess.run(["sh", str(SCRIPT), str(worktree)], capture_output=True, text=True, check=False)
+            self.assertEqual(normal.stdout, "")
+
+    def test_git_ausente_com_metadado_nao_aceita_board_local_stale(self):
+        """Sem binário Git, `.git` ainda impede provar que o board local vale."""
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            principal = raiz / "principal"
+            self._iniciar_repo(principal, "# board\n" + card(" ", "T-001", "stale") + "\n")
+
+            ferramentas = raiz / "sem-git"
+            ferramentas.mkdir()
+            python = sys.executable
+            shell = shutil.which("sh")
+            self.assertIsNotNone(python)
+            self.assertIsNotNone(shell)
+            (ferramentas / "python3").symlink_to(python)
+            (ferramentas / "sh").symlink_to(shell)
+            env = dict(os.environ)
+            env["PATH"] = str(ferramentas)
+
+            structured = self._resolver(principal, env=env)
+            self.assertEqual(structured.returncode, 2)
+            self.assertEqual(json.loads(structured.stdout)["code"], "git-indisponivel")
+            normal = subprocess.run(
+                ["/bin/sh", str(SCRIPT), str(principal)], capture_output=True, text=True, env=env, check=False
+            )
+            self.assertIn("⚠ quadro: checkout principal indisponível", normal.stdout)
+            self.assertNotIn("(0/1)", normal.stdout)
+
+    def test_git_ausente_com_link_git_quebrado_nao_aceita_board_local_stale(self):
+        """`lexists` preserva o sinal de um `.git` cujo destino já desapareceu."""
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            local = raiz / "local"
+            board = local / "memory" / "wiki" / "KANBAN.md"
+            board.parent.mkdir(parents=True)
+            board.write_text("# board\n" + card(" ", "T-001", "stale") + "\n", encoding="utf-8")
+            (local / ".git").symlink_to(raiz / "metadados-ausentes")
+
+            ferramentas = raiz / "sem-git"
+            ferramentas.mkdir()
+            python = sys.executable
+            shell = shutil.which("sh")
+            self.assertIsNotNone(shell)
+            (ferramentas / "python3").symlink_to(python)
+            (ferramentas / "sh").symlink_to(shell)
+            env = dict(os.environ)
+            env["PATH"] = str(ferramentas)
+
+            structured = self._resolver(local, env=env)
+            self.assertEqual(structured.returncode, 2)
+            self.assertEqual(json.loads(structured.stdout)["code"], "git-indisponivel")
+
+            normal = subprocess.run(
+                ["/bin/sh", str(SCRIPT), str(local)], capture_output=True, text=True, env=env, check=False
+            )
+            self.assertIn("⚠ quadro: checkout principal indisponível", normal.stdout)
+            self.assertNotIn("(0/1)", normal.stdout)
+
+    def test_resolver_devolve_erro_estruturado_se_git_some_antes_da_lista_worktree(self):
+        """O sentinel de OSError da listagem não pode vazar AttributeError."""
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            principal = raiz / "principal"
+            self._iniciar_repo(principal, "# board\n")
+            contador = raiz / "chamadas-git"
+            env = self._fake_git(
+                raiz,
+                """contador=0
+if [ -r \"$GIT_CALL_COUNT_FILE\" ]; then
+  IFS= read -r contador < \"$GIT_CALL_COUNT_FILE\"
+fi
+contador=$((contador + 1))
+printf '%s\\n' \"$contador\" > \"$GIT_CALL_COUNT_FILE\"
+if [ \"$contador\" -eq 4 ]; then
+  /bin/rm \"$0\"
+fi
+exec \"$REAL_GIT\" \"$@\"
+""",
+            )
+            ferramentas = raiz / "bin"
+            (ferramentas / "python3").symlink_to(sys.executable)
+            shell = shutil.which("sh")
+            self.assertIsNotNone(shell)
+            (ferramentas / "sh").symlink_to(shell)
+            env["PATH"] = str(ferramentas)
+            env["GIT_CALL_COUNT_FILE"] = str(contador)
+
+            structured = self._resolver(principal, env=env)
+
+            self.assertEqual(structured.returncode, 2, structured.stderr)
+            self.assertEqual(
+                json.loads(structured.stdout),
+                {
+                    "state": "erro",
+                    "code": "git-indisponivel",
+                    "board": None,
+                    "front_root": None,
+                    "thread_root": None,
+                    "exists": False,
+                    "provenance": None,
+                },
+            )
+
+    def test_separate_git_dir_e_copia_isolada_do_par_conservam_o_resolver(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            principal = raiz / "principal"
+            metadados = raiz / "metadados-git"
+            subprocess.run(
+                ["git", "init", "--separate-git-dir", str(metadados), str(principal)],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            board = principal / "memory" / "wiki" / "KANBAN.md"
+            board.parent.mkdir(parents=True)
+            board.write_text("# board\n" + card(" ", "T-001", "único") + "\n", encoding="utf-8")
+            structured = self._resolver(principal)
+            self.assertEqual(structured.returncode, 0, structured.stderr)
+            info = json.loads(structured.stdout)
+            self.assertEqual(info["provenance"], "principal")
+            self.assertEqual(info["board"], os.path.realpath(board))
+            self.assertTrue(info["exists"])
+
+            subprocess.run(
+                ["git", "-C", str(principal), "config", "user.email", "teste@example.com"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(principal), "config", "user.name", "Teste"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(principal), "add", "memory/wiki/KANBAN.md"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(principal), "commit", "-m", "board inicial"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            linked = raiz / "linked"
+            subprocess.run(
+                ["git", "-C", str(principal), "worktree", "add", "--detach", str(linked)],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            linked_structured = self._resolver(linked)
+            self.assertEqual(linked_structured.returncode, 2)
+            self.assertEqual(
+                json.loads(linked_structured.stdout)["code"], "principal-separate-git-dir-indisponivel"
+            )
+
+            copia = raiz / "cópia isolada"
+            copia.mkdir()
+            shutil.copy2(SCRIPT, copia / "kanban-status.sh")
+            shutil.copy2(STATUSLINE, copia / "statusline.sh")
+            saida = subprocess.run(
+                ["sh", str(copia / "kanban-status.sh"), str(principal)], capture_output=True, text=True, check=False
+            )
+            self.assertEqual(saida.returncode, 0, saida.stderr)
+            self.assertIn("(0/1)", saida.stdout)
+
+    def test_git_sem_saida_nul_e_checkout_principal_indisponivel_falham_sem_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            principal = raiz / "principal"
+            self._iniciar_repo(principal, "# board\n" + card(" ", "T-001", "local") + "\n")
+
+            sem_nul = self._fake_git(
+                raiz,
+                'if [ "$3" = "worktree" ] && [ "$6" = "-z" ]; then exec "$REAL_GIT" -C "$2" worktree list --porcelain; fi\nexec "$REAL_GIT" "$@"\n',
+            )
+            resultado = self._resolver(principal, env=sem_nul)
+            self.assertEqual(resultado.returncode, 2)
+            self.assertEqual(json.loads(resultado.stdout)["code"], "worktree-list-sem-nul")
+            normal = subprocess.run(["sh", str(SCRIPT), str(principal)], capture_output=True, text=True, env=sem_nul, check=False)
+            self.assertIn("⚠ quadro: checkout principal indisponível", normal.stdout)
+            self.assertNotIn("(0/1)", normal.stdout)
+
+            ausente = raiz / "principal-ausente"
+            sem_principal = self._fake_git(
+                raiz,
+                'if [ "$3" = "worktree" ] && [ "$6" = "-z" ]; then printf "worktree %s\\0HEAD 0000000000000000000000000000000000000000\\0\\0" "$PRINCIPAL_AUSENTE"; exit 0; fi\nexec "$REAL_GIT" "$@"\n',
+            )
+            sem_principal["PRINCIPAL_AUSENTE"] = str(ausente)
+            resultado = self._resolver(principal, env=sem_principal)
+            self.assertEqual(resultado.returncode, 2)
+            self.assertEqual(json.loads(resultado.stdout)["code"], "principal-indisponivel")
+
+    def test_git_lento_degrada_sem_travar_a_statusline(self):
+        """Uma statusline não pode esperar um Git travado para cada render."""
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            principal = raiz / "principal"
+            self._iniciar_repo(principal, "# board\n" + card(" ", "T-001", "stale") + "\n")
+            lento = self._fake_git(raiz, 'sleep 2\nexec "$REAL_GIT" "$@"\n')
+
+            inicio = time.monotonic()
+            structured = self._resolver(principal, env=lento)
+            duracao = time.monotonic() - inicio
+            self.assertEqual(structured.returncode, 2)
+            self.assertEqual(json.loads(structured.stdout)["code"], "git-timeout")
+            # `resolver()` faz duas sondas independentes antes de degradar. O
+            # teto composto continua bem abaixo dos 4 s sem timeout (2 × 2 s).
+            self.assertLess(duracao, 3.0)
+
+            normal = subprocess.run(
+                ["sh", str(SCRIPT), str(principal)], capture_output=True, text=True, env=lento, check=False
+            )
+            self.assertIn("⚠ quadro: checkout principal indisponível", normal.stdout)
+            self.assertNotIn("(0/1)", normal.stdout)
+
+            toleravel = self._fake_git(raiz, 'sleep 0.4\nexec "$REAL_GIT" "$@"\n')
+            structured = self._resolver(principal, env=toleravel)
+            self.assertEqual(structured.returncode, 0, structured.stderr)
+            self.assertEqual(json.loads(structured.stdout)["provenance"], "principal")
+
+    def test_timeout_da_listagem_de_worktrees_degrada_sem_traceback(self):
+        """O sentinela interno de timeout nunca pode vazar para o consumidor."""
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            principal = raiz / "principal"
+            self._iniciar_repo(principal, "# board\n" + card(" ", "T-001", "stale") + "\n")
+            lento = self._fake_git(
+                raiz,
+                'if [ "$3" = "worktree" ] && [ "$4" = "list" ]; then sleep 2; fi\nexec "$REAL_GIT" "$@"\n',
+            )
+
+            structured = self._resolver(principal, env=lento)
+
+            self.assertEqual(structured.returncode, 2)
+            self.assertEqual(
+                json.loads(structured.stdout),
+                {
+                    "state": "erro",
+                    "code": "git-timeout",
+                    "board": None,
+                    "front_root": None,
+                    "thread_root": None,
+                    "exists": False,
+                    "provenance": None,
+                },
+            )
+            self.assertNotIn("Traceback", structured.stderr)
+
+            normal = subprocess.run(
+                ["sh", str(SCRIPT), str(principal)], capture_output=True, text=True, env=lento, check=False
+            )
+            self.assertEqual(normal.returncode, 0, normal.stderr)
+            self.assertIn("⚠ quadro: checkout principal indisponível (git-timeout)", normal.stdout)
+            self.assertNotIn("Traceback", normal.stderr)
+
+    def test_checkout_bare_e_python_ausente_sao_erros_visiveis(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            bare = raiz / "bare.git"
+            subprocess.run(["git", "init", "--bare", str(bare)], check=True, capture_output=True, text=True)
+            structured = self._resolver(bare)
+            self.assertEqual(structured.returncode, 2)
+            self.assertEqual(json.loads(structured.stdout)["code"], "checkout-bare")
+            normal = subprocess.run(["sh", str(SCRIPT), str(bare)], capture_output=True, text=True, check=False)
+            self.assertIn("⚠ quadro: checkout principal indisponível", normal.stdout)
+
+            ferramentas = raiz / "sem-python"
+            ferramentas.mkdir()
+            for comando in ("sh", "cat", "grep", "head", "sed", "dirname"):
+                origem = shutil.which(comando)
+                self.assertIsNotNone(origem)
+                (ferramentas / comando).symlink_to(origem)
+            env = dict(os.environ)
+            env["PATH"] = str(ferramentas)
+            copia = raiz / "copia"
+            copia.mkdir()
+            shutil.copy2(SCRIPT, copia / "kanban-status.sh")
+            shutil.copy2(STATUSLINE, copia / "statusline.sh")
+            structured = subprocess.run(
+                [str(ferramentas / "sh"), str(copia / "kanban-status.sh"), "--resolver", str(raiz)],
+                capture_output=True,
+                text=True,
+                env=env,
+                check=False,
+            )
+            self.assertEqual(structured.returncode, 2)
+            self.assertEqual(
+                json.loads(structured.stdout),
+                {
+                    "state": "erro",
+                    "code": "python-indisponivel",
+                    "board": None,
+                    "front_root": None,
+                    "thread_root": None,
+                    "exists": False,
+                    "provenance": None,
+                },
+            )
+            self.assertEqual(structured.stderr, "")
+            sem_python = subprocess.run(
+                [str(ferramentas / "sh"), str(copia / "statusline.sh")],
+                input=json.dumps({"workspace": {"project_dir": str(raiz)}}),
+                capture_output=True,
+                text=True,
+                env=env,
+                check=False,
+            )
+            self.assertEqual(sem_python.returncode, 0, sem_python.stderr)
+            self.assertIn("⚠ quadro: Python 3 indisponível", sem_python.stdout)
+
+
+    def test_resolver_estrutura_raizes_da_frente_para_subpasta_e_erro(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            principal = Path(tmp) / "principal"
+            self._iniciar_repo(principal, "# board\n")
+            frente = Path(tmp) / "frente"
+            self._git(principal, "worktree", "add", str(frente))
+            subpasta = frente / "pacotes" / "filha"
+            subpasta.mkdir(parents=True)
+
+            structured = self._resolver(subpasta)
+
+            self.assertEqual(structured.returncode, 0, structured.stderr)
+            info = json.loads(structured.stdout)
+            self.assertEqual(info["state"], "ok")
+            self.assertEqual(info["board"], os.path.realpath(principal / "memory" / "wiki" / "KANBAN.md"))
+            self.assertEqual(info["front_root"], os.path.realpath(frente))
+            self.assertEqual(info["thread_root"], os.path.realpath(frente / "memory" / "wiki"))
+            self.assertTrue(info["exists"])
+            self.assertTrue(os.path.isabs(info["board"]))
+            self.assertTrue(os.path.isabs(info["thread_root"]))
+
+            shell = shutil.which("sh")
+            self.assertIsNotNone(shell)
+            sem_python = subprocess.run(
+                [shell, str(SCRIPT), "--resolver", str(frente)],
+                capture_output=True,
+                text=True,
+                env={**os.environ, "PATH": ""},
+                check=False,
+            )
+            self.assertEqual(sem_python.returncode, 2)
+            self.assertEqual(
+                json.loads(sem_python.stdout),
+                {
+                    "state": "erro",
+                    "code": "python-indisponivel",
+                    "board": None,
+                    "front_root": None,
+                    "thread_root": None,
+                    "exists": False,
+                    "provenance": None,
+                },
+            )
+
+    def test_resolver_rejeita_origem_inexistente_e_nao_diretorio_com_json_completo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            arquivo = raiz / "arquivo"
+            arquivo.write_text("não sou diretório", encoding="utf-8")
+            for origem in (raiz / "inexistente", arquivo):
+                with self.subTest(origem=origem):
+                    structured = self._resolver(origem)
+                    self.assertEqual(structured.returncode, 2)
+                    self.assertEqual(
+                        json.loads(structured.stdout),
+                        {
+                            "state": "erro",
+                            "code": "origem-inexistente",
+                            "board": None,
+                            "front_root": None,
+                            "thread_root": None,
+                            "exists": False,
+                            "provenance": None,
+                        },
+                    )
+
+    def test_resolver_ignora_redirecionadores_git_herdados_e_distingue_worktree(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            principal = Path(tmp) / "principal"
+            self._iniciar_repo(principal, "# board\n")
+            frente = Path(tmp) / "frente"
+            self._git(principal, "worktree", "add", str(frente))
+            ambiente = {
+                **os.environ,
+                "GIT_DIR": str(Path(tmp) / "git-falso"),
+                "GIT_WORK_TREE": str(Path(tmp) / "worktree-falsa"),
+                "GIT_COMMON_DIR": str(Path(tmp) / "common-falso"),
+                "GIT_INDEX_FILE": str(Path(tmp) / "index-falso"),
+            }
+
+            structured = self._resolver(frente, env=ambiente)
+
+            self.assertEqual(structured.returncode, 0, structured.stderr)
+            info = json.loads(structured.stdout)
+            self.assertEqual(info["state"], "ok")
+            self.assertEqual(info["code"], None)
+            self.assertEqual(info["provenance"], "worktree")
+            self.assertEqual(info["front_root"], os.path.realpath(frente))
+
+    def test_board_path_recusa_caminho_relativo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            board = raiz / "KANBAN.md"
+            board.write_text("# Quadro\n", encoding="utf-8")
+
+            resultado = subprocess.run(
+                ["sh", str(SCRIPT), "--board-path", "KANBAN.md"],
+                cwd=raiz,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(resultado.returncode, 2)
+            self.assertEqual(resultado.stdout, "")
 
 
 if __name__ == "__main__":

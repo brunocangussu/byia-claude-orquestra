@@ -146,11 +146,15 @@ versão igual NÃO implica conteúdo igual — quem editou a fonte sem bumpar de
 
 ### Board: os três sinais (saída não-vazia não prova nada)
 
-`sh ${CLAUDE_PLUGIN_ROOT}/scripts/kanban-status.sh .` e então os três, na ordem:
+Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
+Resolva `BOARD_CANONICO` com `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, antes da medição; use somente o caminho
+retornado, sem fallback para board local se houver erro. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback. Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
+
+Fluxo obrigatório antes de medir: `state: erro` → pare e reporte; `state: ok` com `exists: false` → o board está ausente, encaminhe para `/orq:init`, sem medição; só `state: ok` com `exists: true` permite medir. Neste último caso, atribua o caminho devolvido a `BOARD_CANONICO` e rode `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" "$BOARD_CANONICO"`; nunca use `.` nem o board local na medição. Então confira os três sinais, na ordem:
 
 1. saída **vazia** com cards escritos no board → nenhum card reconhecido;
 2. **`⚠N`** no fim → N linhas parecem card e não casam o contrato;
-3. **denominador ≠ contagem manual** → abra `memory/wiki/KANBAN.md`, conte as linhas que o dono
+3. **denominador ≠ contagem manual** → abra o `BOARD_CANONICO`, conte as linhas que o dono
    escreveu como card (acima da seção `## …Arquivad…`) e compare com o total do script.
 
 Só reporte "board legível ✓" com os **três** limpos. O terceiro é o que pega o caso real: card
