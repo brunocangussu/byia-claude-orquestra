@@ -6,6 +6,8 @@
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
 **Versão:** 0.27.6 — **publicada e instalada** em `fd33de6` (2026-09-08); os dois caches conferidos contra clone detached e limpo do SHA remoto, `exit 0` em Claude e Codex. A `0.27.6` traz o `T-081`: guarda que impede `CLAUDE_MEM_CONTEXT_OBSERVATION_TYPES`, chave sem consumidor, de voltar a ser recomendada. ⚠️ **Instalado não é carregado:** cada host só roda a versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-08 · **host padrão a partir de 2026-08-09: Codex**.
 
+**Correção documental, 2026-09-15 — `T-070`:** a frase sobre o antigo painel de três revisores foi corrigida para o passado, preservando as três ocasiões e registrando a aposentadoria pelo T-051. A revisão Fable 5.1 foi **APROVADA**, sem bloqueadores. Evidência em `wiki/threads/T-070-painel-historico.md`.
+
 **Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
 saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`
 mais os testes conversacionais `T-025`/`T-020`/`T-030`. A prova técnica final do `T-075` também
@@ -337,9 +339,10 @@ edição do Manager em `gotchas.md` que não era dele, e a excluiu do escopo sem
 **O que já foi provado em uso real:**
 - O `/orq:init` rodou em **projeto de terceiro** (outra LLM, sem ninguém daqui) e voltou com 10
   atritos — 4 bugs de contrato. Fechou o `T-003`, gerou o `T-011`.
-- O **painel de três revisores** (Claude · Codex · Kimi) funciona e já se pagou três vezes: achou a
-  brecha de instalação por slash command, o parser permissivo do board, e — na mesma rodada — Codex e
-  Kimi acharam bugs **diferentes** no mesmo arquivo.
+- O antigo **painel de três revisores** (Claude · Codex · Kimi) funcionou e se pagou três vezes:
+  achou a brecha de instalação por slash command, o parser permissivo do board, e — na mesma rodada —
+  Codex e Kimi acharam bugs **diferentes** no mesmo arquivo. **Esse painel foi aposentado pelo T-051;
+  o contrato atual é revisor único, de vendor oposto ao host.**
 - O ciclo de release está fechado: `validate` → `lint` → `marketplace update` → `plugin update`.
 
 - **O ciclo inteiro rodou pela primeira vez** (0.11.0, 29/jul): Fable planejou 16 passos → dono

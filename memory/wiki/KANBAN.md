@@ -64,7 +64,7 @@
 
 - [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 
-- [ ] `T-070` MEMORY.md afirma no presente que o painel de 3 revisores funciona — wiki-lint N1 · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
+- [x] `T-070` Índice do painel histórico corrigido — Fable 5.1 aprovou sem bloqueadores; integrado em commit próprio · → threads/T-070-painel-historico.md
 
 - [ ] `T-068` Sequência alto uso → checkpoint → compactação → retomada não tem teste ponta a ponta — parecer · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-069` Conteúdo de thread injetado pelo hook é promoção de confiança — parecer · trilha: sistema · faixa: pesada · → threads/T-054-economia-tokens.md @frente-economia
