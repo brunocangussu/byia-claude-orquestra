@@ -202,9 +202,16 @@ marcador. Como contraprova, a linha do T-081 foi neutralizada temporariamente
 no worktree, sem entrar no escopo: 396/396 passaram nos dois Pythons, manifesto
 e lint ficaram verdes. A linha foi restaurada antes do stage.
 
-## ⏭️ RETOMAR AQUI — validar a candidata integrada
+## Publicação — 2026-09-15
 
-Depois de verificar o commit e a integração em `origin/main`, o próximo gate é
-publicar e instalar a 0.27.8 nos dois hosts, reiniciar cada host e executar a
-validação comportamental do cabeçalho arquivado. O T-047 usará a próxima versão
-livre quando for retomado.
+O commit `470eba9` foi enviado para a branch do T-071 e integrado por
+fast-forward em `origin/main`. Branch remota, `origin/main` e worktree limpo
+apontaram para o mesmo SHA. A prova pós-integração, em checkout detached desse
+SHA e com apenas o bloqueador basal do T-081 neutralizado, passou 396/396 nos
+Pythons 3.9 e 3.12, manifesto estrito e lint.
+
+## ⏭️ RETOMAR AQUI — instalar e validar a release publicada
+
+O próximo gate é instalar a 0.27.8 nos dois hosts, reiniciar cada host e
+executar a validação comportamental do cabeçalho arquivado. O T-047 usará a
+próxima versão livre quando for retomado.

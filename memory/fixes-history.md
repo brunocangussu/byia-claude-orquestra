@@ -1,5 +1,17 @@
 # Log de mudanças — append-only
 
+## [2026-09-15] release | 0.27.8 — seção arquivada exata e cercas Markdown coerentes
+
+`T-071`: statusline e guarda de posse agora encerram a parte ativa somente nos cinco títulos H2
+canônicos (`Arquivo`, `Arquivado`, `Arquivada`, `Arquivados`, `Arquivadas`), fora de cercas Markdown
+válidas. Os dois `awk` e o Python compartilham o contrato de espaços/tabs ASCII, marcador opcional,
+CRLF e leitura sem tradução de separadores Unicode ou CR isolado.
+
+A R2 Fable aprovou três lotes sem bloqueadores. Após a integração no commit `470eba9`, a prova em
+checkout remoto limpo passou 396/396 nos Pythons 3.9 e 3.12, além de manifesto estrito e lint,
+neutralizando apenas no checkout descartável o marcador basal inválido do T-081. A 0.27.8 está
+publicada; instalação, restart e validação comportamental permanecem separados.
+
 ## [2026-09-15] release | 0.27.7 — board operacional único entre worktrees
 
 `T-076`: o board operacional passa a ser resolvido pelo checkout principal, enquanto cada frente
