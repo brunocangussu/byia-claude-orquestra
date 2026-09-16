@@ -191,7 +191,7 @@ Motor: a sessão Codex. A linha `manager` é expectativa verificável, não coma
 | implementer·pesada | `gpt-5.6-terra@xhigh` | `workspace-write`, writer único em worktree |
 | implementer·normal | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
 | implementer·leve | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03: as três faixas no mesmo modelo. O smoke do `gpt-5.6-luna` fica no histórico, mas o degrau não o usa mais |
-| reviewer | `fable` | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas. Invocar com `--model fable`; a prova exige `claude-fable-5-1` no `modelUsage`, confirmada em 2026-09-05 |
+| reviewer | `opus` | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas. Invocar com `--model opus`; a prova exige o prefixo `claude-opus-5` no `modelUsage`, comprovado em 2026-08-09 |
 | docs | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
 | scout | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
 

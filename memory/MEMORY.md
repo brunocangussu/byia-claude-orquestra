@@ -24,6 +24,15 @@ comportamental permanecem em gates separados.
 
 **Release 0.27.8, 2026-09-15 — `T-071`:** publicada em `origin/main` no commit `470eba9`. O contrato de cabeçalho arquivado exato e cercas Markdown foi implementado em RED/GREEN no worktree `codex/t071-archive-heading`, reconciliado com a `main` após o T-076. A divergência entre `splitlines()`/tradução universal do Python e os `awk` foi corrigida com leitura que preserva newlines e divisão exclusiva por LF. A R2 Fable aprovou os três lotes sem bloqueadores. Testes localizados passaram nos Pythons 3.9 e 3.12; a suíte final executou 396 testes e manteve apenas as três falhas basais do T-081. Retomar em `wiki/threads/T-071-secao-arquivada.md`. Instalação, restart e validação prática permanecem em gates separados.
 
+**Checkpoint de recuperação, 2026-09-12 — `T-094`:** após compactação, índice, board e thread foram relidos. O mini-revisor Luna segue sem implementação; a sonda sintética marcou 12/12 para Luna e Astra, sem prova de economia. A dependência `T-062` permanece em 6/6 revisões, sem aprovação, com um bloqueador documental. O dono questionou o termo “canário” e a demora e pediu priorizar a conclusão dessas tarefas. Retomar em `wiki/threads/T-094-mini-revisor-luna.md`; não inferir autorização para R7, release ou mudança global.
+
+**Checkpoint de recuperação, 2026-09-08 — `T-078`:** os seis hooks do AI-Memory no Codex foram
+reconfirmados por configuração e por ciclo real persistido; Claude e Codex continuam gravando no
+SQLite local. O dono conhece a alternativa de religar o claude-mem no Codex, mas mantém por ora o
+piloto isolado: AI-Memory nos dois hosts e claude-mem somente no Claude Code. A frente do Claude
+avança separadamente a coexistência dos hosts (`T-085`–`T-092`); retomar o piloto em
+`wiki/threads/T-078-ai-memory.md`, sem misturar as duas frentes.
+
 **Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
 saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`
 mais os testes conversacionais `T-025`/`T-020`/`T-030`. A prova técnica final do `T-075` também

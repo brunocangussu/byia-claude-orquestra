@@ -177,3 +177,17 @@ status` (contagem, disco) e o que cada camada achou em retomadas reais. É o Est
 organicamente, sem ter que escolher um projeto de antemão. Até essa reavaliação, o estado esperado
 é: AI-Memory ativo em Claude e Codex; claude-mem ativo no Claude Code e desligado nos dois pontos de
 ativação do Codex (plugin e fallback `UserPromptSubmit`).
+
+### Checkpoint de recuperação — 2026-09-08
+
+- A reconferência ao vivo encontrou **175 sessões Codex** e **70 sessões Claude Code**; uma sessão
+  Codex real recente persistiu `session-start`, `user-prompt`, `pre-tool-use`, `post-tool-use` e
+  `stop` no mesmo ID. O Claude Code continuou gravando `post-tool-use` durante o checkpoint.
+- O `config.toml` mantém exatamente um hook AI-Memory em cada um dos seis eventos do Codex; o
+  claude-mem continua desligado nos dois pontos do host, conforme a decisão provisória acima.
+- A janela do Claude está ativa na frente de coexistência dos hosts (`T-085`–`T-092`) e não disputa
+  esta thread. Nenhum card foi movido por este checkpoint.
+
+**Próxima ação concreta:** continuar usando o AI-Memory no Codex sem o claude-mem e, ao completar
+1–2 semanas de uso, comparar retomadas reais, contagem/disco e utilidade da memória antes de decidir
+se a segunda camada volta ao host.

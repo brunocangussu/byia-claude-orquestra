@@ -24,6 +24,22 @@ sem bloqueador. Contrato + guardião fecharam 130/130 nos Pythons 3.12 e 3.9.6. 
 manteve somente quatro falhas basais externas já registradas. Esta entrada descreve a candidata da
 fonte; publicação, instalação, restart e teste comportamental continuam separados.
 
+## [2026-09-12] processo | @frente-gauntlet · checkpoint de recuperação do T-094
+
+Após compactação, foram relidos o índice, o board e a thread do mini-revisor. O dono pediu uma explicação de “canário”, questionou a demora e quer concluir as pendências antes de analisar novas ideias. O T-094 continua aprovado apenas para implementação e testes isolados, sem alteração global; ainda não foi implementado. O T-062 continua em 6/6 revisões, sem R7 autorizada. A demora decorreu de vincular o piloto do Luna à integração dessa base e de seis revisões formais, não de uma falha comprovada do Luna. A próxima ação é explicar a situação e avançar somente dentro do escopo já aprovado, sem confundir sonda sintética com canário operacional.
+
+## [2026-09-08] processo | @ai-memory · checkpoint do piloto isolado e coordenação com o Claude
+
+O banco do AI-Memory voltou a provar atividade real dos dois hosts: o Codex persistiu o ciclo
+completo esperado e o Claude Code continuou avançando observações. Os seis hooks permanecem no
+`config.toml`; `hooks.json` segue fora da solução. O dono foi informado do custo de religar o
+claude-mem no Codex e manteve provisoriamente o desenho do `T-074`: AI-Memory sozinho naquele host
+durante a janela de 1–2 semanas.
+
+A outra janela avançou a frente de coexistência dos hosts e publicou seu próprio trabalho. Este
+checkpoint não moveu cards nem tocou no plano dessa frente; registrou somente o estado do `T-078`
+e a próxima ação de reavaliar o ganho prático após uso real.
+
 ## [2026-09-07] release | 0.27.4 — a proibição de `--write` ganha enforcement, e a revisão derrubou a primeira versão dela
 
 `T-019` foi **reescopado** antes de implementado: o ator original (o Kimi, que em 2026-07-28 rodou

@@ -8,7 +8,9 @@
 
 ## ⏸️ Esperando você
 
-- [?] `T-081` `OBSERVATION_TYPES` é chave morta — 0.27.6 publicada e instalada nos 2 hosts por @claude, `exit 0`; falta restart e sua validação · → threads/T-072-claude-mem.md @frente-economia @codex
+- [!] `T-094` B1 Luna — G/H 2/2; achado H válido, gate formal falhou; guarda isolada/desligada. Autoriza corrigir bloqueador T-062 e fazer só R7? · → threads/T-094-mini-revisor-luna.md @frente-gauntlet @codex
+
+- [?] `T-081` `OBSERVATION_TYPES` é chave morta — 0.27.6 publicada e instalada nos 2 hosts pela janela Claude, `exit 0`; falta restart e sua validação · → threads/T-072-claude-mem.md @frente-economia
 - [x] `T-020` Perfis de elenco — validado em 2026-09-07: agente sem contexto de teste ouviu a frase e trocou o time inteiro, com o que muda, o que se perde e como reverter · → threads/T-020-perfis-elenco.md
 - [?] `T-030` Correções do painel de três revisores sobre as releases 0.14.0–0.16.0 — 0.17.0 fechada; teste: "agora não" tem que repropor 1× depois · → threads/T-030-correcoes-painel.md
 
@@ -77,7 +79,7 @@
 - [ ] `T-059` Leitura parcial por padrão em quadro e checkpoint — p15 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-060` Worker devolve resumo com teto, não transcrição — p16 · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-061` Escala de cerimônia dimensiona o ciclo de cada card — p17 · trilha: sistema · faixa: normal · → threads/T-054-economia-tokens.md @frente-economia
-- [ ] `T-062` Teto de rodadas de revisão com contador no card — p11 · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
+- [!] `T-062` Teto de revisão — recibo durável local; decidir extensão +1 para R8 Fable · `revisões: 7/7 · extensão: +3` · → threads/T-054-economia-tokens.md @frente-economia @codex
 - [ ] `T-063` Writer do Codex por subprocesso, para matar o polling — p9 · trilha: sistema · faixa: pesada · → threads/T-054-economia-tokens.md @frente-economia
 - [ ] `T-067` A Matriz manda rodar codex exec por Bash; a regra do dono proíbe — achado · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
 
@@ -85,7 +87,7 @@
 
 - [ ] `T-053` Incorporar o Fable 5.1 no elenco — trilha: sistema · faixa: normal · próximo: claude update 2.1.255+, reiniciar, reler additionalModelOptionsCache · → threads/T-053-fable-51.md
 
-- [ ] `T-047` Compatibilidade de sessões antigas após upgrades — sessões antigas apontam para caches já ausentes · → threads/_notas-de-cards.md
+- [!] `T-047` Cache de tasks antigas — R6 reprovada; decidir extensão para corrigir 3 testes ou redesenhar · `revisões: 6/6 · extensão: +2` · → threads/_notas-de-cards.md @frente-protecao-contexto @codex
 - [ ] `T-044` Endurecer reset concorrente do guardião de contexto — reset concorrente pode apagar o marcador .reset do SessionStart(clear) · → threads/_notas-de-cards.md
 
 - [ ] `T-042` Statusline nativa do Codex — release alvo 0.23.0 · perfil opt-in com backup e rollback · → threads/_notas-de-cards.md

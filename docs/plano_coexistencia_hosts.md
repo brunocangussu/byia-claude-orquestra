@@ -199,3 +199,39 @@ mecanismo.
 
 Vira o `T-092`. Não substitui o `T-086`: marcador e isolamento resolvem coisas diferentes — um diz
 **quem** está com o card, o outro impede que dois se atropelem no disco.
+
+---
+
+## ⏭️ RETOMAR AQUI (checkpoint da janela Claude, 2026-09-08)
+
+**A frente da coexistência passou para o Codex.** O dono encerrou esta janela e segue no host Codex
+com o `T-047` reestruturado. Nada aqui está em execução.
+
+**Estado no fim desta janela:** board em 30% (28/92); `0.27.6` publicada e instalada nos dois hosts,
+conferida contra clone limpo (`exit 0`); suíte 332, manifesto e lint verdes.
+
+**O que esta janela entregou, e por quê importa:**
+
+- `T-086` **fechado e provado em uso real** — o Codex marcou `@codex` num card por conta própria,
+  sem ninguém pedir. É a validação comportamental que nenhum teste dá.
+- `T-082`, `T-019`, `T-020`, `T-025` validados com evidência objetiva, não opinião.
+- `T-093` diagnosticado e **reconciliado pelo Codex dentro do `T-047`** — era o mesmo problema com
+  dois números.
+- Cards novos nascidos de auditoria, não de encomenda: `T-084`, `T-085`, `T-087` a `T-092`.
+
+**O que espera o dono, e onde:** o `T-047` está com o Codex, aguardando a autorização que ele
+formulou. As três ressalvas da janela Claude sobre o plano revisado — como a publicação aditiva foi
+feita sem usar o instalador oficial, o gate comportamental que ainda falta, e o que acontece se o
+upstream corrigir — foram entregues como handoff e **não** estão registradas em card.
+
+⚠️ **Duas coisas que a próxima janela precisa saber antes de tocar em qualquer coisa:**
+
+1. **Há trabalho do Codex não commitado no checkout principal** — `memory/MEMORY.md`,
+   `memory/fixes-history.md` e `memory/wiki/threads/T-078-ai-memory.md`. São dele, foram preservados
+   por patch quando esta janela puxou a `0.27.6`, e **não devem ser commitados por outra janela**.
+2. **Não instale versão nova no Codex com trabalho rodando lá** (`T-093`/`T-047`): a instalação
+   apaga o diretório que a sessão viva está usando, e o trabalho morre.
+
+**Próxima ação concreta:** nenhuma nesta janela. Quando o dono voltar ao Claude, o próximo card por
+ordem de dano é o `T-089` 🔴 — o reúso `card+papel` que não funciona porque o cache `1.0.5` do
+Companion não conhece `--resume-thread`.
