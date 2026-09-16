@@ -996,7 +996,9 @@ def arquivos_a_varrer(raiz: Path, plugin: Path):
             yield alvo
 
 
-def _ler_texto_ou_diagnostico(caminho: Path, raiz: Path, problemas: list):
+def _ler_texto_ou_diagnostico(
+    caminho: Path, raiz: Path, problemas: list, *, preservar_newlines: bool = False
+):
     """Lê `caminho` como UTF-8; em falha (encoding incompatível, permissão,
     arquivo removido entre o `is_file()` e a leitura), acrescenta um
     diagnóstico a `problemas` e devolve `None` — nunca deixa a exceção
@@ -1019,6 +1021,12 @@ def _ler_texto_ou_diagnostico(caminho: Path, raiz: Path, problemas: list):
     `main()` e em `validate_codex_consultive_language` chama este helper.
     """
     try:
+        if preservar_newlines:
+            # `Path.read_text()` usa newline=None e normaliza CR isolado antes
+            # de o consumidor poder distingui-lo de LF. O board precisa dos
+            # bytes de quebra preservados para concordar com os dois awk.
+            with caminho.open("r", encoding="utf-8", newline="") as arquivo:
+                return arquivo.read()
         return caminho.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as exc:
         problemas.append((caminho.relative_to(raiz), 0, f"não foi possível ler: {exc}"))
@@ -1050,11 +1058,12 @@ _CARD_FROUXO_RE = re.compile(r"^\s*[-*]\s*\[[ >!~?x]\]")
 # afirmava o contrário e estava errada — reproduzido na revisão. `(?![\w-])` fecha
 # à direita; `(?<![\w@])` impede colar em palavra ou num `@` duplicado.
 _HOST_MARK_RE = re.compile(r"(?<![\w@])@(claude|codex)(?![\w-])")
-# Só a seção de ARQUIVADOS desliga a guarda. `[Aa]rquiv` casava também em
-# "## Arquivos compartilhados", e um título assim apagava a verificação até o
-# fim do arquivo — reproduzido na revisão.
-_ARQUIV_HEADING_RE = re.compile(r"^#{2,}\s+[📦\s]*[Aa]rquivad[oa]s?\b")
-_CERCA_CODIGO_RE = re.compile(r"^\s*(```|~~~)")
+# Só um H2 arquivado exato desliga a guarda. `re.ASCII` impede case-fold de
+# Unicode confundível; espaço e tab são deliberadamente os únicos separadores.
+_ARQUIV_HEADING_RE = re.compile(
+    r"^##[ \t]+(?:📦[ \t]*)?(?:arquivo|arquivad[oa]s?)[ \t]*$",
+    re.ASCII | re.IGNORECASE,
+)
 # Marcador dentro de crase, comentário HTML ou link é CONTEÚDO, não declaração
 # de posse: um card que documente o token `@claude` não está reivindicando nada.
 _TRECHO_NAO_DECLARATIVO_RE = re.compile(r"`[^`]*`|<!--.*?-->|\[[^\]]*\]\([^)]*\)")
@@ -1066,6 +1075,36 @@ _TRECHO_NAO_DECLARATIVO_RE = re.compile(r"`[^`]*`|<!--.*?-->|\[[^\]]*\]\([^)]*\)
 # a resolver aqui.
 _ESTADOS_EXIGEM_HOST_KANBAN = {">", "~"}
 _ESTADOS_PROIBEM_HOST_KANBAN = {" ", "?", "x"}
+
+
+def _abertura_cerca_markdown(linha: str):
+    """Devolve `(marcador, comprimento)` para cerca CommonMark válida."""
+    indentacao = len(linha) - len(linha.lstrip(" "))
+    if indentacao > 3:
+        return None
+    corpo = linha[indentacao:]
+    marcador = corpo[:1]
+    if marcador not in {"`", "~"}:
+        return None
+    comprimento = len(corpo) - len(corpo.lstrip(marcador))
+    if comprimento < 3:
+        return None
+    resto = corpo[comprimento:]
+    if marcador == "`" and "`" in resto:
+        return None
+    return marcador, comprimento
+
+
+def _fecha_cerca_markdown(linha: str, marcador: str, comprimento: int) -> bool:
+    """Fecha só com o mesmo marcador, tamanho suficiente e sem texto."""
+    indentacao = len(linha) - len(linha.lstrip(" "))
+    if indentacao > 3:
+        return False
+    corpo = linha[indentacao:]
+    if not corpo.startswith(marcador):
+        return False
+    tamanho = len(corpo) - len(corpo.lstrip(marcador))
+    return tamanho >= comprimento and corpo[tamanho:].strip(" \t") == ""
 
 
 def validate_marcador_host_kanban(raiz: Path) -> list:
@@ -1090,17 +1129,29 @@ def validate_marcador_host_kanban(raiz: Path) -> list:
         return []
     rel = board.relative_to(raiz)
     problemas: list = []
-    texto = _ler_texto_ou_diagnostico(board, raiz, problemas)
+    texto = _ler_texto_ou_diagnostico(
+        board, raiz, problemas, preservar_newlines=True
+    )
     if texto is None:
         return problemas
 
     arquivado = False
-    dentro_de_codigo = False
-    for num, linha in enumerate(texto.splitlines(), 1):
-        if _CERCA_CODIGO_RE.match(linha):
-            dentro_de_codigo = not dentro_de_codigo
+    cerca_marcador = None
+    cerca_comprimento = 0
+    # Só LF delimita linhas do board, como nos dois consumidores awk. Usar
+    # splitlines() também separaria VT, FF, NEL, U+2028 e U+2029, podendo
+    # transformar um H2 inválido em `## Arquivado` e ocultar cards ativos.
+    for num, linha in enumerate(texto.split("\n"), 1):
+        if linha.endswith("\r"):
+            linha = linha[:-1]
+        if cerca_marcador is not None:
+            if _fecha_cerca_markdown(linha, cerca_marcador, cerca_comprimento):
+                cerca_marcador = None
+                cerca_comprimento = 0
             continue
-        if dentro_de_codigo:
+        abertura = _abertura_cerca_markdown(linha)
+        if abertura is not None:
+            cerca_marcador, cerca_comprimento = abertura
             continue
         if _ARQUIV_HEADING_RE.match(linha):
             arquivado = True

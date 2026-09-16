@@ -246,6 +246,230 @@ class HostMarkerGuardTest(unittest.TestCase):
         self.assertEqual(result, 1, output)
         self.assertIn("T-910", output)
 
+    def test_cabecalhos_adversariais_nao_desligam_posse(self) -> None:
+        titulos = (
+            "## Como arquivar",
+            "## Não arquivados",
+            "## Arquivos",
+            "## Arquivados pendentes",
+            "# Arquivado",
+            "### Arquivado",
+            "#### Arquivado",
+            "##Arquivado",
+            "## Arquivado ##",
+            " ## Arquivado",
+            "## ARQUİVADOS",
+            "##\u00a0Arquivado",
+            "##\u2003Arquivado",
+            "##\u200bArquivado",
+            "## arquıvados",
+            "## arquivadoſ",
+            "## Аrquivado",
+            "## Arquivadо",
+            "## Ａrquivado",
+            "## Arquivado\u00a0",
+            "## Arquivado 📦",
+            "## 📦",
+            "## 📦📦 Arquivado",
+            "## 📦️ Arquivado",
+        )
+        for titulo in titulos:
+            with self.subTest(titulo=titulo):
+                self.board.write_text(
+                    BOARD_BASE.replace(
+                        "## Fila",
+                        f"{titulo}\n- [~] `T-911` Sem host — nota\n\n## Fila",
+                        1,
+                    ),
+                    encoding="utf-8",
+                )
+                result, output = run_lint_main(self.root, self.home)
+                self.assertEqual(result, 1, output)
+                self.assertIn("T-911", output)
+
+    def test_separadores_que_nao_sao_lf_nao_viram_quebra_de_linha(self) -> None:
+        separadores = (
+            "\rtexto",
+            "\x0b",
+            "\x0c",
+            "\x1c",
+            "\x1d",
+            "\x1e",
+            "\x85",
+            "\u2028",
+            "\u2029",
+        )
+        for separador in separadores:
+            with self.subTest(separador=repr(separador)):
+                self.board.write_text(
+                    BOARD_BASE.replace(
+                        "## Arquivado",
+                        f"## Arquivado{separador}\n- [~] `T-917` Vivo sem host — nota",
+                        1,
+                    ),
+                    encoding="utf-8",
+                )
+                result, output = run_lint_main(self.root, self.home)
+                self.assertEqual(result, 1, output)
+                self.assertIn("T-917", output)
+
+    def test_titulo_parecido_na_posicao_historica_nao_desliga_posse(self) -> None:
+        self.board.write_text(
+            BOARD_BASE.replace(
+                "## Arquivado",
+                "## Arquivados pendentes\n- [~] `T-918` Vivo sem host — nota",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 1, output)
+        self.assertIn("T-918", output)
+
+    def test_cabecalhos_exatos_desligam_posse_historica(self) -> None:
+        titulos = (
+            "## Arquivo",
+            "## Arquivado",
+            "## Arquivada",
+            "## ARQUIVADOS",
+            "## ArQuIvAdAs",
+            "## 📦Arquivado",
+            "##\t📦\tArquivadas",
+        )
+        for titulo in titulos:
+            with self.subTest(titulo=titulo):
+                self.board.write_text(
+                    BOARD_BASE.replace(
+                        "## Arquivado",
+                        f"{titulo}\n- [~] `T-911` Histórico sem host — nota",
+                        1,
+                    ),
+                    encoding="utf-8",
+                )
+                result, output = run_lint_main(self.root, self.home)
+                self.assertEqual(result, 0, output)
+                self.assertNotIn("T-911", output)
+
+    def test_cabecalho_exato_com_crlf_desliga_posse_historica(self) -> None:
+        mutado = BOARD_BASE.replace(
+            "## Arquivado",
+            "##\t📦\tARQUIVADOS\n- [~] `T-916` Histórico sem host — nota",
+            1,
+        )
+        self.board.write_bytes(mutado.replace("\n", "\r\n").encode("utf-8"))
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 0, output)
+        self.assertNotIn("T-916", output)
+
+    def test_cabecalho_arquivado_em_cercas_validas_nao_desliga_posse(self) -> None:
+        cercas = {
+            "fechamento_curto": ("````", "```", "## Arquivados", "````"),
+            "marcador_trocado": ("```", "~~~", "## Arquivados", "```"),
+            "fechamento_com_texto": ("```", "``` texto", "## Arquivados", "```"),
+            "indentacao_tres": ("   ```", "## Arquivados", "   ```"),
+            "til_com_info": ("~~~ info ` permitida", "## Arquivados", "~~~"),
+            "fechamento_maior": ("```", "## Arquivados", "````"),
+            "fechamento_com_espacos": ("```", "## Arquivados", "``` \t"),
+            "fechamento_indentado": ("```", "## Arquivados", "   ```"),
+        }
+        for nome, trecho in cercas.items():
+            with self.subTest(caso=nome):
+                bloco = "\n".join((*trecho, "- [~] `T-912` Fora da cerca, sem host — nota"))
+                self.board.write_text(
+                    BOARD_BASE.replace("## Fila", f"{bloco}\n\n## Fila", 1),
+                    encoding="utf-8",
+                )
+                result, output = run_lint_main(self.root, self.home)
+                self.assertEqual(result, 1, output)
+                self.assertIn("T-912", output)
+
+    def test_cerca_com_crlf_fecha_e_reativa_guarda(self) -> None:
+        bloco = "\n".join(
+            ("```", "## Arquivados", "```` \t", "- [~] `T-919` Fora da cerca, sem host — nota")
+        )
+        mutado = BOARD_BASE.replace("## Fila", f"{bloco}\n\n## Fila", 1)
+        self.board.write_bytes(mutado.replace("\n", "\r\n").encode("utf-8"))
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 1, output)
+        self.assertIn("T-919", output)
+
+    def test_titulo_real_depois_da_cerca_desliga_posse(self) -> None:
+        bloco = "\n".join(
+            (
+                "```",
+                "## Arquivados",
+                "```",
+                "## 📦 Arquivo",
+                "- [~] `T-920` Histórico sem host — nota",
+            )
+        )
+        self.board.write_text(
+            BOARD_BASE.replace("## Arquivado", bloco, 1), encoding="utf-8"
+        )
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 0, output)
+        self.assertNotIn("T-920", output)
+
+    def test_fechamento_com_quatro_espacos_nao_reativa_guarda(self) -> None:
+        bloco = "\n".join(
+            ("```", "    ```", "- [~] `T-921` Exemplo sem host — nota")
+        )
+        self.board.write_text(
+            BOARD_BASE.replace("## Fila", f"{bloco}\n\n## Fila", 1), encoding="utf-8"
+        )
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 0, output)
+        self.assertNotIn("T-921", output)
+
+    def test_quatro_espacos_nao_abrem_cerca_para_a_guarda(self) -> None:
+        bloco = "\n".join(
+            (
+                "    ```",
+                "## Arquivados",
+                "```",
+                "- [~] `T-913` Histórico sem host — nota",
+            )
+        )
+        self.board.write_text(
+            BOARD_BASE.replace("## Fila", f"{bloco}\n\n## Fila", 1),
+            encoding="utf-8",
+        )
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 0, output)
+        self.assertNotIn("T-913", output)
+
+    def test_abertura_invalida_por_crase_no_info_nao_esconde_titulo(self) -> None:
+        bloco = "\n".join(
+            (
+                "```info`invalida",
+                "## Arquivados",
+                "```",
+                "- [~] `T-914` Histórico sem host — nota",
+            )
+        )
+        self.board.write_text(
+            BOARD_BASE.replace("## Fila", f"{bloco}\n\n## Fila", 1),
+            encoding="utf-8",
+        )
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 0, output)
+        self.assertNotIn("T-914", output)
+
+    def test_cerca_sem_fechamento_ignora_exemplo_historico(self) -> None:
+        bloco = "\n".join(
+            (
+                "```",
+                "- [~] `T-915` Exemplo sem host — nota",
+            )
+        )
+        self.board.write_text(
+            BOARD_BASE.replace("## Fila", f"{bloco}\n\n## Fila", 1),
+            encoding="utf-8",
+        )
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 0, output)
+        self.assertNotIn("T-915", output)
+
     def test_marca_sobrando_reprova_em_cada_estado_proibido(self) -> None:
         """A mutação da revisão mostrou o buraco: tirar `[?]` e `[x]` da
         proibição deixava todos os testes verdes. Cada estado é exercitado

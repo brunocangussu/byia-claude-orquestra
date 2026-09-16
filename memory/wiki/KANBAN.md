@@ -62,7 +62,7 @@
 - [?] `T-074` claude-mem desligado no Codex — plugin e hook fallback off em 2026-09-07; teste: AI-Memory sozinho por 1–2 semanas · → threads/T-072-claude-mem.md
 - [x] `T-082` Comparador de cache lê `__pycache__` preexistente como divergência — validado em 2026-09-07: o comparador 0.27.2 acusa `missing`, o 0.27.4 sai `ok` na mesma árvore · → threads/_notas-de-cards.md
 
-- [ ] `T-071` O regex de secao arquivada aceita demais e recusa ARQUIVADOS — revisao cross-vendor · trilha: sistema · faixa: leve · → threads/T-054-economia-tokens.md @frente-economia
+- [?] `T-071` Seção arquivada exata — candidata 0.27.8; falta publicar, instalar, reiniciar e validar no produto · trilha: sistema · faixa: leve · → threads/T-071-secao-arquivada.md @frente-economia
 
 - [x] `T-070` Índice do painel histórico corrigido — Fable 5.1 aprovou sem bloqueadores; integrado em commit próprio · → threads/T-070-painel-historico.md
 

@@ -52,6 +52,26 @@ def card(marcador: str, cid: str, titulo: str, nota: str = "n") -> str:
     return f"- [{marcador}] `{cid}` {titulo} — {nota}"
 
 
+def locales_de_teste() -> tuple[str, str]:
+    """Garante que o segundo passe roda de fato sob um locale UTF-8."""
+    disponiveis = subprocess.run(
+        ["locale", "-a"], capture_output=True, text=True, check=True
+    ).stdout.splitlines()
+    preferido = next((item for item in disponiveis if item.lower() == "pt_br.utf-8"), None)
+    if preferido is None:
+        preferido = next(
+            (
+                item
+                for item in disponiveis
+                if "utf" in item.lower() and item.lower() not in {"c.utf-8", "c.utf8"}
+            ),
+            None,
+        )
+    if preferido is None:
+        raise AssertionError("nenhum locale UTF-8 não-C disponível para o teste")
+    return "C", preferido
+
+
 class KanbanStatusContagemTest(unittest.TestCase):
     def test_board_ausente_sai_vazio_e_zero(self):
         """Projeto sem board não é erro — é projeto sem board.
@@ -89,6 +109,203 @@ class KanbanStatusContagemTest(unittest.TestCase):
         )
         saida = rodar(board).stdout
         self.assertIn("(0/1)", saida)
+
+    def test_titulos_parecidos_nao_cortam_contagem_nem_regua(self):
+        titulos = (
+            "## Como arquivar",
+            "## Não arquivados",
+            "## Arquivos",
+            "## Arquivados pendentes",
+            "# Arquivado",
+            "### Arquivado",
+            "#### Arquivado",
+            "##Arquivado",
+            "## Arquivado ##",
+            " ## Arquivado",
+            "## ARQUİVADOS",
+            "##\u00a0Arquivado",
+            "##\u2003Arquivado",
+            "##\u200bArquivado",
+            "## arquıvados",
+            "## arquivadoſ",
+            "## Аrquivado",
+            "## Arquivadо",
+            "## Ａrquivado",
+            "## Arquivado\u00a0",
+            "## Arquivado 📦",
+            "## 📦",
+            "## 📦📦 Arquivado",
+            "## 📦️ Arquivado",
+        )
+        for locale in locales_de_teste():
+            for titulo in titulos:
+                with self.subTest(locale=locale, titulo=titulo):
+                    board = "\n".join(
+                        [
+                            "# board",
+                            card(" ", "T-001", "ativo"),
+                            titulo,
+                            card(" ", "T-002", "longo", "x" * 400),
+                        ]
+                    )
+                    saida = rodar(board, locale=locale).stdout
+                    self.assertIn("(0/2)", saida)
+                    self.assertIn("📏1", saida)
+
+    def test_titulos_exatos_cortam_contagem_e_regua(self):
+        titulos = (
+            "## Arquivo",
+            "## Arquivado",
+            "## Arquivada",
+            "## ARQUIVADOS",
+            "## ArQuIvAdAs",
+            "##  Arquivado",
+            "## Arquivado   ",
+            "##\tArquivado\t",
+            "## 📦Arquivado",
+            "##\t📦\tArquivadas",
+        )
+        for locale in locales_de_teste():
+            for titulo in titulos:
+                with self.subTest(locale=locale, titulo=titulo):
+                    board = "\r\n".join(
+                        [
+                            "# board",
+                            card(" ", "T-001", "ativo"),
+                            titulo,
+                            card(" ", "T-900", "histórico", "x" * 400),
+                        ]
+                    )
+                    saida = rodar(board, locale=locale).stdout
+                    self.assertIn("(0/1)", saida)
+                    self.assertNotIn("📏", saida)
+
+    def test_titulo_arquivado_dentro_de_cerca_nao_corta(self):
+        cercas = {
+            "fechamento_curto": ("````", "```", "## Arquivados", "````"),
+            "marcador_trocado": ("```", "~~~", "## Arquivados", "```"),
+            "fechamento_com_texto": ("```", "``` texto", "## Arquivados", "```"),
+            "indentacao_tres": ("   ```", "## Arquivados", "   ```"),
+            "fechamento_maior": ("```", "## Arquivados", "````"),
+            "fechamento_com_espacos": ("```", "## Arquivados", "``` \t"),
+            "fechamento_indentado": ("```", "## Arquivados", "   ```"),
+            "til_com_info": ("~~~ info ` permitida", "## Arquivados", "~~~"),
+        }
+        for nome, trecho in cercas.items():
+            with self.subTest(caso=nome):
+                board = "\n".join(
+                    [
+                        "# board",
+                        card(" ", "T-001", "ativo"),
+                        *trecho,
+                        card(" ", "T-002", "longo", "x" * 400),
+                    ]
+                )
+                saida = rodar(board).stdout
+                self.assertIn("(0/2)", saida)
+                self.assertIn("📏1", saida)
+
+    def test_cerca_com_crlf_fecha_e_preserva_card_ativo(self):
+        board = "\r\n".join(
+            [
+                "# board",
+                card(" ", "T-001", "ativo"),
+                "```",
+                "## Arquivados",
+                "```` \t",
+                card(" ", "T-002", "longo", "x" * 400),
+            ]
+        )
+        saida = rodar(board).stdout
+        self.assertIn("(0/2)", saida)
+        self.assertIn("📏1", saida)
+
+    def test_fechamento_com_quatro_espacos_nao_fecha_cerca(self):
+        board = "\n".join(
+            [
+                "# board",
+                card(" ", "T-001", "ativo"),
+                "```",
+                "    ```",
+                card(" ", "T-002", "exemplo", "x" * 400),
+            ]
+        )
+        saida = rodar(board).stdout
+        self.assertIn("(0/1)", saida)
+        self.assertNotIn("📏", saida)
+
+    def test_setext_nao_corta_contagem_nem_regua(self):
+        board = "\n".join(
+            [
+                "# board",
+                card(" ", "T-001", "ativo"),
+                "Arquivado",
+                "----------",
+                card(" ", "T-002", "longo", "x" * 400),
+            ]
+        )
+        saida = rodar(board).stdout
+        self.assertIn("(0/2)", saida)
+        self.assertIn("📏1", saida)
+
+    def test_quatro_espacos_nao_abrem_cerca(self):
+        board = "\n".join(
+            [
+                "# board",
+                card(" ", "T-001", "ativo"),
+                "    ```",
+                "## Arquivados",
+                card(" ", "T-900", "histórico", "x" * 400),
+            ]
+        )
+        saida = rodar(board).stdout
+        self.assertIn("(0/1)", saida)
+        self.assertNotIn("📏", saida)
+
+    def test_crase_na_info_impede_abertura_da_cerca(self):
+        board = "\n".join(
+            [
+                "# board",
+                card(" ", "T-001", "ativo"),
+                "```info`invalida",
+                "## Arquivados",
+                "```",
+                card(" ", "T-900", "histórico", "x" * 400),
+            ]
+        )
+        saida = rodar(board).stdout
+        self.assertIn("(0/1)", saida)
+        self.assertNotIn("📏", saida)
+
+    def test_cerca_sem_fechamento_ignora_o_restante(self):
+        board = "\n".join(
+            [
+                "# board",
+                card(" ", "T-001", "ativo"),
+                "```",
+                "## Arquivados",
+                card(" ", "T-002", "exemplo", "x" * 400),
+            ]
+        )
+        saida = rodar(board).stdout
+        self.assertIn("(0/1)", saida)
+        self.assertNotIn("📏", saida)
+
+    def test_titulo_arquivado_real_depois_da_cerca_corta(self):
+        board = "\n".join(
+            [
+                "# board",
+                card(" ", "T-001", "ativo"),
+                "```",
+                "## Arquivados",
+                "```",
+                "## 📦 Arquivo",
+                card("x", "T-900", "histórico", "x" * 400),
+            ]
+        )
+        saida = rodar(board).stdout
+        self.assertIn("(0/1)", saida)
+        self.assertNotIn("📏", saida)
 
 
 class KanbanStatusTetoTest(unittest.TestCase):

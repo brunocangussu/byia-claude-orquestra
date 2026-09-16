@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.7 — candidata do `T-076`, ainda **não publicada nem instalada**. A versão em execução nos hosts continua sendo a 0.27.6 publicada em `fd33de6` (2026-09-08). ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-15 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.8 — candidata do `T-071`, ainda **não publicada nem instalada**. A versão em execução nos hosts continua sendo a 0.27.6 publicada em `fd33de6` (2026-09-08). ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-15 · **host padrão a partir de 2026-08-09: Codex**.
 
 **Candidata 0.27.7, 2026-09-15 — `T-076`:** o dono aprovou a opção B: board operacional no
 checkout principal e threads na frente proprietária. Os dois bloqueios da R5 foram corrigidos em
@@ -21,6 +21,8 @@ foi autorizada para bump, commit, push e integração. Publicação, instalaçã
 comportamental permanecem em gates separados.
 
 **Correção documental, 2026-09-15 — `T-070`:** a frase sobre o antigo painel de três revisores foi corrigida para o passado, preservando as três ocasiões e registrando a aposentadoria pelo T-051. A revisão Fable 5.1 foi **APROVADA**, sem bloqueadores. Evidência em `wiki/threads/T-070-painel-historico.md`.
+
+**Candidata 0.27.8, 2026-09-15 — `T-071`:** o contrato de cabeçalho arquivado exato e cercas Markdown foi implementado em RED/GREEN no worktree `codex/t071-archive-heading`, reconciliado com a `main` após o T-076. A divergência entre `splitlines()`/tradução universal do Python e os `awk` foi corrigida com leitura que preserva newlines e divisão exclusiva por LF. A R2 Fable aprovou os três lotes sem bloqueadores. Testes localizados passaram nos Pythons 3.9 e 3.12; a suíte final executou 396 testes e manteve apenas as três falhas basais do T-081. Retomar em `wiki/threads/T-071-secao-arquivada.md`. Publicação, instalação, restart e validação prática permanecem em gates separados.
 
 **Checkpoint de recuperação, 2026-09-07:** a fila “Esperando você” foi auditada: `T-064`/`T-066`
 saíram como concluídos, `T-023`/`T-026` fecharam por evidência posterior, e restaram só `T-065`

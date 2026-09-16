@@ -25,8 +25,18 @@ Card, exatamente assim:
 - o **título vai até o primeiro travessão** `—`; o que vem depois é nota livre;
 - **nada de negrito ou crase envolvendo o marcador ou o ID** — o parser lê por posição;
 - **sem indentação**: card começa na coluna 0. Linha indentada é sub-item e não conta;
-- uma seção cujo título case com `## …arquiv…` (Arquivado, Arquivadas, Arquivo) **encerra a
-  contagem**: tudo abaixo dela é ignorado.
+- a seção histórica começa somente em um cabeçalho ATX H2 na coluna 1, sem sequência ATX de
+  fechamento, chamado `Arquivo`, `Arquivado`, `Arquivada`, `Arquivados` ou `Arquivadas`, com caixa
+  ASCII livre; `📦` é opcional antes do nome e somente espaço ASCII ou tab separa as partes. H1/H3,
+  Setext, H2 indentado ou sem separador, NBSP, Unicode confundível e títulos com palavras extras
+  (`Como arquivar`, `Não arquivados`, `Arquivados pendentes`) **não** encerram a contagem;
+- um título arquivado dentro de cerca Markdown válida não encerra a contagem. A cerca pode ter até
+  três espaços de indentação e começa com pelo menos três crases ou tis homogêneos; fecha somente
+  com o mesmo marcador, comprimento igual ou maior e nada além de espaço/tab. Quatro espaços não
+  abrem cerca; uma abertura por crases cuja info contenha crase também não abre. Fechamento curto,
+  de outro marcador, com quatro espaços de indentação ou com texto mantém a cerca aberta. Todo o
+  conteúdo dentro da cerca, inclusive linhas que parecem cards, fica fora dos consumidores até o
+  fechamento válido ou EOF; uma cerca sem fechamento ignora deliberadamente o restante do board.
 
 ⚠️ **Isto não é estilo, é contrato.** `orq/scripts/kanban-status.sh` casa
 `` /^- \[[ >!~?x]\] `[^`]+`/ `` — estrito de propósito.

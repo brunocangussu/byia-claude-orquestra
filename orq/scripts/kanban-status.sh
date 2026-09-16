@@ -287,8 +287,54 @@ esac
 # porque o arquivo veio com CRLF. O teto mede conteúdo, não como o arquivo foi
 # salvo.
 gordos=$(LC_ALL=C awk -v teto=240 '
-  { sub(/\r$/, "") }
-  /^##+ .*[Aa]rquiv/ { archived=1 }
+  function is_archive_heading(line, heading) {
+    heading = line
+    if (!sub(/^##[ \t]+/, "", heading)) return 0
+    sub(/^📦[ \t]*/, "", heading)
+    sub(/[ \t]+$/, "", heading)
+    return heading ~ /^[Aa][Rr][Qq][Uu][Ii][Vv]([Oo]|[Aa][Dd][OoAa][Ss]?)$/
+  }
+  function open_fence(line,    i, ch, n, rest) {
+    i = 1
+    while (i <= 4 && substr(line, i, 1) == " ") i++
+    if (i > 4) return ""
+    ch = substr(line, i, 1)
+    if (ch != "`" && ch != "~") return ""
+    n = 0
+    while (substr(line, i + n, 1) == ch) n++
+    if (n < 3) return ""
+    rest = substr(line, i + n)
+    if (ch == "`" && index(rest, "`") != 0) return ""
+    opened_len = n
+    return ch
+  }
+  function closes_fence(line, ch, min_len,    i, n, rest) {
+    i = 1
+    while (i <= 4 && substr(line, i, 1) == " ") i++
+    if (i > 4 || substr(line, i, 1) != ch) return 0
+    n = 0
+    while (substr(line, i + n, 1) == ch) n++
+    if (n < min_len) return 0
+    rest = substr(line, i + n)
+    return rest ~ /^[ \t]*$/
+  }
+  {
+    sub(/\r$/, "")
+    if (fence_char != "") {
+      if (closes_fence($0, fence_char, fence_len)) {
+        fence_char = ""
+        fence_len = 0
+      }
+      next
+    }
+    candidate = open_fence($0)
+    if (candidate != "") {
+      fence_char = candidate
+      fence_len = opened_len
+      next
+    }
+    if (is_archive_heading($0)) archived=1
+  }
   archived { next }
   /^- \[[ >!~?x]\] `[^`]+`/ { if (length($0) > teto) n++ }
   END { print n+0 }
@@ -296,8 +342,54 @@ gordos=$(LC_ALL=C awk -v teto=240 '
 [ -n "$gordos" ] || gordos="?"
 
 awk -v gordos="$gordos" '
-  # para de contar ao chegar no arquivado — casa Arquivado/Arquivadas/Arquivo/arquiv…
-  /^##+ .*[Aa]rquiv/ { archived=1 }
+  function is_archive_heading(line, heading) {
+    heading = line
+    if (!sub(/^##[ \t]+/, "", heading)) return 0
+    sub(/^📦[ \t]*/, "", heading)
+    sub(/[ \t]+$/, "", heading)
+    return heading ~ /^[Aa][Rr][Qq][Uu][Ii][Vv]([Oo]|[Aa][Dd][OoAa][Ss]?)$/
+  }
+  function open_fence(line,    i, ch, n, rest) {
+    i = 1
+    while (i <= 4 && substr(line, i, 1) == " ") i++
+    if (i > 4) return ""
+    ch = substr(line, i, 1)
+    if (ch != "`" && ch != "~") return ""
+    n = 0
+    while (substr(line, i + n, 1) == ch) n++
+    if (n < 3) return ""
+    rest = substr(line, i + n)
+    if (ch == "`" && index(rest, "`") != 0) return ""
+    opened_len = n
+    return ch
+  }
+  function closes_fence(line, ch, min_len,    i, n, rest) {
+    i = 1
+    while (i <= 4 && substr(line, i, 1) == " ") i++
+    if (i > 4 || substr(line, i, 1) != ch) return 0
+    n = 0
+    while (substr(line, i + n, 1) == ch) n++
+    if (n < min_len) return 0
+    rest = substr(line, i + n)
+    return rest ~ /^[ \t]*$/
+  }
+  {
+    sub(/\r$/, "")
+    if (fence_char != "") {
+      if (closes_fence($0, fence_char, fence_len)) {
+        fence_char = ""
+        fence_len = 0
+      }
+      next
+    }
+    candidate = open_fence($0)
+    if (candidate != "") {
+      fence_char = candidate
+      fence_len = opened_len
+      next
+    }
+    if (is_archive_heading($0)) archived=1
+  }
   archived { next }
 
   # CARD VÁLIDO, estrito: "- [m] `T-001` Título — nota"
