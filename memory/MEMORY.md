@@ -4,7 +4,9 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.8 — publicada em `origin/main` no commit `470eba9`, ainda **não instalada**. A versão em execução nos hosts continua sendo a 0.27.6 publicada em `fd33de6` (2026-09-08). ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-15 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.8 — publicada em `origin/main` no commit `470eba9`, ainda **não instalada**. A versão em execução nos hosts continua sendo a 0.27.6 publicada em `fd33de6` (2026-09-08). ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-16 · **host padrão a partir de 2026-08-09: Codex**.
+
+**Checkpoint de recuperação, 2026-09-16 — raiz reconciliada:** a `main` local estava quatro commits atrás e o fast-forward era barrado por nove alterações locais sobrepostas a `MEMORY.md`, `fixes-history.md` e `KANBAN.md`; não havia outra tarefa ativa. O estado antigo foi preservado na branch local `codex/root-recovery-20260916` (`793e1f3`), somente os conteúdos ainda válidos foram reaplicados sobre `origin/main` e publicados em `2b5ee01`. A raiz ficou limpa e sincronizada; 396/396 testes, manifesto estrito e lint passaram. O reviewer do host Codex permanece temporariamente em Opus conforme decisão do dono. Retomar pelos cards em espera `T-094`, `T-062` e `T-047`.
 
 **Candidata 0.27.7, 2026-09-15 — `T-076`:** o dono aprovou a opção B: board operacional no
 checkout principal e threads na frente proprietária. Os dois bloqueios da R5 foram corrigidos em
