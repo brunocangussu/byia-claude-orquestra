@@ -517,3 +517,17 @@ fechamento deixa como pós-condição:
 
 O card fecha como trabalho administrativo validado. Qualquer limpeza das quatro refs remotas exige
 outro gate explícito; não faz parte do T-097.
+
+## Correção do inventário concorrente — 2026-09-22
+
+Na auditoria posterior ao push, apareceu o worktree
+`.worktrees/t096-board-path-contract`, criado às 12:37 e ausente do inventário usado no lote. Ele
+contém mudanças não commitadas em `orq/commands/stack.md` e
+`orq/scripts/test_canonical_board_contract.py`; portanto não é sobra administrativa e não foi
+removido nem atualizado. Nenhum processo com `cwd` nele foi detectado, mas a ausência de consumidor
+vivo não autoriza descartar trabalho.
+
+A pós-condição correta é: a limpeza dos checkouts históricos foi concluída; permanecem a raiz em
+`main` e um checkout de desenvolvimento ativo do T-096, com suas duas branches locais. As 28 tags,
+o stash preexistente e as quatro refs remotas históricas seguem intactos. O T-096 precisa ser
+reconciliado pela frente dona antes de qualquer destino.

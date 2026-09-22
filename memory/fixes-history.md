@@ -2142,3 +2142,10 @@ também foi capturada sem mutação; após uma edição concorrente detectada, a
 pós-condição é um checkout, somente `main` local e 28 referências
 reversíveis; o stash preexistente e quatro refs remotas históricas permaneceram intactos. A
 reconciliação é documental/administrativa e não muda a versão 0.27.10 nem o runtime dos hosts.
+
+## [2026-09-22] correção | T-097 · checkout concorrente T-096 preservado
+
+A auditoria pós-push encontrou `.worktrees/t096-board-path-contract`, criado durante a reconciliação
+e com duas alterações não commitadas. A afirmação de “um checkout/somente main” foi corrigida: a
+limpeza histórica terminou, mas o estado atual inclui a raiz e o checkout ativo T-096, com duas
+branches locais. O T-096 não foi removido nem atualizado; seu destino pertence à frente dona.
