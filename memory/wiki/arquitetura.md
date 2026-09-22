@@ -354,6 +354,24 @@ conteúdo da conversa. Em `UserPromptSubmit`, o `additionalContext` reafirma a p
 para a conversa já carregada. O script só atua no ambiente nativo `PLUGIN_ROOT` do Codex; variáveis
 somente `CLAUDE_*` não ativam o guardião.
 
+Pedidos de reset do estado são marcadores vazios: o caminho fixo `<hash>.reset` continua sendo
+reconhecido para upgrades, e novos pedidos usam gerações exclusivas `<hash>.reset.*`. Dentro do lock
+da sessão, o marcador legado é reivindicado por renomeação atômica para uma geração exclusiva antes
+da fotografia; assim, uma sessão antiga que voltar a criar `<hash>.reset` depois dessa reivindicação
+deixa um novo pedido para a próxima transação. A transação captura os marcadores presentes, remove o
+JSON de estado, processa o evento e só remove aquela captura depois de persistir o novo estado com
+sucesso. Um marcador de geração criado depois da fotografia permanece para a próxima transação; se
+a remoção do JSON, a persistência ou a remoção de um marcador falhar, o pedido fica pendente e o
+resultado é reset repetido, não reconhecimento falso. O estado e seus marcadores não guardam prompt,
+transcript ou conteúdo da conversa.
+
+O lock é do kernel: macOS/Linux usam `fcntl.flock` e Windows usa `msvcrt.locking` não bloqueante de
+um byte na posição zero. O descritor é fechado ao liberar e também pelo sistema operacional quando
+o processo termina. Se o host não oferecer nenhum desses backends, o hook retorna sem executar a
+transação: a ação do host continua sem tocar no estado, mas a garantia de exclusão mútua fica
+indisponível. Nesse caminho fail-open não se cria diretório de lock, lease por PID nem recuperação
+por idade.
+
 ⚠️ **Os termos `clear_required`, `falha de persistência` e `additionalContext` são exigidos por
 teste** (`test_context_guard.py`, `test_guard_contract_is_present_in_live_instructions`): eles são o
 contrato do guardião, e a suíte reprova se sumirem desta página ou do `README.md`. Uma reescrita

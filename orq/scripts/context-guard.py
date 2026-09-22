@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from contextvars import ContextVar
 from dataclasses import dataclass
 import errno
 import hashlib
@@ -21,6 +22,11 @@ try:
     import fcntl
 except ImportError:  # pragma: no cover - fallback para Windows
     fcntl = None
+
+try:
+    import msvcrt
+except ImportError:  # pragma: no cover - indisponível fora do Windows
+    msvcrt = None
 
 
 DEFAULT_TAIL_BYTES = 4 * 1024 * 1024
@@ -51,6 +57,10 @@ STATE_KEYS = (
     "last_percent",
     "updated_at",
 )
+_PERSIST_STATUS: ContextVar[list[bool] | None] = ContextVar(
+    "orq_context_guard_persist_status",
+    default=None,
+)
 
 
 @dataclass(frozen=True)
@@ -68,8 +78,8 @@ class UsageSnapshot:
 @dataclass
 class StateLock:
     path: Path
-    handle: BinaryIO | None = None
-    directory: bool = False
+    handle: BinaryIO
+    backend: str
 
 
 def _is_positive_int(value: object) -> bool:
@@ -176,34 +186,81 @@ def _state_reset_path(data_dir: Path, session_id: str) -> Path:
     return state_path(data_dir, session_id).with_suffix(".reset")
 
 
-def _mark_state_reset(data_dir: Path, session_id: str) -> bool:
-    marker = _state_reset_path(data_dir, session_id)
+def _pending_state_reset_paths(data_dir: Path, session_id: str) -> list[Path] | None:
+    """Lista o marcador legado e as gerações presentes neste instante."""
+
+    legacy_marker = _state_reset_path(data_dir, session_id)
     try:
-        marker.parent.mkdir(parents=True, exist_ok=True)
-        marker.touch(exist_ok=True)
+        entries = list(legacy_marker.parent.iterdir())
+    except FileNotFoundError:
+        return []
+    except OSError:
+        return None
+    generation_prefix = f"{legacy_marker.name}."
+    return sorted(
+        path
+        for path in entries
+        if path.name == legacy_marker.name or path.name.startswith(generation_prefix)
+    )
+
+
+def _mark_state_reset(data_dir: Path, session_id: str) -> bool:
+    legacy_marker = _state_reset_path(data_dir, session_id)
+    try:
+        legacy_marker.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            dir=legacy_marker.parent,
+            prefix=f"{legacy_marker.name}.",
+            delete=False,
+        ):
+            pass
     except OSError:
         return False
-    try:
-        state_path(data_dir, session_id).unlink(missing_ok=True)
-    except OSError:
-        pass
     return True
 
 
-def _apply_pending_reset(data_dir: Path, session_id: str) -> None:
-    if not _state_reset_path(data_dir, session_id).exists():
-        return
+def _prepare_pending_reset(
+    data_dir: Path,
+    session_id: str,
+) -> list[Path] | None:
+    """Fotografa resets pendentes e remove o estado, sem consumir a fotografia."""
+
+    pending_markers = _pending_state_reset_paths(data_dir, session_id)
+    if pending_markers is None:
+        return None
+    if not pending_markers:
+        return []
+    legacy_marker = _state_reset_path(data_dir, session_id)
+    if legacy_marker in pending_markers:
+        claimed_legacy = legacy_marker.with_name(
+            f"{legacy_marker.name}.claimed-{os.getpid()}-{time.time_ns()}"
+        )
+        try:
+            os.replace(legacy_marker, claimed_legacy)
+        except OSError:
+            return None
+        pending_markers = [
+            claimed_legacy if marker == legacy_marker else marker
+            for marker in pending_markers
+        ]
     try:
         state_path(data_dir, session_id).unlink(missing_ok=True)
     except OSError:
-        pass
+        return None
+    return pending_markers
 
 
-def _finish_pending_reset(data_dir: Path, session_id: str) -> None:
-    try:
-        _state_reset_path(data_dir, session_id).unlink(missing_ok=True)
-    except OSError:
-        pass
+def _finish_pending_reset(pending_markers: list[Path]) -> bool:
+    """Consome somente a fotografia depois da persistência bem-sucedida."""
+
+    for marker in pending_markers:
+        try:
+            marker.unlink()
+        except FileNotFoundError:
+            continue
+        except OSError:
+            return False
+    return True
 
 
 def _acquire_state_lock(data_dir: Path, session_id: str) -> StateLock | None:
@@ -222,7 +279,7 @@ def _acquire_state_lock(data_dir: Path, session_id: str) -> StateLock | None:
         while True:
             try:
                 fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                return StateLock(path=lock_path, handle=handle)
+                return StateLock(path=lock_path, handle=handle, backend="fcntl")
             except OSError as error:
                 if error.errno not in {errno.EACCES, errno.EAGAIN}:
                     handle.close()
@@ -232,33 +289,38 @@ def _acquire_state_lock(data_dir: Path, session_id: str) -> StateLock | None:
                     return None
                 time.sleep(0.01)
 
-    directory_path = lock_path.with_suffix(".lockdir")
+    if msvcrt is None:
+        return None
+    try:
+        handle = lock_path.open("a+b")
+    except OSError:
+        return None
     while True:
         try:
-            directory_path.mkdir()
-            return StateLock(path=directory_path, directory=True)
-        except FileExistsError:
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            return StateLock(path=lock_path, handle=handle, backend="msvcrt")
+        except OSError as error:
+            if error.errno not in {errno.EACCES, errno.EAGAIN, errno.EDEADLK}:
+                handle.close()
+                return None
             if time.monotonic() >= deadline:
+                handle.close()
                 return None
             time.sleep(0.01)
-        except OSError:
-            return None
 
 
 def _release_state_lock(lock: StateLock) -> None:
-    if lock.handle is not None:
-        try:
-            fcntl.flock(lock.handle.fileno(), fcntl.LOCK_UN)
-        except OSError:
-            pass
-        lock.handle.close()
-        return
-    if not lock.directory:
-        return
     try:
-        lock.path.rmdir()
+        if lock.backend == "fcntl" and fcntl is not None:
+            fcntl.flock(lock.handle.fileno(), fcntl.LOCK_UN)
+        elif lock.backend == "msvcrt" and msvcrt is not None:
+            lock.handle.seek(0)
+            msvcrt.locking(lock.handle.fileno(), msvcrt.LK_UNLCK, 1)
     except OSError:
         pass
+    finally:
+        lock.handle.close()
 
 
 def _quarantine_corrupt_state(path: Path) -> None:
@@ -395,8 +457,9 @@ def _persist_response(
 ) -> dict | None:
     state_warning = state.get("_state_warning")
     saved = save_state(data_dir, session_id, state)
-    if saved:
-        _finish_pending_reset(data_dir, session_id)
+    persist_status = _PERSIST_STATUS.get()
+    if persist_status is not None:
+        persist_status.append(saved)
     source = dict(response or {})
     result: dict = {}
     system_message = source.get("systemMessage")
@@ -424,6 +487,44 @@ def _persist_response(
     previous = result.get("systemMessage")
     warning = " ".join(warnings)
     result["systemMessage"] = f"{previous} {warning}" if previous else warning
+    return result
+
+
+def _state_reset_failure_response(
+    event: dict,
+    response: dict | None = None,
+) -> dict:
+    """Expõe falha de reset sem avançar a transação de estado."""
+
+    event_name = event.get("hook_event_name")
+    fallback = (
+        _session_context("SessionStart", event.get("source"))
+        if response is None and event_name == "SessionStart"
+        else None
+    )
+    result = dict(response or fallback or {})
+    warning = (
+        "Orquestra: reset do estado de contexto não foi aplicado por completo; o hook falhou aberto."
+    )
+    previous = result.get("systemMessage")
+    result["systemMessage"] = f"{previous} {warning}" if previous else warning
+    return result
+
+
+def _state_reset_applied_without_marker_response(event: dict) -> dict:
+    """Confirma reset aplicado sem fingir que o marcador foi persistido."""
+
+    event_name = event.get("hook_event_name")
+    response = (
+        _session_context("SessionStart", event.get("source"))
+        if event_name == "SessionStart"
+        else None
+    )
+    result = dict(response or {})
+    result["systemMessage"] = (
+        "Orquestra: o estado anterior foi removido, mas o marcador de reset não pôde ser "
+        "persistido; o hook falhou aberto sem gravar telemetria nova."
+    )
     return result
 
 
@@ -823,11 +924,16 @@ def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
         return _handle_event_unlocked(event, env)
 
     data_dir = Path(plugin_data)
-    if event_name == "SessionStart" and event.get("source") == "clear":
-        _mark_state_reset(data_dir, session_id)
+    clear_marker_failed = (
+        event_name == "SessionStart"
+        and event.get("source") == "clear"
+        and not _mark_state_reset(data_dir, session_id)
+    )
 
     lock_path = _acquire_state_lock(data_dir, session_id)
     if lock_path is None:
+        if clear_marker_failed:
+            return _state_reset_failure_response(event)
         response = (
             _session_context("SessionStart", event.get("source"))
             if event_name == "SessionStart"
@@ -839,8 +945,28 @@ def handle_event(event: dict, env: Mapping[str, str]) -> dict | None:
         )
         return result
     try:
-        _apply_pending_reset(data_dir, session_id)
-        return _handle_event_unlocked(event, env)
+        if clear_marker_failed:
+            try:
+                state_path(data_dir, session_id).unlink(missing_ok=True)
+            except OSError:
+                return _state_reset_failure_response(event)
+            return _state_reset_applied_without_marker_response(event)
+        pending_reset = _prepare_pending_reset(data_dir, session_id)
+        if pending_reset is None:
+            return _state_reset_failure_response(event)
+        persist_status: list[bool] = []
+        status_token = _PERSIST_STATUS.set(persist_status)
+        try:
+            result = _handle_event_unlocked(event, env)
+        finally:
+            _PERSIST_STATUS.reset(status_token)
+        if pending_reset and (
+            not persist_status or any(saved is False for saved in persist_status)
+        ):
+            return _state_reset_failure_response(event, result)
+        if not _finish_pending_reset(pending_reset):
+            return _state_reset_failure_response(event, result)
+        return result
     finally:
         _release_state_lock(lock_path)
 

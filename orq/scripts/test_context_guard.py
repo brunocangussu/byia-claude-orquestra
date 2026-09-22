@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import errno
+import hashlib
 import importlib.util
 import io
 import json
@@ -58,6 +60,27 @@ assert lint_spec is not None and lint_spec.loader is not None
 lint_module = importlib.util.module_from_spec(lint_spec)
 sys.modules[lint_spec.name] = lint_module
 lint_spec.loader.exec_module(lint_module)
+
+
+def legacy_reset_marker(data_dir: Path, session_id: str) -> Path:
+    """Deriva o caminho legado pelo contrato público, sem chamar a produção."""
+
+    digest = hashlib.sha256(session_id.encode("utf-8", errors="replace")).hexdigest()
+    return data_dir / "context-guard" / f"{digest}.reset"
+
+
+def pending_reset_markers(data_dir: Path, session_id: str) -> list[Path]:
+    """Enumera marcadores observáveis sem reutilizar a lógica de produção."""
+
+    legacy_marker = legacy_reset_marker(data_dir, session_id)
+    if not legacy_marker.parent.exists():
+        return []
+    generation_prefix = f"{legacy_marker.name}."
+    return sorted(
+        path
+        for path in legacy_marker.parent.iterdir()
+        if path.name == legacy_marker.name or path.name.startswith(generation_prefix)
+    )
 
 
 class ContextGuardPresenceTest(unittest.TestCase):
@@ -308,6 +331,216 @@ os._exit(0)
         finally:
             if recovered is not None:
                 guard._release_state_lock(recovered)
+
+    def test_reset_created_during_apply_survives_for_next_transaction(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+        first_generation = pending_reset_markers(self.data_dir, "session-a")
+        self.assertEqual(len(first_generation), 1)
+
+        state_file = guard.state_path(self.data_dir, "session-a")
+        original_unlink = Path.unlink
+        second_generation_created = False
+
+        def create_second_generation_during_state_removal(
+            path: Path,
+            *args: object,
+            **kwargs: object,
+        ) -> None:
+            nonlocal second_generation_created
+            if path == state_file and not second_generation_created:
+                second_generation_created = True
+                self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+            return original_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(
+            Path,
+            "unlink",
+            new=create_second_generation_during_state_removal,
+        ):
+            first_snapshot = guard._prepare_pending_reset(self.data_dir, "session-a")
+
+        self.assertEqual(first_snapshot, first_generation)
+        self.assertTrue(guard._finish_pending_reset(first_snapshot))
+        pending_after_first_apply = pending_reset_markers(self.data_dir, "session-a")
+        self.assertTrue(second_generation_created)
+        self.assertFalse(state_file.exists())
+        self.assertEqual(len(pending_after_first_apply), 1)
+        self.assertNotEqual(pending_after_first_apply, first_generation)
+        second_snapshot = guard._prepare_pending_reset(self.data_dir, "session-a")
+        self.assertEqual(second_snapshot, pending_after_first_apply)
+        self.assertTrue(guard._finish_pending_reset(second_snapshot))
+        self.assertEqual(pending_reset_markers(self.data_dir, "session-a"), [])
+
+    def test_legacy_fixed_reset_marker_is_consumed(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        legacy_marker = legacy_reset_marker(self.data_dir, "session-a")
+        legacy_marker.touch()
+
+        pending_snapshot = guard._prepare_pending_reset(self.data_dir, "session-a")
+        self.assertIsNotNone(pending_snapshot)
+        assert pending_snapshot is not None
+        self.assertEqual(len(pending_snapshot), 1)
+        self.assertNotEqual(pending_snapshot[0], legacy_marker)
+        self.assertTrue(pending_snapshot[0].name.startswith(f"{legacy_marker.name}."))
+        self.assertFalse(legacy_marker.exists())
+        self.assertTrue(guard._finish_pending_reset(pending_snapshot))
+
+        self.assertEqual(
+            guard.load_state(self.data_dir, "session-a"),
+            guard.default_state(),
+        )
+        self.assertFalse(legacy_marker.exists())
+
+    def test_legacy_reset_created_after_snapshot_survives_for_next_transaction(
+        self,
+    ) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        legacy_marker = legacy_reset_marker(self.data_dir, "session-a")
+        legacy_marker.touch()
+
+        first_snapshot = guard._prepare_pending_reset(self.data_dir, "session-a")
+        self.assertIsNotNone(first_snapshot)
+        assert first_snapshot is not None
+        self.assertEqual(len(first_snapshot), 1)
+
+        legacy_marker.touch()
+        self.assertTrue(guard._finish_pending_reset(first_snapshot))
+
+        self.assertTrue(
+            legacy_marker.exists(),
+            "o clear legado posterior à fotografia não pode ser consumido pela transação anterior",
+        )
+        second_snapshot = guard._prepare_pending_reset(self.data_dir, "session-a")
+        assert second_snapshot is not None
+        self.assertEqual(len(second_snapshot), 1)
+        self.assertNotEqual(second_snapshot[0], legacy_marker)
+        self.assertTrue(second_snapshot[0].name.startswith(f"{legacy_marker.name}."))
+        self.assertTrue(guard._finish_pending_reset(second_snapshot))
+        self.assertFalse(legacy_marker.exists())
+
+    def test_msvcrt_backend_locks_and_unlocks_same_byte(self) -> None:
+        class FakeMsvcrt:
+            LK_NBLCK = 23
+            LK_UNLCK = 42
+
+            def __init__(self) -> None:
+                self.calls: list[tuple[int, int, int]] = []
+
+            def locking(self, file_descriptor: int, mode: int, count: int) -> None:
+                self.calls.append(
+                    (mode, count, os.lseek(file_descriptor, 0, os.SEEK_CUR))
+                )
+
+        fake_msvcrt = FakeMsvcrt()
+        with (
+            mock.patch.object(guard, "fcntl", None),
+            mock.patch.object(guard, "msvcrt", fake_msvcrt, create=True),
+        ):
+            lock = guard._acquire_state_lock(self.data_dir, "session-a")
+            self.assertIsNotNone(lock)
+            assert lock is not None
+            try:
+                self.assertEqual(
+                    fake_msvcrt.calls,
+                    [(fake_msvcrt.LK_NBLCK, 1, 0)],
+                )
+                self.assertIsNotNone(lock.handle)
+                handle = lock.handle
+                assert handle is not None
+                handle.seek(5)
+            finally:
+                guard._release_state_lock(lock)
+
+        self.assertEqual(
+            fake_msvcrt.calls,
+            [
+                (fake_msvcrt.LK_NBLCK, 1, 0),
+                (fake_msvcrt.LK_UNLCK, 1, 0),
+            ],
+        )
+        self.assertTrue(handle.closed)
+
+    def test_msvcrt_permanent_error_fails_open_without_retry(self) -> None:
+        class FailingMsvcrt:
+            LK_NBLCK = 23
+            LK_UNLCK = 42
+
+            def __init__(self) -> None:
+                self.calls = 0
+
+            def locking(self, file_descriptor: int, mode: int, count: int) -> None:
+                self.calls += 1
+                raise OSError(errno.EINVAL, "backend indisponível")
+
+        fake_msvcrt = FailingMsvcrt()
+        with (
+            mock.patch.object(guard, "fcntl", None),
+            mock.patch.object(guard, "msvcrt", fake_msvcrt, create=True),
+            mock.patch.object(guard, "STATE_LOCK_WAIT_SECONDS", 0.01),
+            mock.patch.object(guard.time, "sleep") as sleep,
+        ):
+            lock = guard._acquire_state_lock(self.data_dir, "session-a")
+
+        self.assertIsNone(lock)
+        self.assertEqual(fake_msvcrt.calls, 1)
+        sleep.assert_not_called()
+
+    def test_msvcrt_transient_contention_retries_then_acquires(self) -> None:
+        class ContendedMsvcrt:
+            LK_NBLCK = 23
+            LK_UNLCK = 42
+
+            def __init__(self) -> None:
+                self.acquire_calls = 0
+
+            def locking(self, file_descriptor: int, mode: int, count: int) -> None:
+                if mode == self.LK_NBLCK:
+                    self.acquire_calls += 1
+                    if self.acquire_calls == 1:
+                        raise OSError(errno.EACCES, "lock ocupado")
+
+        fake_msvcrt = ContendedMsvcrt()
+        with (
+            mock.patch.object(guard, "fcntl", None),
+            mock.patch.object(guard, "msvcrt", fake_msvcrt, create=True),
+            mock.patch.object(guard.time, "sleep") as sleep,
+        ):
+            lock = guard._acquire_state_lock(self.data_dir, "session-a")
+            self.assertIsNotNone(lock)
+            assert lock is not None
+            try:
+                self.assertEqual(fake_msvcrt.acquire_calls, 2)
+                sleep.assert_called_once_with(0.01)
+            finally:
+                guard._release_state_lock(lock)
+
+    def test_missing_kernel_lock_backend_fails_open_without_lockdir(self) -> None:
+        with (
+            mock.patch.object(guard, "fcntl", None),
+            mock.patch.object(guard, "msvcrt", None, create=True),
+        ):
+            lock = guard._acquire_state_lock(self.data_dir, "session-a")
+            try:
+                self.assertIsNone(lock)
+            finally:
+                if lock is not None:
+                    guard._release_state_lock(lock)
+
+        self.assertFalse(
+            guard._state_lock_path(self.data_dir, "session-a")
+            .with_suffix(".lockdir")
+            .exists()
+        )
 
 
 class ContextGuardHookInterfaceTest(unittest.TestCase):
@@ -1040,6 +1273,356 @@ class ContextGuardHookDecisionTest(unittest.TestCase):
                     context = result["hookSpecificOutput"]["additionalContext"]
                     self.assertIn("atenda o pedido atual", context.lower())
                     self.assertNotIn("/clear", context.lower())
+
+    def test_clear_marker_creation_failure_resets_state_without_persistence(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        state_file = guard.state_path(self.data_dir, "session-a")
+        self.assertEqual(pending_reset_markers(self.data_dir, "session-a"), [])
+        original_named_temporary_file = guard.tempfile.NamedTemporaryFile
+
+        def fail_only_reset_marker_creation(*args: object, **kwargs: object) -> object:
+            if str(kwargs.get("prefix", "")).endswith(".reset."):
+                raise OSError("sem espaço para o marcador")
+            return original_named_temporary_file(*args, **kwargs)
+
+        with mock.patch.object(
+            guard.tempfile,
+            "NamedTemporaryFile",
+            side_effect=fail_only_reset_marker_creation,
+        ):
+            result = guard.handle_event(
+                self.event("SessionStart", 10.0, source="clear"),
+                self.env,
+            )
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+        self.assertFalse(state_file.exists())
+        self.assertEqual(pending_reset_markers(self.data_dir, "session-a"), [])
+        self.assertIn("falhou aberto", result["systemMessage"].lower())
+        self.assertIn("reset", result["systemMessage"].lower())
+        self.assertIn("estado anterior foi removido", result["systemMessage"].lower())
+        self.assertNotIn("não foi aplicado", result["systemMessage"].lower())
+
+    def test_clear_marker_creation_failure_warns_when_fallback_cannot_remove_state(
+        self,
+    ) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        state_file = guard.state_path(self.data_dir, "session-a")
+        state_before = state_file.read_text(encoding="utf-8")
+        original_named_temporary_file = guard.tempfile.NamedTemporaryFile
+        original_unlink = Path.unlink
+        unlink_attempts: list[Path] = []
+
+        def fail_only_reset_marker_creation(*args: object, **kwargs: object) -> object:
+            if str(kwargs.get("prefix", "")).endswith(".reset."):
+                raise OSError("sem espaço para o marcador")
+            return original_named_temporary_file(*args, **kwargs)
+
+        def reject_state_removal(
+            path: Path,
+            *args: object,
+            **kwargs: object,
+        ) -> None:
+            if path == state_file:
+                unlink_attempts.append(path)
+                raise OSError("estado não removível")
+            return original_unlink(path, *args, **kwargs)
+
+        with (
+            mock.patch.object(
+                guard.tempfile,
+                "NamedTemporaryFile",
+                side_effect=fail_only_reset_marker_creation,
+            ),
+            mock.patch.object(Path, "unlink", new=reject_state_removal),
+        ):
+            result = guard.handle_event(
+                self.event("SessionStart", 10.0, source="clear"),
+                self.env,
+            )
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+        self.assertEqual(unlink_attempts, [state_file])
+        self.assertEqual(state_file.read_text(encoding="utf-8"), state_before)
+        self.assertEqual(pending_reset_markers(self.data_dir, "session-a"), [])
+        message = result["systemMessage"].lower()
+        self.assertIn("reset do estado de contexto não foi aplicado por completo", message)
+        self.assertIn("falhou aberto", message)
+        self.assertNotIn("o estado anterior foi removido", message)
+
+    def test_reset_marker_scan_failure_is_visible_without_new_persistence(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        state_file = guard.state_path(self.data_dir, "session-a")
+        state_before = state_file.read_text(encoding="utf-8")
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+        pending_marker = pending_reset_markers(self.data_dir, "session-a")[0]
+        reset_dir = pending_marker.parent
+        original_iterdir = Path.iterdir
+
+        def reject_only_reset_marker_scan(path: Path) -> object:
+            if path == reset_dir:
+                raise OSError("diretório indisponível")
+            return original_iterdir(path)
+
+        with mock.patch.object(Path, "iterdir", new=reject_only_reset_marker_scan):
+            result = guard.handle_event(
+                self.event("UserPromptSubmit", 10.0, prompt="continue"),
+                self.env,
+            )
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+        self.assertTrue(pending_marker.exists())
+        self.assertEqual(state_file.read_text(encoding="utf-8"), state_before)
+        self.assertIn("falhou aberto", result["systemMessage"].lower())
+        self.assertIn("reset", result["systemMessage"].lower())
+
+    def test_generated_reset_marker_is_found_without_entry_stat(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+        legacy_marker = guard._state_reset_path(self.data_dir, "session-a")
+        pending_marker = pending_reset_markers(self.data_dir, "session-a")[0]
+        self.assertNotEqual(pending_marker.name, legacy_marker.name)
+
+        with mock.patch.object(
+            Path,
+            "is_file",
+            side_effect=AssertionError("a enumeração não deve consultar stat da entrada"),
+        ):
+            result = guard.handle_event(
+                self.event("UserPromptSubmit", 10.0, prompt="continue"),
+                self.env,
+            )
+
+        self.assertIsNone(result)
+        self.assertFalse(pending_marker.exists())
+        reset_state = guard.load_state(self.data_dir, "session-a")
+        self.assertFalse(reset_state["recovery_required"])
+        self.assertFalse(reset_state["checkpoint_started"])
+
+    def test_reset_marker_removal_failure_keeps_marker_for_retry(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+        pending_marker = pending_reset_markers(self.data_dir, "session-a")[0]
+        original_unlink = Path.unlink
+
+        def reject_pending_marker_removal(
+            path: Path,
+            *args: object,
+            **kwargs: object,
+        ) -> None:
+            if path == pending_marker:
+                raise OSError("marcador não removível")
+            return original_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(
+            Path,
+            "unlink",
+            new=reject_pending_marker_removal,
+        ):
+            result = guard.handle_event(
+                self.event("UserPromptSubmit", 10.0, prompt="continue"),
+                self.env,
+            )
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+        self.assertTrue(pending_marker.exists())
+        persisted_state = guard.load_state(self.data_dir, "session-a")
+        self.assertEqual(persisted_state["phase"], "normal")
+        self.assertFalse(persisted_state["recovery_required"])
+        self.assertIn("falhou aberto", result["systemMessage"].lower())
+        self.assertIn("reset", result["systemMessage"].lower())
+
+        retry = guard.handle_event(
+            self.event("UserPromptSubmit", 10.0, prompt="continue"),
+            self.env,
+        )
+        self.assertIsNone(retry)
+        self.assertFalse(pending_marker.exists())
+
+    def test_failed_persist_keeps_observed_reset_pending(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+        pending_marker = pending_reset_markers(self.data_dir, "session-a")[0]
+
+        with mock.patch.object(guard, "save_state", return_value=False):
+            result = guard.handle_event(
+                self.event("UserPromptSubmit", 10.0, prompt="continue"),
+                self.env,
+            )
+
+        self.assertNotEqual((result or {}).get("decision"), "block")
+        self.assertIn("reset", result["systemMessage"].lower())
+        self.assertIn("falhou aberto", result["systemMessage"].lower())
+        self.assertTrue(
+            pending_marker.exists(),
+            "falha ao persistir não pode consumir o reset fotografado",
+        )
+
+        next_result = guard.handle_event(
+            self.event("UserPromptSubmit", 10.0, prompt="continue"),
+            self.env,
+        )
+        self.assertIsNone(next_result)
+        self.assertFalse(pending_marker.exists())
+        reset_state = guard.load_state(self.data_dir, "session-a")
+        self.assertEqual(reset_state["phase"], "normal")
+        self.assertFalse(reset_state["recovery_required"])
+
+    def test_failed_persist_preserves_context_calculated_after_reset(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+
+        with mock.patch.object(guard, "save_state", return_value=False):
+            result = guard.handle_event(
+                self.event(
+                    "UserPromptSubmit",
+                    61.0,
+                    prompt="implemente a próxima tela",
+                ),
+                self.env,
+            )
+
+        self.assertIsNotNone(result)
+        assert result is not None
+        context = result["hookSpecificOutput"]["additionalContext"].lower()
+        self.assertIn("atenda o pedido atual", context)
+        self.assertIn("checkpoint", context)
+        self.assertIn("não foi aplicado por completo", result["systemMessage"].lower())
+
+    def test_reset_without_persistence_keeps_observed_reset_pending(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+        pending_marker = pending_reset_markers(self.data_dir, "session-a")[0]
+        event_without_persistence = {
+            "hook_event_name": "EventoDesconhecido",
+            "session_id": "session-a",
+        }
+
+        result = guard.handle_event(event_without_persistence, self.env)
+
+        self.assertTrue(
+            pending_marker.exists(),
+            "um reset fotografado exige ao menos uma persistência comprovada antes do consumo",
+        )
+        self.assertIn("reset", result["systemMessage"].lower())
+        self.assertIn("falhou aberto", result["systemMessage"].lower())
+
+    def test_reset_marker_already_removed_is_treated_as_consumed(self) -> None:
+        old_state = guard.default_state()
+        old_state["phase"] = "recovery_required"
+        old_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", old_state))
+        self.assertTrue(guard._mark_state_reset(self.data_dir, "session-a"))
+        pending_marker = pending_reset_markers(self.data_dir, "session-a")[0]
+        original_pending_paths = guard._pending_state_reset_paths
+
+        def enumerate_then_remove(data_dir: Path, session_id: str) -> list[Path] | None:
+            paths = original_pending_paths(data_dir, session_id)
+            pending_marker.unlink()
+            return paths
+
+        with mock.patch.object(
+            guard,
+            "_pending_state_reset_paths",
+            side_effect=enumerate_then_remove,
+        ):
+            result = guard.handle_event(
+                self.event("UserPromptSubmit", 10.0, prompt="continue"),
+                self.env,
+            )
+
+        self.assertIsNone(result)
+        reset_state = guard.load_state(self.data_dir, "session-a")
+        self.assertEqual(reset_state["phase"], "normal")
+        self.assertFalse(reset_state["recovery_required"])
+
+    def test_prior_transaction_cannot_consume_newer_clear_reset(self) -> None:
+        stale_state = guard.default_state()
+        stale_state["phase"] = "recovery_required"
+        stale_state["recovery_required"] = True
+        self.assertTrue(guard.save_state(self.data_dir, "session-a", stale_state))
+        held_lock = guard._acquire_state_lock(self.data_dir, "session-a")
+        self.assertIsNotNone(held_lock)
+        reset_created = threading.Event()
+        clear_response: list[dict | None] = []
+        original_mark_reset = guard._mark_state_reset
+
+        def mark_reset_and_signal(data_dir: Path, session_id: str) -> bool:
+            marked = original_mark_reset(data_dir, session_id)
+            reset_created.set()
+            return marked
+
+        try:
+            with (
+                mock.patch.object(
+                    guard,
+                    "_mark_state_reset",
+                    side_effect=mark_reset_and_signal,
+                ),
+                mock.patch.object(guard, "STATE_LOCK_WAIT_SECONDS", 0.05),
+            ):
+                clear_worker = threading.Thread(
+                    target=lambda: clear_response.append(
+                        guard.handle_event(
+                            self.event("SessionStart", 10.0, source="clear"),
+                            self.env,
+                        )
+                    ),
+                    daemon=True,
+                )
+                clear_worker.start()
+                self.assertTrue(reset_created.wait(timeout=1))
+                guard._persist_response(
+                    self.data_dir,
+                    "session-a",
+                    stale_state,
+                    None,
+                )
+                self.assertTrue(
+                    pending_reset_markers(self.data_dir, "session-a"),
+                    "a persistência antiga não pode consumir a geração criada depois",
+                )
+                clear_worker.join(timeout=1)
+        finally:
+            guard._release_state_lock(held_lock)
+
+        self.assertFalse(clear_worker.is_alive())
+        self.assertIn("falhou aberto", clear_response[0]["systemMessage"])
+        next_prompt = guard.handle_event(
+            self.event("UserPromptSubmit", 10.0, prompt="continue"),
+            self.env,
+        )
+
+        self.assertIsNone(next_prompt)
+        reset_state = guard.load_state(self.data_dir, "session-a")
+        self.assertEqual(reset_state["phase"], "normal")
+        self.assertFalse(reset_state["checkpoint_started"])
+        self.assertFalse(reset_state["checkpoint_verified"])
+        self.assertFalse(reset_state["recovery_required"])
 
 
 @unittest.skipUnless(
@@ -1872,6 +2455,29 @@ class ContextGuardReleaseVersionTest(unittest.TestCase):
 
 
 class ContextGuardDocumentationContractTest(unittest.TestCase):
+    def test_reset_concurrency_contract_is_unambiguous(self) -> None:
+        architecture = (
+            PLUGIN_ROOT.parent / "memory" / "wiki" / "arquitetura.md"
+        ).read_text(encoding="utf-8")
+        distribution = (
+            PLUGIN_ROOT.parent / "memory" / "wiki" / "distribuicao.md"
+        ).read_text(encoding="utf-8")
+        architecture_contract = " ".join(architecture.split())
+        distribution_contract = " ".join(distribution.split())
+
+        for phrase in (
+            "marcador legado é reivindicado por renomeação atômica",
+            "a ação do host continua sem tocar no estado",
+            "a garantia de exclusão mútua fica indisponível",
+        ):
+            self.assertIn(phrase, architecture_contract)
+        for phrase in (
+            "o suporte a Windows só está validado",
+            "não bloqueia a publicação para plataformas já validadas",
+            "não permite declarar Windows validado",
+        ):
+            self.assertIn(phrase, distribution_contract)
+
     def test_guard_contract_is_present_in_live_instructions(self) -> None:
         required = {
             PLUGIN_ROOT / "commands" / "checkpoint.md": [

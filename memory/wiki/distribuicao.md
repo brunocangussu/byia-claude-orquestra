@@ -207,11 +207,17 @@ fonte de verdade** e um quinto ponto de esquecimento a cada bump — foi assim q
 Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e por isso entra na cobertura do
 `verify_installed_cache.py` como qualquer outro arquivo do pacote — **não** o compare com `diff -rq`:
 a comparação bruta reprova cache válido por artefato instalado-only legítimo (`.in_use`,
-`.orphaned_at`, `migrated-command-skills/`), que é exatamente o falso positivo do `T-049`. Na
-`0.22.1`,
-o smoke exige `checkpoint_verified`, compactação não bloqueada e reidratação em
-`SessionStart(source=compact)`. Instalação no
-Codex só está validada quando `/hooks` mostra o bundle com confiança aprovada e uma sessão nova roda
+`.orphaned_at`, `migrated-command-skills/`), que é exatamente o falso positivo do `T-049`.
+
+O smoke exige `checkpoint_verified`, compactação não bloqueada e reidratação em
+`SessionStart(source=compact)`, além de um processo filho que morre depois de adquirir o lock e
+permite uma aquisição posterior. Em macOS/Linux esse smoke exercita `fcntl.flock`; em Windows ele
+precisa exercitar `msvcrt.locking` no Windows real. O teste unitário com backend `msvcrt` falso só
+prova a seleção, a posição zero e o unlock — não substitui a validação de morte de processo nesse
+host. Por plataforma, o suporte a Windows só está validado depois desse smoke no Windows real. A
+ausência desse host não bloqueia a publicação para plataformas já validadas, mas não permite
+declarar Windows validado; registre-o explicitamente como “não validado”. Instalação no Codex só
+está validada quando `/hooks` mostra o bundle com confiança aprovada e uma sessão nova roda
 `SessionStart` sem erro. `plugin list` e presença no disco não provam hook ativo.
 
 O backstop de 90% usa `model_auto_compact_token_limit` absoluto e `scope = "total"`; ele não é
