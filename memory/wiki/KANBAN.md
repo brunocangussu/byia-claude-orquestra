@@ -88,7 +88,7 @@
 - [ ] `T-053` Incorporar o Fable 5.1 no elenco — trilha: sistema · faixa: normal · próximo: claude update 2.1.255+, reiniciar, reler additionalModelOptionsCache · → threads/T-053-fable-51.md
 
 - [!] `T-047` Cache de tasks antigas — R6 reprovada; decidir extensão para corrigir 3 testes ou redesenhar · `revisões: 6/6 · extensão: +2` · → threads/_notas-de-cards.md @frente-protecao-contexto @codex
-- [?] `T-044` Reset transacional aprovado na R3 auditada; candidata 0.27.10 pronta, aguarda publicação, instalação, restart e validação comportamental · → threads/T-044-reset-concorrente.md
+- [x] `T-044` Reset transacional 0.27.10 publicado, instalado e validado nos hosts Claude/Codex; Windows real não validado · → threads/T-044-reset-concorrente.md
 
 - [ ] `T-042` Statusline nativa do Codex — release alvo 0.23.0 · perfil opt-in com backup e rollback · → threads/_notas-de-cards.md
 

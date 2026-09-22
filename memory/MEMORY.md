@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.10 — candidata aprovada do `T-044`, com integração autorizada neste commit e ainda **não instalada**. A versão em execução nos hosts continua sendo a 0.27.6 publicada em `fd33de6` (2026-09-08). ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-21 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.10 — publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão nova; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-22 · **host padrão a partir de 2026-08-09: Codex**.
 
 **T-044 aprovado para integração, 2026-09-21:** os seis bloqueadores confirmados da R2 foram
 corrigidos com RED/GREEN e mutantes específicos; a suíte fresca passou 414/414, o manifesto estrito
@@ -14,6 +14,14 @@ aprovados. O único bloqueio alegado no lote de produção foi descartado pela a
 `additionalContext`, ausência do aviso falso, nenhum marcador pendente e estado padrão. A versão
 `0.27.10` foi escolhida porque `0.27.9` está reservada ao T-095 e nenhum worktree, branch ou tag
 reservava `0.27.10`. Publicação, instalação e restart permanecem fora desta etapa.
+
+**Release e validação do `T-044`, 2026-09-22:** `origin/main` foi confirmado em `df98d9c`; os
+marketplaces Git dos dois hosts resolveram a 0.27.10 e os caches passaram byte a byte contra um
+checkout detached limpo desse SHA. Processos novos do Claude e do Codex responderam aos smokes
+sintéticos; `/hooks` mostrou o `SessionStart` do `orq@orquestra` ativo e apontando para
+`0.27.10/scripts/context-guard.py`. Os sete testes focados de runtime passaram em cada cache, e o
+contrato documental passou na fonte limpa. O cache Codex 0.27.8, citado por tarefas vivas, foi
+restaurado lado a lado depois de o atualizador removê-lo. Windows real permanece **não validado**.
 
 **Checkpoint de recuperação, 2026-09-16 — raiz reconciliada:** a `main` local estava quatro commits atrás e o fast-forward era barrado por nove alterações locais sobrepostas a `MEMORY.md`, `fixes-history.md` e `KANBAN.md`; não havia outra tarefa ativa. O estado antigo foi preservado na branch local `codex/root-recovery-20260916` (`793e1f3`), somente os conteúdos ainda válidos foram reaplicados sobre `origin/main` e publicados em `2b5ee01`. A raiz ficou limpa e sincronizada; 396/396 testes, manifesto estrito e lint passaram. O reviewer do host Codex permanece temporariamente em Opus conforme decisão do dono. Retomar pelos cards em espera `T-094`, `T-062` e `T-047`.
 

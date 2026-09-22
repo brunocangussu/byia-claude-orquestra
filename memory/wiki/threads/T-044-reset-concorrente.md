@@ -199,8 +199,29 @@ worktrees registrados, branches e tags não encontrou reserva de `0.27.10`. O ca
 VALIDATE após a integração; publicação, instalação, restart e teste comportamental permanecem
 pendentes e não são autorizados nesta etapa.
 
+## Release e validação comportamental — 2026-09-22
+
+O `origin/main` público foi confirmado em `df98d9c`. Claude e Codex atualizaram seus marketplaces
+Git para esse SHA e registraram `orq@orquestra` 0.27.10 habilitado. Os dois caches passaram com
+exit 0 no `verify_installed_cache.py`, executado a partir de checkout detached limpo do mesmo SHA.
+
+O primeiro `codex plugin add` ainda enxergou o snapshot antigo 0.27.8; após
+`codex plugin marketplace upgrade orquestra`, o catálogo passou a 0.27.10. Durante essa troca, o
+instalador removeu o cache 0.27.8 referenciado pela tarefa viva e reproduziu o ENOENT histórico do
+T-047. O backup preparado antes da atualização foi restaurado imediatamente; 0.27.8 e 0.27.10
+permanecem lado a lado, e o hook da tarefa viva voltou a responder.
+
+Processos novos do Claude CLI e do `codex exec` responderam respectivamente
+`ORQ_CLAUDE_02710_OK` e `ORQ_CODEX_02710_OK`. Em sessão Codex nova, `/hooks` mostrou o
+`SessionStart` do `orq@orquestra` ativo, com matcher `^(clear|compact)$` e comando apontando para
+`0.27.10/scripts/context-guard.py`. Os sete testes focados de runtime passaram separadamente nos
+caches Claude e Codex; o teste do contrato documental passou na fonte limpa, pois `memory/wiki/`
+não integra o bundle instalado.
+
+O card está fechado nos hosts macOS validados. Suporte em Windows real continua explicitamente
+**não validado**; essa ausência não bloqueia a release para as plataformas já comprovadas.
+
 ## ⏭️ RETOMAR AQUI
 
-Após a integração, publicar e instalar a versão somente com autorização própria; então reiniciar
-cada host e executar os verificadores de cache a partir de fonte limpa, seguidos do smoke
-comportamental do reset concorrente.
+Nenhuma ação pendente no T-044. Reabrir somente diante de regressão comportamental ou para uma
+campanha específica de validação em Windows real.
