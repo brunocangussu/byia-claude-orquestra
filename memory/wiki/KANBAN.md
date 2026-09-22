@@ -54,6 +54,7 @@
 
 ## 🔵 Backlog
 
+- [x] `T-097` Limpeza de worktrees — validado em 2026-09-22: 1 checkout, só `main` local e 28 referências reversíveis; 4 refs remotas preservadas · → threads/T-097-organizacao-worktrees.md
 - [x] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — validado por você em 2026-09-06: a divergência foi acusada com papel, valor ativo e valor do preset · → threads/T-079-gpt6-astra.md
 - [x] `T-077` Runner Anthropic fixa --model opus e barra o Fable no host Codex — fechado em 2026-09-06: provado no T-079 — runner INSTALADO com --model fable devolveu claude-fable-5-1, exit 0
 

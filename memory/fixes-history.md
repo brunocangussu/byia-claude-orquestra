@@ -2132,3 +2132,13 @@ valer nos dois assim que cada host reiniciar.
 
 Reconciliação com a frente `T-075` confirmada sem conflito: ela trabalha em worktree próprio
 (`/private/tmp/orq-t075-companion-reuse`), partindo do mesmo `af3201c`, e não usa `git add .`.
+
+## [2026-09-22] manutenção | T-097 · worktrees e branches locais reconciliados
+
+Os 23 checkouts sujos foram preservados integralmente em tags anotadas antes de serem removidos sem
+`--force`; branches locais redundantes saíram somente depois da prova de restauração. A raiz suja
+também foi capturada sem mutação; após uma edição concorrente detectada, a captura final ficou em
+`archive/t097/root-shared-pre-fast-forward-20260922`, com 63 caminhos conferidos byte a byte. A
+pós-condição é um checkout, somente `main` local e 28 referências
+reversíveis; o stash preexistente e quatro refs remotas históricas permaneceram intactos. A
+reconciliação é documental/administrativa e não muda a versão 0.27.10 nem o runtime dos hosts.

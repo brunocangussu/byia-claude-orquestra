@@ -23,6 +23,13 @@ sintéticos; `/hooks` mostrou o `SessionStart` do `orq@orquestra` ativo e aponta
 contrato documental passou na fonte limpa. O cache Codex 0.27.8, citado por tarefas vivas, foi
 restaurado lado a lado depois de o atualizador removê-lo. Windows real permanece **não validado**.
 
+**Fechamento administrativo do `T-097`, 2026-09-22:** os 23 checkouts sujos foram preservados em
+tags anotadas e removidos sem `--force`; a raiz compartilhada ganhou um snapshot não mutante antes
+da reconciliação. O repositório ficou com um checkout, somente `main` local e 28 referências
+`archive/t097/*`; quatro refs remotas históricas continuam deliberadamente intactas. O estado
+final da raiz está em `archive/t097/root-shared-pre-fast-forward-20260922`, e este fechamento não
+altera a versão 0.27.10, os caches instalados nem o runtime dos hosts.
+
 **Checkpoint de recuperação, 2026-09-16 — raiz reconciliada:** a `main` local estava quatro commits atrás e o fast-forward era barrado por nove alterações locais sobrepostas a `MEMORY.md`, `fixes-history.md` e `KANBAN.md`; não havia outra tarefa ativa. O estado antigo foi preservado na branch local `codex/root-recovery-20260916` (`793e1f3`), somente os conteúdos ainda válidos foram reaplicados sobre `origin/main` e publicados em `2b5ee01`. A raiz ficou limpa e sincronizada; 396/396 testes, manifesto estrito e lint passaram. O reviewer do host Codex permanece temporariamente em Opus conforme decisão do dono. Retomar pelos cards em espera `T-094`, `T-062` e `T-047`.
 
 **Candidata 0.27.7, 2026-09-15 — `T-076`:** o dono aprovou a opção B: board operacional no
