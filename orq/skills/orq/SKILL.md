@@ -98,6 +98,10 @@ mecanismo interno — ele não precisa saber que existem.
 `/orq:*` nesse host; esses slash commands pertencem ao Claude Code. Ausência de `/orq` no menu do
 Codex não significa plugin ausente.
 
+Quando a intenção envolver a statusline nativa da TUI do Codex, leia
+`references/hosts/codex.md` antes de diagnosticar. A referência define o diagnóstico somente leitura;
+não replique o contrato nem proponha alteração de `config.toml` neste fluxo.
+
 ⚠️ **Fora do Claude Code (Codex sem os commands instalados, por exemplo), os `/orq:*` citados na
 tabela abaixo não existem como comando.** O procedimento é o mesmo: leia o arquivo
 `commands/<nome>.md` (ex.: a linha "pode implementar" → `commands/implement-next.md`) — **não
@@ -409,6 +413,7 @@ O board diz *onde estamos*; a wiki diz *o que o sistema é*.
 - `THREAD_ROOT/threads/<nome>.md` — trabalho em curso com "RETOMAR AQUI"
 - `BOARD_CANONICO` — o board operacional, resolvido antes de qualquer leitura ou escrita de card
 - `memory/fixes-history.md` — log append-only
+- Escrita de checkpoint — `Contrato de escrita do checkpoint` em `memory/wiki/_schema.md`
 - `memory/gotchas.md` — armadilhas
 
 Ao fechar um card: atualizar a **página de tópico** afetada (não só o log) — senão daqui a um mês

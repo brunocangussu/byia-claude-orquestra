@@ -155,9 +155,15 @@ movimento de card da A, e ninguém percebe.
 |---|---|---|
 | `wiki/threads/<frente>.md` | só a janela dona | livre — ninguém mais toca |
 | `wiki/KANBAN.md` | todas | **o único ponto de disputa real** — ver as 3 regras |
-| `fixes-history.md` | todas | append **no fim**, relendo antes; entrada carimbada com a frente |
+| `fixes-history.md` | todas | append **no TOPO**, relendo antes; autoria obrigatória |
 | `wiki/<tópico>.md` | quem fechou o card | reler antes de reescrever |
 | `wiki/_elenco.md` | todas | **estado compartilhado** — o perfil ativo vale para **todas** as janelas no próximo spawn. Releia **imediatamente antes** de gravar. Ajuste de um papel: edite **só aquela linha**. **Exceção — trocar de perfil** (`/orq:elenco perfil <nome>`): aí a tabela ativa **é** reescrita inteira a partir do preset, preservando a linha do `manager` — o que continua proibido é reescrever a partir da **cópia velha do seu contexto** em vez de reler o disco |
+
+### Contrato de escrita do checkpoint
+
+Para cada nova entrada em `fixes-history.md`, releia o arquivo e insira a nova entrada no topo,
+preservando as anteriores. Toda entrada tem autoria explícita: use `@frente-<slug>` quando houver
+frente dona; sem frente ativa, use `@codex` ou `@claude` e declare `sem frente ativa`.
 
 ⚠️ **O `_elenco.md` é o mais fácil de perder sem perceber**, porque ninguém "trabalha" nele — só passa
 e troca uma linha. Cenário real: a janela A ativa o perfil `economia`; a janela B, com uma cópia velha

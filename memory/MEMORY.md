@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.10 — publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão nova; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-22 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.11 — candidata local T-134, ainda não publicada nem instalada. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-22 · **host padrão a partir de 2026-08-09: Codex**.
 
 **T-044 aprovado para integração, 2026-09-21:** os seis bloqueadores confirmados da R2 foram
 corrigidos com RED/GREEN e mutantes específicos; a suíte fresca passou 414/414, o manifesto estrito

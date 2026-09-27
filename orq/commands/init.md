@@ -152,6 +152,9 @@ Apresente ao dono, curto e escaneável:
   **provisória** (board ainda não existe neste projeto — ver FASE 1), diga que a confirmação
   definitiva só sai depois de a FASE 4 criar o board, e que de qualquer forma nada será escrito — F3
   nunca escreve.
+- **TUI do Codex CLI (não Desktop):** leia `${ORQ_PACKAGE_ROOT}/skills/orq/references/hosts/codex.md`; resolva só
+  caminho, sintaxe, presença e tipo da chave, reporte um estado sem mostrar valor e não inclua
+  qualquer alteração de `config.toml` nesta proposta de init.
 
 **Faça as decisões dele em UMA interação, não em várias.** Use `AskUserQuestion` com as perguntas
 juntas:
@@ -251,6 +254,7 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 
    ## Regras da wiki
    - o LOG (`fixes-history.md`) é append-only: responde "o que aconteceu naquele dia";
+   - a escrita do checkpoint segue o `Contrato de escrita do checkpoint` em `memory/wiki/_schema.md`;
    - a PÁGINA de tópico é reescrita: responde "como funciona hoje";
    - não guardar o derivável (diff, git log, schema): guardar o porquê.
 
@@ -639,7 +643,7 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 **Não basta dizer o que fez — prove que funciona.** Rode o smoke test e mostre o resultado:
 
 1. **O board é legível pela statusline?**
-   `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .` — e confira **os três sinais**, porque
+   `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --board-path "$BOARD_CANONICO"` — e confira **os três sinais**, porque
    saída não-vazia **não** prova que está certo:
    - saída **vazia** com cards no board → FALHA: nenhum card foi reconhecido;
    - **`⚠N`** no fim → N linhas parecem card e não casam o contrato;
