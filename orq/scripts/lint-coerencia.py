@@ -13,9 +13,11 @@ Uso:
 Saída: 0 se coerente, 1 se achou referência quebrada.
 """
 
+import errno
 import json
 import os
 import re
+import stat
 import sys
 from collections import Counter
 from pathlib import Path
@@ -1660,6 +1662,20 @@ INVOCACAO_KANBAN_DESPROTEGIDA_RE = re.compile(
 INVOCACAO_DIRETA_DESPROTEGIDA_RE = re.compile(
     r"(?<![\"'`])(?<!sh )(?<!bash )\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh\b"
 )
+INVOCACAO_MEDICAO_NAO_CANONICA_RE = re.compile(
+    r"(?:sh|bash)\s+(?:"
+    r"'\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh'\s+"
+    r'|"\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh"\s+'
+    r'(?!--resolver\b)(?!--board-path\s+"\$BOARD_CANONICO"(?:`|(?=[.,;:](?:\s|$))|(?=\r?\n)|$))'
+    r")"
+)
+INVOCACAO_MEDICAO_SEM_ARGUMENTO_RE = re.compile(
+    r"(?:sh|bash)\s+(?:"
+    r"'\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh'"
+    r'|"\$\{(?:CLAUDE_PLUGIN_ROOT|ORQ_PACKAGE_ROOT)\}/scripts/kanban-status\.sh"'
+    r")(?=`|[.,;:](?:\s|$)|[ \t]*$)",
+    re.MULTILINE,
+)
 CONSUMIDORES_BOARD_CANONICO = (
     Path("orq/commands/quadro.md"),
     Path("orq/commands/plan-next.md"),
@@ -1746,12 +1762,8 @@ def validate_board_canonico(raiz: Path, plugin: Path) -> list:
     """
     problemas: list = []
     for relativo in CONSUMIDORES_BOARD_CANONICO:
-        if relativo.parts[0] == "orq":
-            caminho = plugin.joinpath(*relativo.parts[1:])
-        else:
-            caminho = raiz / relativo
         try:
-            texto = caminho.read_text(encoding="utf-8")
+            texto = _read_utf8_regular_file(raiz, relativo)
         except (OSError, UnicodeDecodeError) as exc:
             problemas.append((relativo, 0, f"não foi possível ler contrato do board: {exc}"))
             continue
@@ -1776,6 +1788,8 @@ def validate_board_canonico(raiz: Path, plugin: Path) -> list:
             (INVOCACAO_RESOLVER_NUA_RE, "invocação nua de kanban-status.sh --resolver não é executável"),
             (INVOCACAO_RESOLVER_DESPROTEGIDA_RE, "invocação desprotegida de kanban-status.sh --resolver não é executável"),
             (INVOCACAO_KANBAN_DESPROTEGIDA_RE, "invocação desprotegida de kanban-status.sh não é executável"),
+            (INVOCACAO_MEDICAO_NAO_CANONICA_RE, "medição do board fora de --board-path \"$BOARD_CANONICO\""),
+            (INVOCACAO_MEDICAO_SEM_ARGUMENTO_RE, "medição do board fora de --board-path \"$BOARD_CANONICO\""),
             (INVOCACAO_DIRETA_DESPROTEGIDA_RE, "invocação direta desprotegida de kanban-status.sh não é executável"),
         ):
             for invocacao in padrao.finditer(texto):
@@ -1818,9 +1832,8 @@ def validate_thread_root(raiz: Path, plugin: Path) -> list:
     """Mantém a thread na frente dona, independente do board operacional."""
     problemas: list = []
     for relativo in CONSUMIDORES_BOARD_CANONICO:
-        caminho = plugin.joinpath(*relativo.parts[1:]) if relativo.parts[0] == "orq" else raiz / relativo
         try:
-            texto = caminho.read_text(encoding="utf-8")
+            texto = _read_utf8_regular_file(raiz, relativo)
         except (OSError, UnicodeDecodeError) as exc:
             problemas.append((relativo, 0, f"não foi possível ler contrato da thread: {exc}"))
             continue
@@ -1846,6 +1859,278 @@ def validate_thread_root(raiz: Path, plugin: Path) -> list:
     return problemas
 
 
+def _read_utf8_regular_file(root: Path, relative: Path) -> str:
+    """Lê um contrato por descritores, sem seguir links nem perder a identidade.
+
+    A raiz confiável e cada componente são abertos a partir da âncora do sistema
+    de arquivos. Uma segunda fotografia por descritores detecta substituição
+    entre abertura e consumo; o conteúdo só é devolvido depois dessa confirmação.
+    """
+    if not root.is_absolute() or relative.is_absolute():
+        raise OSError("raiz deve ser absoluta e caminho deve ser relativo")
+    if not relative.parts or any(component in {"", ".", ".."} for component in relative.parts):
+        raise OSError("caminho relativo inválido")
+
+    nofollow = getattr(os, "O_NOFOLLOW", None)
+    directory = getattr(os, "O_DIRECTORY", None)
+    nonblock = getattr(os, "O_NONBLOCK", None)
+    supports_dir_fd = getattr(os, "supports_dir_fd", set())
+    if nofollow is None or directory is None or nonblock is None or os.open not in supports_dir_fd:
+        raise OSError("plataforma não oferece abertura segura por O_NOFOLLOW, O_NONBLOCK e dir_fd")
+
+    directory_flags = os.O_RDONLY | directory | nofollow
+
+    def _identity(descriptor: int) -> tuple[int, int]:
+        metadata = os.fstat(descriptor)
+        return metadata.st_dev, metadata.st_ino
+
+    def _open_directory(component: str, parent: int, role: str) -> int:
+        try:
+            descriptor = os.open(component, directory_flags, dir_fd=parent)
+        except OSError as exc:
+            if exc.errno in {errno.ELOOP, errno.ENOTDIR}:
+                raise OSError(f"{role} simbólico ou não-diretório não é permitido") from exc
+            raise
+        if not stat.S_ISDIR(os.fstat(descriptor).st_mode):
+            os.close(descriptor)
+            raise OSError(f"{role} não aponta para um diretório regular")
+        return descriptor
+
+    def _snapshot() -> tuple[int, tuple[tuple[str, int, int], ...]]:
+        # A âncora é confiável, mas nenhum componente do caminho de entrada é:
+        # abrir todos por descritor impede que um link na própria raiz ou em um
+        # ancestral seja canonizado antes da verificação no-follow.
+        anchor = Path(root.anchor)
+        root_components = root.parts[1:]
+        anchor_descriptor = os.open(anchor, directory_flags)
+        parent_descriptor = anchor_descriptor
+        identities: list[tuple[str, int, int]] = [("âncora", *_identity(anchor_descriptor))]
+        try:
+            for component in root_components:
+                next_descriptor = _open_directory(component, parent_descriptor, "raiz")
+                os.close(parent_descriptor)
+                parent_descriptor = next_descriptor
+                identities.append((f"raiz/{component}", *_identity(parent_descriptor)))
+            for component in relative.parts[:-1]:
+                next_descriptor = _open_directory(component, parent_descriptor, "diretório intermediário")
+                os.close(parent_descriptor)
+                parent_descriptor = next_descriptor
+                identities.append((f"relativo/{component}", *_identity(parent_descriptor)))
+            try:
+                file_descriptor = os.open(
+                    relative.parts[-1], os.O_RDONLY | nofollow | nonblock, dir_fd=parent_descriptor
+                )
+            except OSError as exc:
+                if exc.errno == errno.ELOOP:
+                    raise OSError("arquivo simbólico não é permitido") from exc
+                raise
+        finally:
+            os.close(parent_descriptor)
+
+        try:
+            metadata = os.fstat(file_descriptor)
+            if not stat.S_ISREG(metadata.st_mode):
+                raise OSError("descritor não aponta para um arquivo regular")
+            identities.append((f"arquivo/{relative.parts[-1]}", metadata.st_dev, metadata.st_ino))
+            return file_descriptor, tuple(identities)
+        except BaseException:
+            os.close(file_descriptor)
+            raise
+
+    descriptor, before = _snapshot()
+    try:
+        reader = os.fdopen(descriptor, "r", encoding="utf-8")
+        descriptor = -1
+        with reader:
+            content = reader.read()
+        after_descriptor, after = _snapshot()
+        try:
+            if before != after:
+                raise OSError("arquivo, raiz ou diretório foi substituído durante a leitura")
+        finally:
+            os.close(after_descriptor)
+        return content
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
+DOCUMENTOS_CONTRATO_CHECKPOINT = (
+    Path("memory/wiki/_schema.md"),
+    Path("orq/commands/checkpoint.md"),
+    Path("orq/commands/init.md"),
+    Path("orq/skills/orq/SKILL.md"),
+)
+ANCORAS_CONTRATO_CHECKPOINT = {
+    Path("memory/wiki/_schema.md"): (
+        "### Contrato de escrita do checkpoint",
+        "append **no TOPO**",
+        "autoria explícita",
+        "sem frente ativa",
+    ),
+    Path("orq/commands/checkpoint.md"): (
+        "Toda entrada nova fica no topo e tem autoria obrigatória",
+        "Contrato de escrita do checkpoint",
+        "sem frente ativa",
+    ),
+    Path("orq/commands/init.md"): ("Contrato de escrita do checkpoint",),
+    Path("orq/skills/orq/SKILL.md"): ("Contrato de escrita do checkpoint",),
+}
+INSTRUCOES_CONTRADITORIAS_CHECKPOINT = (
+    (
+        re.compile(
+            r"\b(?:append|adicione|adicionar|insira|inserir)\b[^\n.]{0,120}\b(?:no\s+fim|no\s+final)\b",
+            re.IGNORECASE,
+        ),
+        "instrução de escrita no fim contradiz o contrato de checkpoint",
+    ),
+    (
+        re.compile(r"havendo\s+mais\s+de\s+uma\s+frente\s+ativa", re.IGNORECASE),
+        "autoria condicional contradiz o contrato de checkpoint",
+    ),
+    (
+        re.compile(r"\bautoria\b[^\n.]{0,80}\b(?:opcional|dispens[aá]vel|n[aã]o\s+obrigat[oó]ria)\b", re.IGNORECASE),
+        "autoria opcional contradiz o contrato de checkpoint",
+    ),
+)
+
+
+def validate_checkpoint_write_contract(raiz: Path, plugin: Path) -> list:
+    """Rejeita apenas instruções futuras conflitantes de checkpoint."""
+    problemas: list = []
+    for relativo in DOCUMENTOS_CONTRATO_CHECKPOINT:
+        try:
+            texto = _read_utf8_regular_file(raiz, relativo)
+        except (OSError, UnicodeDecodeError) as exc:
+            problemas.append((relativo, 0, f"não foi possível ler contrato de checkpoint: {exc}"))
+            continue
+        for ancora in ANCORAS_CONTRATO_CHECKPOINT[relativo]:
+            if ancora not in texto:
+                problemas.append((relativo, 0, f"falta âncora do contrato de checkpoint: {ancora}"))
+        for padrao, mensagem in INSTRUCOES_CONTRADITORIAS_CHECKPOINT:
+            for achado in padrao.finditer(texto):
+                linha = texto.count("\n", 0, achado.start()) + 1
+                problemas.append((relativo, linha, mensagem))
+    return problemas
+
+
+CODEX_STATUSLINE_REFERENCE = Path("orq/skills/orq/references/hosts/codex.md")
+CODEX_STATUSLINE_CONSUMERS = (
+    Path("orq/skills/orq/SKILL.md"),
+    Path("orq/commands/init.md"),
+    Path("orq/commands/stack.md"),
+)
+CODEX_STATUSLINE_REFERENCE_ANCHORS = (
+    "TUI do Codex CLI",
+    "Codex Desktop",
+    "[tui].status_line",
+    "não é o board do Orquestra",
+    "não exibe nem persiste valores",
+    "ID presumido",
+    "nova TUI",
+)
+
+
+def validate_codex_statusline_contract(raiz: Path, plugin: Path) -> list:
+    """Mantém a T-128 como diagnóstico opt-in e somente leitura."""
+    problemas: list = []
+    referencia = raiz / CODEX_STATUSLINE_REFERENCE
+    if referencia.is_symlink():
+        return [
+            (
+                CODEX_STATUSLINE_REFERENCE,
+                0,
+                "referência obrigatória da statusline do Codex não pode ser arquivo simbólico",
+            )
+        ]
+    try:
+        texto_referencia = _read_utf8_regular_file(raiz, CODEX_STATUSLINE_REFERENCE)
+    except (OSError, UnicodeDecodeError) as exc:
+        return [
+            (
+                CODEX_STATUSLINE_REFERENCE,
+                0,
+                f"não foi possível ler referência da statusline do Codex: {exc}",
+            )
+        ]
+
+    for ancora in CODEX_STATUSLINE_REFERENCE_ANCHORS:
+        if ancora not in texto_referencia:
+            problemas.append(
+                (
+                    CODEX_STATUSLINE_REFERENCE,
+                    0,
+                    f"referência da statusline do Codex sem âncora obrigatória: {ancora!r}",
+                )
+            )
+
+    for relativo in CODEX_STATUSLINE_CONSUMERS:
+        caminho = raiz / relativo
+        if caminho.is_symlink():
+            problemas.append(
+                (
+                    relativo,
+                    0,
+                    "consumidor obrigatório da statusline do Codex não pode ser arquivo simbólico",
+                )
+            )
+            continue
+        try:
+            texto = _read_utf8_regular_file(raiz, relativo)
+        except (OSError, UnicodeDecodeError) as exc:
+            problemas.append((relativo, 0, f"não foi possível ler consumidor da statusline do Codex: {exc}"))
+            continue
+        texto_instrucao = _mascara_cercas(texto)
+        referencia_esperada = (
+            "${ORQ_PACKAGE_ROOT}/skills/orq/references/hosts/codex.md"
+            if relativo.parts[:2] == ("orq", "commands")
+            else "references/hosts/codex.md"
+        )
+        if referencia_esperada not in texto_instrucao:
+            problemas.append(
+                (
+                    relativo,
+                    0,
+                    "instrução da statusline do Codex deve delegar à referência única do host",
+                )
+            )
+
+    for diretorio in (plugin / "commands", plugin / "skills"):
+        if not diretorio.exists():
+            continue
+        for caminho in diretorio.rglob("*"):
+            if caminho.is_symlink():
+                relativo = caminho.relative_to(raiz)
+                problemas.append((relativo, 0, "contrato de statusline não pode ser caminho simbólico"))
+        for caminho in diretorio.rglob("*.md"):
+            relativo = caminho.relative_to(raiz)
+            if caminho.is_symlink():
+                continue
+            if relativo == CODEX_STATUSLINE_REFERENCE:
+                continue
+            try:
+                texto = _read_utf8_regular_file(raiz, relativo)
+            except (OSError, UnicodeDecodeError) as exc:
+                problemas.append((relativo, 0, f"não foi possível ler contrato de statusline: {exc}"))
+                continue
+            texto_instrucao = _mascara_cercas(texto)
+            statusline = re.search(r"\[?tui\]?\.status_line", texto_instrucao)
+            referencia_esperada = (
+                "references/hosts/codex.md"
+                if relativo == Path("orq/skills/orq/SKILL.md")
+                else "${ORQ_PACKAGE_ROOT}/skills/orq/references/hosts/codex.md"
+            )
+            if statusline and referencia_esperada not in texto_instrucao:
+                problemas.append(
+                    (
+                        relativo,
+                        texto.count("\n", 0, statusline.start()) + 1,
+                        "menção a tui.status_line deve delegar à referência única do host Codex",
+                    )
+                )
+    return problemas
+
+
 def main() -> int:
     raiz = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
     plugin = raiz / "orq"
@@ -1860,6 +2145,8 @@ def main() -> int:
     problemas.extend(validate_marcador_host_kanban(raiz))
     problemas.extend(validate_board_canonico(raiz, plugin))
     problemas.extend(validate_thread_root(raiz, plugin))
+    problemas.extend(validate_checkpoint_write_contract(raiz, plugin))
+    problemas.extend(validate_codex_statusline_contract(raiz, plugin))
 
     for arq in arquivos_a_varrer(raiz, plugin):
         if DIRS_IGNORADOS & set(arq.relative_to(raiz).parts):

@@ -18,6 +18,10 @@ from pathlib import Path
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = PLUGIN_ROOT.parent
 LINT_PATH = Path(__file__).with_name("lint-coerencia.py")
+
+
+def _fixture_root(directory: str, name: str = "fixture") -> Path:
+    return Path(directory).resolve(strict=True) / name
 INVOCACAO_RESOLVER_ORQ = 'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .'
 POLITICA_FALHA_RESOLVER = (
     "Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, "
@@ -181,12 +185,28 @@ class CanonicalBoardContractTest(unittest.TestCase):
         self.assertIn("`THREAD_ROOT/threads/T-NNN.md`", skill)
         self.assertIn("A frente é identificada por `@frente-<slug>`", skill)
 
-    def test_stack_separa_erro_ausencia_legitima_e_medicao_do_board_canonico(self):
+    def test_medicoes_usam_caminho_absoluto_do_board_canonico(self):
         stack = self._texto_consumidor(Path("orq/commands/stack.md"))
         self.assertIn("`state: erro` → pare e reporte", stack)
         self.assertIn("`state: ok` com `exists: false` → o board está ausente", stack)
         self.assertIn("encaminhe para `/orq:init`, sem medição", stack)
-        self.assertIn('sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" "$BOARD_CANONICO"', stack)
+
+        medida_canonica = (
+            'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --board-path "$BOARD_CANONICO"'
+        )
+        invocacao_diretorio_local = 'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .'
+        invocacao_posicional = 'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" "$BOARD_CANONICO"'
+
+        for relativo in (
+            Path("orq/commands/stack.md"),
+            Path("orq/commands/checkpoint.md"),
+            Path("orq/commands/init.md"),
+        ):
+            with self.subTest(consumidor=relativo):
+                texto = self._texto_consumidor(relativo)
+                self.assertIn(medida_canonica, texto)
+                self.assertNotIn(invocacao_diretorio_local, texto)
+                self.assertNotIn(invocacao_posicional, texto)
 
     def test_consumidores_comprovam_orq_package_root_antes_do_resolver(self):
         for relative in CONSUMIDORES_ESPERADOS:
@@ -205,9 +225,29 @@ class CanonicalBoardContractTest(unittest.TestCase):
         self.assertEqual(problemas, [])
         self.assertEqual(lint.validate_thread_root(REPO_ROOT, PLUGIN_ROOT), [])
 
+    def test_contrato_simbolico_e_rejeitado_pelos_dois_validadores(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = _fixture_root(tmp)
+            self._fixture_com_ancoras(root)
+            schema = Path("memory/wiki/_schema.md")
+            caminho = root / schema
+            externo = root / "schema-externo.md"
+            externo.write_text(caminho.read_text(encoding="utf-8"), encoding="utf-8")
+            caminho.unlink()
+            caminho.symlink_to(externo)
+
+            problemas_board = lint.validate_board_canonico(root, root / "orq")
+            problemas_thread = lint.validate_thread_root(root, root / "orq")
+
+        for problemas in (problemas_board, problemas_thread):
+            self.assertTrue(
+                any(str(path) == str(schema) and "simbólico" in mensagem for path, _, mensagem in problemas),
+                problemas,
+            )
+
     def test_reprova_thread_derivada_do_board_em_vez_da_frente_inicial(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             mutado = root / "orq" / "commands" / "quadro.md"
             mutado.write_text(
@@ -225,7 +265,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_reprova_busca_de_thread_em_outra_frente_mesmo_com_contrato_presente(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             quadro = root / "orq" / "commands" / "quadro.md"
             quadro.write_text(
@@ -244,7 +284,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_raiz_explicita_com_espacos_nao_consulta_o_repositorio_principal(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture com espacos"
+            root = _fixture_root(tmp, "fixture com espacos")
             plugin = root / "orq"
             script = plugin / "scripts" / "kanban-status.sh"
             script.parent.mkdir(parents=True)
@@ -274,7 +314,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_reprova_resolver_nu_ou_desprotegido_mesmo_com_invocacao_qualificada(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
 
             mutado = root / "orq" / "commands" / "quadro.md"
@@ -300,7 +340,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_reprova_resolver_nu_entre_aspas_sem_confundir_instrucao_negada(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             mutado = root / "orq" / "commands" / "quadro.md"
 
@@ -327,10 +367,10 @@ class CanonicalBoardContractTest(unittest.TestCase):
                     )
                     self.assertEqual(lint.validate_board_canonico(root, root / "orq"), [])
 
-    def test_reprova_invocacao_normal_desprotegida_do_kanban_status(self):
-        """A proteção de espaços vale também fora do modo `--resolver`."""
+    def test_reprova_medicao_nao_canonica_do_kanban_status(self):
+        """A medição preserva o caminho absoluto devolvido pelo resolvedor."""
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture com espacos"
+            root = _fixture_root(tmp, "fixture com espacos")
             self._fixture_com_ancoras(root)
             mutado = root / "orq" / "commands" / "checkpoint.md"
 
@@ -345,17 +385,48 @@ class CanonicalBoardContractTest(unittest.TestCase):
             self.assertEqual(problemas[0][0], Path("orq/commands/checkpoint.md"))
             self.assertIn("invocação desprotegida", problemas[0][2])
 
+            for invocacao in (
+                'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"',
+                'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .',
+                "sh '${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh' .",
+                'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" "$BOARD_CANONICO"',
+                'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --board-path "$BOARD_CANONICO" .',
+                "sh '${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh' --board-path \"$BOARD_CANONICO\"",
+            ):
+                with self.subTest(invocacao=invocacao):
+                    mutado.write_text(
+                        f"BOARD_CANONICO: execute {INVOCACAO_RESOLVER_ORQ}.\n"
+                        f"{POLITICA_FALHA_RESOLVER}\n"
+                        f"Depois rode `{invocacao}`.\n",
+                        encoding="utf-8",
+                    )
+                    problemas = lint.validate_board_canonico(root, root / "orq")
+                    self.assertEqual(len(problemas), 1)
+                    self.assertEqual(problemas[0][0], Path("orq/commands/checkpoint.md"))
+                    self.assertIn("medição do board", problemas[0][2])
+
             mutado.write_text(
                 f"BOARD_CANONICO: execute {INVOCACAO_RESOLVER_ORQ}.\n"
                 f"{POLITICA_FALHA_RESOLVER}\n"
-                'Depois rode `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .`.\n',
+                'Depois rode `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" '
+                '--board-path "$BOARD_CANONICO".\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(lint.validate_board_canonico(root, root / "orq"), [])
+
+            mutado.write_text(
+                f"BOARD_CANONICO: execute {INVOCACAO_RESOLVER_ORQ}.\n"
+                f"{POLITICA_FALHA_RESOLVER}\n"
+                'sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" '
+                '--board-path "$BOARD_CANONICO"\n'
+                'Depois confira os três sinais.\n',
                 encoding="utf-8",
             )
             self.assertEqual(lint.validate_board_canonico(root, root / "orq"), [])
 
     def test_reprova_consumidor_que_nao_classifica_falhas_de_resolver_como_erro(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             mutado = root / "orq" / "commands" / "quadro.md"
             mutado.write_text(
@@ -371,7 +442,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_reprova_leitura_edicao_ou_movimento_prescritivo_do_board_relativo(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             mutado = root / "orq" / "commands" / "quadro.md"
 
@@ -402,7 +473,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
     def test_reprova_instrucao_local_no_corpo_do_init_com_ancora_intacta(self):
         """Uma regra no topo não pode ser anulada por uma FASE posterior."""
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
 
             init = root / "orq" / "commands" / "init.md"
@@ -420,7 +491,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_init_separa_inexistencia_verdadeira_de_erro_de_resolucao(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             self.assertEqual(lint.validate_board_canonico(root, root / "orq"), [])
 
@@ -441,7 +512,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_lint_percorre_violacao_posterior_a_negacao_e_cobre_ferramenta_real(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             quadro = root / "orq" / "commands" / "quadro.md"
             quadro.write_text(
@@ -462,7 +533,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_lint_nao_confunde_negacao_isolada_com_instrucao_prescritiva(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             quadro = root / "orq" / "commands" / "quadro.md"
             quadro.write_text(
@@ -478,7 +549,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_lint_reprova_verbo_de_mutacao_para_kanban_relativo_sem_memory(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             checkpoint = root / "orq" / "commands" / "checkpoint.md"
             checkpoint.write_text(
@@ -502,7 +573,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_lint_nao_deixa_negacao_adversativa_ocultar_verbo_posterior(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             quadro = root / "orq" / "commands" / "quadro.md"
             quadro.write_text(
@@ -522,7 +593,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_lint_nao_deixa_negacao_adversativa_consumir_edicao_posterior_do_board(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             quadro = root / "orq" / "commands" / "quadro.md"
             quadro.write_text(
@@ -542,7 +613,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_lint_nao_deixa_negacao_adversativa_consumir_fallback_de_thread_posterior(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             quadro = root / "orq" / "commands" / "quadro.md"
             quadro.write_text(
@@ -562,7 +633,7 @@ class CanonicalBoardContractTest(unittest.TestCase):
 
     def test_lint_reprova_invocacao_sem_aspas_por_bash_ou_direta(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "fixture"
+            root = _fixture_root(tmp)
             self._fixture_com_ancoras(root)
             quadro = root / "orq" / "commands" / "quadro.md"
             quadro.write_text(

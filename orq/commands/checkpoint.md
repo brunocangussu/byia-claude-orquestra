@@ -48,7 +48,7 @@ disco pode ter mudado desde que você o leu.
 
 - **Releia `BOARD_CANONICO`, o log e as páginas que você vai tocar — agora**, mesmo que já estejam no seu
   contexto. A cópia que você tem pode estar velha.
-- **Ao reler o board, rode** `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .` **e guarde a
+- **Ao reler o board, rode** `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --board-path "$BOARD_CANONICO"` **e guarde a
   saída**: é a âncora da seção `📋 Board` do relatório final (passo 5). **Não** a chame de "antes" —
   ela já contém o que esta sessão moveu antes do checkpoint.
 - **Altere apenas as linhas que são suas.** Nunca reescreva o `BOARD_CANONICO` inteiro a partir da versão
@@ -56,12 +56,15 @@ disco pode ter mudado desde que você o leu.
 - **Mudou algo que você não fez?** Outra janela trabalhou. **Não sobrescreva** — incorpore e siga.
   Se não der para conciliar, registre no card e leve ao dono.
 
-O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁRIAS JANELAS".
+O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁRIAS JANELAS" e
+"Contrato de escrita do checkpoint".
 
 ## 3. Ingerir na wiki (a parte que importa — não pule)
-- **LOG** (`fixes-history.md`): append no TOPO, formato greppável
+- **LOG** (`fixes-history.md`): formato greppável
   `## [AAAA-MM-DD] <tipo> | <título>` (tipos: `feat` `fix` `plan` `investig` `decisão` `incidente` `processo`).
-  Havendo mais de uma frente ativa, **carimbe a frente** no título: `| @auth · rotação de token`.
+  Toda entrada nova fica no topo e tem autoria obrigatória: `@frente-<slug>`; sem frente ativa,
+  `@codex` ou `@claude` e a declaração `sem frente ativa`. Veja `memory/wiki/_schema.md`,
+  seção `Contrato de escrita do checkpoint`.
 - **PÁGINAS DE TÓPICO** (`memory/wiki/*.md`): **atualize as afetadas** — reescreva pra refletir o
   estado ATUAL; se o trabalho contradiz o que a página afirmava, **corrija a página**. Se o assunto
   ainda não tem página e é recorrente, **crie**. (Isto não é a "iniciativa própria" que o N1 da
@@ -93,7 +96,7 @@ conforme o host real:
 Nunca emita as duas frases na mesma resposta. Se uma verificação falhar, emita somente a frase
 negativa do contrato e corrija o sinal quebrado; texto equivalente não registra `checkpoint_verified`.
 
-**Com board**, rode de novo `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" .` e confira:
+**Com board**, rode de novo `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --board-path "$BOARD_CANONICO"` e confira:
 
 1. saída **vazia havendo cards escritos** no board → nenhum card reconhecido *(board legitimamente
    sem card sai vazio e está correto — não é falha)*;

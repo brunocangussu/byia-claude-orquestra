@@ -69,6 +69,14 @@ No Codex, a interface é linguagem natural ou `/skills`; `/orq:*` pertence ao Cl
 camada que falhou e mostre a evidência. Não condense PATH, autenticação, cache, carregamento e smoke
 em “plugin ausente”.
 
+### Codex: statusline nativa é diagnóstico opt-in
+
+Quando o sintoma envolver a statusline nativa da TUI, leia `${ORQ_PACKAGE_ROOT}/skills/orq/references/hosts/codex.md`. No Codex Desktop, informe que este diagnóstico não se aplica. Na TUI, informe apenas o
+host (TUI, não Codex Desktop), versão, caminho efetivo e um estado: `NÃO SUPORTADA`, `AUSENTE`, `JÁ
+CONFIGURADA` ou `INVÁLIDA`. Não mostre a lista configurada: `JÁ CONFIGURADA` é preservada, e
+`AUSENTE` é opt-in, não defeito. A statusline não é o board do Orquestra e este diagnóstico não
+altera configuração.
+
 ### `claude-mem`: carimbo do banco, nunca só health
 
 Plugin listado, processo vivo, porta aberta, hook com exit zero e `health=ok` não provam captura.
@@ -150,7 +158,7 @@ Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `sc
 Resolva `BOARD_CANONICO` com `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, antes da medição; use somente o caminho
 retornado, sem fallback para board local se houver erro. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `memory/wiki` da raiz do projeto/worktree que iniciou a operação, nunca do `BOARD_CANONICO`. O ponteiro `threads/...` do card só identifica a thread: leia/escreva exclusivamente `THREAD_ROOT/threads/...`. Somente a frente dona pode criar a thread: ela criou o card agora, ou, para card legado do BACKLOG sem ponteiro/thread, o reivindica e marca com `@frente-<slug>`. Card já marcado para outra frente, ou card existente com ponteiro cuja thread falta em `THREAD_ROOT`, deve parar: não crie, duplique, troque de frente nem use fallback. Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
 
-Fluxo obrigatório antes de medir: `state: erro` → pare e reporte; `state: ok` com `exists: false` → o board está ausente, encaminhe para `/orq:init`, sem medição; só `state: ok` com `exists: true` permite medir. Neste último caso, atribua o caminho devolvido a `BOARD_CANONICO` e rode `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" "$BOARD_CANONICO"`; nunca use `.` nem o board local na medição. Então confira os três sinais, na ordem:
+Fluxo obrigatório antes de medir: `state: erro` → pare e reporte; `state: ok` com `exists: false` → o board está ausente, encaminhe para `/orq:init`, sem medição; só `state: ok` com `exists: true` permite medir. Neste último caso, atribua o caminho devolvido a `BOARD_CANONICO` e rode `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --board-path "$BOARD_CANONICO"`; nunca use `.` nem o board local na medição. Então confira os três sinais, na ordem:
 
 1. saída **vazia** com cards escritos no board → nenhum card reconhecido;
 2. **`⚠N`** no fim → N linhas parecem card e não casam o contrato;
