@@ -58,11 +58,20 @@ diretamente. Encaminhe ao subagente:
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
 
+`--wait` pertence exclusivamente ao envelope enviado ao `codex:codex-rescue`, para exigir
+foreground. O intermediário deve removê-lo antes de invocar `task`; ele não integra os argumentos
+do runtime nem o briefing. `task` executa em foreground quando não recebe `--background`.
+
 A resposta JSON contém `rawOutput`, `jobId`, `threadId` e `status`. Use `rawOutput` como plano e,
 antes de qualquer nova rodada, grave `{card, papel, jobId, threadId, status}` na thread durável do
 card. `jobId` ou `threadId` ausente reprova o vínculo: declare a degradação e não tente
 `--resume-last`. Mudança de card ou de papel sempre volta a `--fresh --json`; por isso um Reviewer
 nunca herda a task do Planner.
+
+Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
+incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
+thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`) antes de
+aceitar o plano.
 
 Modelo, CLI ou override indisponível → não troque de modelo em silêncio. Mantenha o card em
 PLANNING, registre a capacidade ausente e peça ao dono a escolha do fallback.

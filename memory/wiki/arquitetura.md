@@ -121,6 +121,12 @@ mudou card ou papel, nasce outra task. O handoff durável guarda `card`, `papel`
 `threadId` e `status`, e o resultado vem de `rawOutput`. Isso evita uma task por mensagem sem
 misturar Planner e Reviewer nem depender da ambiguidade de "última task".
 
+A continuação só vale se a chamada terminar com `status: 0`, `jobId` e `threadId` presentes e o
+`threadId` devolvido for igual ao solicitado. Divergência ou recibo incompleto degrada a
+continuação: o vínculo anterior é preservado e nada é repetido, substituído por outra task ou
+recolhido pela "última" automaticamente. O `--wait` é do envelope enviado ao `codex-rescue`, que o
+remove antes de invocar o `task`; o runtime não o recebe.
+
 ## A revisão independente
 
 Contrato canônico em `orq/commands/revisar.md` — aqui só o que muda o desenho:

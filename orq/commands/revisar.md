@@ -78,12 +78,21 @@ o binário `codex` diretamente. Encaminhe ao subagente:
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
 
+`--wait` pertence exclusivamente ao envelope enviado ao `codex:codex-rescue`, para exigir
+foreground. O intermediário deve removê-lo antes de invocar `task`; ele não integra os argumentos
+do runtime nem o briefing. `task` executa em foreground quando não recebe `--background`.
+
 Leia o parecer em `rawOutput` e persista `{card, papel, jobId, threadId, status}` na thread durável
 do card antes da próxima chamada. Se `jobId` ou `threadId` faltar, o vínculo não está comprovado:
 declare revisão degradada e nunca caia em `--resume-last`. Uma segunda revisão deliberadamente
 independente, pedida pelo dono, usa outra task com `--fresh --json`; não retoma o Reviewer titular.
 Task terminada só é arquivada depois de registrar o resultado e os IDs, e apenas se o host oferecer
 uma operação suportada de arquivo — não cancele nem delete para limpar a barra lateral.
+
+Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
+incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
+thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`) antes de
+aceitar o parecer.
 
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.

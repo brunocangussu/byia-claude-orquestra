@@ -176,7 +176,9 @@ seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez
        Ensinar o runner um alias novo é **card novo**, não improviso deste comando.
      - **OpenAI × host Claude** — a célula usa `codex:codex-rescue` e
        `codex-companion.mjs task --model <modelo> --effort <effort>`; o Companion aceita o modelo
-       do catálogo e devolve `jobId` + `threadId` para reúso por `card+papel`.
+       do catálogo e devolve `jobId` + `threadId`; o reúso por `card+papel` só vale quando o `threadId`
+       devolvido é igual ao solicitado (contrato "Reúso durável do Codex Companion" da skill `orq`).
+       Runtime que não retoma a thread pedida degrada a continuação — não é promessa de capacidade.
      - **OpenAI × host Codex** — a célula usa `codex exec -m <modelo>`; qualquer modelo OpenAI do
        catálogo serve, com effort opcional.
      **Por que isto é regra e não zelo:** sem ela o arquivo registra Fable e a execução entrega
@@ -355,7 +357,7 @@ vendor oposto, com o que já foi comprovado e quando. O nome na coluna **Via** �
 
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato, aceito só com `threadId` devolvido igual ao solicitado |
 | runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s |
 
 A coluna **Consumida por** é o que torna o efeito de ligar/desligar anunciável sem chute: uma via só
@@ -383,9 +385,13 @@ nunca leva dado de paciente, PII, prontuário ou credencial.
 | Vendor do modelo | Host Claude | Host Codex |
 |---|---|---|
 | Anthropic | spawn nativo com override | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — limite 16 KiB/lote, timeout e comprovação do prefixo do alias pedido no `modelUsage`; alias fora do mapa de prova (`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
-| OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
+| OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+
+Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
+incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
+thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`).
 
 ## Perfis — times nomeados do host Claude
 

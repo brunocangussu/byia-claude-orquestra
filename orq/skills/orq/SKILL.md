@@ -261,6 +261,16 @@ obedece a um vínculo determinístico:
   Arquivar é limpeza reversível e só ocorre se o host expuser essa capacidade; caso contrário,
   registre a limpeza pendente. Nunca cancele uma task concluída e **nunca delete** uma task do
   Companion.
+- **Continuação comprovada, não presumida.** Uma continuação só pode ser aceita se a chamada
+  terminar com sucesso, devolver JSON válido com `status: 0`, `jobId` e `threadId` não vazios, e o
+  `threadId` devolvido for exatamente igual ao solicitado. IDs ausentes, falha ou divergência
+  invalidam a continuação.
+- **Divergência ou recibo incompleto** → preservar o vínculo anterior, registrar IDs solicitado e
+  devolvido, caminho/versão do runtime e motivo da degradação. Não aceitar o `rawOutput` como
+  continuação; não repetir a chamada, iniciar outra fresca ou recorrer à última thread
+  automaticamente. Não apagar a task criada por engano. O diagnóstico é "continuação não
+  comprovada": a causa (runtime sem suporte, encaminhamento incorreto) se investiga depois, não se
+  presume no registro.
 
 Esse reúso reduz a poluição da barra lateral sem misturar contextos: a unidade de isolamento segue
 sendo `card+papel`, não cada mensagem e não o projeto inteiro.
