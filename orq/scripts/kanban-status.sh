@@ -1,7 +1,8 @@
 #!/bin/sh
 # Lê memory/wiki/KANBAN.md do repo e emite um resumo compacto pra statusline.
 # Modos: `<dir>` emite o resumo normal; `--resolver <dir>` emite o contrato
-# JSON; `--board-path <absoluto>` é a recursão interna do modo normal.
+# JSON; `--board-path <absoluto>` é a recursão interna do modo normal;
+# `--card-state T-NNN --board-path <absoluto>` emite o estado de UM card em JSON.
 # Uso: kanban-status.sh <dir>
 # Saída: "📋 47% (7/15) · fazendo: Título curto"  (vazio se não houver quadro)
 
@@ -9,7 +10,48 @@
 # nunca deve ser interpretado linha a linha: caminhos Git podem conter newline.
 # O modo normal resolve e faz exec deste próprio arquivo com `--board-path`; assim
 # o caminho viaja como argumento de processo, não por substituição de comando.
+
+# Só o modo `--card-state` preenche isto; zerar impede que uma variável herdada
+# do ambiente mude o modo dos demais.
+card_state=""
+
 case "$1" in
+  --card-state)
+    # O parser abaixo (cercas, seção arquivada) é o único: este modo só pergunta
+    # a ele qual marcador o card tem. Saída: {"state":"ok","card":"T-NNN","marker":"~"}
+    # ou {"state":"erro","code":"..."} com exit 2. Códigos: uso-invalido, card-invalido,
+    # board-nao-absoluto, board-ausente, board-ilegivel, card-ausente, card-duplicado.
+    card_state="$2"
+    if [ "$#" -ne 4 ] || [ "$3" != "--board-path" ]; then
+      printf '%s\n' '{"state":"erro","code":"uso-invalido"}'
+      exit 2
+    fi
+    case "$card_state" in
+      T-*[!0-9]*|T-|"") card_state_invalido=1 ;;
+      T-*) card_state_invalido=0 ;;
+      *) card_state_invalido=1 ;;
+    esac
+    if [ "$card_state_invalido" -eq 1 ]; then
+      printf '%s\n' '{"state":"erro","code":"card-invalido"}'
+      exit 2
+    fi
+    board="$4"
+    case "$board" in
+      /*) ;;
+      *)
+        printf '%s\n' '{"state":"erro","code":"board-nao-absoluto"}'
+        exit 2
+        ;;
+    esac
+    if [ ! -e "$board" ]; then
+      printf '%s\n' '{"state":"erro","code":"board-ausente"}'
+      exit 2
+    fi
+    if [ ! -f "$board" ] || [ ! -r "$board" ]; then
+      printf '%s\n' '{"state":"erro","code":"board-ilegivel"}'
+      exit 2
+    fi
+    ;;
   --board-path)
     board="$2"
     case "$board" in
@@ -341,7 +383,7 @@ gordos=$(LC_ALL=C awk -v teto=240 '
 ' "$board" 2>/dev/null) || gordos="?"
 [ -n "$gordos" ] || gordos="?"
 
-awk -v gordos="$gordos" '
+awk -v gordos="$gordos" -v modo_card="$card_state" '
   function is_archive_heading(line, heading) {
     heading = line
     if (!sub(/^##[ \t]+/, "", heading)) return 0
@@ -398,6 +440,14 @@ awk -v gordos="$gordos" '
   # NÃO é card e não pode entrar na contagem.
   /^- \[[ >!~?x]\] `[^`]+`/ {
     st = substr($0, 4, 1)
+    # Modo `--card-state`: o ID é o que vem entre as primeiras crases, nunca um
+    # trecho da nota; cada ocorrência conta, e a duplicata é erro.
+    if (modo_card != "") {
+      id = $0
+      sub(/^- \[.\] `/, "", id)
+      sub(/`.*$/, "", id)
+      if (id == modo_card) { achados++; marcador = st }
+    }
     total++
     if (st == "x") done++
     else if (st == "~") {
@@ -427,6 +477,12 @@ awk -v gordos="$gordos" '
   /^[[:space:]]*[*_`~]*[-*+][[:space:]]+[*_`~]*\[/ { suspeitas++ }
 
   END {
+    if (modo_card != "") {
+      if (achados == 0) { print "{\"state\":\"erro\",\"code\":\"card-ausente\"}"; exit 2 }
+      if (achados > 1) { print "{\"state\":\"erro\",\"code\":\"card-duplicado\"}"; exit 2 }
+      printf "{\"state\":\"ok\",\"card\":\"%s\",\"marker\":\"%s\"}\n", modo_card, marcador
+      exit 0
+    }
     if (total == 0 && suspeitas == 0) exit 0
     if (total == 0) { printf "⚠ %d linha(s) parecem card fora do formato\n", suspeitas; exit 0 }
     pct = int(done * 100 / total)

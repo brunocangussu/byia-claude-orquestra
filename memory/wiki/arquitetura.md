@@ -1,6 +1,6 @@
 # Arquitetura do Orquestra
 
-> Como o plugin funciona **hoje** (`0.25.0`). Página de consulta — organizada por pergunta, não por
+> Como o plugin funciona **hoje** (`0.28.0`). Página de consulta — organizada por pergunta, não por
 > ordem de leitura. Reescrever quando o desenho mudar; histórico é `fixes-history.md`, não aqui.
 
 ## O princípio
@@ -211,7 +211,7 @@ no `gotchas.md`.
 Nesta ordem, todos obrigatórios ao editar `orq/`:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'   # 201 testes
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'   # suíte
 claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruções
 ```
@@ -300,7 +300,7 @@ Janela viva só para "não esquecer" é contexto usado como memória — o board
 ## O que o plugin distribui além de instruções
 
 Comandos, skill e agentes são texto. Estes são os assets de runtime, todos em `orq/scripts/` (mais
-`orq/hooks/hooks.json`):
+`orq/hooks/hooks.json` e os contratos JSON de `orq/schemas/`):
 
 | Arquivo | Faz |
 |---|---|
@@ -310,11 +310,12 @@ Comandos, skill e agentes são texto. Estes são os assets de runtime, todos em 
 | `audit-removal.py` | ledger offline de remoção de código/config (`scan`/`verify`), evidência reproduzível sem chamar LLM nenhuma |
 | `audit-adoption.py` | verifica offline, a partir de um trace explícito (`schemas/audit-ledger-v1.json`), se a descoberta seguiu grafo/índice antes de busca textual |
 | `lint-coerencia.py` | o lint de coerência — guardas descritos na seção dos gates |
-| `kanban-status.sh` | lê `KANBAN.md` por posição e emite `📋 X% (feitos/total) · fazendo: …` pra statusline |
+| `kanban-status.sh` | lê `KANBAN.md` por posição e emite `📋 X% (feitos/total) · fazendo: …` pra statusline; com `--card-state T-NNN --board-path <absoluto>` emite o marcador de **um** card em JSON — a pergunta que o medidor faz ao board, pelo mesmo parser |
 | `statusline.sh` | a barra completa (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board); acha `kanban-status.sh` **por vizinhança**, nunca caminho fixo, e degrada para só-board sem `jq` |
+| `progress.py` | medidor de progresso portátil (Python stdlib): ledger por card ou goal em `<front_root>/.orq/progress/v1/`, contrato em `orq/schemas/progress-ledger-v1.json`; subcomandos de escrita só para o Manager e vistas `show`/`watch` — ver "Medidor de progresso" |
 
-Cinco módulos `test_*.py` cobrem os cinco scripts acima que executam lógica (não os de leitura pura
-como `kanban-status.sh`/`statusline.sh`) — é o que a suíte descoberta roda.
+A suíte descoberta roda todo `test_*.py` de `orq/scripts/`, inclusive `test_progress.py` (o medidor) e
+`test_kanban_status.py` (que cobre também o modo `--card-state`).
 
 Três propriedades valem para qualquer asset de runtime futuro:
 
@@ -376,6 +377,82 @@ por idade.
 teste** (`test_context_guard.py`, `test_guard_contract_is_present_in_live_instructions`): eles são o
 contrato do guardião, e a suíte reprova se sumirem desta página ou do `README.md`. Uma reescrita
 desta seção em 2026-09-02 os removeu sem querer — o teste pegou.
+
+## Medidor de progresso
+
+`orq/scripts/progress.py` responde "onde a execução está" do mesmo jeito no Claude, no Codex e em
+qualquer host com shell — sem depender de `/goal`, MCP ou mod do host. O procedimento de operação do
+Manager é `orq/skills/orq/references/progress.md`; o contrato dos dados é
+`orq/schemas/progress-ledger-v1.json`. Esta seção só explica o desenho.
+
+**Onde mora.** Um ledger JSON por card (`cards/T-NNN.json`) ou goal avulso (`goals/<uuid>.json`) em
+`<front_root>/.orq/progress/v1/`, na frente dona do Manager — nunca no worktree do implementer. O
+`begin` cria `.orq/progress/` com um `.gitignore` de `*` (preserva um que já exista lá), então a
+telemetria não entra em commit. O ledger não vai para `memory/` porque o estado muda a cada passo e
+disputaria com os documentos duráveis; nem para o home, que exigiria escrita fora do workspace, nem
+para `PLUGIN_DATA`, que pertence a cada host e não garante compartilhamento entre Claude e Codex.
+Guarda só títulos genéricos, IDs e referências de evidência — nunca prompt, saída de ferramenta ou
+diff. A fronteira do medidor é a mesma máquina e a mesma frente.
+
+**Fase e percentual são duas fontes.**
+
+- A **fase** vem do board (`kanban-status.sh --card-state`). Como `[~]` não distingue implementação,
+  revisão e documentação, o Manager declara a atividade (`phase`) só para essa distinção; a
+  atividade nunca vence o board, e `phase` nunca move card.
+- O **percentual** vem dos passos da tabela do plano aprovado (`ID | Entrega verificável | Tamanho |
+  Critério de aceite`, exigida do Planner pelo `/orq:plan-next`), com S/M/L = 1/2/3. É sempre
+  **"do plano"**: 100% não é DONE — com o card em `[?]` a vista diz "validação do dono", e só o dono
+  fecha. Sem plano registrado não há percentual; restando passo aberto ele não passa de 99%;
+  acrescentar ou reabrir passo pode fazê-lo cair. Não há ETA, de propósito.
+
+**Um escritor: o Manager.** Toda mutação exige a `session_key` (64 hexadecimais) do dono gravada no
+ledger. Workers devolvem resultado e a referência da evidência por ID de passo e nunca recebem a
+chave. O `done` só vale depois de o Manager conferir a evidência: o ledger guarda a referência, não
+prova que o teste passou. A escrita só muda de mão por `claim` explícito com a chave anterior —
+nunca por idade, PID ou "a sessão parece parada". A chave evita colisão entre sessões; não é
+credencial nem ACL. `add`, `drop` e `reopen` só registram o que o ciclo normal já autorizou. O
+`/orq:implement-next` (§0b) abre o ledger e marca os marcos; o `/orq:checkpoint` grava na thread o
+caminho, a revisão e a `session_key` — nunca uma cópia da telemetria, que contradiria o ledger.
+
+**O que o script garante.**
+
+- Lock de kernel por ledger, com espera limitada, e troca atômica (temporário no mesmo diretório,
+  `fsync`, `os.replace`). `--expect-revision` é opcional: ausente, a mutação vale sobre o estado
+  atual, ainda sob lock; presente e divergente, sai `3` sem gravar. O atrito de cada marcação é o
+  modo de falha do medidor — se custa caro, o Manager pula e a barra mente.
+- Mutação só dentro do layout padrão, por realpath. O Git precisa ignorar os destinos reais do
+  ledger, do lock e do temporário com o nome reservado; senão sai `4` sem gravar. Nada é escrito
+  antes de a contenção ser provada; fora de checkout Git não há conferência de cobertura.
+- `plan` de card só com o board em `[~]`; `close --outcome reported_complete` de card só com `[x]`.
+- Leituras (`show`, `watch`) não criam diretório, lock nem arquivo.
+- Falha do medidor não bloqueia o trabalho, e também não vira sucesso: o marco é relatado como
+  "progresso não registrado". Saídas: `0` sucesso ou repetição idempotente, `2` uso ou transição
+  inválidos, `3` revisão ou dono divergentes, `4` estado ou armazenamento indisponíveis.
+
+**Vistas (2026-10-04).** `show` projeta o ledger como `text`, `json` ou `segment` (uma linha);
+`show --root <raiz> --all` lista todos os ledgers de uma frente. `watch` é um leitor puro que redesenha a
+mesma projeção a cada `--interval` num terminal ao lado — vale igual no Claude, no Codex e num
+terminal do Orca, e encerra com Ctrl-C sem afetar a execução observada. O Manager não o roda no
+próprio shell (não termina e prenderia a sessão): entrega ao dono a linha pronta, com os caminhos
+absolutos. Ainda não existem o lembrete por hook, o segmento na `statusline.sh` e o procedimento do
+Orca — fases seguintes do `T-144`. O mod de barra do Claude Code e a estimativa de tempo ficam fora
+do card.
+
+**Limites conhecidos.**
+
+- Só POSIX foi exercitado. O lock do Windows (`msvcrt.locking`) tem teste apenas com backend
+  simulado, sem prova em Windows real; sistema de arquivos remoto também não foi testado.
+- A prova de cobertura usa `git check-ignore --no-index` e só foi exercitada com o Apple Git
+  2.50.1.
+- Com um `.gitignore` de `.orq/progress` **parcial** (preexistente, que ignora o ledger mas não o
+  temporário real), o temporário nasce vazio antes de o Git ser consultado. Se o Git não o ignora, é
+  removido e nada é gravado, mas nesse instante um `git add -A` concorrente poderia indexar o
+  arquivo vazio. O `.gitignore` de `*` que o `begin` cria não abre essa janela.
+- Um `begin` recusado nessa prova final pode deixar vazios os diretórios `v1`, `cards`, `goals`,
+  `locks` e o arquivo de lock, todos ignorados; nunca sobra ledger nem temporário.
+- Entre a conferência de contenção e a criação dos diretórios existe uma janela local (TOCTOU) em
+  que um symlink trocado por outro processo escaparia da checagem.
+- Remover a frente apaga o ledger; por isso o checkpoint registra o resultado na thread antes.
 
 ## A memória (wiki)
 

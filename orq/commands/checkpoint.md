@@ -73,6 +73,13 @@ O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁ
 - **THREAD ativa** (`THREAD_ROOT/threads/*.md`): status das fases (✅/🔄/⬜), decisões novas (com o
   porquê, pra não re-litigar), perguntas abertas e — obrigatório — **⏭️ RETOMAR AQUI** com a próxima
   ação concreta. Thread concluída → sintetize nas páginas de tópico e mova pra `THREAD_ROOT/threads/_concluidas/`.
+- **MEDIDOR DE PROGRESSO** (card desta frente com ledger): na thread, registre o **caminho absoluto
+  do ledger**, a **revisão** atual e o **`session_key`** — leia-os de `show --format json` (campos
+  `ledger_path`, `revision` e `owner.session_key`; comando em
+  `ORQ_PACKAGE_ROOT/skills/orq/references/progress.md`) — e as pendências que o ledger não guarda.
+  **Não copie a telemetria** (passos, percentuais, tarefas) para a thread: quem retoma lê de novo
+  com `show`, e uma cópia velha contradiz o ledger. A chave é identificador de colisão, não
+  credencial.
 - **BOARD** (`BOARD_CANONICO`): mova o que ESTA sessão moveu de fato e registre card que nasceu —
   formato do passo 1, regras de janelas do 2b. Guarde a lista de movimentos pro relatório.
 - **GOTCHA** novo → `gotchas.md`.
@@ -104,6 +111,10 @@ negativa do contrato e corrija o sinal quebrado; texto equivalente não registra
 3. **denominador ≠ contagem manual** dos cards acima da seção `## …Arquivad…`.
 
 **Com thread ativa:** ela termina em **⏭️ RETOMAR AQUI**?
+
+**Com ledger do medidor:** o `show` do ledger sai `0` e o caminho, a revisão e o `session_key` estão
+na thread? Saída diferente de `0` entra na seção `✅ Verificação` como degradação a relatar; não
+bloqueia o handshake, porque a wiki é a fonte de verdade.
 
 **Com `claude-mem` instalado:** registre também o estado metadata-only do projeto, sem transformar
 memória externa em requisito do checkpoint:

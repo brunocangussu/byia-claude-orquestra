@@ -297,6 +297,12 @@ travá-la**. É o que permite o modo noturno funcionar sem você.
 **Regras do board:** só o Manager move cards · `PLANNING → READY` exige sua aprovação explícita ·
 **commit não é critério de pronto** (card fecha em `VALIDATE`; você confirma usando o produto).
 
+**O medidor de progresso.** Na implementação, o Manager registra os passos do plano aprovado num
+ledger local (`.orq/progress/`, ignorado pelo Git) e a vista mostra a **fase** — que vem do board — e
+o **percentual do plano**, por exemplo `T-123 · revisão · 5/8 passos concluídos · 69% do plano`.
+100% do plano não é feito, só você fecha o card; para acompanhar num terminal ao lado, em qualquer
+host, rode `progress.py watch` (procedimento em `orq/skills/orq/references/progress.md`).
+
 ---
 
 ## Iniciativa própria
@@ -402,7 +408,7 @@ orq/
 ├── agents/                       o time
 ├── skills/orq/SKILL.md           a disciplina (gatilhos naturais + regras)
 ├── stack.md                      catálogo da stack complementar (lido por IA)
-└── scripts/                      helpers (lint de coerência, guardiões, runners, board)
+└── scripts/                      helpers (lint de coerência, guardiões, runners, board, medidor de progresso)
 ```
 
 A **skill** é onde se mexe no comportamento geral (quando agir, o que é inviolável). Os **commands**
@@ -412,7 +418,8 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.27.11` (candidata local T-134; ainda não publicada) — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.28.0` (candidata local T-144, fase 1, na branch `claude/t144-medidor-progresso`; ainda não publicada) — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+· **medidor de progresso portátil** (fase do board + percentual dos passos do plano, `show`/`watch` em qualquer host)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar
 auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**

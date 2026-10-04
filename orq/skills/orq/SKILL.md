@@ -207,6 +207,11 @@ Claude, preserve o fluxo existente: o checkpoint termina em **Seguro dar `/clear
 adota imediatamente a faixa mais severa. Em host sem telemetria comprovada, preserve o fallback:
 sugira checkpoint + limpeza perto de ~50%.
 
+**Medidor de progresso:** ao iniciar um goal (o Loop B de um card ou um objetivo avulso autorizado) e
+ao retomar trabalho em curso, leia `references/progress.md`: ele define o ledger, os marcos em que o
+Manager registra, a retomada, o ownership e os códigos de saída. O medidor mostra o andamento; não
+decide gate, não move card e não substitui o board.
+
 **Não pergunte "quer que eu rode o comando X?"** — faça o que a intenção pede e diga o que fez.
 Peça confirmação só quando a ação for irreversível ou mudar o rumo do produto.
 

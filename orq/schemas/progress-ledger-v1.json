@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orquestra.local/schemas/progress-ledger-v1.json",
+  "title": "Orquestra progress ledger v1",
+  "description": "Contrato documental do ledger do medidor de progresso. O runtime valida em orq/scripts/progress.py e não depende de biblioteca de JSON Schema; test_progress.py confere que os dois concordam em campos e enumerações. Regras que o JSON Schema não expressa: IDs de tarefa únicos; plan nulo implica tasks vazio; lifecycle closed se e somente se closure não é nulo; tarefa pending não tem início, fim nem executor; active tem início e executor; done tem início, fim e evidence_refs; dropped tem fim, change_reason de descarte e evidence_refs; baseline_count não passa do total de tarefas; run_id em forma canônica minúscula; no máximo 200 tarefas, 20 referências por tarefa e 1 MiB por arquivo.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "revision",
+    "kind",
+    "scope",
+    "owner",
+    "lifecycle",
+    "activity",
+    "plan",
+    "tasks",
+    "closure",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "run_id": { "type": "string", "format": "uuid" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "kind": { "enum": ["card", "goal"] },
+    "scope": { "$ref": "#/$defs/scope" },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "session_key"],
+      "properties": {
+        "host": { "$ref": "#/$defs/host" },
+        "session_key": { "$ref": "#/$defs/hex64" }
+      }
+    },
+    "lifecycle": { "enum": ["active", "paused", "closed"] },
+    "activity": {
+      "description": "Card: planning|gate|ready|implementation|review|docs|validate|done. Goal: planning|execution|verification. A fase exibida obedece ao board; a atividade só desempata o que o marcador [~] não distingue.",
+      "enum": ["planning", "gate", "ready", "implementation", "review", "docs", "validate", "done", "execution", "verification"]
+    },
+    "plan": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_ref", "approval_ref", "seed_sha256", "baseline_count", "baseline_weight", "registered_at"],
+          "properties": {
+            "source_ref": { "oneOf": [{ "$ref": "#/$defs/ref" }, { "type": "null" }] },
+            "approval_ref": { "oneOf": [{ "$ref": "#/$defs/ref" }, { "type": "null" }] },
+            "seed_sha256": { "$ref": "#/$defs/hex64" },
+            "baseline_count": { "type": "integer", "minimum": 1, "maximum": 200 },
+            "baseline_weight": { "type": "integer", "minimum": 1 },
+            "registered_at": { "$ref": "#/$defs/timestamp" }
+          }
+        }
+      ]
+    },
+    "tasks": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/task" } },
+    "closure": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome", "evidence_ref", "closed_at"],
+          "properties": {
+            "outcome": { "enum": ["reported_complete", "cancelled"] },
+            "evidence_ref": { "$ref": "#/$defs/ref" },
+            "closed_at": { "$ref": "#/$defs/timestamp" }
+          }
+        }
+      ]
+    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "$defs": {
+    "host": { "enum": ["claude", "codex", "other"] },
+    "hex64": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "timestamp": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+    "ref": {
+      "description": "Identificador ou caminho local, sem espaço nem controle de terminal. Nunca o conteúdo da evidência.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^\\S+$"
+    },
+    "scope": {
+      "description": "Card: os cinco campos preenchidos. Goal: só front_root; os demais são null.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["front_root", "front", "card_id", "board_path", "thread_root"],
+      "properties": {
+        "front_root": { "type": "string", "minLength": 1 },
+        "front": { "oneOf": [{ "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$" }, { "type": "null" }] },
+        "card_id": { "oneOf": [{ "type": "string", "pattern": "^T-[0-9]+$" }, { "type": "null" }] },
+        "board_path": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "thread_root": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] }
+      }
+    },
+    "executor": {
+      "description": "Host, papel e rótulo genéricos; sem nome pessoal.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host", "role", "label"],
+      "properties": {
+        "host": { "$ref": "#/$defs/host" },
+        "role": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._/@+·-]{0,59}$" },
+        "label": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._/@+·-]{0,59}$" }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "size",
+        "status",
+        "acceptance_ref",
+        "executor",
+        "evidence_refs",
+        "change_reason",
+        "created_at",
+        "started_at",
+        "finished_at"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,32}$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "size": { "enum": ["S", "M", "L"] },
+        "status": { "enum": ["pending", "active", "done", "dropped"] },
+        "acceptance_ref": { "oneOf": [{ "$ref": "#/$defs/ref" }, { "type": "null" }] },
+        "executor": { "oneOf": [{ "$ref": "#/$defs/executor" }, { "type": "null" }] },
+        "evidence_refs": { "type": "array", "maxItems": 20, "items": { "$ref": "#/$defs/ref" } },
+        "change_reason": { "enum": ["obsolete", "duplicate", "scope_change", "reopened", null] },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "started_at": { "oneOf": [{ "$ref": "#/$defs/timestamp" }, { "type": "null" }] },
+        "finished_at": { "oneOf": [{ "$ref": "#/$defs/timestamp" }, { "type": "null" }] }
+      }
+    }
+  }
+}

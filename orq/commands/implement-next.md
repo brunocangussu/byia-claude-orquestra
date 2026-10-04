@@ -25,6 +25,30 @@ Passe `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` como caminhos absol
 > `ORQ_PACKAGE_ROOT/commands/elenco.md` — a skill já precisa ter resolvido `ORQ_PACKAGE_ROOT` para o
 > host atual. Configurado não significa rodando: registre o executor real.
 
+## 0b. Abrir o medidor de progresso
+
+Com o plano aprovado e **antes de despachar**, abra o medidor. Leia
+`ORQ_PACKAGE_ROOT/skills/orq/references/progress.md`: ele traz os comandos, o ownership e os códigos
+de saída.
+
+1. `begin --kind card` com `--root` igual ao `front_root` devolvido pelo resolver (nunca o worktree
+   do implementer), `--board` com `BOARD_CANONICO`, `--thread-root` com `THREAD_ROOT`, `--card`,
+   `--front` (o slug da frente) e o `--host` real.
+2. `plan` com a **tabela de passos** do plano aprovado. Plano antigo sem tabela: você atribui ID,
+   tamanho e critério mantendo correspondência com os passos já aprovados; mudança material do plano
+   volta ao gate do dono, não vira ajuste silencioso.
+3. Grave na thread do card o caminho do ledger e a `session_key` devolvida (constante durante a
+   execução).
+
+Só o Manager escreve o ledger. Ao despachar um worker, marque `start` nos passos que cabem a ele,
+**antes** do despacho, com o papel e o rótulo genéricos dele (`--executor-role implementer`,
+`reviewer` ou `docs`); marque `done` passo a passo **depois** de conferir resultado e evidência.
+`phase` acompanha a etapa: `implementation` ao despachar o writer, `review` na revisão, `docs` na
+documentação. Passo novo, descartado ou reaberto (`add`, `drop`, `reopen`) só depois que o ciclo
+normal autorizou a mudança. Apresente um resumo do medidor nos marcos e quando o dono pedir.
+Exit `2` é chamada inválida: corrija-a. Exit `3` ou `4` não bloqueia o loop, mas não é sucesso:
+reporte o marco como progresso não registrado.
+
 ## 1. Implementar
 
 Confirme primeiro que existe **worktree dedicado** ao card. Nunca execute o writer no checkout do
@@ -48,10 +72,12 @@ Sem modelo, CLI, worktree ou sandbox exigido → **não escreva**. Devolva o car
 nomeada.
 
 O briefing inclui: `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` absolutos, o card, o **plano aprovado**, os critérios de aceite, as convenções do projeto
-(build/teste) e o que está fora de escopo.
+(build/teste), o que está fora de escopo e os **IDs dos passos** que cabem ao worker. O worker **não
+escreve o ledger** do medidor e não recebe o `session_key`.
 
 Exija de volta: o que foi feito, como testou, o que **não** conseguiu fazer, e as decisões tomadas
-no caminho.
+no caminho — e, por ID de passo, a referência da evidência (caminho de arquivo, nome de teste:
+identificador, nunca saída colada).
 
 ## 2. Revisar (parecer independente, read-only)
 Rode a **revisão** (`/orq:revisar`): **um** revisor, sempre do **vendor oposto ao host**, com o
@@ -66,7 +92,8 @@ dispensa a revisão. Titular indisponível ou dado sensível no diff mudam o des
 degradada, ou ausência de revisor declarada): quem decide isso é o `/orq:revisar` — regra lá.
 
 **Aplicar as correções é do implementer**, não do reviewer. Achado grave → devolva ao implementer e
-revise de novo. Máximo 2 rodadas; persistindo, escale pro dono.
+revise de novo. Máximo 2 rodadas; persistindo, escale pro dono. Achado que desfaz um passo já
+concluído: `reopen` desse passo; trabalho novo dentro do escopo aprovado: passo novo (`add`).
 
 ## 3. Documentar (sobre o código FINAL)
 Só depois do review fechado, spawn do `orq-docs` com `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` absolutos — senão a documentação descreve algo que mudou. O papel não re-resolve nem muda a raiz de memória.
@@ -77,6 +104,9 @@ Atualize também a **página de tópico** da wiki afetada (é aqui que a memóri
 ## 4. Fechar
 - Commit **local** na branch atual, mensagem no padrão do projeto. **Nunca `push`** sem o dono pedir.
 - Mova o card para `[?]` VALIDATE — **não** para DONE. Commit não é critério de pronto.
+- No medidor: `phase --value validate` e `pause`. A vista passa a mostrar "validação do dono" — com
+  100% dos passos também; 100% do plano não é DONE. Se o dono reprovar e o card voltar a `[~]`,
+  `resume`. `close` só quando o card estiver em `[x]` (ou for cancelado).
 - Escreva no card **como o dono valida**: passos práticos de usar o produto (abrir X → clicar Y →
   observar Z). Nada de git/logs/teste automatizado — isso é trabalho do time, não dele.
 

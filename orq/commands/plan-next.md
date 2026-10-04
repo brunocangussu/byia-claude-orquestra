@@ -73,7 +73,13 @@ No prompt, inclua:
 - restrições do projeto (build, testes, o que quebra deploy, o que é intocável);
 - o que **não** está no escopo;
 - **exigência de handoff**: o plano precisa terminar com passos verificáveis, riscos, critério de
-  aceite e as decisões que precisam de você.
+  aceite e as decisões que precisam de você;
+- **tabela de passos**: o plano traz uma tabela `ID | Entrega verificável | Tamanho | Critério de aceite`,
+  uma linha por passo, e é ela que alimenta o medidor de progresso na implementação. ID estável (`P01`,
+  `P02`…: letras ASCII, dígitos, `_` e `-`, ordem preservada); entrega que se verifica; tamanho `S`,
+  `M` ou `L` (peso relativo 1, 2, 3 — não é minuto); critério de aceite que prova o passo (`A01`…).
+  Trabalhos paralelos ficam em linhas separadas. O Planner só entrega a tabela e **não escreve o
+  ledger**: o Manager registra os passos depois da aprovação, no Loop B.
 
 ⚠️ **Trilha cruzada — quando o vendor do planner é diferente do vendor de quem vai escrever** (é o
 caso normal do host Claude num card `sistema`, e o simétrico no Codex), exija também uma seção
@@ -89,6 +95,8 @@ Quando o plano voltar, **não repasse cru**. Avalie:
 - há suposição não verificada?
 - **é executável por quem vai escrever?** Plano que obrigaria o writer a re-decidir desenho volta
   ao planner — em trilha cruzada esse é o modo de falha esperado, não uma surpresa.
+- **a tabela de passos existe e fecha?** IDs únicos, tamanho `S`/`M`/`L`, critério de aceite
+  verificável em cada linha. Sem tabela, volta ao Planner.
 
 Se estiver fraco, **devolva ao Planner com o apontamento** antes de levar ao dono.
 
