@@ -1,0 +1,329 @@
+--- a/orq/skills/orq/SKILL.md
++++ b/orq/skills/orq/SKILL.md
+@@ -261,6 +261,16 @@
+   Arquivar é limpeza reversível e só ocorre se o host expuser essa capacidade; caso contrário,
+   registre a limpeza pendente. Nunca cancele uma task concluída e **nunca delete** uma task do
+   Companion.
++- **Continuação comprovada, não presumida.** Uma continuação só pode ser aceita se a chamada
++  terminar com sucesso, devolver JSON válido com `status: 0`, `jobId` e `threadId` não vazios, e o
++  `threadId` devolvido for exatamente igual ao solicitado. IDs ausentes, falha ou divergência
++  invalidam a continuação.
++- **Divergência ou recibo incompleto** → preservar o vínculo anterior, registrar IDs solicitado e
++  devolvido, caminho/versão do runtime e motivo da degradação. Não aceitar o `rawOutput` como
++  continuação; não repetir a chamada, iniciar outra fresca ou recorrer à última thread
++  automaticamente. Não apagar a task criada por engano. O diagnóstico é "continuação não
++  comprovada": a causa (runtime sem suporte, encaminhamento incorreto) se investiga depois, não se
++  presume no registro.
+ 
+ Esse reúso reduz a poluição da barra lateral sem misturar contextos: a unidade de isolamento segue
+ sendo `card+papel`, não cada mensagem e não o projeto inteiro.
+--- a/orq/commands/revisar.md
++++ b/orq/commands/revisar.md
+@@ -102,6 +102,10 @@
+ 
+ ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+ 
++`--wait` pertence exclusivamente ao envelope enviado ao `codex:codex-rescue`, para exigir
++foreground. O intermediário deve removê-lo antes de invocar `task`; ele não integra os argumentos
++do runtime nem o briefing. `task` executa em foreground quando não recebe `--background`.
++
+ Leia o parecer em `rawOutput` e persista `{card, papel, jobId, threadId, status}` na thread durável
+ do card antes da próxima chamada. Se `jobId` ou `threadId` faltar, o vínculo não está comprovado:
+ declare revisão degradada e nunca caia em `--resume-last`. Uma segunda revisão deliberadamente
+@@ -109,6 +113,11 @@
+ Task terminada só é arquivada depois de registrar o resultado e os IDs, e apenas se o host oferecer
+ uma operação suportada de arquivo — não cancele nem delete para limpar a barra lateral.
+ 
++Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
++incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
++thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`) antes de
++aceitar o parecer.
++
+ Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
+ afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
+ 
+--- a/orq/commands/elenco.md
++++ b/orq/commands/elenco.md
+@@ -222,7 +222,9 @@
+        `claude-opus-5-5` exige `--model claude-opus-5-5`, nunca omissão da flag.
+      - **OpenAI × host Claude** — a célula usa `codex:codex-rescue` e
+        `codex-companion.mjs task --model <modelo> --effort <effort>`; o Companion aceita o modelo
+-       do catálogo e devolve `jobId` + `threadId` para reúso por `card+papel`.
++       do catálogo e devolve `jobId` + `threadId`; o reúso por `card+papel` só vale quando o `threadId`
++       devolvido é igual ao solicitado (contrato "Reúso durável do Codex Companion" da skill `orq`).
++       Runtime que não retoma a thread pedida degrada a continuação — não é promessa de capacidade.
+      - **OpenAI × host Codex** — a célula usa `codex exec -m <modelo>`; qualquer modelo OpenAI do
+        catálogo é candidato, com effort quando aplicável e prova da célula antes de gravar.
+      **Por que isto é regra e não zelo:** sem ela o arquivo registra Fable e a execução entrega
+@@ -411,7 +413,7 @@
+ 
+ | Via | Vendor | Consumida por | Estado | Registro |
+ |---|---|---|---|---|
+-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato |
++| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato, aceito só com `threadId` devolvido igual ao solicitado |
+ | runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias-ou-id>` · identidade exata para ID, prefixo para alias legado · 16 KiB por lote · timeout 600s |
+ 
+ A coluna **Consumida por** é o que torna o efeito de ligar/desligar anunciável sem chute: uma via só
+@@ -439,10 +441,14 @@
+ | Vendor do modelo | Host Claude | Host Codex |
+ |---|---|---|
+ | Anthropic | spawn nativo com override comprovado nessa célula | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias-ou-id>` — limite 16 KiB/lote, timeout e identidade exata para `claude-opus-5-5` ou prefixo legado no `modelUsage`; valor fora do mapa de prova (`claude-opus-5-5`·`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
+-| OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
++| OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
+ 
+ ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+ 
++Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
++incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
++thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`).
++
+ ## Perfis — times nomeados do host Claude
+ 
+ Presets são **por host**: os dois abaixo valem para `### Host Claude` e são aplicados por
+--- a/orq/commands/plan-next.md
++++ b/orq/commands/plan-next.md
+@@ -58,12 +58,21 @@
+ 
+ ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+ 
++`--wait` pertence exclusivamente ao envelope enviado ao `codex:codex-rescue`, para exigir
++foreground. O intermediário deve removê-lo antes de invocar `task`; ele não integra os argumentos
++do runtime nem o briefing. `task` executa em foreground quando não recebe `--background`.
++
+ A resposta JSON contém `rawOutput`, `jobId`, `threadId` e `status`. Use `rawOutput` como plano e,
+ antes de qualquer nova rodada, grave `{card, papel, jobId, threadId, status}` na thread durável do
+ card. `jobId` ou `threadId` ausente reprova o vínculo: declare a degradação e não tente
+ `--resume-last`. Mudança de card ou de papel sempre volta a `--fresh --json`; por isso um Reviewer
+ nunca herda a task do Planner.
+ 
++Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
++incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
++thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`) antes de
++aceitar o plano.
++
+ Modelo, CLI ou override indisponível → não troque de modelo em silêncio. Mantenha o card em
+ PLANNING, registre a capacidade ausente e peça ao dono a escolha do fallback.
+ 
+--- a/memory/wiki/_elenco.md
++++ b/memory/wiki/_elenco.md
+@@ -64,7 +64,7 @@
+ 
+ | Via | Vendor | Consumida por | Estado | Registro |
+ |---|---|---|---|---|
+-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo `gpt-6-astra` @ `max` · `jobId` + `threadId` sustentam o reúso exato · ver **Matriz de invocação** |
++| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo e effort conforme `## Times por host` (`gpt-6-astra@xhigh` no time atual) · `jobId` + `threadId` sustentam o reúso exato, aceito só com `threadId` devolvido igual ao solicitado · ver **Matriz de invocação** |
+ | runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s · sonda real com `--model fable` em 2026-09-05 comprovou `claude-fable-5-1` (thread `T-079`) |
+ 
+ A coluna **Consumida por** existe para o efeito de ligar/desligar ser anunciável sem chute: a via
+@@ -122,10 +122,14 @@
+ | Vendor do modelo | host Claude | host Codex |
+ |---|---|---|
+ | **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus, ou receber `claude-fable-5-0`, reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; `fable` habilitado no `T-077` (2026-09-04) e **comprovado com chamada real em 2026-09-05** (`OPUS_MODEL=claude-fable-5-1`, thread `T-079`) |
+-| **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
++| **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
+ 
+ ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+ 
++Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
++incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
++thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`).
++
+ ## Times por host
+ 
+ **Esta é a fonte ativa do elenco** — a única. Cada host resolve o próprio time lendo a seção dele,
+--- a/memory/wiki/arquitetura.md
++++ b/memory/wiki/arquitetura.md
+@@ -120,6 +120,12 @@
+ mudou card ou papel, nasce outra task. O handoff durável guarda `card`, `papel`, `jobId`,
+ `threadId` e `status`, e o resultado vem de `rawOutput`. Isso evita uma task por mensagem sem
+ misturar Planner e Reviewer nem depender da ambiguidade de "última task".
++
++A continuação só vale se a chamada terminar com `status: 0`, `jobId` e `threadId` presentes e o
++`threadId` devolvido for igual ao solicitado. Divergência ou recibo incompleto degrada a
++continuação: o vínculo anterior é preservado e nada é repetido, substituído por outra task ou
++recolhido pela "última" automaticamente. O `--wait` é do envelope enviado ao `codex-rescue`, que o
++remove antes de invocar o `task`; o runtime não o recebe.
+ 
+ ## A revisão independente
+ 
+--- a/orq/scripts/test_companion_thread_reuse.py
++++ b/orq/scripts/test_companion_thread_reuse.py
+@@ -15,6 +15,83 @@
+     return (REPO_ROOT / relative).read_text(encoding="utf-8")
+ 
+ 
++def flat(text: str) -> str:
++    return " ".join(text.split())
++
++
++def section(relative: str, start: str, end: str) -> str:
++    """Recorta o trecho relevante do documento: as cláusulas do T-089 são
++    conferidas onde vivem, não em qualquer ponto do arquivo."""
++    text = read_repo(relative)
++    assert start in text, f"{relative}: marcador inicial ausente: {start!r}"
++    tail = text.split(start, 1)[1]
++    assert end in tail, f"{relative}: marcador final ausente: {end!r}"
++    return flat(start + tail.split(end, 1)[0])
++
++
++def contract_sections() -> dict[str, str]:
++    return {
++        "orq/skills/orq/SKILL.md": section(
++            "orq/skills/orq/SKILL.md",
++            "### Reúso durável do Codex Companion",
++            "## Máquina de estados",
++        ),
++        "orq/commands/plan-next.md": section(
++            "orq/commands/plan-next.md",
++            "**OpenAI × host Claude — Codex Companion.**",
++            "Modelo, CLI ou override indisponível",
++        ),
++        "orq/commands/revisar.md": section(
++            "orq/commands/revisar.md",
++            "**OpenAI × host Claude — titular pelo Codex Companion**",
++            "Prompt **READ-ONLY explícito**",
++        ),
++    }
++
++
++def matriz_sections() -> dict[str, str]:
++    """Do início da linha OpenAI da Matriz até o próximo `## ` — inclui a
++    âncora de `--write` e o parágrafo que a segue."""
++    return {
++        "orq/commands/elenco.md (Matriz)": section(
++            "orq/commands/elenco.md", "| OpenAI | **OpenAI × host Claude:**", "\n## Perfis"
++        ),
++        "memory/wiki/_elenco.md (Matriz)": section(
++            "memory/wiki/_elenco.md", "| **OpenAI** | **OpenAI × host Claude:**", "\n## Times por host"
++        ),
++    }
++
++
++def consumers(sections: dict[str, str]) -> dict[str, str]:
++    """Os quatro consumidores da regra curta: os dois comandos e a Matriz dos
++    dois elencos — tudo, menos a skill que define o contrato."""
++    out = {k: v for k, v in sections.items() if k != "orq/skills/orq/SKILL.md"}
++    out.update(matriz_sections())
++    return out
++
++
++def elenco_openai_cells() -> dict[str, str]:
++    """Promessa e Matriz que descrevem a chamada `task` sem o envelope."""
++    factory = read_repo("orq/commands/elenco.md")
++    live = read_repo("memory/wiki/_elenco.md")
++    return {
++        "orq/commands/elenco.md (promessa)": section(
++            "orq/commands/elenco.md",
++            "- **OpenAI × host Claude** — a célula usa",
++            "- **OpenAI × host Codex**",
++        ),
++        "orq/commands/elenco.md (Matriz)": flat(
++            next(l for l in factory.splitlines() if l.startswith("| OpenAI |"))
++        ),
++        "memory/wiki/_elenco.md (via)": flat(
++            next(l for l in live.splitlines() if l.startswith("| codex |"))
++        ),
++        "memory/wiki/_elenco.md (Matriz)": flat(
++            next(l for l in live.splitlines() if l.startswith("| **OpenAI** |"))
++        ),
++    }
++
++
+ class CompanionThreadReuseTest(unittest.TestCase):
+     def test_canonical_skill_defines_durable_same_card_same_role_reuse(self) -> None:
+         skill = read_repo("orq/skills/orq/SKILL.md")
+@@ -50,6 +127,94 @@
+             self.assertIn("codex-companion.mjs task", document)
+             self.assertIn("--model <modelo> --effort <effort>", document)
+ 
++    def test_continuacao_exige_identidade_do_thread_id(self) -> None:
++        sections = contract_sections()
++        self.assertIn(
++            "o `threadId` devolvido for exatamente igual ao solicitado",
++            sections["orq/skills/orq/SKILL.md"],
++        )
++        for name, text in consumers(sections).items():
++            self.assertIn(
++                "Continuação exige sucesso e `threadId` devolvido igual ao solicitado", text, name
++            )
++            self.assertIn('Aplicar o contrato "Reúso durável do Codex Companion"', text, name)
+ 
++    def test_tabela_de_vias_condiciona_o_reuso_a_identidade(self) -> None:
++        for relative, prefixo in (
++            ("orq/commands/elenco.md", "| codex | OpenAI |"),
++            ("memory/wiki/_elenco.md", "| codex | OpenAI |"),
++        ):
++            linha = next(l for l in read_repo(relative).splitlines() if l.startswith(prefixo))
++            self.assertIn("aceito só com `threadId` devolvido igual ao solicitado", flat(linha), relative)
++
++    def test_recibo_exige_sucesso_e_ids_presentes(self) -> None:
++        skill = contract_sections()["orq/skills/orq/SKILL.md"]
++        for clause in (
++            "terminar com sucesso",
++            "devolver JSON válido com `status: 0`",
++            "`jobId` e `threadId` não vazios",
++            "IDs ausentes, falha ou divergência invalidam a continuação",
++        ):
++            self.assertIn(clause, skill)
++
++    def test_divergencia_preserva_vinculo_e_proibe_retry(self) -> None:
++        sections = contract_sections()
++        skill = sections["orq/skills/orq/SKILL.md"]
++        for clause in (
++            "preservar o vínculo anterior",
++            "registrar IDs solicitado e devolvido, caminho/versão do runtime e motivo da degradação",
++            "Não aceitar o `rawOutput` como continuação",
++            "não repetir a chamada, iniciar outra fresca ou recorrer à última thread automaticamente",
++            "Não apagar a task criada por engano",
++        ):
++            self.assertIn(clause, skill)
++        self.assertNotIn("prova que o runtime não reconheceu", skill)
++        for name, text in consumers(sections).items():
++            self.assertIn("registrar degradação, preservar o vínculo anterior", text, name)
++            self.assertIn("não repetir nem substituir a thread automaticamente", text, name)
++
++    def test_wait_e_controle_do_envelope_nao_do_task(self) -> None:
++        sections = contract_sections()
++        for name in ("orq/commands/plan-next.md", "orq/commands/revisar.md"):
++            text = sections[name]
++            for clause in (
++                "`--wait` pertence exclusivamente ao envelope enviado ao `codex:codex-rescue`",
++                "O intermediário deve removê-lo antes de invocar `task`",
++                "ele não integra os argumentos do runtime nem o briefing",
++                "`task` executa em foreground quando não recebe `--background`",
++            ):
++                self.assertIn(clause, text, name)
++        # Exemplos finais de `task` (o que o runtime recebe) nunca levam `--wait`.
++        self.assertNotIn("--wait", sections["orq/skills/orq/SKILL.md"])
++        for name, text in elenco_openai_cells().items():
++            self.assertNotIn("--wait", text, name)
++        # Toda citação do runtime `task`, em qualquer dos cinco arquivos, fica
++        # sem `--wait`; as linhas de ENVELOPE (`--wait --fresh --json ...`) não
++        # citam o runtime e seguem permitidas.
++        runtime = "codex-companion.mjs task"
++        for relative in (
++            "orq/skills/orq/SKILL.md",
++            "orq/commands/plan-next.md",
++            "orq/commands/revisar.md",
++            "orq/commands/elenco.md",
++            "memory/wiki/_elenco.md",
++        ):
++            text = read_repo(relative)
++            for line in text.splitlines():
++                if runtime in line:
++                    self.assertNotIn("--wait", line, f"{relative}: {line[:80]}")
++            texto = flat(text)
++            for trecho in texto.split(runtime)[1:]:
++                self.assertNotIn("--wait", trecho[:60], relative)
++
++    def test_via_codex_delega_modelo_ao_time_do_host(self) -> None:
++        cells = elenco_openai_cells()
++        via = cells["memory/wiki/_elenco.md (via)"]
++        self.assertIn("conforme `## Times por host`", via)
++        self.assertIn("gpt-6-astra@xhigh", via)
++        for name, text in cells.items():
++            self.assertNotRegex(text, r"@\s*`?max`?", name)
++
++
+ if __name__ == "__main__":
+     unittest.main()
