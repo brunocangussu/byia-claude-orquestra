@@ -165,6 +165,25 @@ Para cada nova entrada em `fixes-history.md`, releia o arquivo e insira a nova e
 preservando as anteriores. Toda entrada tem autoria explícita: use `@frente-<slug>` quando houver
 frente dona; sem frente ativa, use `@codex` ou `@claude` e declare `sem frente ativa`.
 
+Quando o checkpoint preserva continuidade aprovada, a thread dona registra a
+fonte humana literal e seu ponteiro verificável da autorização humana original,
+com procedência verificável,
+— mensagem/sessão+turno ou documento humano explicitamente endossado —, escopo, proibições, modo digest
+congelado ou envelope de escopo delimitado, limite e consumo. O registro da
+thread é transcrição, não fonte: a captura registra a verificação da fonte real.
+O checkpoint relê esses campos antes de continuar; recuperação não certifica
+nota por autodeclaração. Nota do Manager, worker, reviewer, hook, pacote, READY
+ou digest novo não concede nem renova autorização. Se a prova for
+irrecuperável, pause somente a ação sem autoridade e preserve as demais ações
+locais elegíveis.
+
+Para rota de pacote congelado, o digest registra somente bytes reais que o
+executor está comprovadamente autorizado e capaz de acessar: briefing, wrapper
+e leituras permitidas do envelope. `read-only` não prova isso nem limita egress;
+não invente `--no-tools`. Sem capacidade preventiva sem ferramentas e isolamento
+comprovados, registre **INVERIFICÁVEL / CAPACIDADE AUSENTE**, não dispare, não
+faça auto-fallback ou probe e estacione somente a ação externa dependente.
+
 ⚠️ **O `_elenco.md` é o mais fácil de perder sem perceber**, porque ninguém "trabalha" nele — só passa
 e troca uma linha. Cenário real: a janela A ativa o perfil `economia`; a janela B, com uma cópia velha
 no contexto, ajusta um papel e regrava a tabela inteira — a troca de A desaparece **em silêncio**, e a
@@ -177,7 +196,7 @@ B segue spawnando com o time errado achando que está tudo certo.
 2. **Edite a linha, nunca o arquivo.** Altere **apenas as linhas dos seus cards**. Reescrever o
    `KANBAN.md` inteiro a partir de uma cópia velha é o que apaga o trabalho das outras janelas —
    é a causa da perda, não a concorrência em si.
-3. **Card em curso leva a marca da frente**, no fim da nota: `@auth`, `@billing`. Uma janela **não
+3. **Card em curso leva a marca da frente**, no fim da nota: `@frente-auth`, `@frente-billing`. Uma janela **não
    pega** card marcado com frente alheia. Card sem marca é livre.
 4. **Card em curso também leva a marca do host** (`T-086`) — `@claude` ou `@codex`, junto da marca
    da frente. **Escrita** quando o card entra em `[>]` (planejando) ou `[~]` (implementando);
@@ -186,16 +205,22 @@ B segue spawnando com o time errado achando que está tudo certo.
    dois marcadores juntos na mesma linha (posse ambígua é o mesmo defeito que posse ausente), e
    marca sobrando em `[ ]`, `[?]` ou `[x]`.
    **Em `[!]` (aguardando o dono) a marca permanece:** a pausa preserva a posse de quem estacionou o
-   card, e a guarda ali só recusa os dois hosts juntos. **Quem retoma um card parado reafirma ou
-   transfere a posse explicitamente** — herdar a marca alheia sem tocá-la é o caminho pelo qual duas
-   janelas voltam a achar que o card é seu.
-5. **Quem está marcado no card é quem commita aquele trabalho.** Não existe um integrador fixo do
-   repositório: existe o dono do card, agora. Arquivo compartilhado (`MEMORY.md`, `_elenco.md`, log,
-   manifesto de versão) é integrado por quem está com o card que o alterou, editando **só a sua
+   card, e a guarda ali só recusa os dois hosts juntos. **Quem retoma durante a recuperação reafirma
+   somente a marca de host.** A marca de host não transfere a propriedade da frente. Transferência
+   de frente exige instrução humana específica e é ação separada da recuperação; preserva estado e
+   thread originais. Durante a recuperação, não crie, duplique, troque de frente nem use fallback.
+5. **A posse do card não autoriza operações de entrega Git.** Não existe um integrador fixo do
+   repositório: existe o dono do card, que só entrega quando a autorização humana específica cobrir
+   stage, commit, push, merge, tag ou publicação. Arquivo compartilhado (`MEMORY.md`, `_elenco.md`,
+   log, manifesto de versão) é integrado por quem está com o card que o alterou, editando **só a sua
    linha**.
+6. **A transição DEV_REVIEW → VALIDATE** exige review fechado, alvo de validação e entrega
+   correspondente já autorizados. Se a entrega exigir gate novo, mantenha a posse preservada e
+   estacione o card em `[!]` com a decisão exata; não confunda validação local com cache instalado
+   ou produção.
 
 ```
-- [~] `T-042` Rotacionar o token — bloqueado no rate limit @auth @claude
+- [~] `T-042` Rotacionar o token — bloqueado no rate limit @frente-auth @claude
 ```
 
 A marca vai depois do travessão, então não interfere no parser (o título termina no primeiro `—`).
@@ -217,9 +242,11 @@ exatamente o que o board existe para substituir. Se algo depende de decisão do 
 2. grave o estado na thread da frente, terminando com **"RETOMAR AQUI"**;
 3. **pode fechar a janela.**
 
-Qualquer janela — inclusive uma aberta amanhã — retoma pelo card e pela thread. Se você precisa
-manter a janela aberta para não perder o fio, **o handoff foi mal escrito**: é aí que está o defeito,
-não na sua memória.
+Qualquer janela da frente dona, inclusive uma aberta amanhã, retoma somente com a raiz e a thread
+existentes em seu `THREAD_ROOT`. Em qualquer outra frente, ou com raiz/thread ausente, pare durante
+a recuperação e registre a indisponibilidade; não reivindique, copie ou fabrique contexto. Se você
+precisa manter a janela aberta para não perder o fio, **o handoff foi mal escrito**: é aí que está o
+defeito, não na sua memória.
 
 ## Nomes de agente
 

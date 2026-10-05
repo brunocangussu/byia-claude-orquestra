@@ -48,15 +48,63 @@ ele já faz no passo 3 — e **declarando** "sem revisão independente por restr
 
 Não tente higienizar sozinho e seguir.
 
+## 1c. Gate externo, envelope e saldo
+
+Antes de qualquer transferência para terceiro, registre na thread dona a fonte
+humana literal e seu ponteiro verificável — citação ou referência verificável
+da autorização humana original e sua procedência verificável. O registro é
+transcrição, não fonte: nota do Manager, worker, reviewer, hook, pacote ou READY
+não serve de autorização. Uma tentativa externa é uma chamada iniciada e
+identifica pacote ou destino, digest dos bytes UTF-8 finais sanitizados por
+pacote/chamada, modelo, ferramentas, limite e consumo. O snapshot é o conteúdo
+identificável pelo digest; um digest não autoriza divisão nem recomposição em
+outros digests. Resolva o modo antes de chamar: digest congelado cobre somente o
+digest registrado; envelope de escopo delimitado só cobre snapshots subsequentes
+quando a autorização humana original declarar a mesma causa, card, destino,
+modelo, ferramentas e teto. Sem modo e cobertura comprovados, não infira
+extensão. Registrar digest novo não renova saldo; uma chamada única em modo
+digest congelado não cobre outro snapshot nem retry.
+
+`read-only` não delimita leituras nem os bytes que o executor pode transferir.
+Não invente uma flag `--no-tools`, nem alegue que sandbox read-only prova isso.
+Para rota de pacote congelado, só há cobertura se capacidade preventiva sem
+ferramentas e isolamento comprovados limitarem o executor ao envelope real. O
+envelope deve cobrir os bytes reais do briefing, wrapper e leituras permitidas,
+não somente o briefing pré-wrapper; leitura adicional delimitada exige
+autoridade humana real e nunca cobre credenciais ou PII. Se o
+Companion/runtime não comprovar essa capacidade, o modo digest é
+**INVERIFICÁVEL / CAPACIDADE AUSENTE**: não inicie chamada, estacione somente a
+revisão dependente e avance a ação local elegível. Sem auto-fallback, probe ou
+nova chamada. Ausência de teto não equivale a autorização ilimitada.
+
+Sem autorização válida para o snapshot/envelope ou sem saldo, não inicie a
+chamada externa: registre a pendência e avance a ação local elegível já
+autorizada. Não faça retry automático nem reinicie o consumo; gate externo
+consumido não se reabre sozinho. A aprovação de implementação local não substitui
+este gate, e sua ausência não cancela a correção local dentro do escopo aprovado.
+Sem ação local elegível, registre o impedimento real e escale ao dono; não alargue
+o teto de revisão para compensar a falta de saldo.
+
 ## 2. Disparar o revisor titular
 
-**O passo 1b vence tudo e já rodou:** dado sensível no diff encerra o assunto — não há revisor, e
-nada deste passo se aplica. Só siga aqui com o briefing já inspecionado.
+**O passo 1b e o gate externo 1c vencem este passo:** antes de preparar ou
+disparar o titular, confira §1b e §1c. Se um deles não passar, não inicie
+chamada, registre a pendência correspondente e avance somente o trabalho local
+elegível. Dado sensível no diff encerra o assunto — não há revisor, e nada deste
+passo se aplica. Só siga aqui com o briefing já inspecionado.
 
-**Leia `memory/wiki/_elenco.md` primeiro.** **Sem elenco, vale o padrão de fábrica: reviewer único
-do vendor oposto ao host** — as vias registradas em "Revisores externos" são capacidade, não
-composição de painel. `ativo` ali é **política habilitada, não capacidade comprovada**, e as duas
-se checam antes de disparar:
+**Leia `memory/wiki/_elenco.md` primeiro.** **Sem elenco, o padrão de fábrica novo ou candidato é
+somente leitura: não vira fallback executável por falta de materialização.** Operação comum pode
+conservar somente padrão legado já comprovado e autorizado. **Padrão legado comprovado** é uma combinação já usada e autorizada
+neste projeto, com recibo real consultável na thread. O Manager verifica a origem e a compatibilidade antes do
+despacho. É reaproveitamento de prova existente válida, nunca isenção de prova. Default, alias ou cache não
+certificam. Sem recibo ou se o contexto mudou, não despache essa operação. Não há sonda ou retry automáticos;
+prossiga com outras ações locais elegíveis. Quando o recibo válido ainda é compatível, o reuso não exige nova
+sonda a cada uso. Preservar valor em elenco ou cache não prova nem relaxa a identidade de uma resposta: todo
+parecer aceito ainda exige uma única identidade
+`modelUsage` compatível com o alias/ID pedido. O reviewer único do vendor oposto ao host é resolvido
+do elenco; as vias registradas em "Revisores externos" são capacidade, não composição de painel.
+`ativo` ali é **política habilitada, não capacidade comprovada**, e as duas se checam antes de disparar:
 
 1. **Coluna `Estado` da via** — `inativo` significa que o dono **desligou** aquela transferência
    cross-vendor. Não dispare, nem "só desta vez": escreva **REVISÃO DEGRADADA — via desligada pelo
@@ -77,19 +125,34 @@ o binário `codex` diretamente. Encaminhe ao subagente:
 - correção e nova checagem pelo mesmo Reviewer: `--wait --resume-thread <threadId> --json --model <modelo> --effort <effort> <apontamento read-only>`.
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+Esse read-only limita apenas escrita no workspace; não prova limitação de
+leituras, ferramentas ou egress. Sem a capacidade preventiva e o isolamento do §1c, este caminho permanece
+**INVERIFICÁVEL / CAPACIDADE AUSENTE** e não é chamado.
+
+`--wait` pertence exclusivamente ao envelope enviado ao `codex:codex-rescue`, para exigir
+foreground. O intermediário deve removê-lo antes de invocar `task`; ele não integra os argumentos
+do runtime nem o briefing. `task` executa em foreground quando não recebe `--background`.
 
 Leia o parecer em `rawOutput` e persista `{card, papel, jobId, threadId, status}` na thread durável
 do card antes da próxima chamada. Se `jobId` ou `threadId` faltar, o vínculo não está comprovado:
 declare revisão degradada e nunca caia em `--resume-last`. Uma segunda revisão deliberadamente
 independente, pedida pelo dono, usa outra task com `--fresh --json`; não retoma o Reviewer titular.
+Timeout é observação do mesmo handle: preserve `jobId` e `threadId`; não o
+interprete como falha que autoriza `--fresh`, retry, probe, fallback ou outra
+chamada.
 Task terminada só é arquivada depois de registrar o resultado e os IDs, e apenas se o host oferecer
 uma operação suportada de arquivo — não cancele nem delete para limpar a barra lateral.
+
+Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
+incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
+thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`) antes de
+aceitar o parecer.
 
 Prompt **READ-ONLY explícito** ("não implemente nada, não edite arquivos"). Peça CONFIRMA/REFUTA por
 afirmação + achados priorizados com `arquivo:linha` + cenário de falha concreto.
 
 **Host Codex — titular Anthropic pelo runner.** No host Codex, o titular é o modelo Anthropic
-resolvido da linha `reviewer` do elenco (hoje `fable`, Fable 5.1), executado pelo runner; o Manager
+resolvido da linha `reviewer` do elenco (candidato de fábrica `claude-opus-5-5`, sem alterar override ativo), executado pelo runner; o Manager
 OpenAI só audita: ele não vira parecer.
 
 O briefing tem orçamento de **16 KiB = 16.384 bytes UTF-8 por lote, medidos depois da
@@ -98,12 +161,12 @@ independentes, repetindo em cada lote o objetivo, os critérios e o fora de esco
 hunks e registre a cobertura. **Nunca corte bytes nem resuma em silêncio** para caber. Um lote
 omitido ou que falhar torna a cobertura do parecer parcial — e isso se declara.
 
-**Nunca chamar o runner sem `--model`:** sem a flag ele cai no default `opus`, e repetiria a
+**Nunca chamar o runner sem `--model`:** sem a flag ele cai no default legado `opus`, e repetiria a
 contradição que motivou este card — elenco declarando um modelo, execução rodando outro.
 
 ```bash
 # ORQ_PACKAGE_ROOT já foi resolvido pela skill para um caminho absoluto.
-REVIEWER_MODEL_ALIAS="<alias resolvido da linha reviewer>"
+REVIEWER_MODEL_ALIAS="<alias ou ID resolvido da linha reviewer>"
 OPUS_RUNNER="<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"
 OPUS_OUT=$(
   printf '%s' "$OPUS_BRIEFING_SANITIZADO" |
@@ -115,18 +178,38 @@ if [ "$OPUS_EXIT" -ne 0 ] || [ -z "$OPUS_OUT" ]; then
 fi
 ```
 
-O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 600s. Esse teto
+O runner anuncia `OPUS_STARTED` **no stderr**, logo após validar o tamanho, e aplica timeout de 600s. Esse teto
 acomoda a latência real observada de 267,1s em revisão arquitetural, sem remover a proteção contra
 processo órfão. A validação
 de tamanho ocorre antes do anúncio: `BRIEFING_TOO_LARGE` significa que nenhuma chamada começou;
-redivida o lote e execute, sem contar isso como retry. O runner exige o prefixo do alias pedido no
-`modelUsage` JSON (hoje, `fable` exige `claude-fable-5-1`) e não imprime parecer em modelo errado,
-timeout, erro ou saída vazia (`OPUS_EMPTY_RESULT`). `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer
+redivida somente se a autorização cobrir os novos digests finais sanitizados — um digest congelado
+não autoriza a divisão — e execute sem contar isso como retry. `BRIEFING_TOO_LARGE` sem
+`OPUS_STARTED` é falha local de preparo, não chamada consumida nem revisão degradada; esta exceção
+precede a regra genérica de exit diferente de zero abaixo. Sem cobertura humana dos novos digests,
+registre a pendência do envio e continue apenas o trabalho local autorizado.
+O runner exige identidade exata para `claude-opus-5-5` no `modelUsage` JSON ou a gramática fechada
+do alias legado descrita abaixo e não imprime parecer em modelo errado,
+timeout, erro ou saída vazia (`OPUS_EMPTY_RESULT`). Subtype ausente legado ou `success` só passam
+com os demais contratos; subtype presente desconhecido ou fora de tipo falha fechado, com diagnóstico
+`OPUS_` sanitizado. `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer
 lote incompleto → **REVISÃO DEGRADADA** com o diagnóstico do stderr;
 não faça retry automático após chamada iniciada, para não duplicar custo.
-Todo host que invocar o runner com um alias precisa verificar que o `modelUsage` comprova o prefixo
-daquele alias antes do parecer. Se a resolução não puder ser comprovada, trate o modelo como ausente
-e marque **REVISÃO DEGRADADA**, sem trocar de modelo nem alargar o prefixo aceito.
+Todo host passa `--model` com o valor resolvido de `memory/wiki/_elenco.md`: o runner não lê esse arquivo.
+Antes de aceitar o parecer, confira `modelUsage`: igualdade exata para `claude-opus-5-5`.
+Para alias legado, o runner reconhece somente a identidade base ou sufixo numérico permitido depois
+dela. A comparação legada é completa, nunca por prefixo: `<base>(?:-\d+)*`, com grupos numéricos
+separados por hífen; não é restrita a datas de oito dígitos. Assim, o alias `opus` também pode aceitar
+`claude-opus-5-5` por compatibilidade legada. Essa compatibilidade não comprova Opus 5.5;
+para exigir 5.5, peça o ID explícito `claude-opus-5-5`, cuja comparação é exatamente igual.
+Todo sucesso tem uma única identidade `modelUsage` reconhecida e compatível; chave desconhecida,
+incompatível ou ambígua falha fechado sem ecoar chave arbitrária. Sem argumento o default continua `opus` apenas por
+compatibilidade; não omita a flag para adotar a fábrica 5.5. Se a resolução não puder ser comprovada,
+trate o modelo como ausente e marque **REVISÃO DEGRADADA**, sem troca ou ampliação da identidade aceita.
+
+Aliases preservados: `opus` → `claude-opus-5`, `fable` → `claude-fable-5-1`,
+`sonnet` → `claude-sonnet-5`, `haiku` → `claude-haiku-4-5` (identidade base e sufixos numéricos de release).
+O ID explícito rejeita Opus 5 e `claude-opus-5-50`; pedir Fable e receber Opus 5.5 reprova.
+`OPUS_` e `REVIEWER_MODEL_ALIAS` são nomes legados de fio, não prova de identidade do parecer.
 
 ### Titular indisponível → REVISÃO DEGRADADA, e o card não avança sozinho
 
@@ -211,3 +294,13 @@ Se nada relevante apareceu, diga em uma linha. **Não invente achado pra parecer
 - Revisor **não corrige** — quem implementou aplica. Você (Manager) roteia as correções.
 - Máximo **2 rodadas** de correção+revisão; persistindo, escale pro dono.
 - Nunca mande segredo/credencial no briefing do revisor.
+
+## Continuidade de execução aprovada
+
+Consulte o `Contrato de continuidade aprovada` em
+`ORQ_PACKAGE_ROOT/skills/orq/SKILL.md`.
+Falha de review não cancela a correção local aprovada: o implementer pode
+corrigir dentro do escopo já autorizado e reavaliar localmente. Nova chamada
+de revisão exige saldo e autorização válida para o snapshot/envelope; correção
+local não renova esse gate. Reviewer, log e pacote não concedem autoridade,
+e a correção não passa a VALIDATE sem review independente.

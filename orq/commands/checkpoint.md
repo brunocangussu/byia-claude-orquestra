@@ -73,6 +73,14 @@ O protocolo completo está em `memory/wiki/_schema.md`, seção "Trabalho em VÁ
 - **THREAD ativa** (`THREAD_ROOT/threads/*.md`): status das fases (✅/🔄/⬜), decisões novas (com o
   porquê, pra não re-litigar), perguntas abertas e — obrigatório — **⏭️ RETOMAR AQUI** com a próxima
   ação concreta. Thread concluída → sintetize nas páginas de tópico e mova pra `THREAD_ROOT/threads/_concluidas/`.
+- **MEDIDOR DE PROGRESSO** (card desta frente com ledger): Na thread pública, registre só caminho, run_id e revisão; nunca a chave de dono.
+  Leia esses campos de `show --format json` (`ledger_path`, `run_id`, `revision`; comando em
+  `ORQ_PACKAGE_ROOT/skills/orq/references/progress.md`) — e as pendências que o ledger não guarda.
+  A chave continua em `owner.session_key` do ledger local ignorado; somente o Manager da frente dona
+  a recupera para mutações. Não copie o JSON completo com a chave para a thread ou um pacote externo.
+  **Não copie a telemetria** (passos, percentuais, tarefas) para a thread: quem retoma lê de novo
+  com `show`, e uma cópia velha contradiz o ledger. A chave é identificador de colisão, não
+  credencial.
 - **BOARD** (`BOARD_CANONICO`): mova o que ESTA sessão moveu de fato e registre card que nasceu —
   formato do passo 1, regras de janelas do 2b. Guarde a lista de movimentos pro relatório.
 - **GOTCHA** novo → `gotchas.md`.
@@ -105,11 +113,15 @@ negativa do contrato e corrija o sinal quebrado; texto equivalente não registra
 
 **Com thread ativa:** ela termina em **⏭️ RETOMAR AQUI**?
 
+**Com ledger do medidor:** o `show` do ledger sai `0` e somente caminho, run_id e revisão estão
+na thread, sem a chave? Saída diferente de `0` entra na seção `✅ Verificação` como degradação a relatar; não
+bloqueia o handshake, porque a wiki é a fonte de verdade.
+
 **Com `claude-mem` instalado:** registre também o estado metadata-only do projeto, sem transformar
 memória externa em requisito do checkpoint:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/claude_mem_status.py --platform <host-real>
+python3 ${ORQ_PACKAGE_ROOT}/scripts/claude_mem_status.py --platform <host-real>
 ```
 
 O script usa o basename do diretório atual; se o ID da sessão do host estiver disponível, passe
@@ -216,3 +228,18 @@ Escreva **renderizado na tela**, não dentro de cerca de código — o espaçame
 - **NÃO** invente: registre só o que aconteceu de fato nesta sessão.
 - Sessão trivial (nada relevante)? Diga isso em vez de forçar entrada.
 - Densidade > extensão. Página de tópico deve caber numa leitura (~150 linhas).
+
+## Continuidade de execução aprovada
+
+Consulte o `Contrato de continuidade aprovada` em
+`ORQ_PACKAGE_ROOT/skills/orq/SKILL.md`.
+Ao resumir a frente dona, o checkpoint preserva evidência humana, escopo,
+proibições e limites consumidos. O registro preservado contém a fonte humana
+literal e seu ponteiro verificável — mensagem/sessão+turno ou documento humano
+explicitamente endossado —, modo externo (digest congelado ou envelope de escopo
+delimitado), limite e consumo. O registro da thread é transcrição, não fonte: a
+captura registra a verificação da fonte real; recuperação não certifica nota por
+autodeclaração. Se a prova for irrecuperável, pause somente a ação sem
+autoridade, sem cancelar as ações locais elegíveis. Compactar ou reiniciar a
+sessão não encerra a execução local já aprovada nem renova autorização externa
+ou de Git.

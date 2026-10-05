@@ -170,7 +170,7 @@ juntas:
    - **F1 (instalar):** pergunte se instala a barra completa do Orquestra e, respondendo sim, em que
      escopo — só este projeto (padrão) ou todos os projetos desta máquina. Escolhendo "todos os
      projetos", a aprovação **tem que nomear os arquivos** que serão tocados
-     (`~/.claude/settings.json` e o par `statusline.sh` + `kanban-status.sh` em `~/.claude/orq/`).
+     (`~/.claude/settings.json` e o trio `statusline.sh` + `kanban-status.sh` + `progress.py` em `~/.claude/orq/`).
    - **F2 (instalação nossa defeituosa):** mostre o caminho exato de hoje (arquivo de settings +
      comando) **e se há barra sombreada por baixo** (escopo de precedência menor com `statusLine`
      próprio, apontando para um script que **não** é do plugin — se a sombreada **também** aponta
@@ -178,8 +178,9 @@ juntas:
      sentido:** diga qual é e ofereça as **duas alternativas nominais** — **remover** a chave
      defeituosa (a sombreada volta a valer, e continua acompanhando as edições futuras do dono nela,
      sem virar cópia de projeto) ou **migrar** (a operação exata: substituir o `command` daquele
-     mesmo arquivo pela cópia nova de `${CLAUDE_PLUGIN_ROOT}/scripts/statusline.sh`, copiada para o
-     destino do escopo, com stamp, no mesmo escopo da chave legada: projeto ou usuário). **Sem
+     mesmo arquivo pela cópia nova de `${CLAUDE_PLUGIN_ROOT}/scripts/statusline.sh`, copiada, junto com
+     `kanban-status.sh` e `progress.py`, para o destino do escopo, com stamp, no mesmo escopo da chave
+     legada: projeto ou usuário). **Sem
      sombreada nesse sentido** (nenhuma por baixo, ou a que existe também aponta pro plugin), só a
      migração faz sentido — pergunte só ela, com a mesma operação exata. **Sempre nominal**: um "sim"
      geral às perguntas 1-3 não autoriza nenhuma das duas.
@@ -280,8 +281,23 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
 2. **Agentes** — os cinco do núcleo vêm do plugin, **não recrie**. Em `.claude/agents/`, só os papéis
    adicionais aprovados, com nome próprio (nunca `orq-*`) e `model`/`tools` decididos. Não duplique o
    que o projeto já tem; complemente.
-2b. **Elenco** em `memory/wiki/_elenco.md` — a escalação aprovada (papel → modelo, nos dois eixos) +
-   a via cross-vendor ativa, **gerado a partir do template "Modelo do arquivo" de
+2b. **Elenco** em `memory/wiki/_elenco.md` — **Antes de gerar ou semear o elenco**, consulte
+   `${CLAUDE_PLUGIN_ROOT}/commands/elenco.md`, seção "Gate de capacidade — ajuste, perfil e inicialização".
+   Valide todos os papéis novos que seriam criados; em elenco existente, somente os papéis que a operação altera;
+   papéis preservados não exigem prova nova.
+    Sem prova válida e aprovação do alvo, faça a **preservação integral do arquivo**: **sem prova, não crie nem reescreva**,
+    não semeie presets/headings e não acione fallback. O pedido de inicialização **não autoriza chamadas de prova**;
+    eventual aquisição exige gate delimitado do dono.
+    Antes de gravar recibo durante init, comprove um destino durável já existente e pertencente ao card; nunca
+    invente ou crie a thread de card alheio nem registre PII. A falta desse destino não bloqueia operação local
+    legada autorizada e já comprovada.
+    **Padrão legado comprovado** é uma combinação já usada e autorizada neste projeto, com recibo real consultável
+    na thread. O Manager verifica a origem e a compatibilidade antes do despacho. É reaproveitamento de prova
+    existente válida, nunca isenção de prova. Default, alias ou cache não certificam. Sem recibo ou se o contexto
+    mudou, não despache essa operação. Não há sonda ou retry automáticos; prossiga com outras ações locais
+    elegíveis. Quando o recibo válido ainda é compatível, o reuso não exige nova sonda a cada uso.
+    A escalação aprovada (papel → modelo, nos dois eixos) +
+    a via cross-vendor ativa, **gerado a partir do template "Modelo do arquivo" de
    `${CLAUDE_PLUGIN_ROOT}/commands/elenco.md`**
    (traz de fábrica `## Matriz de invocação`, `## Times por host`, a linha "Perfil ativo" e a seção
    "Perfis" com `padrao`/`economia` prontos — ajuste só os modelos e a nota de "o que se perde" à
@@ -357,10 +373,11 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    bloqueadores das duas rodadas de painel anteriores.**
 
    **Guarda de destino ocupado (achado 7 do painel; correção C3 da rodada 3) — vale para TODA cópia
-   de `statusline.sh`/`kanban-status.sh` feita por este passo, em qualquer folha que copie (F1, F2),
-   não só em F1:** antes de copiar, se o
-   destino (`.claude/statusline.sh`, `.claude/kanban-status.sh`, ou os pares em `~/.claude/orq/`) já
-   existir **sem** o nosso stamp na linha 2 → pare e relate (é arquivo de alguém — não sobrescreva;
+   de `statusline.sh`/`kanban-status.sh`/`progress.py` feita por este passo, em qualquer folha que copie
+   (F1, F2), não só em F1:** antes de copiar, se o
+   destino (`.claude/statusline.sh`, `.claude/kanban-status.sh`, `.claude/progress.py`, ou o trio em
+   `~/.claude/orq/`) já existir **sem** o nosso stamp na linha 2 — vale para cada um dos três, um a um —
+   → pare e relate (é arquivo de alguém — não sobrescreva;
    cai no fallback: mostrar o que faltaria fazer e por quê); **com** stamp → recopiar é re-sync
    legítimo. Destino sob controle de versão do projeto → diga isso na proposta. Esta guarda roda **no
    momento da cópia, dentro de cada folha** — ela não depende de nenhuma outra folha "pegar depois":
@@ -368,21 +385,28 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    até alguém migrar), então uma guarda que só existisse em F1 nunca protegeria a cópia que F2 faz.
 
    - **F1 — Não há `statusLine` em escopo nenhum → instalar.** A aprovação e a escolha de escopo já
-     vieram da pergunta 4 da FASE 3. Instale **sempre o par completo**
-     `orq/scripts/statusline.sh` + `orq/scripts/kanban-status.sh`, nunca um sem o outro — inclusive
-     sem `jq` na máquina: o `statusline.sh` degrada sozinho para board-only sem `jq` (guarda já
+     vieram da pergunta 4 da FASE 3. Instale **sempre o trio completo**
+     `orq/scripts/statusline.sh` + `orq/scripts/kanban-status.sh` + `orq/scripts/progress.py`, nunca um
+     sem os outros — inclusive sem `jq` na máquina: o `statusline.sh` degrada sozinho para board-only sem `jq` (guarda já
      embutido no script) e **se completa sozinho, sem re-run**, quando `jq` aparecer depois (Decisão
      12 — o ramo "sem jq" separado morreu: instalava só o kanban e mandava "instale jq e rode
      `--reinstalar`", mas o `--reinstalar` classificaria isso como F3 e não faria nada — beco sem
      saída do achado 4 do painel).
 
+     O `progress.py` desenha o segmento do medidor de progresso na barra (`◎ T-NNN · fase · n/m · p%`,
+     só para a sessão vinculada a um ledger). Os três são **indivisíveis**: o `statusline.sh` acha os
+     outros dois por vizinhança, e o `progress.py` acha o `kanban-status.sh` do mesmo jeito. A barra
+     degrada sozinha: sem `python3` ou sem o `progress.py` ao lado, ela sai idêntica à de antes do
+     medidor. O hook do medidor (`progress-hook.py`) **não** entra neste conjunto: vem do bundle
+     `hooks/hooks.json` do plugin.
+
      Aplique a guarda de destino ocupado (acima) antes de copiar.
 
-     - *Escopo projeto (padrão):* copie o par para `.claude/` do projeto (`chmod +x` nos dois, com
+     - *Escopo projeto (padrão):* copie o trio para `.claude/` do projeto (`chmod +x` nos três, com
        o stamp de versão — ver abaixo).
      - *Escopo usuário (só quando o dono escolheu "todos os projetos" na pergunta 4 da FASE 3, com
-       aprovação separada nomeando os arquivos):* par em `~/.claude/orq/` (diretório próprio, não
-       colide com nada que o dono já tem; `chmod +x` nos dois, com o stamp). Este é um dos dois
+       aprovação separada nomeando os arquivos):* trio em `~/.claude/orq/` (diretório próprio, não
+       colide com nada que o dono já tem; `chmod +x` nos três, com o stamp). Este é um dos dois
        ramos nomeados em R4 — o outro (F2 em escopo usuário) está descrito na folha correspondente,
        abaixo.
 
@@ -479,15 +503,19 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      **Procedimento de MIGRAÇÃO (aprovação nominal na pergunta 4 — um "sim" geral às perguntas 1-3
      não autoriza; recusado ou não perguntado → mantém a instalação legada e relata o risco de novo
      no próximo `/orq:init`):**
-     1. Copiar o par `"${ORQ_PACKAGE_ROOT}/scripts/statusline.sh"` +
-        `"${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"` para o destino do **mesmo escopo** em que a
+     1. Copiar o trio `"${ORQ_PACKAGE_ROOT}/scripts/statusline.sh"` +
+        `"${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"` + `"${ORQ_PACKAGE_ROOT}/scripts/progress.py"`
+        (com backup e rollback do conjunto — ver "Conjunto indivisível, backup e rollback", abaixo) para o
+        destino do **mesmo escopo** em que a
         chave legada vive hoje (`.claude/` do projeto se a chave é de projeto; `~/.claude/orq/` se é
         de usuário — nunca muda o escopo por conta própria), com stamp. Aplique a **guarda de
         destino ocupado** (acima) antes de copiar — a cópia em si é sempre arquivo nosso, conhecido,
         mas o que já pode estar **naquele caminho** não é.
      2. **Testar a cópia nova antes de tocar em settings (achado D2, rodada 3):** `echo
         '{"workspace":{"project_dir":"<abs-do-projeto>"}}' | sh "<cópia-nova>/statusline.sh"` — exigir
-        `exit 0` e saída contendo `📋` ou `⚠`. Falhou → **não mexa em settings**; relate a falha da
+        `exit 0` e saída contendo `📋` ou `⚠`; e que o `progress.py` da cópia nova responde: `echo '{}' |
+        python3 "<cópia-nova-dir>/progress.py" statusline --host claude --input -` sai `0` sem imprimir
+        nada (ainda não há vínculo). Falhou → **não mexa em settings**; relate a falha da
         cópia nova e mantenha a instalação legada intacta.
      3. **Backup do settings antes de escrever (achado D2):**
         `cp -p arquivo arquivo.orq_bak.$(date +%Y%m%d-%H%M%S)` — nunca apagado por nós. **Achado do
@@ -514,9 +542,11 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
         contra o arquivo já trocado. Passou → relate o sucesso. **Falhou → restaure atomicamente**:
         `cp -p arquivo.orq_bak.<ts> arquivo.tmp2 && mv arquivo.tmp2 arquivo` (nunca `cp -p` direto por
         cima do arquivo — janela de conteúdo parcial), confirme com
-        `cmp arquivo.orq_bak.<ts> arquivo` que a restauração é byte-idêntica, e relate: a cópia nova
-        estava funcionando isoladamente (passo 2) mas a troca não se sustentou; a instalação legada
-        foi restaurada, nada quebrou.
+        `cmp arquivo.orq_bak.<ts> arquivo` que a restauração é byte-idêntica, **faça também o
+        rollback do conjunto de scripts anterior exato**, arquivo a arquivo e preservando o que tiver
+        alteração concorrente (ver "Conjunto indivisível, backup e rollback"), e relate: a
+        cópia nova estava funcionando isoladamente (passo 2) mas a troca não se sustentou; a instalação
+        legada foi restaurada, nada quebrou.
 
      **Procedimento de REMOÇÃO (alternativa a migrar, só quando há barra sombreada por baixo, e só
      com aprovação nominal na pergunta 4 — a outra alternativa nomeada acima):**
@@ -620,13 +650,62 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
    mostra o board", sem exigir que o init entenda a arquitetura do script alheio. Nenhuma folha
    depende do resultado de outra.
 
-   **Marca de versão, sempre que este passo copiar `statusline.sh` e/ou `kanban-status.sh`** (F1 em
-   qualquer escopo, ou F2 aplicado): insira como linha 2, logo após o shebang, em cada cópia:
+   **Marca de versão, sempre que este passo copiar `statusline.sh`, `kanban-status.sh` e/ou `progress.py`**
+   (F1 em qualquer escopo, ou F2 aplicado): insira como linha 2, logo após o shebang, em cada cópia:
    `# orq v<versão> — instalado por /orq:init em <AAAA-MM-DD>; fonte: orq/scripts/<nome>. Não editar à mão; re-sync: /orq:init --reinstalar`
-   A fonte em `orq/scripts/` **não** leva esse stamp — só a cópia, no momento em que é feita.
+   A fonte em `orq/scripts/` **não** leva esse stamp — só a cópia, no momento em que é feita. No
+   `progress.py` a linha 2 fica entre o shebang e o docstring: é comentário, não muda o módulo.
+
+   **Conjunto indivisível, backup e rollback.** O conjunto é indivisível na INSTALAÇÃO: os três
+   arquivos são instalados juntos, no mesmo diretório, e só valem juntos; nunca instale nem atualize um
+   sozinho. No ROLLBACK cada arquivo é decidido sozinho, um a um, contra uma referência registrada ANTES
+   da operação; por exceção explícita, o arquivo com alteração concorrente detectada é preservado, e os
+   demais são restaurados ou removidos conforme a referência. Isso vale para toda cópia deste passo (F1,
+   F2 e re-sync aprovado). **Regra de autoria:** nunca trate o conteúdo que você encontra no disco depois
+   de uma operação como prova de que ele é seu — toda referência de hash é calculada ANTES, sobre bytes
+   que você mesmo leu ou gerou, e só é comparada depois. Hash: `shasum -a 256`, ou `sha256sum` onde não
+   houver `shasum`. Os registros ficam no relato desta execução, nunca num arquivo do projeto.
+   1. **Backup.** Antes de tocar em qualquer um que **já exista com o nosso stamp**: registre o hash do
+      original ANTES do `cp -p` — é o **hash de referência do backup** —, faça então
+      `cp -p arquivo arquivo.orq_bak.$(date +%Y%m%d-%H%M%S)` (nunca apagado por nós) e confira que o
+      backup recém-criado tem o mesmo hash da referência. Diferente: o original mudou durante a cópia;
+      não prossiga com este arquivo e relate. Anote quais dos três **não existiam** antes (uma
+      instalação anterior ao medidor só tem o par). Arquivo sem o nosso stamp continua sob a guarda de
+      destino ocupado: pare e relate.
+   2. **Instalação.** Gere o conteúdo novo (fonte + stamp) e registre o hash esperado do conteúdo novo
+      ANTES do `mv`, calculado sobre os bytes que você acabou de gerar — por exemplo, canalizando-os por
+      `tee arquivo.orq_new | shasum -a 256`, que grava e calcula sobre os mesmos bytes, no mesmo
+      diretório. Confira que o `arquivo.orq_new` no disco tem esse hash; só então `mv` para o nome final
+      (nunca `cp` direto por cima — janela de conteúdo parcial). Hash diferente antes do `mv`: não
+      promova, deixe o `arquivo.orq_new` onde está (não o apague: pode não ser nosso) e relate. **Não colete o hash do arquivo depois do `mv`**:
+      um terceiro pode tê-lo trocado nesse intervalo, e o hash coletado seria o do arquivo dele — nunca
+      use o conteúdo encontrado depois do `mv` como prova de autoria. Depois do `mv` só se **compara** o
+      destino com o hash esperado registrado; diferente, é alteração concorrente: preserve e relate. O
+      `progress-hook.py` **NÃO é copiado**: o hook vem do bundle `hooks/hooks.json` do plugin.
+   3. **Rollback.** Se o smoke do passo 2 da migração, ou o da FASE 5, falhou, faça o **rollback do
+      conjunto anterior exato**, sem destruir nada que não seja nosso. Para cada um dos três, um a um,
+      **antes de remover ou restaurar, confira que o arquivo no destino ainda é exatamente o que esta
+      operação instalou**: arquivo regular (não link simbólico) cujo hash agora é igual ao hash esperado registrado ANTES do
+      `mv` (passo 2). Só então: **restaure** o que existia a partir do backup — conferindo antes que o
+      backup ainda tem o hash de referência do passo 1; se não tiver, não restaure a partir dele, deixe o
+      arquivo como está e relate — com `cp -p backup arquivo.tmp2 && mv arquivo.tmp2 arquivo` e `cmp`, ou
+      **remova** o que não existia antes. **Se o arquivo divergir** da referência pré-`mv` (conteúdo
+      diferente, link simbólico, ou ausente — **Ausente conta como divergente**), **preserve-o: não o
+      remova nem o restaure**, e relate ao dono qual arquivo divergiu, com o hash esperado, o hash atual e
+      o caminho dos backups; quem decide é o dono. A conferência vem imediatamente antes de cada `mv` ou
+      `rm` e ainda sobra uma janela mínima — por isso nunca sobrescreva nem apague sem conferir. **Sem o
+      registro dos hashes, não faça rollback automático**: relate o que seria feito e deixe o dono decidir.
+      Se um settings também foi trocado (F2), ele volta pelo próprio backup, como descrito acima. Os
+      backups ficam, e o relato diz onde estão.
+   4. **Estado final com preservação.** Havendo algum arquivo preservado, o conjunto pode ficar misto
+      (por exemplo, dois restaurados e um de terceiro no lugar do nosso). Esse é o estado final esperado:
+      o relato ao dono lista o que foi restaurado, o que foi removido e o que foi preservado, e diz que o
+      conjunto está misto. Não há tentativa automática de completar o trio, de recopiar nem de restaurar o
+      arquivo preservado; a decisão é do dono.
 
    **Idempotência:** rodar de novo cai em F3 (a barra instalada contém `kanban-status`) — nada
-   duplica.
+   duplica. O trio que ficou incompleto (instalação anterior ao medidor, sem o `progress.py`) é pego
+   pelo re-sync do `--reinstalar` (ver Regras), nunca recompletado sozinho.
 5. **Stack complementar.** Instale **só o que ele aprovou explicitamente**, seguindo as regras do
    `/orq:stack` (instruções lidas no repositório oficial e mostradas a ele antes de rodar, nada com
    chave sem ele fornecer; plugin do Claude Code entra pela **CLI** — `claude plugin marketplace add`
@@ -717,7 +796,11 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      `echo '{"workspace":{"project_dir":"<abs-do-projeto>"}}' | sh
      <cópia-instalada>` imprime uma barra que **contém `📋` ou `⚠`** — não-vazia não basta, prova só
      que modelo/diretório/branch apareceram, não que o board renderizou. (O script usa `[ -r ]`, não
-     `[ -x ]`, para achar a irmã — não há item de `chmod` a checar aqui.)
+     `[ -x ]`, para achar a irmã — não há item de `chmod` a checar aqui.) **O trio está completo ao lado
+     dela:** `statusline.sh`, `kanban-status.sh` e `progress.py` existem no mesmo diretório, cada um com o
+     stamp na linha 2, e `echo '{}' | python3 "<dir-da-cópia>/progress.py" statusline --host claude
+     --input -` sai `0` sem imprimir nada — o segmento do medidor só aparece depois do `begin` e do
+     `bind` da sessão, então saída vazia é o esperado numa instalação nova.
    - **Se F1 gravou em arquivo de settings que já existia antes** deste `/orq:init` (com ou sem
      outras chaves — a FASE 1 registra o conjunto sempre, mesmo vazio) — confira que as chaves
      alheias **continuam lá** — `jq 'keys' <arquivo>` do registro da FASE 1 e do arquivo atual tem
@@ -727,8 +810,9 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
      (não mais para dentro do plugin); `jq 'keys'` do arquivo de settings antes/depois dá o mesmo
      conjunto de chaves (só o **valor** de `statusLine.command` mudou — nenhuma chave sumiu ou
      apareceu); `echo '{"workspace":{"project_dir":"<abs-do-projeto>"}}' | sh <cópia-nova>` imprime
-     barra com `📋`/`⚠`, mesmo teste do F1 — e é o **mesmo** teste que o passo 2 do procedimento de
-     migração já rodou antes de trocar o settings (achado D2, rodada 3): aqui é só reconfirmar. O
+     barra com `📋`/`⚠`, mesmo teste do F1 (trio completo ao lado, inclusive) — e é o **mesmo** teste
+     que o passo 2 do procedimento de migração já rodou antes de trocar o settings (achado D2, rodada
+     3): aqui é só reconfirmar. O
      backup do settings (`arquivo.orq_bak.<timestamp>`) existe no caminho dito, mesmo em sucesso —
      F2 não edita script alheio, então não há backup de script a checar aqui; mas usa backup de
      **settings**, porque a troca de valor em JSON agora também passa por verificação pós-escrita com
@@ -782,21 +866,25 @@ conseguiu corrigir, **diga isso** em vez de declarar sucesso.
   nunca foi instalado por este comando — não aparece numa busca que só olha `.claude/`/
   `~/.claude/orq/`, e a cópia fica velha em silêncio quando a fonte do plugin mudar). Os dois layouts
   que **este comando cria** (referência para reconhecer o que é nosso, não os únicos lugares a
-  procurar): o par completo em `.claude/` do projeto (F1 escopo projeto) · o par completo em
+  procurar): o trio completo em `.claude/` do projeto (F1 escopo projeto) · o trio completo em
   `~/.claude/orq/` (F1 escopo usuário).
 
   Para cada cópia achada — pelos dois layouts **ou** seguindo o comando efetivo —, leia o stamp da
   linha 2 (formato exato: `# orq v<versão> — instalado por /orq:init em <AAAA-MM-DD>; fonte:
   orq/scripts/<nome>. Não editar à mão; re-sync: /orq:init --reinstalar`). **Com stamp:** compare a
   versão do stamp com a versão deste plugin **e** rode `diff` contra a fonte correspondente
-  (`"${ORQ_PACKAGE_ROOT}/scripts/statusline.sh"` ou `"${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"`)
-  **ignorando a linha do stamp** — a fonte no plugin não leva stamp (é a linha 2 dela, código de
+  (`"${ORQ_PACKAGE_ROOT}/scripts/statusline.sh"`, `"${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh"` ou
+  `"${ORQ_PACKAGE_ROOT}/scripts/progress.py"`; o `<nome>.sh` abaixo vale também para o `progress.py`,
+  com a extensão `.py`) **ignorando a linha do stamp** — a fonte no plugin não leva stamp (é a linha 2 dela, código de
   verdade lá; comentário só na cópia), então comparar bruto acusa a linha do stamp em toda cópia,
   sempre, mesmo sem nenhum drift real: `diff <(sed '2d' "<cópia>") "${ORQ_PACKAGE_ROOT}/scripts/<nome>.sh"`. **Sem stamp** (achada só
   pelo comando efetivo, como o legado do dono, ou arquivo de terceiros que só coincide de nome):
   ainda assim rode `diff "<cópia>" "${ORQ_PACKAGE_ROOT}/scripts/<nome>.sh"` — divergiu ou não, é **sempre** relato, nunca ação (script
   sem o nosso stamp não é nosso para consertar). Divergiu, com ou sem stamp → **proponha** re-sync
-  (recopiar com stamp novo); **nunca aplique sozinho**.
+  (recopiar com stamp novo); **nunca aplique sozinho**. **Conjunto incompleto** — a cópia achada tem
+  `statusline.sh` e/ou `kanban-status.sh` mas falta o `progress.py` ao lado (instalação anterior ao
+  medidor) — também é só relato e proposta: copiar o trio inteiro, com backup e rollback do conjunto
+  (ver "Conjunto indivisível, backup e rollback"), depois da sua aprovação nominal.
 
   ⚠️ Esta seção é sobre **detectar e propor** em cópias que já existem, não sobre escrever. A guarda
   de destino ocupado (achado 7, comum a toda cópia — ver o passo 4, folha F1) é quem protege no

@@ -5,6 +5,13 @@ argument-hint: "[quantos cards, ex: 3] [--horas N]"
 
 O dono vai dormir. Você vai **adiantar planejamento** — nunca implementação — dentro de limites duros.
 
+Antes do manifesto, comprove `ORQ_PACKAGE_ROOT` e use o mesmo resolver canônico;
+não reinvente o resolver: `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .`.
+Use somente `board` e `thread_root` absolutos devolvidos, na frente atual. A
+marca de host não transfere a propriedade da frente. Card de outra frente ou
+thread ausente da frente dona interrompe somente aquela frente; não crie,
+duplique, troque de frente ou faça fallback.
+
 ## ⚠️ Diga isto a ele ANTES de começar (uma linha, honesta)
 
 A sessão do Claude Code **precisa ficar aberta** (máquina ligada, sem suspender). Não existe execução
@@ -12,7 +19,7 @@ realmente desacompanhada dentro do CLI. Se a máquina dormir, o trabalho pausa e
 
 ## 1. Manifesto (escreva antes de qualquer trabalho)
 
-Grave em `memory/wiki/threads/_noturno.md`:
+Grave em `THREAD_ROOT/threads/_noturno.md`:
 
 ```
 run_id: noturno-<AAAA-MM-DD-HHMM>
@@ -46,8 +53,9 @@ Para cada card: marque `[>]`, spawn **fresco** do `orq-planner` (contexto isolad
 Ao receber o plano:
 - **Precisa de decisão dele** → card vira `[!]` AWAITING_OWNER, com a **pergunta exata escrita no
   card** + caminho do plano. **Nunca decida no lugar dele.**
-- **Plano completo e sem pendência** → card vira `[~]` READY, mas **anote que aguarda o aval final**
-  (planejado à noite ≠ aprovado).
+- **Plano completo e sem pendência** → card vira `[!]` AWAITING_OWNER, com o caminho do
+  plano e a pergunta exata **Você aprova este plano?**. Modo noturno não transforma plano
+  em aprovação nem cria READY falsamente aprovado.
 
 Depois de cada card: grave no board e siga pro próximo. **Uma tarefa travada nunca trava a fila.**
 
@@ -75,6 +83,14 @@ Nada disto, em hipótese alguma, com o dono dormindo:
 - **Decidir no lugar do dono** qualquer coisa da lista do passo 2
 
 Na dúvida sobre se algo é permitido: **não faça**, estacione o card e registre a dúvida.
+
+## Continuidade de execução aprovada
+
+Consulte o `Contrato de continuidade aprovada` em
+`ORQ_PACKAGE_ROOT/skills/orq/SKILL.md`.
+Modo noturno não transforma plano em aprovação e não é Goal: ele pode estacionar
+um card sem bloquear outra ação permitida da frente dona, mas nunca implementa
+ou libera card sem a evidência humana exigida.
 
 ## Cancelar
 

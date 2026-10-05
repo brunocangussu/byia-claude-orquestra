@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orquestra.local/schemas/progress-binding-v1.json",
+  "title": "Orquestra progress session binding v1",
+  "description": "Vínculo entre uma sessão nativa do host e um ledger do medidor de progresso, em <front_root>/.orq/progress/v1/sessions/<session_key>.json. O runtime valida em orq/scripts/progress.py (validate_binding) e não depende de biblioteca de JSON Schema; test_progress.py confere que os dois concordam em campos e limites. O binding NÃO é o ledger: não transfere ownership e não guarda tarefa. Regras que o JSON Schema não expressa: o nome do arquivo é a própria session_key; session_key = sha256(host + NUL + session_id nativo), e o session_id bruto nunca é gravado; run_id em forma canônica minúscula; no máximo 128 identificadores recentes de evento e 64 KiB por arquivo. Contadores e identificadores servem só ao lembrete consultivo dos hooks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "session_key",
+    "host",
+    "ledger_path",
+    "run_id",
+    "calls_without_plan",
+    "nudged",
+    "recent_event_ids"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "session_key": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "host": { "enum": ["claude", "codex"] },
+    "ledger_path": { "type": "string", "minLength": 1, "description": "Caminho absoluto e canônico do ledger ligado." },
+    "run_id": { "type": "string", "format": "uuid" },
+    "calls_without_plan": { "type": "integer", "minimum": 0 },
+    "nudged": { "type": "boolean" },
+    "recent_event_ids": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+    }
+  }
+}

@@ -64,7 +64,7 @@ Regras, cada uma escrita 1×:
 
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo resolvido na tabela do host Claude (hoje `gpt-6.1-sol` @ `xhigh`, desde 2026-10-04) · `jobId` + `threadId` sustentam o reúso exato · ver **Matriz de invocação** |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo e effort conforme `## Times por host` (hoje `gpt-6.1-sol` @ `xhigh`, desde 2026-10-04) · `jobId` + `threadId` sustentam o reúso exato, aceito só com `threadId` devolvido igual ao solicitado · ver **Matriz de invocação** |
 | runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s · sonda real com `--model fable` em 2026-09-05 comprovou `claude-fable-5-1` (thread `T-079`) |
 
 A coluna **Consumida por** existe para o efeito de ligar/desligar ser anunciável sem chute: a via
@@ -122,9 +122,13 @@ uma vez, não repetido) · `não testado`.
 | Vendor do modelo | host Claude | host Codex |
 |---|---|---|
 | **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus, ou receber `claude-fable-5-0`, reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; `fable` habilitado no `T-077` (2026-09-04) e **comprovado com chamada real em 2026-09-05** (`OPUS_MODEL=claude-fable-5-1`, thread `T-079`) |
-| **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
+| **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+
+Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
+incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
+thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`).
 
 ## Times por host
 

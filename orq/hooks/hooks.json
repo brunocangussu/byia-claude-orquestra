@@ -11,6 +11,16 @@
             "additionalContextLimit": 300
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/progress-hook.py\"",
+            "timeout": 5,
+            "statusMessage": "Conferindo medidor de progresso"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -50,6 +60,17 @@
             "additionalContextLimit": 300
           }
         ]
+      },
+      {
+        "matcher": "^(startup|resume|clear|compact|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/progress-hook.py\"",
+            "timeout": 5,
+            "statusMessage": "Vinculando medidor de progresso"
+          }
+        ]
       }
     ],
     "PreCompact": [
@@ -80,4 +101,3 @@
     ]
   }
 }
-

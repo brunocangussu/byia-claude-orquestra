@@ -115,6 +115,57 @@ class CanonicalBoardContractTest(unittest.TestCase):
         self.assertIn('diff <(sed \'2d\' "<cópia>") "${ORQ_PACKAGE_ROOT}/scripts/<nome>.sh"', init)
         self.assertIn('diff "<cópia>" "${ORQ_PACKAGE_ROOT}/scripts/<nome>.sh"', init)
 
+    def test_init_instala_o_trio_indivisivel_da_statusline_com_backup_e_rollback_do_conjunto(self):
+        """A statusline é o trio statusline.sh + kanban-status.sh + progress.py; o hook vem do bundle, não da cópia."""
+        init = " ".join(self._texto_consumidor(Path("orq/commands/init.md")).split())  # as quebras de linha da prosa não contam
+        self.assertIn('"${ORQ_PACKAGE_ROOT}/scripts/progress.py"', init)
+        self.assertIn("o trio `statusline.sh` + `kanban-status.sh` + `progress.py` em `~/.claude/orq/`", init)
+        self.assertIn("Instale **sempre o trio completo**", init)
+        self.assertIn("nunca um sem os outros", init)
+        self.assertIn("`.claude/progress.py`", init)  # a guarda de destino ocupado cobre o terceiro arquivo
+        self.assertIn("Conjunto indivisível, backup e rollback", init)
+        self.assertIn("rollback do conjunto anterior exato", init)
+        self.assertIn("`progress-hook.py` **NÃO é copiado**", init)
+        # o rollback não destrói alteração concorrente: confere cada arquivo contra uma referência registrada ANTES
+        sem_negrito = init.replace("**", "")  # a frase conta, não o realce
+        for frase in (
+            # instalação indivisível; rollback arquivo a arquivo, por exceção explícita (uma só leitura possível)
+            "O conjunto é indivisível na INSTALAÇÃO",
+            "No ROLLBACK cada arquivo é decidido sozinho, um a um",
+            "por exceção explícita, o arquivo com alteração concorrente detectada é preservado",
+            "os demais são restaurados ou removidos conforme a referência",
+            "o conjunto pode ficar misto",
+            "Não há tentativa automática de completar o trio",
+            # a referência do arquivo instalado é colhida ANTES do mv, sobre os bytes que a operação gerou
+            "registre o hash esperado do conteúdo novo ANTES do `mv`",
+            "Confira que o `arquivo.orq_new` no disco tem esse hash",
+            "nunca use o conteúdo encontrado depois do `mv` como prova de autoria",
+            "não promova, deixe o `arquivo.orq_new` onde está (não o apague: pode não ser nosso)",
+            "hash esperado registrado ANTES do `mv`",
+            # o backup segue a mesma lógica: referência do original antes do cp, conferida antes de restaurar
+            "registre o hash do original ANTES do `cp -p`",
+            "confira que o backup recém-criado tem o mesmo hash",
+            "conferindo antes que o backup ainda tem o hash de referência do passo 1",
+            # a conferência e o que fazer quando diverge
+            "confira que o arquivo no destino ainda é exatamente o que esta operação instalou",
+            "arquivo regular (não link simbólico)",
+            "preserve-o: não o remova nem o restaure",
+            "relate ao dono qual arquivo divergiu",
+            "Ausente conta como divergente",
+            "Sem o registro dos hashes, não faça rollback automático",
+        ):
+            self.assertIn(frase, sem_negrito)
+        # as leituras antigas e ambíguas não sobrevivem
+        for velha in (
+            "nunca instale, atualize nem restaure um sozinho",  # contradizia a decisão arquivo a arquivo do rollback
+            "Logo depois de cada `mv`, registre o hash",  # a referência colhida depois do mv aceita arquivo trocado por terceiro
+            "registre o hash do arquivo que esta operação instalou",
+            "cujo hash agora é igual ao registrado no passo 2",
+        ):
+            self.assertNotIn(velha, sem_negrito)
+        self.assertIn("Conjunto incompleto", init)  # o re-sync acusa o trio que ficou sem o progress.py
+        self.assertNotIn("sempre o par completo", init)
+
     def test_handoff_das_raizes_e_posse_da_frente_sao_explicitos(self):
         implement = self._texto_consumidor(Path("orq/commands/implement-next.md"))
         self.assertIn(

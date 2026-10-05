@@ -2365,7 +2365,7 @@ def main() -> int:
             "Nunca substitua o titular por um revisor do mesmo vendor do host",
             "sem revisão independente por restrição de dados",
             "REVISÃO DEGRADADA",
-            "Sem elenco, vale o padrão de fábrica: reviewer único",
+            "Sem elenco, o padrão de fábrica novo ou candidato é",
             "`--rapido` **não troca de revisor**",
             "run-opus-reviewer.py",
             '--model "$REVIEWER_MODEL_ALIAS"',
@@ -2383,7 +2383,7 @@ def main() -> int:
             "Host Codex: `codex exec` é obrigatório",
             "política habilitada, não capacidade comprovada",
             "a independência ganha do domínio, sempre",
-            "| reviewer | `fable` (exigir comprovação de que o alias resolve para `claude-fable-5-1`)",
+            "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)",
             "| reviewer | `gpt-6-astra@xhigh` |",
             "run-opus-reviewer.py",
             ANCORA_PROIBICAO_WRITE,
@@ -2393,7 +2393,7 @@ def main() -> int:
             "OPUS_TIMEOUT",
             "OPUS_MODEL_MISMATCH",
             "OPUS_STARTED",
-            "claude-opus-5",
+        'DEFAULT_MODEL_ALIAS = "opus"',
             "claude-fable-5-1",
             "OPUS_MODEL_USAGE",
             "DEFAULT_TIMEOUT_SECONDS = 600.0",
@@ -2507,12 +2507,12 @@ def main() -> int:
     # Por isso o guarda ancora na seção: recorta a tabela daquele host e exige
     # (a) a linha do vendor oposto presente 1× e (b) a linha do OUTRO host
     # ausente. A linha do host Codex carrega junto a comprovação do alias
-    # correspondente (hoje `fable` → `claude-fable-5-1`), que continua obrigatória.
+    # correspondente (ID explícito `claude-opus-5-5`), que continua obrigatória.
     REVIEWER_CLAUDE = "| reviewer | `gpt-6-astra@xhigh` |"
-    REVIEWER_CODEX = "| reviewer | `fable` (exigir comprovação de que o alias resolve para `claude-fable-5-1`)"
+    REVIEWER_CODEX = "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)"
     REVIEWER_POR_HOST = {
         "### Host Claude": (REVIEWER_CLAUDE, REVIEWER_CODEX, "titular OpenAI"),
-        "### Host Codex": (REVIEWER_CODEX, REVIEWER_CLAUDE, "titular Anthropic, alias comprovado"),
+        "### Host Codex": (REVIEWER_CODEX, REVIEWER_CLAUDE, "titular Anthropic, ID comprovado"),
     }
     for heading, (esperada, proibida, papel) in REVIEWER_POR_HOST.items():
         secao, estado = secao_unica(template_elenco, heading)

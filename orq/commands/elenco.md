@@ -82,8 +82,8 @@ registro → `sistema · normal`** — o default seguro. Card Trivial: `trilha: 
 - **`planner`** cruza pelo **domínio**: a trilha do card escolhe quem pensa melhor naquele tipo de
   problema. Aceita modelo de qualquer vendor com célula na `## Matriz de invocação`, **desde que o
   mecanismo daquela célula execute aquele modelo** (a célula Anthropic×Codex é o runner Anthropic
-  parametrizado por `--model <alias>`: só entra alias presente no mapa de prova do runner, e a
-  saída só vale com o prefixo daquele alias comprovado no `modelUsage`).
+  parametrizado por `--model <alias-ou-id>`: só entra valor presente no mapa de prova do runner, e a
+  saída só vale com identidade exata para `claude-opus-5-5` ou prefixo legado no `modelUsage`).
 - **`reviewer`** cruza pela **independência**, e é obrigado a cruzar: sempre o vendor **oposto** ao
   do host, com a mesma checagem de mecanismo.
 - **`implementer`, `docs` e `scout` ficam no vendor do host.** Nos dois primeiros porque **escrevem**
@@ -107,6 +107,50 @@ mostre os **padrões de fábrica** e ofereça criá-lo.
 Feche sugerindo, em uma linha, o que costuma valer a pena ajustar (ex.: *"plano difícil rende mais
 com um modelo mais forte no planner da trilha que você mais usa"*).
 
+## Gate de capacidade — ajuste, perfil e inicialização
+
+Este gate é global: vale também para `init`, para a oferta sem argumento de criar
+um elenco ausente e para migração, ajuste de papel ou perfil. Consultá-lo não
+autoriza chamadas de prova; mostrar o template é leitura, não ativação.
+
+Antes de gravar, valide **somente os papéis que a operação altera**; não exija provas novas dos
+papéis preservados. A prova se vincula a **modelo + via + conta/host**: registre modelo solicitado e observado,
+effort quando aplicável, mecanismo (CLI, Companion ou spawn nativo), sandbox, versão do executável/runtime,
+contexto de conta não sensível (rótulo local, sem login/token), data e recibo da execução real.
+Referencie o recibo e esses pressupostos na thread do card; no elenco, `## Revisores externos`
+referencia a thread para vias externas, e a justificativa do papel referencia a thread para via nativa.
+**Catálogo não é prova**; prova CLI não comprova spawn nativo, nem read-only comprova escrita.
+Mudança em modelo, effort, mecanismo, sandbox, versão ou contexto de conta exige revalidação.
+Não há validade global: prova de outra célula ou outra conta não libera esta operação.
+
+Se faltar prova, preserve o elenco inteiro (tabelas, presets e vias), não acione fallback e informe
+a limitação. Permita uma **aquisição delimitada de prova autorizada** pelo dono, com modelo/effort,
+mecanismo, sandbox, orçamento e número de chamadas definidos; sem sondas ou retry silenciosos.
+Recusa de acesso encerra a aquisição; não escale modelo/effort automaticamente. Se não houver
+opção comprovada, pare e peça a escolha do dono; não grave uma escolha fictícia.
+
+Operação comum com padrão legado já comprovado conserva a capacidade e a política autorizadas; não exige nova
+sonda a cada uso. **Padrão legado comprovado** é uma combinação já usada e autorizada neste projeto, com recibo real consultável na
+thread. O Manager verifica a origem e a compatibilidade antes do despacho. É reaproveitamento de prova existente
+válida, nunca isenção de prova. Default, alias ou cache não certificam. Sem recibo ou se o contexto mudou, não
+despache essa operação. Não há sonda ou retry automáticos; prossiga com outras ações locais elegíveis. Quando o
+recibo válido ainda é compatível, o reuso não exige nova sonda a cada uso.
+
+Fábrica nova e candidato não comprovado não viram fallback executável só porque a tabela não
+foi materializada. Adotar, gravar, promover, reativar ou executar candidato novo exige o gate específico e
+evidência contextual de executor, modelo, workspace e effort.
+Desligar exclusivamente uma via autorizada reduz exposição e é exceção expressa à nova sonda: anuncie o impacto
+e não escolha fallback. Reativar ou trocar via continua exigindo prova contextual e o gate específico. Remover
+override não recebe isenção genérica: pode promover fallback novo.
+
+**Com prova válida e aprovação do alvo**, crie o elenco novo pelo template, registrando os recibos;
+em arquivo existente, grave apenas a alteração aprovada na seção do host. Na inicialização,
+valide todos os papéis que seriam criados (Manager é apenas registro da sessão, não spawn).
+**sem prova, não crie nem reescreva** o arquivo, nem substitua linhas por candidatos.
+Mostrar padrões de fábrica não os ativa. O Manager permanece o modelo da sessão escolhido pelo dono;
+nenhum ajuste ou perfil troca a sessão viva. Este gate precede qualquer escrita do elenco,
+inclusive semeadura de presets/headings; ele não autoriza aquisição de prova sem o dono.
+
 ## Com argumento — ajustar
 
 `$ARGUMENTS` no formato `<papel> <valor>`. Exemplos (**do host Claude** — no Codex os modelos são
@@ -125,11 +169,14 @@ seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez
    `## Revisores externos` **deste** `_elenco.md` (de fábrica: `codex` e `runner-opus`), lida na
    hora, nunca uma lista decorada.
 
-   **É via → este é o ramo, e ele termina aqui; não caia na validação de modelo do passo 2.**
-   - O único valor aceito é `on` ou `off`. Qualquer outro (um effort, um modelo) → **recuse
-     dizendo o que a via aceita**, e diga onde se muda o que ele provavelmente queria: o modelo e o
-     effort ficam na linha do **papel**, na tabela do host.
-   - Grave o valor na coluna **Estado** daquela linha (`ativo` / `inativo`) — é a coluna que
+    **É via → este é o ramo, e ele termina aqui; não caia na validação de modelo do passo 2.**
+    - O único valor aceito é `on` ou `off`. Qualquer outro (um effort, um modelo) → **recuse
+      dizendo o que a via aceita**, e diga onde se muda o que ele provavelmente queria: o modelo e o
+      effort ficam na linha do **papel**, na tabela do host.
+    - `off` é desligamento autorizado que reduz exposição: não exige sonda nova, anuncia impacto e não
+      escolhe fallback. `on`, troca de via/modelo ou remoção de override não usam essa exceção; todos
+      exigem gate e prova contextual.
+    - Grave o valor na coluna **Estado** daquela linha (`ativo` / `inativo`) — é a coluna que
      existe para isso; sem essa escrita, o "desliguei" seria só uma frase.
    - **Antes de gravar, leia a coluna `Consumida por` daquela via e derive o efeito real dali** —
      não presuma que a via mexida é a do seu host. Confirme **o efeito, não o ato**, nomeando
@@ -156,8 +203,10 @@ seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez
      `pesada` e `leve` ficaram como estavam.
 2. Valide o modelo **contra o vendor do host resolvido no passo 0** — não contra uma lista fixa:
    - **`implementer`, `docs` e `scout`: só modelos do vendor do host.** No host Claude, `opus` ·
-     `sonnet` · `haiku` · `fable` · `inherit` ou um id (`claude-opus-5`); no host Codex, um modelo
-     OpenAI com effort opcional (`gpt-5.6-sol@xhigh`, `gpt-5.6-terra@xhigh`). Modelo de outro vendor
+     `sonnet` · `haiku` · `fable` · `inherit` ou um ID Anthropic suportado pelo spawn nativo,
+     com prova delimitada pelo gate acima. O mapa do runner não limita a via nativa.
+     No host Codex, um modelo
+     OpenAI com effort quando aplicável (`gpt-6.1-sol@high`, `gpt-6-luna@medium`). Modelo de outro vendor
      aqui é **recusa com motivo**, não pergunta: nos dois primeiros porque escrita cross-vendor está
      fora do desenho; no `scout` porque leitura ampla e barata não se paga em domínio — diga isso ao
      recusar, e ofereça o modelo barato do host no lugar.
@@ -166,19 +215,24 @@ seção "Com argumento `perfil <nome>` — trocar o time inteiro" abaixo, em vez
      vendor do host é recusa com motivo (a independência é a única coisa que ele entrega).
    - ⛔ **Vendor certo não basta: o MECANISMO daquela célula tem que conseguir executar o modelo.**
      Leia a célula antes de aceitar, e recuse o que ela não roda:
-     - **Anthropic × host Codex** — a célula é o `run-opus-reviewer.py --model <alias>`. O runner só
-       aceita alias presente no seu mapa de prova (`opus` · `fable` · `sonnet` · `haiku`) e só
-       imprime parecer se o `modelUsage` do JSON comprovar o prefixo daquele alias — pedir `fable` e
+     - **Anthropic × host Codex** — a célula é o `run-opus-reviewer.py --model <alias-ou-id>`. O runner só
+       aceita `claude-opus-5-5` e os aliases legados (`opus` · `fable` · `sonnet` · `haiku`) e só
+       imprime parecer se o `modelUsage` comprovar identidade exata para o ID ou prefixo legado — pedir `fable` e
        receber Opus, ou receber `claude-fable-5-0` quando o elenco exige 5.1, reprova com
        `OPUS_MODEL_MISMATCH`, e alias fora do mapa é recusado **antes** de chamar o CLI. Registrar
-       aqui um alias que o runner não conhece → **recuse citando o mapa**: *"o runner não tem esse
-       alias no mapa de prova; registrar aqui gravaria um elenco que a execução não honra"*.
-       Ensinar o runner um alias novo é **card novo**, não improviso deste comando.
+       aqui um alias ou ID que o runner não conhece → **recuse citando o mapa**: *"o runner não tem esse
+       valor no mapa de prova; registrar aqui gravaria um elenco que a execução não honra"*.
+       Ensinar o runner um alias ou ID novo é **card novo**, não improviso deste comando.
+       Passe sempre o valor resolvido do elenco em `--model`: o runner não lê `_elenco.md`.
+       Seu default sem argumento continua `opus`, só por compatibilidade legada; a fábrica
+       `claude-opus-5-5` exige `--model claude-opus-5-5`, nunca omissão da flag.
      - **OpenAI × host Claude** — a célula usa `codex:codex-rescue` e
        `codex-companion.mjs task --model <modelo> --effort <effort>`; o Companion aceita o modelo
-       do catálogo e devolve `jobId` + `threadId` para reúso por `card+papel`.
+       do catálogo e devolve `jobId` + `threadId`; o reúso por `card+papel` só vale quando o `threadId`
+       devolvido é igual ao solicitado (contrato "Reúso durável do Codex Companion" da skill `orq`).
+       Runtime que não retoma a thread pedida degrada a continuação — não é promessa de capacidade.
      - **OpenAI × host Codex** — a célula usa `codex exec -m <modelo>`; qualquer modelo OpenAI do
-       catálogo serve, com effort opcional.
+       catálogo é candidato, com effort quando aplicável e prova da célula antes de gravar.
      **Por que isto é regra e não zelo:** sem ela o arquivo registra Fable e a execução entrega
      Opus, calada, ou registra Fable 5.1 e a execução entrega 5.0 sem ninguém notar. Elenco que
      mente sobre quem trabalhou é pior que elenco ausente — some a procedência, que é justamente o
@@ -287,6 +341,9 @@ trocar por aqui. Se ele pedir, explique e sugira o `/model`.
 
 ## Modelo do arquivo
 
+Todos os valores de fábrica são candidatos à inicialização; somente o gate de capacidade acima
+autoriza gravá-los. O template não declara que já foram exercitados na conta deste projeto.
+
 ```markdown
 # Elenco — quem toca cada papel
 
@@ -305,7 +362,7 @@ significa “rodando agora”: o Manager verifica a sessão/CLI real antes de an
 | Papel | Modelo | Sandbox / mecanismo |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal |
-| planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 |
+| planner·interface | `claude-opus-5-5` | spawn nativo read-only; confira sessão, modelo e mecanismo antes do uso |
 | planner·sistema | `gpt-6-astra@xhigh` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
 | implementer·pesada | `opus` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
@@ -328,20 +385,27 @@ continuar na lista. Ver passo 3 de "Com argumento — ajustar".)*
 
 | Papel | Modelo | Sandbox / mecanismo |
 |---|---|---|
-| manager | `gpt-5.6-sol@high` | sessão principal; verificar, não trocar silenciosamente |
+| manager | modelo da sessão (`/model`) | sessão principal; verificar, não trocar silenciosamente |
 | planner·interface | `gpt-6-astra@max` | `codex exec … -s read-only` — vendor nativo do host |
 | planner·sistema | `gpt-6-astra@max` | `read-only` |
-| implementer·pesada | `gpt-5.6-sol@xhigh` | `workspace-write`, em worktree dedicado |
-| implementer·normal | `gpt-5.6-terra@xhigh` | `workspace-write`, em worktree dedicado |
-| implementer·leve | `gpt-5.6-luna` (sem effort declarado — ver nota) | `workspace-write`, em worktree dedicado |
-| reviewer | `fable` (exigir comprovação de que o alias resolve para `claude-fable-5-1`) | runner Anthropic, read-only, sem ferramentas — invocar com `--model fable` |
+| implementer·pesada | `gpt-6.1-sol@xhigh` | `workspace-write`, em worktree dedicado |
+| implementer·normal | `gpt-6.1-sol@high` | `workspace-write`, em worktree dedicado |
+| implementer·leve | `gpt-6-luna@medium` | `workspace-write`, em worktree dedicado |
+| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`) | runner Anthropic, read-only, sem ferramentas — invocar com `--model claude-opus-5-5` |
 | docs | `gpt-5.6-sol@low` | arquivos de documentação autorizados |
 | scout | `gpt-5.6-sol@low` | read-only |
 
-**Nota do `implementer·leve`:** o degrau vai **sem effort declarado** de propósito — o smoke que
-liberou o modelo provou que ele responde quando endereçado, não quais reasoning efforts aceita nem
-como se comporta em `workspace-write`. Declarar um effort aqui seria inventar procedência. Registre
-a medição no `_elenco.md` do projeto quando ela existir.
+**Effort é parâmetro solicitado, não identidade observada nem garantia de qualidade.** Leve usa
+`medium`, normal `high`, pesada `xhigh`; a prova deve exercitar cada par no mecanismo e sandbox
+pretendidos. Uma sonda em `low`, sem escrita, não comprova estes pares em `workspace-write`.
+Faixa mede risco e incerteza, não quantidade de linhas. O Manager justifica a escolha e conserva
+o piso de Alto risco; falha não autoriza promoção silenciosa nem fallback para Terra.
+
+**Aliases legados do runner:** `opus` → prefixo `claude-opus-5`; `fable` → `claude-fable-5-1`;
+`sonnet` → `claude-sonnet-5`; `haiku` → `claude-haiku-4-5`. Sufixos de release continuam aceitos
+para esses aliases; `claude-opus-5-5` exige igualdade, rejeitando `claude-opus-5-50` e Opus 5.
+O alias `fable` não muda de destino. O prefixo de log `OPUS_` e o nome `run-opus-reviewer.py`
+são contratos legados de fio, não afirmação de que todo modelo invocado é Opus.
 
 **Perfil ativo:** — este host não tem presets de fábrica; ajuste papel a papel. Criar um `## Perfis`
 para ele é pedido do dono, não iniciativa.
@@ -355,8 +419,8 @@ vendor oposto, com o que já foi comprovado e quando. O nome na coluna **Via** �
 
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato |
-| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato, aceito só com `threadId` devolvido igual ao solicitado |
+| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias-ou-id>` · identidade exata para ID, prefixo para alias legado · 16 KiB por lote · timeout 600s |
 
 A coluna **Consumida por** é o que torna o efeito de ligar/desligar anunciável sem chute: uma via só
 afeta os papéis listados, nos hosts listados. Via cujo vendor é o do próprio host não é via nenhuma
@@ -382,10 +446,14 @@ nunca leva dado de paciente, PII, prontuário ou credencial.
 
 | Vendor do modelo | Host Claude | Host Codex |
 |---|---|---|
-| Anthropic | spawn nativo com override | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — limite 16 KiB/lote, timeout e comprovação do prefixo do alias pedido no `modelUsage`; alias fora do mapa de prova (`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
-| OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status` | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
+| Anthropic | spawn nativo com override comprovado nessa célula | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias-ou-id>` — limite 16 KiB/lote, timeout e identidade exata para `claude-opus-5-5` ou prefixo legado no `modelUsage`; valor fora do mapa de prova (`claude-opus-5-5`·`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
+| OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+
+Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
+incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
+thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`).
 
 ## Perfis — times nomeados do host Claude
 
@@ -401,7 +469,7 @@ perfil os toca, e aplicar um preset **preserva a linha `manager` e a seção "Re
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| planner·interface | fable | trilha perceptual pensa com Anthropic — Fable 5.1 |
+| planner·interface | claude-opus-5-5 | trilha perceptual por spawn nativo read-only |
 | planner·sistema | gpt-6-astra@xhigh | trilha comportamental pensa com OpenAI |
 | implementer·pesada | opus | alto risco ou decisão de desenho ainda aberta |
 | implementer·normal | sonnet | plano fechado, execução dirigida |
@@ -439,11 +507,17 @@ Ajuste os modelos e a nota à realidade do projeto — os valores acima são pon
 contrato fixo.
 ```
 
+**Proposta de fábrica (fora do bloco copiável).** Os valores do template são candidatos e só podem
+ser gravados depois do gate de capacidade pela célula real; a aprovação do alvo não substitui essa
+prova. Não redistribua docs, scout ou planners para acompanhar o implementer. Manager continua
+escolha do dono na sessão.
+
 ## Como isso é aplicado
 
 Ao spawnar um papel, os comandos (`plan-next`, `implement-next`, `revisar`, `init`) **leem o elenco**
-pela frase normativa do topo: host → tabela do host → Matriz. Sem elenco, valem os padrões de
-fábrica deste template; o `model:` dos arquivos em `agents/` é o último recurso.
+pela frase normativa do topo: host → tabela do host → Matriz. Sem elenco, os padrões de
+fábrica deste template são candidatos, sujeitos ao gate antes de inicializar ou executar;
+o `model:` dos arquivos em `agents/` não contorna esse gate nem autoriza fallback.
 
 ## Orientação (quando ele pedir recomendação)
 

@@ -163,7 +163,9 @@ mais o tempo de indexação. Existem **forks populares** — confira que é o re
 Modelos diferentes erram diferente — e **fornecedores** diferentes erram de forma menos
 correlacionada que duas instâncias do mesmo modelo. Por isso o revisor do Orquestra é **um só, e
 sempre do vendor oposto ao host**: no host Claude, quem revisa é o GPT; no host Codex, o modelo
-Anthropic do elenco (hoje `fable`, Fable 5.1). Sem a via para o outro vendor, **não há revisão
+Anthropic do elenco (candidato de fábrica `claude-opus-5-5`, override ativo preservado), passado
+explicitamente em `--model`; o runner não lê o elenco e mantém default legado `opus`.
+Sem a via para o outro vendor, **não há revisão
 independente nenhuma** — não existe cair num revisor do mesmo vendor do host.
 
 ⚠️ **Esta camada é host-aware: resolva o host ANTES de propor.** A ferramenta a instalar é a do
@@ -221,9 +223,12 @@ abre no host Claude, na direção oposta.
 `.zshrc`, que não alcança sessão já aberta.
 
 ⚠️ **CLI respondendo não é revisor funcionando.** O runner só imprime parecer quando o JSON comprova
-o prefixo do modelo selecionado — para o elenco atual, `claude-fable-5-1`; conta sem acesso a esse
-modelo devolve **revisão degradada**, não um parecer mais fraco. A sonda viva é o próprio runner
-(16 KiB por lote, timeout 600s) e é **chamada paga** — use-a só quando o sintoma for revisor mudo,
+identidade exata para `claude-opus-5-5` ou o prefixo do alias legado selecionado; conta sem acesso a esse
+modelo devolve **revisão degradada**, não um parecer mais fraco. `fable` continua exigindo
+`claude-fable-5-1`; não é redirecionado para Opus. `OPUS_` é prefixo legado do log.
+A sonda viva é o próprio runner
+(16 KiB por lote, timeout 600s) e é **chamada paga** — exige aquisição delimitada de prova autorizada
+nos termos de `/orq:elenco`, sem sondas ou retry silenciosos, e só quando o sintoma for revisor mudo,
 sempre com `< /dev/null`.
 
 **Custo:** conta Anthropic com acesso ao modelo do elenco, cobrança à parte.

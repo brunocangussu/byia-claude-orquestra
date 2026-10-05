@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -174,6 +175,564 @@ class ElencoPerfisRedIntegrationTest(unittest.TestCase):
         self.assertIn("orq/commands/elenco.md", output)
         self.assertIn("não foi possível ler", output)
 
+    def test_reviewer_do_vendor_do_host_reprova_no_template(self) -> None:
+        caminho = self.root / "orq/commands/elenco.md"
+        texto = caminho.read_text()
+        alvo = "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)"
+        self.assertIn(alvo, texto)
+        caminho.write_text(texto.replace(alvo, "| reviewer | `gpt-6-astra@xhigh`", 1))
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 1, output)
+        self.assertIn("Host Codex", output)
+        self.assertIn("vendor do host revisando a si mesmo", output)
+
+    def test_reviewers_trocados_entre_hosts_reprovam_mesmo_com_contagem_igual(self) -> None:
+        caminho = self.root / "orq/commands/elenco.md"
+        texto = caminho.read_text()
+        claude = "| reviewer | `gpt-6-astra@xhigh` |"
+        codex = "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`) |"
+        self.assertEqual(texto.count(claude), 1)
+        self.assertEqual(texto.count(codex), 1)
+        texto = texto.replace(claude, "T131_REVIEWER_PLACEHOLDER", 1).replace(codex, claude, 1)
+        texto = texto.replace("T131_REVIEWER_PLACEHOLDER", codex, 1)
+        caminho.write_text(texto)
+        result, output = run_lint_main(self.root, self.home)
+        self.assertEqual(result, 1, output)
+        self.assertIn("Host Claude", output)
+        self.assertIn("Host Codex", output)
+        self.assertIn("vendor do host revisando a si mesmo", output)
+
+
+# Snapshot de preservação T-131, independente de ATIVOS_BASE e do template.
+# Mudança deliberada futura exige atualizar este snapshot com decisão aprovada;
+# não é proibição de mudar elenco. O candidato de fábrica nunca o reescreve.
+# T-148 preserva a mudança deliberada do Claude para Sol 6.1 já feita na raiz;
+# os presets históricos permanecem inalterados e não são a tabela ativa.
+PROJETO_T131 = {
+    "### Host Claude": {
+        "manager": "modelo da sessão (`/model`)",
+        "planner·interface": "`fable`", "planner·sistema": "`gpt-6.1-sol@xhigh`",
+        "implementer·pesada": "`sonnet`", "implementer·normal": "`sonnet`",
+        "implementer·leve": "`sonnet`", "reviewer": "`gpt-6.1-sol@xhigh`",
+        "docs": "`sonnet`", "scout": "`sonnet`",
+    },
+    "### Host Codex": {
+        "manager": "modelo da sessão (`/model`)",
+        "planner·interface": "`gpt-6-astra@max`", "planner·sistema": "`gpt-6-astra@max`",
+        "implementer·pesada": "`gpt-5.6-terra@xhigh`",
+        "implementer·normal": "`gpt-5.6-terra@xhigh`",
+        "implementer·leve": "`gpt-5.6-terra@xhigh`", "reviewer": "`opus`",
+        "docs": "`gpt-5.6-terra@xhigh`", "scout": "`gpt-5.6-terra@xhigh`",
+    },
+    "### `padrao`": {
+        "planner·interface": "fable", "planner·sistema": "gpt-6-astra@xhigh",
+        "implementer·pesada": "sonnet", "implementer·normal": "sonnet",
+        "implementer·leve": "sonnet", "reviewer": "gpt-6-astra@xhigh",
+        "docs": "sonnet", "scout": "sonnet",
+    },
+    "### `economia`": {
+        "planner·interface": "opus", "planner·sistema": "gpt-6-astra@high",
+        "implementer·pesada": "sonnet", "implementer·normal": "sonnet",
+        "implementer·leve": "haiku", "reviewer": "gpt-6-astra@high",
+        "docs": "haiku", "scout": "haiku",
+    },
+}
+
+
+def modelos_por_secao(texto: str, heading: str) -> dict[str, str]:
+    """Oráculo de teste: exige seção única e não perde duplicatas de papel."""
+    matches = list(re.finditer(r"(?m)^" + re.escape(heading) + r"(?:\s.*)?$", texto))
+    if len(matches) != 1:
+        raise AssertionError(f"seção ausente/duplicada: {heading}")
+    inicio = matches[0].end()
+    fim = re.search(r"(?m)^#{1,3} ", texto[inicio:])
+    secao = texto[inicio:inicio + fim.start()] if fim else texto[inicio:]
+    modelos = {}
+    for papel, modelo in re.findall(r"(?m)^\| ([^|]+?) \| ([^|]+?) \|", secao):
+        if papel in ("Papel", "---"):
+            continue
+        if papel in modelos:
+            raise AssertionError(f"papel duplicado: {heading}/{papel}")
+        modelos[papel] = modelo
+    return modelos
+
+
+def conferir_snapshot_projeto(texto: str, esperado: dict = PROJETO_T131) -> None:
+    for heading, modelos in esperado.items():
+        observado = modelos_por_secao(texto, heading)
+        if observado != modelos:
+            raise AssertionError(f"snapshot aprovado divergiu: {heading}: {observado}")
+
+
+class T131ContratoTest(unittest.TestCase):
+    def test_elenco_ativo_preservado_por_secao_e_papel(self) -> None:
+        conferir_snapshot_projeto((REPO_ROOT / "memory/wiki/_elenco.md").read_text())
+
+    def test_mutantes_de_todos_os_papeis_ativos_sao_mortos(self) -> None:
+        texto = (REPO_ROOT / "memory/wiki/_elenco.md").read_text()
+        conferir_snapshot_projeto(texto)
+        for heading, modelos in PROJETO_T131.items():
+            for papel, valor in modelos.items():
+                with self.subTest(secao=heading, papel=papel):
+                    inicio = texto.index(heading)
+                    antes, depois = texto[:inicio], texto[inicio:]
+                    alvo = f"| {papel} | {valor} |"
+                    self.assertIn(alvo, depois)
+                    mutante = antes + depois.replace(alvo, f"| {papel} | gpt-6-luna@medium |", 1)
+                    with self.assertRaisesRegex(AssertionError, re.escape(heading)):
+                        conferir_snapshot_projeto(mutante)
+
+    def test_snapshot_admite_mudanca_deliberada(self) -> None:
+        texto = (REPO_ROOT / "memory/wiki/_elenco.md").read_text()
+        esperado = {h: dict(m) for h, m in PROJETO_T131.items()}
+        esperado["### Host Codex"]["scout"] = "`gpt-6-luna@medium`"
+        inicio = texto.index("### Host Codex")
+        texto = texto[:inicio] + texto[inicio:].replace(
+            "| scout | `gpt-5.6-terra@xhigh` |", "| scout | `gpt-6-luna@medium` |", 1)
+        conferir_snapshot_projeto(texto, esperado)
+
+    def test_scout_candidatos_e_modelos_novos_nao_ativam_o_elenco(self) -> None:
+        texto = (REPO_ROOT / "memory/wiki/_elenco.md").read_text()
+        for heading, antigo in (("### Host Claude", "`sonnet`"),
+                                ("### Host Codex", "`gpt-5.6-terra@xhigh`")):
+            for novo in ("`gpt-5.6-sol@low`", "`gpt-6.1-sol@low`", "`gpt-6-sol@low`", "`gpt-6-luna@medium`"):
+                with self.subTest(host=heading, candidato=novo):
+                    inicio = texto.index(heading)
+                    mutante = texto[:inicio] + texto[inicio:].replace(
+                        f"| scout | {antigo} |", f"| scout | {novo} |", 1)
+                    self.assertNotEqual(mutante, texto)
+                    with self.assertRaisesRegex(AssertionError, re.escape(heading)):
+                        conferir_snapshot_projeto(mutante)
+
+    def test_fabrica_candidata_sem_redistribuir_outros_papeis(self) -> None:
+        texto = (PLUGIN_ROOT / "commands/elenco.md").read_text()
+        template, _, erro = lint_module._bloco_canonico_elenco(texto)
+        self.assertIsNone(erro)
+        codex = modelos_por_secao(template, "### Host Codex")
+        self.assertEqual(codex, {
+            "manager": "modelo da sessão (`/model`)",
+            "planner·interface": "`gpt-6-astra@max`", "planner·sistema": "`gpt-6-astra@max`",
+            "implementer·pesada": "`gpt-6.1-sol@xhigh`",
+            "implementer·normal": "`gpt-6.1-sol@high`",
+            "implementer·leve": "`gpt-6-luna@medium`",
+            "reviewer": "`claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)",
+            "docs": "`gpt-5.6-sol@low`", "scout": "`gpt-5.6-sol@low`",
+        })
+        claude = modelos_por_secao(template, "### Host Claude")
+        # Literais independentes: validar coerência com o preset não é suficiente.
+        self.assertEqual(claude, {
+            "manager": "modelo da sessão (`/model`)",
+            "planner·interface": "`claude-opus-5-5`", "planner·sistema": "`gpt-6-astra@xhigh`",
+            "implementer·pesada": "`opus`", "implementer·normal": "`sonnet`",
+            "implementer·leve": "`haiku`", "reviewer": "`gpt-6-astra@xhigh`",
+            "docs": "`sonnet`", "scout": "`sonnet`",
+        })
+        padrao = modelos_por_secao(template, "### `padrao`")
+        economia = modelos_por_secao(template, "### `economia`")
+        self.assertEqual(padrao, {
+            "planner·interface": "claude-opus-5-5", "planner·sistema": "gpt-6-astra@xhigh",
+            "implementer·pesada": "opus", "implementer·normal": "sonnet",
+            "implementer·leve": "haiku", "reviewer": "gpt-6-astra@xhigh",
+            "docs": "sonnet", "scout": "sonnet",
+        })
+        self.assertEqual(economia, PRESET_ECONOMIA_BASE)
+        self.assertNotIn("## Perfis — times nomeados do host Codex", template)
+
+    def test_capacidade_e_inicializacao_tem_contrato_delimitado(self) -> None:
+        contratos = (
+            (PLUGIN_ROOT / "commands/elenco.md", "## Gate de capacidade — ajuste, perfil e inicialização",
+             "## Com argumento — ajustar", (
+                 "Antes de gravar, valide somente os papéis que a operação altera; não exija provas novas dos papéis preservados.",
+                 "A prova se vincula a modelo + via + conta/host: registre modelo solicitado e observado, effort quando aplicável, mecanismo (CLI, Companion ou spawn nativo), sandbox, versão do executável/runtime, contexto de conta não sensível (rótulo local, sem login/token), data e recibo da execução real.",
+                 "Catálogo não é prova; prova CLI não comprova spawn nativo, nem read-only comprova escrita.",
+                 "Mudança em modelo, effort, mecanismo, sandbox, versão ou contexto de conta exige revalidação.",
+                 "Se faltar prova, preserve o elenco inteiro (tabelas, presets e vias), não acione fallback e informe a limitação.",
+                 "mecanismo, sandbox, orçamento e número de chamadas definidos; sem sondas ou retry silenciosos.",
+                 "Com prova válida e aprovação do alvo, crie o elenco novo pelo template, registrando os recibos; em arquivo existente, grave apenas a alteração aprovada na seção do host.",
+                 "Na inicialização, valide todos os papéis que seriam criados (Manager é apenas registro da sessão, não spawn).",
+                 "sem prova, não crie nem reescreva o arquivo, nem substitua linhas por candidatos.",
+                 "O Manager permanece o modelo da sessão escolhido pelo dono; nenhum ajuste ou perfil troca a sessão viva.",
+                 "no elenco, ## Revisores externos referencia a thread para vias externas, e a justificativa do papel referencia a thread para via nativa.",
+             )),
+            (REPO_ROOT / "README.md", "Gate de capacidade — ajuste, perfil e inicialização:",
+             "Onde modelo forte se paga:", (
+                 "verifique somente os papéis que a operação altera.",
+                 "A prova se vincula a modelo + via + conta/host e registra modelo solicitado e observado, effort quando aplicável, mecanismo, sandbox, versão do executável/runtime, contexto de conta não sensível (rótulo local, sem login/token), data e recibo real.",
+                 "Catálogo não é prova; prova CLI não comprova spawn nativo e read-only não comprova escrita.",
+                 "Mudança nesses pressupostos exige revalidação; não há validade global entre contas, versões ou mecanismos.",
+                 "Sem prova, preserve o elenco inteiro (tabelas, presets e vias), não acione fallback e informe a limitação.",
+                 "Uma aquisição delimitada de prova autorizada exige autorização do dono para modelo/effort, mecanismo, sandbox, orçamento e número de chamadas; sem sondas ou retry silenciosos, nem promoção automática após falha.",
+                 "Com prova válida e aprovação do alvo, crie o elenco novo pelo template e referencie os recibos; em arquivo existente, aplique somente a alteração aprovada na seção do host.",
+                 "Na inicialização, valide todos os papéis a criar; sem prova, não crie nem reescreva o arquivo.",
+                 "O Manager permanece o modelo da sessão escolhido pelo dono; perfil ou template não troca a sessão viva.",
+                 "O recibo e os pressupostos ficam na thread do card, referenciada em Revisores externos para via externa e na justificativa do papel para via nativa.",
+             )),
+        )
+        for caminho, inicio, fim, clausulas in contratos:
+            with self.subTest(caminho=caminho):
+                texto = caminho.read_text().replace("**", "").replace("`", "")
+                self.assertEqual(texto.count(inicio), 1, f"gate ausente/duplicado: {caminho}")
+                secao = texto.split(inicio, 1)[1].split(fim, 1)[0]
+                self.assertIn(fim, texto.split(inicio, 1)[1], f"fim de seção ausente: {caminho}")
+                secao = re.sub(r"\s+", " ", secao)
+                for clausula in clausulas:
+                    self.assertTrue(clausula in secao, f"cláusula ausente em {caminho}: {clausula}")
+
+
+class T131CorrecaoR2Test(unittest.TestCase):
+    """Regressões dos oráculos: a bancada muda só textos, nunca executa CLI."""
+
+    def exigir_rejeicao(self, caminho: Path, mutante: str, metodo: str) -> None:
+        original = Path.read_text
+
+        def leitura(path: Path, *args, **kwargs):
+            return mutante if path == caminho else original(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "read_text", leitura):
+            with self.assertRaises(AssertionError):
+                getattr(T131ContratoTest(), metodo)()
+
+    def test_retirada_de_data_do_recibo_nao_sobrevive(self) -> None:
+        caminho = REPO_ROOT / "README.md"
+        texto = caminho.read_text()
+        alvo = "local, sem login/token), data e recibo real."
+        self.assertEqual(texto.count(alvo), 1)
+        self.exigir_rejeicao(caminho, texto.replace(alvo, "local, sem login/token), recibo real."),
+                             "test_capacidade_e_inicializacao_tem_contrato_delimitado")
+
+    def test_docs_mutado_coerentemente_no_host_e_padrao_nao_sobrevive(self) -> None:
+        caminho = PLUGIN_ROOT / "commands/elenco.md"
+        texto = caminho.read_text()
+        for heading in ("### Host Claude", "### `padrao` — o time titular"):
+            inicio = re.search(r"(?m)^" + re.escape(heading) + "$", texto)
+            self.assertIsNotNone(inicio)
+            fim = re.search(r"(?m)^#{1,3} ", texto[inicio.end():])
+            limite = inicio.end() + fim.start() if fim else len(texto)
+            secao = texto[inicio.end():limite]
+            antigo = "| docs | `sonnet` |" if heading == "### Host Claude" else "| docs | sonnet |"
+            self.assertEqual(secao.count(antigo), 1)
+            secao = secao.replace(antigo, antigo.replace("sonnet", "haiku"))
+            texto = texto[:inicio.end()] + secao + texto[limite:]
+        self.exigir_rejeicao(caminho, texto, "test_fabrica_candidata_sem_redistribuir_outros_papeis")
+
+    def test_gate_global_precede_ajustes(self) -> None:
+        texto = (PLUGIN_ROOT / "commands/elenco.md").read_text()
+        gate = re.search(r"(?m)^## Gate de capacidade — ajuste, perfil e inicialização$", texto)
+        ajuste = re.search(r"(?m)^## Com argumento — ajustar$", texto)
+        self.assertIsNotNone(gate)
+        self.assertIsNotNone(ajuste)
+        self.assertLess(gate.start(), ajuste.start())
+        self.assertIn("vale também para `init`", texto[gate.end():ajuste.start()])
+
+    def test_mutantes_de_cada_papel_da_fabrica_sao_rejeitados(self) -> None:
+        caminho = PLUGIN_ROOT / "commands/elenco.md"
+        texto = caminho.read_text()
+        for heading in ("### Host Claude", "### Host Codex", "### `padrao`", "### `economia`"):
+            # Seções únicas e não menções inline; inclusive manager e papéis preservados.
+            inicio = re.search(r"(?m)^" + re.escape(heading) + r"(?:\s.*)?$", texto)
+            self.assertIsNotNone(inicio)
+            fim = re.search(r"(?m)^#{1,3} ", texto[inicio.end():])
+            limite = inicio.end() + fim.start() if fim else len(texto)
+            secao = texto[inicio.end():limite]
+            for papel, valor in modelos_por_secao(texto, heading).items():
+                with self.subTest(secao=heading, papel=papel):
+                    alvo = f"| {papel} | {valor} |"
+                    self.assertEqual(secao.count(alvo), 1)
+                    nova = secao.replace(alvo, f"| {papel} | MODELO_MUTANTE |", 1)
+                    mutante = texto[:inicio.end()] + nova + texto[limite:]
+                    self.exigir_rejeicao(caminho, mutante, "test_fabrica_candidata_sem_redistribuir_outros_papeis")
+
+    def test_campos_do_recibo_no_gate_nao_podem_sumir(self) -> None:
+        for caminho, marco, fim in (
+            (REPO_ROOT / "README.md", "**Gate de capacidade — ajuste, perfil e inicialização:**", "**Onde modelo forte se paga:**"),
+            (PLUGIN_ROOT / "commands/elenco.md", "## Gate de capacidade — ajuste, perfil e inicialização", "## Com argumento — ajustar"),
+        ):
+            texto = caminho.read_text()
+            inicio = texto.index(marco)
+            limite = texto.index(fim, inicio)
+            secao = texto[inicio:limite]
+            for termo in ("modelo solicitado e observado", "effort quando", "mecanismo", "sandbox",
+                          "versão do executável/runtime", "contexto de conta não sensível", "data e recibo"):
+                with self.subTest(caminho=caminho, campo=termo):
+                    self.assertIn(termo, secao)
+                    mutante = texto[:inicio] + secao.replace(termo, "CAMPO_RETIRADO", 1) + texto[limite:]
+                    self.exigir_rejeicao(caminho, mutante, "test_capacidade_e_inicializacao_tem_contrato_delimitado")
+
+    def test_init_consulta_gate_antes_de_gerar_elenco(self) -> None:
+        texto = re.sub(r"\s+", " ", (PLUGIN_ROOT / "commands/init.md").read_text())
+        self.assertIn("Antes de gerar ou semear o elenco", texto)
+        self.assertIn("Gate de capacidade — ajuste, perfil e inicialização", texto)
+        self.assertIn("sem prova, não crie nem reescreva", texto)
+        self.assertIn("não autoriza chamadas de prova", texto)
+
+    def test_ids_nativos_nao_sao_limitados_ao_mapa_do_runner(self) -> None:
+        for caminho in (PLUGIN_ROOT / "commands/elenco.md", REPO_ROOT / "README.md"):
+            texto = re.sub(r"\s+", " ", caminho.read_text())
+            self.assertIn("ID Anthropic suportado pelo spawn nativo", texto)
+            self.assertIn("mapa do runner não limita a via nativa", texto)
+
+    def test_consumer_nao_declara_default_candidato_como_legado(self) -> None:
+        texto = (PLUGIN_ROOT / "commands/revisar.md").read_text()
+        self.assertNotIn("default candidato `claude-opus-5-5`", texto)
+        self.assertIn("default legado `opus`", texto)
+
+
+class T131PosR4Test(unittest.TestCase):
+    """Contratos locais pós-R4; mutações alteram somente leituras em memória."""
+
+    def exigir_rejeicao(self, caminho: Path, mutante: str, metodo: str) -> None:
+        original = Path.read_text
+
+        def leitura(path: Path, *args, **kwargs):
+            return mutante if path == caminho else original(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "read_text", leitura):
+            with self.assertRaises(AssertionError):
+                getattr(T131PosR4Test(), metodo)()
+
+    @staticmethod
+    def normalizar(texto: str) -> str:
+        return re.sub(r"\s+", " ", texto.replace("**", "").replace("`", "")).casefold()
+
+    def testar_bloco_canonico_neutro(self) -> None:
+        texto = (PLUGIN_ROOT / "commands/elenco.md").read_text()
+        bloco, _, erro = lint_module._bloco_canonico_elenco(texto)
+        self.assertIsNone(erro)
+        neutro = self.normalizar(bloco)
+        for status in ("candidat", "proposta de fábrica, não elenco ativo", "requer prova"):
+            self.assertNotIn(status, neutro, f"status transitório copiado: {status}")
+        codex = modelos_por_secao(bloco, "### Host Codex")
+        self.assertEqual(codex["implementer·pesada"], "`gpt-6.1-sol@xhigh`")
+        self.assertEqual(codex["implementer·normal"], "`gpt-6.1-sol@high`")
+        self.assertEqual(codex["implementer·leve"], "`gpt-6-luna@medium`")
+        self.assertEqual(codex["reviewer"],
+                         "`claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)")
+
+    def test_bloco_canonico_do_elenco_nao_copia_status_transitorio(self) -> None:
+        self.testar_bloco_canonico_neutro()
+
+    def test_mutacoes_de_status_transitorio_no_bloco_canonico_sao_rejeitadas(self) -> None:
+        caminho = PLUGIN_ROOT / "commands/elenco.md"
+        texto = caminho.read_text()
+        ancora = "### Host Codex\n\n"
+        self.assertEqual(texto.count(ancora), 1)
+        for nome, insercao in (
+            ("proposta", "**Proposta de fábrica, não elenco ativo.**\n\n"),
+            ("candidato", "Os modelos abaixo são candidatos à inicialização.\n\n"),
+            ("prova exercitada", "O reviewer requer prova de mecanismo já exercitado.\n\n"),
+        ):
+            with self.subTest(mutante=nome):
+                self.exigir_rejeicao(caminho, texto.replace(ancora, ancora + insercao, 1),
+                                     "testar_bloco_canonico_neutro")
+
+    def testar_consumidores_do_default(self) -> None:
+        contratos = (
+            (REPO_ROOT / "README.md",
+             "Aqui, ativo significa política habilitada, não saúde de runtime:",
+             "**Capacidade ausente não vira substituição.**"),
+            (PLUGIN_ROOT / "stack.md", "## Camada 4 — Revisão independente",
+             "⚠️ **Esta camada é host-aware: resolva o host ANTES de propor.**"),
+            (PLUGIN_ROOT / "commands/revisar.md", "**Host Codex — titular Anthropic pelo runner.**",
+             "### Titular indisponível → REVISÃO DEGRADADA, e o card não avança sozinho"),
+        )
+        for caminho, inicio, fim in contratos:
+            with self.subTest(caminho=caminho):
+                texto = caminho.read_text()
+                self.assertEqual(texto.count(inicio), 1, f"início ausente/ambíguo: {caminho}")
+                self.assertIn(fim, texto.split(inicio, 1)[1], f"fim ausente: {caminho}")
+                secao = self.normalizar(texto.split(inicio, 1)[1].split(fim, 1)[0])
+                self.assertIn("claude-opus-5-5", secao)
+                self.assertIn("--model", secao)
+                self.assertIn("default legado opus", secao)
+                self.assertNotIn("default candidato", secao)
+
+    def test_fabrica_explicita_e_default_legado_sao_distintos_por_consumidor(self) -> None:
+        self.testar_consumidores_do_default()
+
+    def test_mutacao_de_default_candidato_com_case_e_espaco_e_rejeitada(self) -> None:
+        contratos = (
+            (REPO_ROOT / "README.md"),
+            (PLUGIN_ROOT / "stack.md"),
+            (PLUGIN_ROOT / "commands/revisar.md"),
+        )
+        for caminho in contratos:
+            with self.subTest(caminho=caminho):
+                texto = caminho.read_text()
+                mutante, trocas = re.subn(
+                    r"default\s+legado\s+`opus`",
+                    "DeFaUlT  CaNdIdAtO `claude-opus-5-5`",
+                    texto,
+                    count=1,
+                    flags=re.IGNORECASE,
+                )
+                self.assertEqual(trocas, 1, f"mutação não aplicada: {caminho}")
+                self.exigir_rejeicao(caminho, mutante, "testar_consumidores_do_default")
+
+    @staticmethod
+    def etapa_2b(texto: str) -> str:
+        inicio = re.search(r"(?m)^2b\. \*\*Elenco\*\*.*$", texto)
+        if inicio is None:
+            raise AssertionError("etapa 2b ausente")
+        fim = re.search(r"(?m)^3\. ", texto[inicio.end():])
+        if fim is None:
+            raise AssertionError("fim da etapa 2b ausente")
+        return texto[inicio.end():inicio.end() + fim.start()]
+
+    def testar_clausulas_delimitadas_da_etapa_2b(self) -> None:
+        secao = self.normalizar(self.etapa_2b((PLUGIN_ROOT / "commands/init.md").read_text()))
+        for clausula in (
+            "valide todos os papéis novos que seriam criados",
+            "em elenco existente, somente os papéis que a operação altera",
+            "preservação integral do arquivo",
+            "não semeie presets/headings",
+            "não acione fallback",
+            "não autoriza chamadas de prova",
+        ):
+            self.assertIn(clausula, secao, f"cláusula 2b ausente: {clausula}")
+
+    def test_etapa_2b_contem_todas_as_clausulas_sem_herdar_outro_paragrafo(self) -> None:
+        self.testar_clausulas_delimitadas_da_etapa_2b()
+
+    def test_remocoes_ou_deslocamentos_da_etapa_2b_sao_rejeitados(self) -> None:
+        caminho = PLUGIN_ROOT / "commands/init.md"
+        texto = caminho.read_text()
+        for clausula in (
+            "todos os papéis novos que seriam criados",
+            "somente os papéis que a operação altera",
+            "preservação integral do arquivo",
+            "não semeie presets/headings",
+            "não acione fallback",
+            "não autoriza chamadas de prova",
+        ):
+            with self.subTest(clausula=clausula):
+                self.assertEqual(texto.count(clausula), 1, "mutação deve atingir somente a etapa 2b")
+                mutante = texto.replace(clausula, "CLAUSULA_REMOVIDA", 1) + "\n" + clausula
+                self.exigir_rejeicao(caminho, mutante, "testar_clausulas_delimitadas_da_etapa_2b")
+
+
+class T131PosR5Test(unittest.TestCase):
+    """Guardas locais de contrato; não provam execução viva das instruções."""
+
+    @staticmethod
+    def normalizar(texto: str) -> str:
+        return re.sub(r"\s+", " ", texto.replace("**", "").replace("`", "")).casefold()
+
+    def secao(self, caminho: Path, inicio: str, fim: str) -> str:
+        texto = caminho.read_text()
+        self.assertEqual(texto.count(inicio), 1, f"início ausente/ambíguo: {caminho}")
+        resto = texto.split(inicio, 1)[1]
+        self.assertIn(fim, resto, f"fim ausente: {caminho}")
+        return self.normalizar(resto.split(fim, 1)[0])
+
+    def testar_politica_do_gate(self) -> None:
+        contratos = (
+            (REPO_ROOT / "README.md", "**Gate de capacidade — ajuste, perfil e inicialização:**",
+             "**Onde modelo forte se paga:**"),
+            (PLUGIN_ROOT / "commands/elenco.md", "## Gate de capacidade — ajuste, perfil e inicialização",
+             "## Com argumento — ajustar"),
+        )
+        clausulas = (
+            "Operação comum com padrão legado já comprovado conserva a capacidade e a política autorizadas; não exige nova sonda a cada uso.",
+            "Fábrica nova e candidato não comprovado não viram fallback executável só porque a tabela não foi materializada.",
+            "Adotar, gravar, promover, reativar ou executar candidato novo exige o gate específico e evidência contextual de executor, modelo, workspace e effort.",
+            "Desligar exclusivamente uma via autorizada reduz exposição e é exceção expressa à nova sonda: anuncie o impacto e não escolha fallback.",
+            "Reativar ou trocar via continua exigindo prova contextual e o gate específico.",
+            "Remover override não recebe isenção genérica: pode promover fallback novo.",
+        )
+        for caminho, inicio, fim in contratos:
+            with self.subTest(caminho=caminho):
+                secao = self.secao(caminho, inicio, fim)
+                for clausula in clausulas:
+                    self.assertIn(self.normalizar(clausula), secao, f"cláusula ausente: {clausula}")
+
+    def test_politica_do_gate_distingue_legado_candidato_e_desligamento(self) -> None:
+        self.testar_politica_do_gate()
+
+    def testar_recibo_de_init(self) -> None:
+        secao = self.normalizar(T131PosR4Test.etapa_2b((PLUGIN_ROOT / "commands/init.md").read_text()))
+        for clausula in (
+            "Antes de gravar recibo durante init, comprove um destino durável já existente e pertencente ao card; nunca invente ou crie a thread de card alheio nem registre PII.",
+            "A falta desse destino não bloqueia operação local legada autorizada e já comprovada.",
+        ):
+            self.assertIn(self.normalizar(clausula), secao, f"cláusula init ausente: {clausula}")
+
+    def test_init_exige_destino_proprio_para_recibo_sem_bloquear_legado(self) -> None:
+        self.testar_recibo_de_init()
+
+    def testar_consumidores_pos_r5(self) -> None:
+        revisar = self.secao(
+            PLUGIN_ROOT / "commands/revisar.md",
+            "**Leia `memory/wiki/_elenco.md` primeiro.**",
+            "### Titular indisponível → REVISÃO DEGRADADA, e o card não avança sozinho",
+        )
+        for clausula in (
+            "Sem elenco, o padrão de fábrica novo ou candidato é somente leitura: não vira fallback executável por falta de materialização.",
+            "Operação comum pode conservar somente padrão legado já comprovado e autorizado.",
+            "Para alias legado, o runner reconhece somente a identidade base ou sufixo numérico permitido depois dela.",
+            "Todo sucesso tem uma única identidade modelUsage reconhecida e compatível; chave desconhecida, incompatível ou ambígua falha fechado sem ecoar chave arbitrária.",
+        ):
+            self.assertIn(self.normalizar(clausula), revisar, f"cláusula revisar ausente: {clausula}")
+
+        skill = self.normalizar((PLUGIN_ROOT / "skills/orq/SKILL.md").read_text())
+        self.assertIn(self.normalizar(
+            "padrão legado comprovado conserva capacidade autorizada; fábrica ou candidato novo não vira fallback executável sem gate e prova contextual."
+        ), skill)
+
+    def test_consumidores_nao_materializam_candidato_e_documentam_procedencia(self) -> None:
+        self.testar_consumidores_pos_r5()
+
+    def testar_ramo_de_desligamento(self) -> None:
+        secao = self.secao(
+            PLUGIN_ROOT / "commands/elenco.md",
+            "**É via → este é o ramo, e ele termina aqui; não caia na validação de modelo do passo 2.**",
+            "**É papel** → siga para o passo 2.",
+        )
+        for clausula in (
+            "off é desligamento autorizado que reduz exposição: não exige sonda nova, anuncia impacto e não escolhe fallback.",
+            "on, troca de via/modelo ou remoção de override não usam essa exceção; todos exigem gate e prova contextual.",
+        ):
+            self.assertIn(self.normalizar(clausula), secao, f"cláusula de desligamento ausente: {clausula}")
+
+    def test_desligamento_tem_excecao_delimitada(self) -> None:
+        self.testar_ramo_de_desligamento()
+
+    def exigir_rejeicao(self, caminho: Path, mutante: str, metodo: str) -> None:
+        original = Path.read_text
+
+        def leitura(path: Path, *args, **kwargs):
+            return mutante if path == caminho else original(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "read_text", leitura):
+            with self.assertRaises(AssertionError):
+                getattr(T131PosR5Test(), metodo)()
+
+    def test_mutacoes_semanticas_pos_r5_sao_rejeitadas(self) -> None:
+        mutacoes = (
+            ("legado exige sonda", REPO_ROOT / "README.md", "não exige nova sonda a cada uso",
+             "exige nova sonda a cada uso", "testar_politica_do_gate"),
+            ("candidato vira fallback", PLUGIN_ROOT / "commands/elenco.md",
+             "não viram fallback executável só porque a tabela não foi materializada",
+             "viram fallback executável quando a tabela não foi materializada", "testar_politica_do_gate"),
+            ("recibo cria thread alheia", PLUGIN_ROOT / "commands/init.md",
+             "nunca invente ou crie a thread de card alheio nem registre PII",
+             "crie a thread de card alheio e registre PII", "testar_recibo_de_init"),
+            ("candidato executável no consumidor", PLUGIN_ROOT / "commands/revisar.md",
+             "não vira fallback executável por falta de materialização",
+             "vira fallback executável por falta de materialização", "testar_consumidores_pos_r5"),
+            ("desligamento escolhe fallback", PLUGIN_ROOT / "commands/elenco.md",
+             "`off` é desligamento autorizado que reduz exposição: não exige sonda nova, anuncia impacto e não escolhe fallback.",
+             "off escolhe fallback sem sonda.", "testar_ramo_de_desligamento"),
+        )
+        for nome, caminho, antigo, novo, metodo in mutacoes:
+            with self.subTest(mutacao=nome):
+                texto = caminho.read_text()
+                padrao = re.escape(antigo).replace(r"\ ", r"\s+")
+                ocorrencias = list(re.finditer(padrao, texto))
+                self.assertEqual(len(ocorrencias), 1, "mutação deve atingir uma cláusula delimitada")
+                alvo = ocorrencias[0]
+                mutante = texto[:alvo.start()] + novo + texto[alvo.end():]
+                self.exigir_rejeicao(caminho, mutante, metodo)
+
 
 class ElencoPerfisRealDocumentsTest(unittest.TestCase):
     """Complemento rápido, sem cópia, de
@@ -207,7 +766,7 @@ PAPEIS_PRESET_ORDEM = PAPEIS_HOST_ORDEM[1:]
 
 ATIVOS_BASE = {
     "manager": "modelo da sessão",
-    "planner·interface": "fable",
+    "planner·interface": "claude-opus-5-5",
     "planner·sistema": "gpt-6-astra@xhigh",
     "implementer·pesada": "sonnet",
     "implementer·normal": "sonnet",
@@ -1071,6 +1630,188 @@ class BlocoCanonicoElencoTest(unittest.TestCase):
 
         self.assertIsNone(erro)
         self.assertIn("modelo real", bloco)
+
+
+class T131PosR8LegadoComprovadoTest(unittest.TestCase):
+    """Contrato local do reuso de prova legada (T-131, B1 da R8).
+
+    As instruções não executam o host. Por isso estes cenários não alegam
+    prova de inferência, login ou despacho real: eles exercitam, em cópias
+    temporárias dos contratos, a decisão que a redação exige. A cópia evita
+    tanto alterar a fonte quanto deixar uma mutação textual parecer verde por
+    acidente.
+    """
+
+    ARQUIVOS = (
+        Path("README.md"),
+        Path("orq/commands/elenco.md"),
+        Path("orq/commands/init.md"),
+        Path("orq/commands/plan-next.md"),
+        Path("orq/commands/implement-next.md"),
+        Path("orq/commands/revisar.md"),
+        Path("orq/skills/orq/SKILL.md"),
+    )
+    CANONICOS = (Path("README.md"), Path("orq/commands/elenco.md"))
+    CONTEXTO = (
+        "modelo_solicitado",
+        "modelo_observado",
+        "effort",
+        "via",
+        "sandbox",
+        "runtime",
+        "conta_nao_sensivel",
+        "data",
+    )
+    MARCOS_COMUNS = (
+        "combinação já usada e autorizada neste projeto",
+        "recibo real consultável na thread",
+        "O Manager verifica a origem e a compatibilidade antes do despacho.",
+        "reaproveitamento de prova existente válida, nunca isenção de prova.",
+        "Default, alias ou cache não certificam.",
+        "Sem recibo ou se o contexto mudou, não despache essa operação.",
+        "Não há sonda ou retry automáticos; prossiga com outras ações locais elegíveis.",
+    )
+    CAMPOS_CANONICOS = (
+        "modelo solicitado e observado",
+        "effort quando aplicável",
+        "via",
+        "sandbox",
+        "runtime",
+        "conta não sensível",
+        "data",
+    )
+
+    def setUp(self) -> None:
+        self.diretorio_temporario = tempfile.TemporaryDirectory()
+        self.raiz = Path(self.diretorio_temporario.name)
+        for relativo in self.ARQUIVOS:
+            destino = self.raiz / relativo
+            destino.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(REPO_ROOT / relativo, destino)
+
+    def tearDown(self) -> None:
+        self.diretorio_temporario.cleanup()
+
+    def texto(self, relativo: Path) -> str:
+        return (self.raiz / relativo).read_text()
+
+    @staticmethod
+    def normalizar(texto: str) -> str:
+        texto = re.sub(r"(?m)^\s*>\s?", "", texto)
+        return re.sub(r"\s+", " ", texto)
+
+    def comprovar_contrato(self) -> None:
+        for relativo in self.ARQUIVOS:
+            texto = self.normalizar(self.texto(relativo))
+            for marco in self.MARCOS_COMUNS:
+                self.assertIn(self.normalizar(marco), texto, f"{relativo}: marco ausente: {marco}")
+        for relativo in self.CANONICOS:
+            texto = self.normalizar(self.texto(relativo))
+            for campo in self.CAMPOS_CANONICOS:
+                self.assertIn(self.normalizar(campo), texto, f"{relativo}: campo do recibo ausente: {campo}")
+        init = self.normalizar(self.texto(Path("orq/commands/init.md")))
+        self.assertIn("papéis preservados não exigem prova nova", init)
+
+    def decidir_despacho_legado(
+        self, operacao: dict[str, str], recibo: dict[str, object] | None
+    ) -> str:
+        """Projeção executável do contrato, restrita à fixture local."""
+        self.comprovar_contrato()
+        bloqueio = "NAO_DESPACHAR_SEM_SONDA_OU_RETRY_AUTOMATICO; PROSSEGUIR_ACOES_LOCAIS_ELEGIVEIS"
+        if recibo is None:
+            return bloqueio
+        if not recibo.get("execucao_real") or not recibo.get("autorizado_no_projeto"):
+            return bloqueio
+        if not recibo.get("manager_verificou_origem_e_compatibilidade"):
+            return bloqueio
+        if not recibo.get("thread_consultavel"):
+            return bloqueio
+        if any(not recibo.get(campo) or recibo.get(campo) != operacao[campo] for campo in self.CONTEXTO):
+            return bloqueio
+        return "DESPACHAR_REUSO_DE_PROVA_LEGADA_VALIDA"
+
+    def papeis_que_exigem_prova(
+        self, papeis_alterados: tuple[str, ...], papeis_preservados: tuple[str, ...]
+    ) -> tuple[str, ...]:
+        self.comprovar_contrato()
+        return tuple(papel for papel in papeis_alterados if papel not in papeis_preservados)
+
+    @staticmethod
+    def operacao_valida() -> dict[str, str]:
+        return {
+            "modelo_solicitado": "claude-opus-5",
+            "modelo_observado": "claude-opus-5",
+            "effort": "high",
+            "via": "runner-anthropic",
+            "sandbox": "read-only",
+            "runtime": "claude-cli-2.1.0",
+            "conta_nao_sensivel": "conta-local-equipe",
+            "data": "2026-10-04",
+        }
+
+    @classmethod
+    def recibo_valido(cls) -> dict[str, object]:
+        return {
+            **cls.operacao_valida(),
+            "execucao_real": True,
+            "autorizado_no_projeto": True,
+            "manager_verificou_origem_e_compatibilidade": True,
+            "thread_consultavel": "memory/wiki/threads/T-131-opus-55.md",
+        }
+
+    def test_fixture_aceita_apenas_reuso_legado_completo(self) -> None:
+        self.assertEqual(
+            self.decidir_despacho_legado(self.operacao_valida(), self.recibo_valido()),
+            "DESPACHAR_REUSO_DE_PROVA_LEGADA_VALIDA",
+        )
+
+    def test_fixture_bloqueia_sem_recibo_contexto_alterado_ou_selo_falso(self) -> None:
+        esperado = "NAO_DESPACHAR_SEM_SONDA_OU_RETRY_AUTOMATICO; PROSSEGUIR_ACOES_LOCAIS_ELEGIVEIS"
+        casos: list[tuple[str, dict[str, object] | None]] = [("sem_recibo", None)]
+        contexto_alterado = self.recibo_valido()
+        contexto_alterado["runtime"] = "claude-cli-2.2.0"
+        casos.append(("runtime_alterado", contexto_alterado))
+        for campo in (
+            "execucao_real",
+            "autorizado_no_projeto",
+            "manager_verificou_origem_e_compatibilidade",
+            "thread_consultavel",
+        ):
+            invalido = self.recibo_valido()
+            invalido[campo] = False
+            casos.append((campo, invalido))
+        for selo in ("default", "alias", "cache"):
+            casos.append((selo, None))
+
+        for nome, recibo in casos:
+            with self.subTest(caso=nome):
+                self.assertEqual(self.decidir_despacho_legado(self.operacao_valida(), recibo), esperado)
+
+    def test_fixture_nao_exige_sonda_para_papeis_preservados(self) -> None:
+        self.assertEqual(
+            self.papeis_que_exigem_prova(
+                ("planner", "implementer", "docs"), ("implementer", "docs")
+            ),
+            ("planner",),
+        )
+
+    def test_mutacoes_do_contrato_em_fixtures_temporarias_reprovam_decisao(self) -> None:
+        mutacoes = (
+            (Path("orq/commands/elenco.md"), r"recibo real consultável\s+na\s+thread"),
+            (Path("README.md"), r"Default, alias ou cache não certificam\."),
+            (Path("orq/commands/implement-next.md"), r"Sem recibo ou se o contexto mudou, não\s+(?:>\s*)?despache essa operação\."),
+            (Path("orq/commands/init.md"), "papéis preservados não exigem prova nova"),
+        )
+        for relativo, alvo in mutacoes:
+            with self.subTest(arquivo=relativo, alvo=alvo):
+                caminho = self.raiz / relativo
+                original = caminho.read_text()
+                mutante, trocas = re.subn(alvo, "CLAUSULA_RETIRADA", original, count=1)
+                self.assertEqual(trocas, 1, f"mutação não aplicada: {relativo}")
+                caminho.write_text(mutante)
+                with self.assertRaises(AssertionError):
+                    self.decidir_despacho_legado(self.operacao_valida(), self.recibo_valido())
+                caminho.write_text(original)
 
 
 if __name__ == "__main__":

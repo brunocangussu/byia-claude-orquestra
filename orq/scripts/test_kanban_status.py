@@ -1010,5 +1010,164 @@ exec \"$REAL_GIT\" \"$@\"
             self.assertEqual(resultado.stdout, "")
 
 
+class KanbanStatusCardStateTest(unittest.TestCase):
+    """`--card-state T-NNN --board-path ABS`: o estado de UM card, pelo mesmo parser do resumo."""
+
+    def consultar(self, board_texto: str | None, card_id: str, *, nome: str = "KANBAN.md", extra_env: dict | None = None):
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        board = Path(tmp) / nome
+        if board_texto is not None:
+            board.write_bytes(board_texto.encode("utf-8"))
+        env = dict(os.environ)
+        env.update(extra_env or {})
+        resultado = subprocess.run(
+            ["sh", str(SCRIPT), "--card-state", card_id, "--board-path", str(board)],
+            capture_output=True,
+            text=True,
+            env=env,
+            check=False,
+        )
+        return resultado
+
+    def assert_ok(self, resultado: subprocess.CompletedProcess, card_id: str, marcador: str) -> None:
+        self.assertEqual(resultado.returncode, 0, resultado.stdout + resultado.stderr)
+        self.assertEqual(json.loads(resultado.stdout), {"state": "ok", "card": card_id, "marker": marcador})
+        self.assertEqual(resultado.stdout.count("\n"), 1)
+
+    def assert_erro(self, resultado: subprocess.CompletedProcess, codigo: str) -> None:
+        self.assertEqual(resultado.returncode, 2, resultado.stdout + resultado.stderr)
+        self.assertEqual(json.loads(resultado.stdout), {"state": "erro", "code": codigo})
+
+    def test_devolve_o_marcador_de_cada_um_dos_seis_estados(self):
+        for marcador in (" ", ">", "!", "~", "?", "x"):
+            with self.subTest(marcador=marcador):
+                self.assert_ok(self.consultar("# board\n" + card(marcador, "T-144", "Medidor") + "\n", "T-144"), "T-144", marcador)
+
+    def test_id_e_exato_e_so_vale_o_que_vem_entre_as_primeiras_crases(self):
+        board = "\n".join(
+            [
+                card("~", "T-144", "Medidor", "nota cita `T-14` e `T-999`"),
+                card(" ", "T-14", "Outro"),
+                card("?", "T-1440", "Mais um"),
+            ]
+        )
+        self.assert_ok(self.consultar(board, "T-144"), "T-144", "~")
+        self.assert_ok(self.consultar(board, "T-14"), "T-14", " ")
+        self.assert_ok(self.consultar(board, "T-1440"), "T-1440", "?")
+        self.assert_erro(self.consultar(board, "T-999"), "card-ausente")
+        self.assert_erro(self.consultar(board, "T-1"), "card-ausente")
+
+    def test_id_duplicado_e_erro_e_distingue_de_ausente(self):
+        board = "\n".join([card("~", "T-8", "um"), card("x", "T-8", "dois")])
+        self.assert_erro(self.consultar(board, "T-8"), "card-duplicado")
+        self.assert_erro(self.consultar(board, "T-9"), "card-ausente")
+
+    def test_card_dentro_de_cerca_nao_existe_e_nao_duplica(self):
+        board = "\n".join(["```", card("x", "T-500", "dentro da cerca"), "```", card("~", "T-501", "fora"), "~~~", card("~", "T-501", "cerca til"), "~~~"])
+        self.assert_erro(self.consultar(board, "T-500"), "card-ausente")
+        self.assert_ok(self.consultar(board, "T-501"), "T-501", "~")
+
+    def test_secao_arquivada_encerra_a_busca_e_nao_gera_duplicata(self):
+        board = "\n".join(["# b", card("~", "T-1", "vivo"), "## 📦 Arquivado", card("x", "T-1", "velho"), card("x", "T-900", "so arquivado")])
+        self.assert_ok(self.consultar(board, "T-1"), "T-1", "~")
+        self.assert_erro(self.consultar(board, "T-900"), "card-ausente")
+
+    def test_titulo_arquivado_dentro_de_cerca_nao_corta_a_busca(self):
+        board = "\n".join(["```", "## Arquivado", "```", card("~", "T-7", "continua visivel")])
+        self.assert_ok(self.consultar(board, "T-7"), "T-7", "~")
+
+    def test_board_com_crlf_e_lido(self):
+        board = "# b\r\n" + card("?", "T-3", "windows") + "\r\n"
+        self.assert_ok(self.consultar(board, "T-3"), "T-3", "?")
+
+    def test_linha_fora_do_contrato_nao_e_card(self):
+        board = "\n".join(["**- [~]** `T-4` negrito no marcador", "  - [~] `T-5` indentado", "- [~] T-6 sem crases"])
+        for card_id in ("T-4", "T-5", "T-6"):
+            with self.subTest(card_id=card_id):
+                self.assert_erro(self.consultar(board, card_id), "card-ausente")
+
+    def test_id_invalido_e_recusado_antes_de_ler_o_board(self):
+        for invalido in ("", "T-", "T-1x", "t-1", "T 1", "T-1\nT-2", "../T-1", "T-1;ls", "$(id)", "1"):
+            with self.subTest(card_id=invalido):
+                self.assert_erro(self.consultar(card(" ", "T-1", "x"), invalido), "card-invalido")
+
+    def test_board_relativo_ausente_ou_ilegivel_tem_codigos_distintos(self):
+        relativo = subprocess.run(
+            ["sh", str(SCRIPT), "--card-state", "T-1", "--board-path", "KANBAN.md"], capture_output=True, text=True, check=False
+        )
+        self.assert_erro(relativo, "board-nao-absoluto")
+        self.assert_erro(self.consultar(None, "T-1"), "board-ausente")
+        with tempfile.TemporaryDirectory() as tmp:
+            diretorio = subprocess.run(
+                ["sh", str(SCRIPT), "--card-state", "T-1", "--board-path", tmp], capture_output=True, text=True, check=False
+            )
+            self.assert_erro(diretorio, "board-ilegivel")
+        if os.geteuid() != 0:
+            with tempfile.TemporaryDirectory() as tmp:
+                board = Path(tmp) / "KANBAN.md"
+                board.write_text(card("~", "T-1", "x"), encoding="utf-8")
+                board.chmod(0)
+                try:
+                    self.assert_erro(
+                        subprocess.run(
+                            ["sh", str(SCRIPT), "--card-state", "T-1", "--board-path", str(board)],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                        ),
+                        "board-ilegivel",
+                    )
+                finally:
+                    board.chmod(0o600)
+
+    def test_uso_incompleto_ou_com_argumentos_a_mais_e_erro_de_uso(self):
+        for argumentos in (
+            ["--card-state"],
+            ["--card-state", "T-1"],
+            ["--card-state", "T-1", "--board-path"],
+            ["--card-state", "T-1", "--outra", "/tmp/x"],
+            ["--card-state", "T-1", "--board-path", "/tmp/x", "sobra"],
+        ):
+            with self.subTest(argumentos=argumentos):
+                resultado = subprocess.run(["sh", str(SCRIPT), *argumentos], capture_output=True, text=True, check=False)
+                self.assert_erro(resultado, "uso-invalido")
+
+    def test_caminho_com_espaco_unicode_e_quebra_de_linha(self):
+        self.assert_ok(
+            self.consultar(card("~", "T-2", "x"), "T-2", nome="quadro ü\nquebra.md"), "T-2", "~"
+        )
+
+    def test_variavel_de_ambiente_card_state_nao_muda_os_modos_existentes(self):
+        board = "\n".join([card(" ", "T-1", "a"), card("x", "T-2", "b"), card("~", "T-3", "c")])
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        caminho = Path(tmp) / "KANBAN.md"
+        caminho.write_text(board, encoding="utf-8")
+        limpo = subprocess.run(["sh", str(SCRIPT), "--board-path", str(caminho)], capture_output=True, text=True, check=False)
+        contaminado = subprocess.run(
+            ["sh", str(SCRIPT), "--board-path", str(caminho)],
+            capture_output=True,
+            text=True,
+            env={**os.environ, "card_state": "T-3", "modo_card": "T-3"},
+            check=False,
+        )
+        self.assertEqual((limpo.returncode, limpo.stdout), (0, "📋 33% (1/3) · c\n"))
+        self.assertEqual((contaminado.returncode, contaminado.stdout), (limpo.returncode, limpo.stdout))
+
+    def test_modos_existentes_seguem_com_a_mesma_saida(self):
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        wiki = Path(tmp) / "memory" / "wiki"
+        wiki.mkdir(parents=True)
+        (wiki / "KANBAN.md").write_text("\n".join([card("x", "T-1", "a"), card("?", "T-2", "b"), card("~", "T-3", "c")]), encoding="utf-8")
+        direto = subprocess.run(["sh", str(SCRIPT), tmp], capture_output=True, text=True, check=False)
+        por_caminho = subprocess.run(["sh", str(SCRIPT), "--board-path", str(wiki / "KANBAN.md")], capture_output=True, text=True, check=False)
+        self.assertEqual(direto.stdout, "📋 33% (1/3) ⏳1 · c\n")
+        self.assertEqual(por_caminho.stdout, direto.stdout)
+        resolver = subprocess.run(["sh", str(SCRIPT), "--resolver", tmp], capture_output=True, text=True, check=False)
+        self.assertEqual(json.loads(resolver.stdout)["state"], "ok")
+
+
 if __name__ == "__main__":
     unittest.main()

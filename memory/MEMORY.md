@@ -4,7 +4,7 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.11 — candidata local T-134, ainda não publicada nem instalada. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-26 (recuperação T-139) · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.30.0 — candidata consolidada T-148; fonte preparada para entrega, sem instalação ou restart. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-26 (recuperação T-139) · **host padrão a partir de 2026-08-09: Codex**.
 
 **T-144 / T-146, 2026-10-04 — medidor de progresso portátil (`@frente-mods`):**
 - Feito a pedido do dono, que se perdia no `/goal` e no Loop B. A referência foi o Goal Meter, um
@@ -13,7 +13,8 @@
   Vistas: `show`/`watch`, hook consultivo com lembrete único e segmento na statusline do Claude.
 - Fases 1 e 2 commitadas **só na branch** `claude/t144-medidor-progresso`, na worktree
   `../byia-claude-orquestra-worktrees/t144-medidor-progresso`: `ba523e9` (0.28.0) e `064e726`
-  (0.29.0, versão candidata). Nada disso está na `main`.
+  (0.29.0, versão candidata). As duas candidatas foram conciliadas na fonte
+  0.30.0 pelo T-148; instalação e validação prática dos hosts continuam pendentes.
 - Cards em `[?]`; fase 3 = `T-147`. A conciliação na `main` é do dono:
   `../docs/handoff-claude-T-144-T-146-conciliacao-2026-10-04.md`.
 - O elenco do host Claude agora usa `gpt-6.1-sol@xhigh` no planner·sistema e no reviewer.

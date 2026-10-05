@@ -1,6 +1,6 @@
 # Arquitetura do Orquestra
 
-> Como o plugin funciona **hoje** (`0.25.0`). Página de consulta — organizada por pergunta, não por
+> Como o plugin funciona **hoje** (`0.30.0`). Página de consulta — organizada por pergunta, não por
 > ordem de leitura. Reescrever quando o desenho mudar; histórico é `fixes-history.md`, não aqui.
 
 ## O princípio
@@ -30,8 +30,9 @@ no Terminals o Manager é separado do canvas.
 anterior. No Claude Code cada spawn é contexto novo, então isso é de graça.
 
 **Os dois loops:** Loop A (`/orq:plan-next`) é Manager ⇄ Planner e termina no gate do dono. Loop B
-(`/orq:implement-next`) é Manager ⇄ Implementer ⇄ Reviewer ⇄ Docs e termina em VALIDATE. Os dois
-podem alternar: enquanto um card espera aprovação, outro avança.
+(`/orq:implement-next`) é Manager ⇄ Implementer ⇄ Reviewer ⇄ Docs; não termina em VALIDATE por si
+só: só fica elegível quando houver review fechado, alvo de validação e entrega correspondente
+autorizados. Os dois podem alternar: enquanto um card espera aprovação, outro avança.
 
 ## Interface e execução por host
 
@@ -64,7 +65,7 @@ lido como procedimento mesmo sem o slash command existir naquele host.
 | `/orq:checkpoint` | Fecha o bloco de trabalho: grava log + páginas de tópico + thread + board, releva antes de escrever (várias janelas), emite o handshake exato do host. | "terminamos", "salva aí" |
 | `/orq:dormir` | Modo noturno — só **planejamento** dos próximos cards do backlog, estacionando em `[!]` o que precisar de decisão. Limites duros e proibições absolutas (nunca implementa, nunca `push`/deploy/migration). | "vou dormir, adianta o que der" |
 | `/orq:elenco` | Mostra ou ajusta qual LLM interpreta cada papel **neste host**: papel a papel, via cross-vendor `on`/`off`, ou o time inteiro por `perfil <nome>`. | "quem tá revisando", "troca o modelo do planner", "modo economia" |
-| `/orq:implement-next` | **Loop B** — implementa um card `READY` em worktree isolado, roda a revisão independente, documenta o código final, move para `VALIDATE`. | "pode implementar", "manda ver" (card já aprovado) |
+| `/orq:implement-next` | **Loop B** — implementa um card `READY` em worktree isolado, roda a revisão independente e documenta o código final; só fica elegível a VALIDATE quando o review estiver fechado e a entrega ao alvo estiver autorizada. | "pode implementar", "manda ver" (card já aprovado) |
 | `/orq:init` | Investiga o projeto (scouts em paralelo), detecta ferramental real, propõe um time sob medida e só escreve depois da aprovação: memória + board com backlog real + agentes + bloco no `CLAUDE.md`/`AGENTS.md`. Idempotente. | primeira vez do Orquestra num projeto, ou para completar o que falta |
 | `/orq:instalar` | Instala **o plugin em si** (não o projeto) no host alternativo do dono, a partir da mesma fonte já registrada; no host onde já roda, só confere. | "quero o Orquestra no Codex também" |
 | `/orq:plan-next` | **Loop A** — escolhe o próximo card (ou cria um a partir de texto livre), classifica trilha/faixa, despacha o planner certo, **para no gate**. | qualquer pedido de mudança ("quero X", "tem um problema em Y") |
@@ -121,13 +122,25 @@ mudou card ou papel, nasce outra task. O handoff durável guarda `card`, `papel`
 `threadId` e `status`, e o resultado vem de `rawOutput`. Isso evita uma task por mensagem sem
 misturar Planner e Reviewer nem depender da ambiguidade de "última task".
 
+No Companion, ausência de `--write` não prova limitação de leituras, ferramentas ou egress. A rota
+de pacote congelado só é elegível com capacidade preventiva sem ferramentas e isolamento comprovados
+para o envelope real; sem isso, o digest é **INVERIFICÁVEL / CAPACIDADE AUSENTE**, a chamada não
+ocorre e somente a dependência externa estaciona. Não se inventa `--no-tools`, fallback ou probe.
+
+A continuação só vale se a chamada terminar com `status: 0`, `jobId` e `threadId` presentes e o
+`threadId` devolvido for igual ao solicitado. Divergência ou recibo incompleto degrada a
+continuação: o vínculo anterior é preservado e nada é repetido, substituído por outra task ou
+recolhido pela "última" automaticamente. O `--wait` é do envelope enviado ao `codex-rescue`, que o
+remove antes de invocar o `task`; o runtime não o recebe.
+
 ## A revisão independente
 
 Contrato canônico em `orq/commands/revisar.md` — aqui só o que muda o desenho:
 
 - **Um revisor só, sempre do vendor oposto ao host.** Host Claude → OpenAI; host Codex → Anthropic
   (pelo `orq/scripts/run-opus-reviewer.py --model <alias>`, via Anthropic parametrizada pelo alias
-  do elenco — hoje o reviewer do host Codex é `fable`, Fable 5.1). Não existe painel, não existe
+  do elenco, sem hardcode de modelo na chamada: alias ou ID da linha `reviewer` do host;
+  o default legado do runner continua `opus`, mas o host sempre passa `--model`). Não existe painel, não existe
   "confirmado por 2+", e o Manager não conta como parecer — ele **audita**.
 - **Todo achado é solitário por construção (N=1).** O Manager verifica cada um no código antes de
   aceitar, descarta o que não tem cenário de falha concreto, e desempata sozinho quando discorda.
@@ -169,8 +182,9 @@ Sem ele o modo noturno seria uma fila que morre no primeiro card ambíguo.
 
 O board é a fonte da verdade — **não** a TaskList nativa, que só tem pending/in-progress/completed e
 não representa os gates. Só o Manager muda o marcador de um card; worker que quiser mover, pede.
-`PLANNING → READY` exige aprovação explícita do dono; `DEV_REVIEW → VALIDATE` exige review fechado;
-`VALIDATE → DONE` é do dono, salvo delegação explícita.
+`PLANNING → READY` exige aprovação explícita do dono; `DEV_REVIEW → VALIDATE` exige review fechado,
+alvo de validação e entrega correspondente autorizados; VALIDATE não é prometido sem entrega
+autorizada ao alvo. `VALIDATE → DONE` é do dono, salvo delegação explícita.
 
 ## As regras invioláveis
 
@@ -183,7 +197,8 @@ não representa os gates. Só o Manager muda o marcador de um card; worker que q
 6. **Review é read-only** — quem revisa aponta; quem implementou aplica.
 7. **Um dono por arquivo** — tarefa que escreve roda em worktree próprio.
 8. **Nada de `bypassPermissions`** — nem de dia, nem de noite.
-9. **Commit não é critério de pronto** — card fecha em VALIDATE; o dono confirma usando o produto.
+9. **Commit não é critério de pronto** — card só pode ir a VALIDATE após a entrega autorizada ao alvo;
+o dono confirma usando o produto.
 
 ⚠️ **Enforcement: quase nenhum.** As nove regras são texto de prompt, não ACL — o plugin não declara
 um único hook de bloqueio (`T-001`, `T-002` continuam em backlog). O que existe de verificação
@@ -211,7 +226,7 @@ no `gotchas.md`.
 Nesta ordem, todos obrigatórios ao editar `orq/`:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'   # 201 testes
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'   # suíte
 claude plugin validate ./orq --strict          # manifesto
 python3 orq/scripts/lint-coerencia.py .        # coerência entre as instruções
 ```
@@ -300,29 +315,33 @@ Janela viva só para "não esquecer" é contexto usado como memória — o board
 ## O que o plugin distribui além de instruções
 
 Comandos, skill e agentes são texto. Estes são os assets de runtime, todos em `orq/scripts/` (mais
-`orq/hooks/hooks.json`):
+`orq/hooks/hooks.json` e os contratos JSON de `orq/schemas/`):
 
 | Arquivo | Faz |
 |---|---|
-| `context-guard.py` | guardião preventivo de contexto do Codex — o `hooks.json` o encaixa em 6 eventos (`PostToolUse`, `Stop`, `UserPromptSubmit`, `SessionStart`, `PreCompact`, `PostCompact`); só age no ambiente nativo do Codex (ver seção própria abaixo) |
+| `context-guard.py` | guardião preventivo de contexto do Codex — o `hooks.json` o encaixa em 6 eventos (`PostToolUse`, `Stop`, `UserPromptSubmit`, `SessionStart`, `PreCompact`, `PostCompact`), um grupo por evento; só age no ambiente nativo do Codex (ver seção própria abaixo) |
 | `run-opus-reviewer.py` | roda revisor/planner num modelo **Anthropic escolhido por `--model`** (`opus`·`fable`·`sonnet`·`haiku`; padrão `opus`) pela via cross-vendor, **comprova no `modelUsage` o prefixo do alias pedido** — pedir um e receber outro reprova —, 16 KiB/lote, timeout 600s |
 | `verify_installed_cache.py` | compara byte a byte a fonte do plugin com o cache instalado num host — o fecho de todo release e de todo `/orq:instalar` |
 | `audit-removal.py` | ledger offline de remoção de código/config (`scan`/`verify`), evidência reproduzível sem chamar LLM nenhuma |
 | `audit-adoption.py` | verifica offline, a partir de um trace explícito (`schemas/audit-ledger-v1.json`), se a descoberta seguiu grafo/índice antes de busca textual |
 | `lint-coerencia.py` | o lint de coerência — guardas descritos na seção dos gates |
-| `kanban-status.sh` | lê `KANBAN.md` por posição e emite `📋 X% (feitos/total) · fazendo: …` pra statusline |
-| `statusline.sh` | a barra completa (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board); acha `kanban-status.sh` **por vizinhança**, nunca caminho fixo, e degrada para só-board sem `jq` |
+| `kanban-status.sh` | lê `KANBAN.md` por posição e emite `📋 X% (feitos/total) · fazendo: …` pra statusline; com `--card-state T-NNN --board-path <absoluto>` emite o marcador de **um** card em JSON — a pergunta que o medidor faz ao board, pelo mesmo parser |
+| `statusline.sh` | a barra completa (modelo · effort · contexto · custo · rate-limit 5h · diretório · worktree · branch · board · segmento do medidor); acha `kanban-status.sh` e `progress.py` **por vizinhança**, nunca caminho fixo, e degrada para só-board sem `jq` |
+| `progress.py` | medidor de progresso portátil (Python stdlib): ledger por card ou goal em `<front_root>/.orq/progress/v1/`, contratos em `orq/schemas/progress-ledger-v1.json` e `orq/schemas/progress-binding-v1.json`; subcomandos de escrita só para o Manager, vistas `show`/`watch`, vínculo de sessão (`bind`), a regra dos hooks e o segmento da statusline (`statusline`) — ver "Medidor de progresso" |
+| `progress-hook.py` | adaptador fino dos hooks do medidor: liga o stdin do host a `progress.py` e garante exit `0`. O `hooks.json` o encaixa em dois eventos, em grupos próprios ao lado dos do guardião: `SessionStart` (fontes `startup`, `resume`, `clear`, `compact`, `fork`) e `PostToolUse` (toda ferramenta). **Não** entra na cópia da statusline: vem com o bundle do plugin |
 
-Cinco módulos `test_*.py` cobrem os cinco scripts acima que executam lógica (não os de leitura pura
-como `kanban-status.sh`/`statusline.sh`) — é o que a suíte descoberta roda.
+A suíte descoberta roda todo `test_*.py` de `orq/scripts/`, inclusive os do medidor
+(`test_progress.py`, `test_progress_hooks.py`, `test_progress_statusline.py`, `test_progress_docs.py`) e
+`test_kanban_status.py` (que cobre também o modo `--card-state`).
 
 Três propriedades valem para qualquer asset de runtime futuro:
 
 1. **Nada em settings aponta para dentro do plugin.** O caminho do cache muda a cada versão — uma
    chave apontando para lá quebra no próximo update. O que vai para settings é sempre uma **cópia**
-   instalada fora do plugin, achando a irmã por vizinhança.
-2. **Pares indivisíveis são copiados juntos** (ex.: `statusline.sh` + `kanban-status.sh`) — nunca um
-   sem o outro.
+   instalada fora do plugin, achando as irmãs por vizinhança.
+2. **Conjuntos indivisíveis são copiados juntos** (ex.: o trio `statusline.sh` + `kanban-status.sh` +
+   `progress.py`) — nunca um sem os outros. A barra degrada sozinha quando falta a irmã; o conjunto
+   completo é o estado que o `/orq:init` instala e que o `--reinstalar` propõe recompor.
 3. **Instalar nunca é alterar.** Havendo algo já configurado em qualquer escopo, quem instala
    **relata e oferece remover** o que estiver sombreando, em vez de sobrescrever em silêncio.
 
@@ -377,6 +396,203 @@ teste** (`test_context_guard.py`, `test_guard_contract_is_present_in_live_instru
 contrato do guardião, e a suíte reprova se sumirem desta página ou do `README.md`. Uma reescrita
 desta seção em 2026-09-02 os removeu sem querer — o teste pegou.
 
+## Medidor de progresso
+
+`orq/scripts/progress.py` responde "onde a execução está" do mesmo jeito no Claude, no Codex e em
+qualquer host com shell — sem depender de `/goal`, MCP ou mod do host. O procedimento de operação do
+Manager é `orq/skills/orq/references/progress.md`; os contratos dos dados são
+`orq/schemas/progress-ledger-v1.json` (o ledger) e `orq/schemas/progress-binding-v1.json` (o vínculo
+de sessão). Esta seção só explica o desenho.
+
+**Onde mora.** Um ledger JSON por card (`cards/T-NNN.json`) ou goal avulso (`goals/<uuid>.json`) em
+`<front_root>/.orq/progress/v1/`, na frente dona do Manager — nunca no worktree do implementer. O
+`begin` cria `.orq/progress/` com um `.gitignore` de `*` (preserva um que já exista lá), então a
+telemetria não entra em commit. O ledger não vai para `memory/` porque o estado muda a cada passo e
+disputaria com os documentos duráveis; nem para o home, que exigiria escrita fora do workspace, nem
+para `PLUGIN_DATA`, que pertence a cada host e não garante compartilhamento entre Claude e Codex.
+Guarda só títulos genéricos, IDs e referências de evidência — nunca prompt, saída de ferramenta ou
+diff. A fronteira do medidor é a mesma máquina e a mesma frente. Ao lado dos ledgers, `sessions/`
+guarda o vínculo de cada sessão nativa com o ledger dela (ver "Vínculo e as duas chaves").
+
+**Fase e percentual são duas fontes.**
+
+- A **fase** vem do board (`kanban-status.sh --card-state`). Como `[~]` não distingue implementação,
+  revisão e documentação, o Manager declara a atividade (`phase`) só para essa distinção; a
+  atividade nunca vence o board, e `phase` nunca move card.
+- O **percentual** vem dos passos da tabela do plano aprovado (`ID | Entrega verificável | Tamanho |
+  Critério de aceite`, exigida do Planner pelo `/orq:plan-next`), com S/M/L = 1/2/3. É sempre
+  **"do plano"**: 100% não é DONE — com o card em `[?]` a vista diz "validação do dono", e só o dono
+  fecha. Sem plano registrado não há percentual; restando passo aberto ele não passa de 99%;
+  acrescentar ou reabrir passo pode fazê-lo cair. Não há ETA, de propósito.
+
+**Um escritor: o Manager.** Toda mutação exige a **chave de dono** (`--session-key`, 64 hexadecimais)
+gravada no ledger. Workers devolvem resultado e a referência da evidência por ID de passo e nunca
+recebem a chave. O `done` só vale depois de o Manager conferir a evidência: o ledger guarda a
+referência, não prova que o teste passou. A escrita só muda de mão por `claim` explícito com a chave
+anterior — nunca por idade, PID ou "a sessão parece parada". A chave evita colisão entre sessões; não
+é credencial nem ACL. `add`, `drop` e `reopen` só registram o que o ciclo normal já autorizou. O
+`/orq:implement-next` (§0b) abre o ledger, vincula a sessão e marca os marcos; o `/orq:checkpoint`
+grava na thread só caminho, run_id e revisão — nunca a chave de dono ou uma cópia da telemetria, que
+contradiria o ledger.
+
+**O que o script garante.**
+
+- Lock de kernel por ledger, com espera limitada, e troca atômica (temporário no mesmo diretório,
+  `fsync`, `os.replace`). `--expect-revision` é opcional: ausente, a mutação vale sobre o estado
+  atual, ainda sob lock; presente e divergente, sai `3` sem gravar. O atrito de cada marcação é o
+  modo de falha do medidor — se custa caro, o Manager pula e a barra mente.
+- Mutação só dentro do layout padrão, por realpath. O Git precisa ignorar os destinos reais do
+  ledger, do lock e do temporário com o nome reservado; senão sai `4` sem gravar. Nada é escrito
+  antes de a contenção ser provada; fora de checkout Git não há conferência de cobertura.
+- `plan` de card só com o board em `[~]`; `close --outcome reported_complete` de card só com `[x]`.
+- Leituras (`show`, `watch`, `statusline`) não criam diretório, lock nem arquivo.
+- **O recibo já traz a vista.** `begin` e toda mutação devolvem `view` (a linha de
+  `show --format segment`, pela mesma projeção) e `view_revision` (a revisão projetada). A projeção
+  roda depois da gravação, sobre o ledger que acabou de ser confirmado, e **fora do lock** (a consulta
+  ao board é um subprocesso e não deve segurar o próximo escritor). O Manager lê o andamento no recibo
+  da marcação em vez de pagar um `show` por marco. Se a projeção quebrar depois de gravar, o recibo segue
+  `ok: true` e exit `0`, com `view: null` e `view_error`: a marcação **foi gravada** e não se repete,
+  porque repetir a escrita por falha de vista seria o erro oposto ao de perder o marco. Erros (exit
+  `2`, `3`, `4`) saem só em `stderr`, sem vista.
+- Falha do medidor não bloqueia o trabalho, e também não vira sucesso: o marco é relatado como
+  "progresso não registrado". Saídas: `0` sucesso ou repetição idempotente, `2` uso ou transição
+  inválidos, `3` revisão ou dono divergentes, `4` estado ou armazenamento indisponíveis.
+
+**Vistas.** `show` projeta o ledger como `text`, `json` ou `segment` (uma linha); `show --root <raiz>
+--all` lista todos os ledgers de uma frente. `watch` é um leitor puro que redesenha a mesma projeção a
+cada `--interval` num terminal ao lado — vale igual no Claude, no Codex e num terminal do Orca, e
+encerra com Ctrl-C sem afetar a execução observada. O Manager não o roda no próprio shell (não
+termina e prenderia a sessão): entrega ao dono a linha pronta, com os caminhos absolutos. A mesma
+projeção alimenta o recibo (`view`) e o segmento da statusline do Claude.
+
+**Vínculo e as duas chaves.** O host conhece a sessão por um ID nativo; o ledger conhece
+o dono por uma chave. São duas chaves de propósito, com flags de nomes diferentes:
+
+| | Chave de **dono** | Chave da **sessão nativa** |
+|---|---|---|
+| O que é | `--session-key`; o `begin` a gera; só em `owner.session_key` do ledger local ignorado, nunca na thread pública | `sha256(host\0session_id)`, derivada do ID nativo; o hook a entrega no contexto |
+| Serve para | **autorizar a escrita** — só o dono muda o ledger | **só o vínculo**: `bind --native-key`, que a statusline e o hook usam para achar o ledger da sessão |
+| Quando muda | nunca durante a execução: sobrevive a `/clear` e à compactação | quando o host abre outra sessão (`/clear`, `fork`, conversa nova) |
+
+A separação existe porque o ID da sessão muda onde a execução não pode mudar: se a autorização
+dependesse da sessão nativa, um `/clear` no meio do card tiraria a escrita do próprio Manager. Mutação
+com a chave nativa sai `3` (`dono-divergente`), e o `bind` recusa `--session-key` (exit `2`). O Manager
+não conhece o `session_id` bruto: o hook informa a chave derivada, e o ID bruto **nunca vai para o
+disco nem para a saída** (`bind --session-id` existe só para quem o tem, e grava apenas o hash).
+
+O vínculo é um arquivo por sessão, `v1/sessions/<chave nativa>.json` (contrato em
+`orq/schemas/progress-binding-v1.json`): host, caminho canônico e `run_id` do ledger e os contadores do
+lembrete. O `bind` não transfere ownership e não toca no ledger; tem as mesmas garantias de gravação
+(realpath e contenção, Git ignorando o destino real, lock próprio, troca atômica). Mesma sessão e mesmo
+ledger é idempotente; mesma sessão e outro ledger **substitui** o vínculo e zera os contadores; binding
+de `schema_version` desconhecida não é refeito (outro host pode ter um plugin mais novo na mesma
+frente). Só `claude` e `codex` têm sessão nativa a ligar.
+
+**Hooks consultivos.** `orq/scripts/progress-hook.py` é só o adaptador; a regra mora em
+`progress.py`. Os dois hooks só acrescentam contexto para o modelo:
+
+- **Quando falam.** `SessionStart` entrega a chave da sessão nativa e a instrução de vincular — só
+  quando a frente já tem `sessions/`. Como a sessão que roda o primeiro `begin` já passou do
+  `SessionStart` (`sessions/` ainda não existia), o **primeiro `PostToolUse`** da sessão principal sem
+  vínculo anuncia a chave uma vez e grava `sessions/.anunciada-<chave>.json`. Depois do vínculo, o
+  `PostToolUse` conta chamadas de ferramenta enquanto o ledger está ativo e **sem plano**; no **4º**
+  evento emite UM lembrete para registrar o `plan` e grava `nudged`. Card só conta com o board em
+  `[~]` — em planejamento, gate ou validação não registrar plano é o esperado, e quem decide isso é o
+  board, nunca a atividade declarada no ledger; goal não tem board e conta sempre, até o plano
+  existir. Pausa, execução encerrada e chamada de subagente (`agent_id`) nunca contam; a elegibilidade
+  é conferida de novo dentro do lock do binding, para que um `plan` que termina no meio do caminho
+  também impeça o lembrete. A contagem deduplica por hash (nunca guarda o ID bruto), numa janela de 128.
+- **Por que nunca bloqueiam.** O hook roda em toda chamada de ferramenta de todo projeto com o plugin
+  instalado, e o medidor é telemetria que não decide nada: qualquer falha (payload, lock, permissão,
+  Git, núcleo ausente) sai `0` sem saída, e a resposta é sempre só `additionalContext` — nunca
+  negação, bloqueio nem continuação forçada. O lembrete é contexto, não prova de que falta plano: com
+  o plano ainda em aprovação, o Manager o ignora.
+- **O que não leem.** Nem o transcript, nem `tool_input`, `tool_response` ou o texto do prompt; só
+  `session_id`, `cwd`, nome do evento, fonte do `SessionStart`, `agent_id` e os identificadores da
+  chamada. Sem `PLUGIN_ROOT` nem `CLAUDE_PLUGIN_ROOT` no ambiente o host é desconhecido e nada acontece.
+- **Contenção.** O hook e a statusline só abrem o `ledger_path` do binding depois de resolvê-lo por
+  realpath e provar que é um ledger **desta frente**, no layout padrão. Binding adulterado, ou ledger
+  trocado por symlink depois do `bind`, não é aberto: o hook cala e a statusline mostra a
+  indisponibilidade com o código.
+- **Custo.** O adaptador faz a saída rápida **antes de importar** o núcleo: sem medidor só `json`, `os`
+  e `sys` são carregados e a decisão sai de `stat` nos ancestrais do `cwd`, porque importar o núcleo
+  custa mais (~130 ms) que o resto do processo. Medido em 2026-10-04 com `/usr/bin/python3`: ~36 ms por
+  chamada sem medidor. Com medidor, o núcleo é importado e Git e board são consultados com timeout
+  curto (1 s), e o lock do vínculo espera no máximo 1 s.
+
+**Statusline do Claude.** O `statusline.sh` acrescenta ao fim da segunda linha o segmento
+da sessão (`◎ T-146 · revisão · 7/9 · 80%`): a mesma linha do `show --format segment`, calculada por
+`progress.py statusline --host claude --input -`, que só lê e sempre sai `0`. A sessão é achada pelo
+`session_id` do JSON da barra — o programa deriva a chave nativa e procura o binding nas frentes do
+`cwd`, de `workspace.current_dir` e de `workspace.project_dir`. **Não escolhe "o ledger mais
+recente"** nem adivinha por horário ou título: mostrar o andamento de outra execução da frente seria
+um percentual inventado. Sem `session_id` ou sem vínculo, o segmento some; binding ou ledger que
+existem mas não servem aparecem como `◎ medidor indisponível (<código>)`.
+
+- **A barra fica idêntica à de antes do medidor** sem `jq`, sem `python3`, sem o `progress.py` ao lado
+  ou fora de um projeto com `.orq/progress/v1/sessions/`. O pré-filtro é em shell, com leitura única do
+  stdin (o JSON é reenviado ao Python) e **caminho físico** (`cd -P`/`pwd -P`): o `cwd` do payload pode
+  ser um alias cujo pai lexical não é o da frente, e o pré-filtro tem de concordar com o `realpath` do
+  Python.
+- **Custo:** ~+110 ms por render com a sessão vinculada (medido em 2026-10-04).
+- **Codex:** a statusline nativa segue independente. O plano nativo (`update_plan`) não é espelhado
+  pelo ledger; a decisão de um espelho opt-in é do dono e vai com a fase 3 (`T-147`).
+
+**Instalação da statusline.** A barra instalada por `/orq:init` é uma **cópia fora do plugin**, e o
+segmento do medidor depende de arquivos irmãos: o `/orq:init` instala sempre o trio indivisível
+`statusline.sh` + `kanban-status.sh` + `progress.py` (o `progress.py` acha o `kanban-status.sh` do
+mesmo jeito, por vizinhança). O `progress-hook.py` não entra nessa cópia: os hooks vêm do bundle
+`hooks/hooks.json` do plugin. A cópia leva o stamp de versão na linha 2 (no `progress.py` ela fica
+entre o shebang e o docstring: é comentário). Cada operação que toca os três registra **antes** o hash
+de referência — do original (para o backup) e do conteúdo novo (antes do `mv`) — e o rollback decide
+arquivo a arquivo, contra essa referência: o que ainda é exatamente o que a operação instalou é
+restaurado ou removido; o que divergiu (conteúdo, link simbólico ou ausente) é **preservado e
+relatado**, e o conjunto pode ficar misto. A razão: o conteúdo que se encontra no disco depois de uma
+operação não prova autoria, e restaurar ou apagar por cima de uma alteração concorrente destruiria
+arquivo que não é nosso. Instalação anterior ao medidor tem só o par: o `--reinstalar` propõe o trio,
+nunca o recompleta sozinho.
+
+**Fora desta fase (`T-147`, fase 3).** O procedimento do Orca e o `watch` multi-raiz; antes deles, a
+decisão do espelho opt-in do plano nativo do Codex. O mod de barra do Claude Code e a estimativa de
+tempo ficam fora do medidor.
+
+**Riscos aceitos e limites conhecidos.**
+
+- Só POSIX foi exercitado. O lock do Windows (`msvcrt.locking`) tem teste apenas com backend
+  simulado, sem prova em Windows real; sistema de arquivos remoto também não foi testado.
+- A prova de cobertura usa `git check-ignore --no-index` e só foi exercitada com o Apple Git
+  2.50.1.
+- Com um `.gitignore` de `.orq/progress` **parcial** (preexistente, que ignora o ledger mas não o
+  temporário real), o temporário nasce vazio antes de o Git ser consultado. Se o Git não o ignora, é
+  removido e nada é gravado, mas nesse instante um `git add -A` concorrente poderia indexar o
+  arquivo vazio. O `.gitignore` de `*` que o `begin` cria não abre essa janela.
+- Um `begin` recusado nessa prova final pode deixar vazios os diretórios `v1`, `cards`, `goals`,
+  `sessions`, `locks` e o arquivo de lock, todos ignorados; nunca sobra ledger nem temporário.
+- **TOCTOU local, em dois pontos.** (1) Entre a conferência de contenção (realpath) e a criação dos
+  diretórios ou o `open` do ledger e do vínculo, um symlink trocado por outro processo escaparia da
+  checagem — o `open` é comum, sem `O_NOFOLLOW`. (2) No rollback do `init`, entre a conferência do hash
+  e o `mv`/`rm` sobra uma janela mínima; por isso a conferência vem imediatamente antes de cada
+  operação e nada é sobrescrito ou apagado sem ela. Os dois pressupõem outro processo local com
+  permissão de escrita na frente ou no destino da cópia; a chave de dono não é ACL.
+- **Python por render numa sessão não vinculada.** O pré-filtro da barra só olha se há `sessions/` no
+  diretório ou acima; numa frente que o tem, toda sessão sem vínculo (inclusive a que acabou de dar
+  `/clear`, antes do novo `bind`) paga o Python a cada render e não mostra segmento (~+100 ms,
+  medido em 2026-10-04).
+- **Anúncio duplicado.** Numa frente que já tem `sessions/` no `SessionStart`, a chave nativa chega
+  nele e de novo no primeiro `PostToolUse` sem vínculo, porque o `SessionStart` não grava o marcador
+  `.anunciada-<chave>`. São no máximo dois avisos iguais, não um erro; o `bind` os encerra.
+- **`cwd` fora de `front_root`.** O hook acha o vínculo subindo a partir do `cwd` do payload (a
+  statusline também olha `workspace.current_dir` e `workspace.project_dir`). Sessão cujo `cwd` não
+  está dentro da frente dona do ledger — por exemplo, num worktree irmão — não encontra o vínculo: o
+  hook cala e a barra não mostra segmento. Não há busca fora da frente, de propósito.
+- **Atualizar o plugin com sessão Codex viva (`T-093`, preexistente).** O Codex resolve o caminho do
+  hook no boot, com a versão instalada então, e a atualização apaga essa versão do cache: o comando do
+  hook falha **antes** do adaptador (`can't open file`), então o exit `0` garantido por
+  `progress-hook.py` não vale nesse caso — vale para todo hook do plugin, o do medidor inclusive. Não
+  atualize o plugin no Codex com trabalho rodando lá (ver `memory/gotchas.md`).
+- Remover a frente apaga o ledger e os vínculos; por isso o checkpoint registra o resultado na thread
+  antes.
+
 ## A memória (wiki)
 
 Papel de cada arquivo — regras completas em `memory/wiki/_schema.md`:
@@ -421,3 +637,11 @@ revisão adversarial do Codex, cujo veredito foi *"aprovar com redesenho"*: ~80-
 - **O degrau barato do host Codex em escrita real segue sem medição.** Um smoke comprovou só que o
   modelo responde a uma chamada trivial; comportamento em `workspace-write` (o modo real do
   implementer) e os reasoning efforts aceitos são pendência registrada em `_elenco.md`.
+
+## Continuidade de execução aprovada
+
+O contrato canônico está em `orq/skills/orq/SKILL.md`, na seção
+`Contrato de continuidade aprovada`. As permissões local, externa e Git são
+independentes: o registro humano durável por card sustenta somente a execução
+local no escopo aprovado. Checkpoint e compactação preservam o registro e seus
+limites; não transformam plano, READY, reviewer, log ou pacote em autoridade.

@@ -165,7 +165,7 @@ silêncio.
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
 | "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Revisão independente** (`/orq:revisar`) — **um** revisor, sempre de um modelo do **vendor oposto ao host** (resolvido no `_elenco.md`; outro modelo do mesmo vendor do host **não** serve), com os achados auditados por você contra o código antes de virarem veredito |
 | "audite a remoção de X" · "prove que X saiu" · "verifique se começamos pelo grafo" | **Auditoria explícita e offline** (`/orq:auditar`) — ledger de remoção ou análise de trace graph-first; sem hook, captura viva ou bloqueio |
-| "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" (Fable 5.1) · "tira o GPT" · "tô com pouco crédito" · "acabando os créditos" · "final do ciclo semanal" · "modo economia" · e qualquer pedido de sair do perfil ou voltar ao time normal | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel; frase de contexto de crédito troca o **time inteiro** pelo perfil nomeado (`perfil economia` / `perfil padrao`), anunciando o que muda, **o que se perde** e **como reverter** — sem depender de uma frase fixa de volta, que ele pede naturalmente quando o crédito voltar |
+| "quem tá revisando?" · "troca o modelo do planner" · "quero o Fable planejando" (override legado) · "tira o GPT" · "tô com pouco crédito" · "acabando os créditos" · "final do ciclo semanal" · "modo economia" · e qualquer pedido de sair do perfil ou voltar ao time normal | **Elenco** (`/orq:elenco`) — mostra ou ajusta qual LLM toca cada papel; frase de contexto de crédito troca o **time inteiro** pelo perfil nomeado (`perfil economia` / `perfil padrao`), após o gate de capacidade do comando, anunciando o que muda, **o que se perde** e **como reverter**. Padrão legado comprovado conserva capacidade autorizada; fábrica ou candidato novo não vira fallback executável sem gate e prova contextual. Sem depender de uma frase fixa de volta, que ele pede naturalmente quando o crédito voltar |
 | "lembra quando a gente…?" · "o que a gente decidiu sobre…?" | **Busca a memória em DUAS etapas, nesta ordem.** (1) **Wiki do projeto** — `memory/MEMORY.md` e a página ou thread do assunto. É a fonte da verdade: se ela responde, acabou. (2) **Não achou, ou achou incompleto → busque a memória de sessão, chamando a ferramenta pelo nome.** Com `claude-mem` instalado, ele expõe `mem-search` (e `search`/`smart_search` no MCP) para procurar, e `get_observations([IDs])` para abrir o que interessar. **Nomeie e chame** — "consultar alguma busca do host" não é instrução, é o motivo de isto nunca ter disparado. Só pule a etapa 2 se não houver busca instalada **ou** se ela estiver como **Dispensada** em `memory/wiki/_stack.md`; provider dispensado nunca vira fallback só por estar conectado. Sem busca elegível, **declare** que a cobertura ficou limitada à wiki — não finja que procurou |
 | "tá lento" · "o que falta instalar?" · "dá pra melhorar a performance?" · "que ferramenta ajudaria?" | **Stack** (`/orq:stack`) — detecta o que falta, mostra ganho e custo, instala **só o que ele aprovar** |
 | "o revisor sumiu" · "a statusline está muda" · "não conecta com X" · "parece que o plugin não pegou" — queixa sobre o **ferramental** (plugin, revisor, statusline, MCP, PATH), nunca sobre o que o produto faz | **Diagnóstico** (`/orq:stack --verificar`) — checa plugin desatualizado (versão **e** conteúdo), escopo errado, binário fora do PATH, board ilegível. **Antes de dizer que algo falta, cheque o caminho de instalação** — `which` só enxerga o PATH daquela sessão |
@@ -207,6 +207,11 @@ Claude, preserve o fluxo existente: o checkpoint termina em **Seguro dar `/clear
 adota imediatamente a faixa mais severa. Em host sem telemetria comprovada, preserve o fallback:
 sugira checkpoint + limpeza perto de ~50%.
 
+**Medidor de progresso:** ao iniciar um goal (o Loop B de um card ou um objetivo avulso autorizado) e
+ao retomar trabalho em curso, leia `references/progress.md`: ele define o ledger, os marcos em que o
+Manager registra, a retomada, o ownership e os códigos de saída. O medidor mostra o andamento; não
+decide gate, não move card e não substitui o board.
+
 **Não pergunte "quer que eu rode o comando X?"** — faça o que a intenção pede e diga o que fez.
 Peça confirmação só quando a ação for irreversível ou mudar o rumo do produto.
 
@@ -231,7 +236,14 @@ por isso todo passo termina gravando no board e no arquivo de handoff.
 
 **Qual LLM toca cada papel** está em `memory/wiki/_elenco.md` (o "elenco"). **Leia-o antes de
 spawnar** e passe o modelo como override — o `model:` do arquivo do agente é só o padrão de fábrica.
-Sem elenco, use o padrão. Ver `/orq:elenco`.
+Sem elenco, leia o padrão só como candidato: não o use como fallback executável. Aplique o gate
+canônico de capacidade em `/orq:elenco`. **Padrão legado comprovado** é uma combinação já usada e autorizada
+neste projeto, com recibo real consultável na thread. O Manager verifica a origem e a compatibilidade antes do
+despacho. É reaproveitamento de prova existente válida, nunca isenção de prova. Default, alias ou cache não
+certificam. Sem recibo ou se o contexto mudou, não despache essa operação. Não há sonda ou retry automáticos;
+prossiga com outras ações locais elegíveis. Quando o recibo válido ainda é compatível, o reuso não exige nova
+sonda a cada uso. Padrão legado comprovado conserva capacidade autorizada; fábrica ou candidato novo não vira
+fallback executável sem gate e prova contextual. Sem essa prova, pare e peça a escolha/gate do dono. Ver `/orq:elenco`.
 
 **O Manager NÃO é um subagente.** Ele é o control plane: só ele move cards, atribui responsável e
 fala com o dono. Os workers pedem; o Manager decide.
@@ -254,6 +266,9 @@ obedece a um vínculo determinístico:
 - Persista no handoff da thread do card os campos `card`, `papel`, `jobId`, `threadId`, `status`.
   Leia o trabalho em `rawOutput`; IDs ausentes ou status não terminal significam handoff não
   comprovado — não adivinhe nem crie outro vínculo silenciosamente.
+- **Vínculo inicial comprovado:** a chamada fresca exige sucesso, JSON válido, `status: 0`, `jobId`
+  e `threadId` não vazios antes de criar o vínculo `card+papel`; falha terminal não cria vínculo.
+  Registre a falha como diagnóstico, sem promovê-la a task válida nem repetir a chamada.
 - **Mudou o card ou o papel** → comece com `--fresh --json`. Continuação do Planner reutiliza o
   Planner; correção e nova checagem da mesma rodada reutilizam o Reviewer; uma segunda revisão
   deliberadamente independente nasce fresca, mesmo sobre o mesmo card.
@@ -261,6 +276,16 @@ obedece a um vínculo determinístico:
   Arquivar é limpeza reversível e só ocorre se o host expuser essa capacidade; caso contrário,
   registre a limpeza pendente. Nunca cancele uma task concluída e **nunca delete** uma task do
   Companion.
+- **Continuação comprovada, não presumida.** Uma continuação só pode ser aceita se a chamada
+  terminar com sucesso, devolver JSON válido com `status: 0`, `jobId` e `threadId` não vazios, e o
+  `threadId` devolvido for exatamente igual ao solicitado. IDs ausentes, falha ou divergência
+  invalidam a continuação.
+- **Divergência ou recibo incompleto** → preservar o vínculo anterior, registrar IDs solicitado e
+  devolvido, caminho/versão do runtime e motivo da degradação. Não aceitar o `rawOutput` como
+  continuação; não repetir a chamada, iniciar outra fresca ou recorrer à última thread
+  automaticamente. Não apagar a task criada por engano. O diagnóstico é "continuação não
+  comprovada": a causa (runtime sem suporte, encaminhamento incorreto) se investiga depois, não se
+  presume no registro.
 
 Esse reúso reduz a poluição da barra lateral sem misturar contextos: a unidade de isolamento segue
 sendo `card+papel`, não cada mensagem e não o projeto inteiro.
@@ -288,7 +313,10 @@ No `KANBAN.md` isso são as seções; o estado de cada card é o marcador da lin
 
 - **Só o Manager** muda o marcador de um card. Worker que quiser mover **pede**.
 - `PLANNING → READY` **exige aprovação explícita do dono**. Nunca implemente um plano não aprovado.
-- `DEV_REVIEW → VALIDATE` exige review fechado. Commit **não** é critério de pronto.
+- `DEV_REVIEW → VALIDATE` exige review fechado, alvo de validação e entrega
+  correspondente já autorizados. Se a entrega exigir gate novo, o Manager
+  estaciona em `[!]` com a decisão exata e posse preservada; etapas locais já
+  autorizadas continuam elegíveis. Commit **não** é critério de pronto.
 - `VALIDATE → DONE` é do dono (ele usa e confirma), salvo quando ele delegar.
 
 ## Os dois loops
@@ -298,8 +326,10 @@ pega o 1º do BACKLOG → Planner investiga e escreve o plano → mudança visua
 **leva ao dono** → aprovado vira READY com responsável definido.
 
 **Loop B — Implementar** (`/orq:implement-next`): Manager ⇄ Implementer
-pega o 1º READY → implementa em **worktree isolado** → Reviewer (read-only) audita →
-correções → Docs escreve sobre o código **final** → commit local → VALIDATE.
+pega o 1º READY → implementa localmente no **worktree isolado** aprovado → Reviewer
+(read-only) audita → correções → Docs escreve sobre o código **final** → review fechado
+e entrega para o alvo de validação autorizada → VALIDATE. Loop B não autoriza commit
+automaticamente: operações de entrega Git seguem o contrato de continuidade aprovada.
 
 Os dois loops podem alternar: enquanto um card espera sua aprovação, outro avança.
 
@@ -386,11 +416,15 @@ sobrescrevem **em silêncio**.
 4. **Card em curso também leva o host** (`T-086`): `@claude` ou `@codex`, junto do `@frente-<slug>`.
    Escreva ao entrar em `[>]`/`[~]`, remova ao sair para `[ ]`, `[?]` ou `[x]` — a guarda do lint
    reprova ausência, os dois juntos, e marca sobrando nesses três. Em `[!]` a marca **permanece**:
-   a pausa preserva a posse, e quem retoma reafirma ou transfere explicitamente. Identifica o
-   **host**, não a sessão: duas janelas do mesmo host ainda colidem; quem resolve por construção é
-   o worktree por tarefa (`T-092`).
-5. **Quem está marcado no card commita aquele trabalho.** Não há integrador fixo do repositório —
-   há o dono do card, agora.
+   a pausa preserva a posse, e quem retoma reafirma somente a marca de host. A marca de host
+   identifica somente o host; não transfere a propriedade da frente. Recuperação retoma somente a
+   raiz e a thread existentes da frente dona comprovada; recuperação nunca toma, duplica ou fabrica
+   thread. Transferência de frente exige instrução humana específica, preserva estado e thread
+   originais e é ação separada da recuperação. Identifica o **host**, não a sessão: duas janelas do
+   mesmo host ainda colidem; quem resolve por construção é o worktree por tarefa (`T-092`).
+5. **A posse do card não autoriza operações de entrega Git.** Não há integrador fixo do
+   repositório: quem está marcado executa a entrega somente quando a autorização humana
+   específica a cobrir; sem ela, preserva a posse e registra a pendência.
 6. **Trabalho em curso mora na thread apontada pelo card** (`THREAD_ROOT/threads/T-NNN.md`) — arquivo
    de dono único, livre de conflito por construção. A frente é identificada por `@frente-<slug>`,
    nunca pelo nome do arquivo. ⚠️ **O board não é o único disputado:** `MEMORY.md`,
@@ -439,3 +473,84 @@ hora. `/orq:stack` detecta e propõe. **Nunca instale nada sem o "pode instalar"
 O que ele dispensou fica em `memory/wiki/_stack.md` — **não reproponha**.
 
 Nunca guarde na memória o que é **derivável** (diff, git log, schema): guarde o *porquê*.
+
+## Contrato de continuidade aprovada
+
+Quando o dono aprovar a implementação local de um card, a thread dona registra
+a **fonte humana literal**: a citação ou referência verificável da evidência
+humana original é o **ponteiro verificável**, acompanhado da citação literal,
+para mensagem/sessão+turno ou documento humano explicitamente endossado. Registra
+também o **escopo permitido**, as **proibições** e o **orçamento de chamadas separado por gate**,
+com limite e consumo. O registro da thread é transcrição, não fonte: quem o
+captura registra a verificação da fonte real. Notas de Manager, worker, reviewer,
+hook ou pacote não criam autoridade; transcrição, nome ou autodeclaração não
+substituem autoria humana. Esse registro durável vale para as correções locais da
+mesma causa e do mesmo escopo; mudança de rumo, ampliação de escopo ou novo limite
+exigem novo gate explícito do dono. Para legado, recupere a fonte humana original;
+recuperação não certifica nota por autodeclaração. Se houver prova irrecuperável,
+pause somente a ação sem autoridade, não todo o escopo, e continue as ações locais
+elegíveis. Nunca invente aprovação.
+
+- As **permissões local, externa e Git são independentes**. Aprovação local ou
+  de review não concede autorização Git. Operações de entrega Git são mutações
+  de índice, histórico ou remoto: stage, commit, push, merge, tag ou publicação.
+  O padrão é Git não autorizado: cada operação de entrega Git exige citação ou
+  referência verificável da autorização humana original que a nomeie. Leitura de
+  Git não é operação de entrega Git. Worktree isolado é etapa local quando o
+  escopo aprovado a incluir e não houver proibição expressa de mutação Git,
+  branch ou worktree; isso não autoriza operação de entrega. Nota do Manager,
+  reviewer, pacote ou READY não serve de autorização. Aprovação local também não
+  autoriza chamada externa, credencial, envio, revisão, instalação ou restart.
+- Gate externo exige citação ou referência verificável da autorização humana
+  original como ponteiro para a fonte humana literal, nunca como substituto dela.
+  Uma tentativa externa identifica pacote ou destino, digest
+  dos bytes UTF-8 finais sanitizados por pacote/chamada, modelo, ferramentas,
+  limite e consumo; um digest não autoriza divisão nem recomposição em outros
+  digests. Há somente dois
+  modos: modo digest congelado cobre somente o digest registrado; envelope de
+  escopo delimitado só cobre snapshots subsequentes quando a autorização humana
+  original disser expressamente que cobre a mesma causa, card, destino, modelo,
+  ferramentas e teto. Sem modo e cobertura comprovados, não infira extensão;
+  novo snapshot não é aprovado por omissão. Registrar digest novo não renova
+  saldo. Uma chamada única em modo
+  digest congelado não cobre outro snapshot nem retry. O snapshot é o conteúdo
+  identificável pelo digest; o envelope é a autorização que vincula a cobertura
+  autorizada ao seu escopo. Saldo é o limite menos as tentativas já iniciadas.
+  Os limites consumidos deste card permanecem consumidos, assim como os de
+  outras frentes; não são aumentados nem reiniciados silenciosamente. Sem
+  autorização ou saldo, não inicie a chamada, registre a pendência e avance a
+  ação local elegível; não faça retry automático nem reinicie o consumo. Gate
+  externo consumido não se reabre sozinho. Orçamento local não imposto pelo dono
+  é registrado como tal e não cria teto de egress, saldo externo nem autorização
+  externa; nunca derive limite do dono da regra operacional do framework.
+- `read-only` não delimita leituras nem bytes que o executor pode transferir.
+  Não invente `--no-tools` nem alegue que sandbox read-only prova capacidade
+  preventiva. Rota de pacote congelado só pode usar digest ou envelope quando
+  houver capacidade preventiva sem ferramentas e isolamento comprovados para os
+  bytes reais do briefing, wrapper e leituras permitidas. Leitura adicional
+  delimitada exige autoridade humana real e nunca cobre credenciais ou PII. Sem
+  isso, o modo digest é **INVERIFICÁVEL / CAPACIDADE AUSENTE**: não inicie
+  chamada, estacione somente a dependência externa e preserve a ação local
+  elegível; sem auto-fallback, probe ou nova chamada. Ausência de teto não
+  equivale a autorização ilimitada.
+- **READY é status, não aprovação**; reviewer, log e pacote não concedem
+  autoridade. Falha de review não cancela a correção local aprovada, mas não
+  passa a VALIDATE sem review independente.
+- Estacionar um card não bloqueia outra ação permitida da frente dona. Antes de
+  parar, escolha a próxima ação útil autorizada; sem ação elegível, registre o
+  impedimento real, sem busy-loop e sem contar plano ou status como progresso.
+  Não tome card de outra frente. O marcador `[!]` do card não é o estado da
+  meta. Somente no host que possuir controlador de metas, sem ação elegível,
+  respeite o limiar do controlador de metas do host; não pause, complete ou
+  marque blocked por iniciativa fora do contrato dele.
+- Espere somente execução viva confirmada no mesmo handle. Handle terminal ou
+  ausente não é espera, e timeout de observação não autoriza relançar nem
+  concluir execução. Não faça retry cego.
+- Checkpoint e compactação preservam gates e consumo; não encerram a execução
+  local aprovada. Retomar relê esse registro e continua no próximo passo ainda
+  autorizado; modo noturno não é Goal e não transforma planejamento em
+  implementação ou aprovação.
+
+Os comandos que consomem este contrato devem remeter a esta seção pela raiz de
+pacote comprovada. Ela não amplia capacidades do App nem substitui a revisão
+independente ou a validação prática do dono.

@@ -36,9 +36,42 @@ Grave `trilha: … · faixa: …` na nota do card. Card sem registro vale `siste
 
 Antes de despachar, **identifique o host** da sessão atual: Claude ou Codex. Leia
 `memory/wiki/_elenco.md`, resolva a linha `planner` **da trilha do card** em `## Times por host` e
-só então aplique a célula vendor×host de `## Matriz de invocação`. Sem elenco, use o template de
-fábrica completo de `ORQ_PACKAGE_ROOT/commands/elenco.md` — a skill já precisa ter resolvido
+só então aplique a célula vendor×host de `## Matriz de invocação`. Sem elenco, o template de
+fábrica em `ORQ_PACKAGE_ROOT/commands/elenco.md` é **somente leitura**: mostra candidatos, mas não
+resolve modelo nem autoriza despacho. Aplique o gate canônico de capacidade daquela seção.
+**Padrão legado comprovado** é uma combinação já usada e autorizada neste projeto, com recibo real consultável na
+thread. O Manager verifica a origem e a compatibilidade antes do despacho. É reaproveitamento de prova existente
+válida, nunca isenção de prova. Default, alias ou cache não certificam. Sem recibo ou se o contexto mudou, não
+despache essa operação. Não há sonda ou retry automáticos; prossiga com outras ações locais elegíveis. Quando o
+recibo válido ainda é compatível, o reuso não exige nova sonda a cada uso. Sem essa prova, mantenha o card em
+PLANNING e peça a escolha/gate do dono. A skill já precisa ter resolvido
 `ORQ_PACKAGE_ROOT` para o host atual; não improvise um modelo a partir da tabela do host Claude.
+
+Antes de preparar ou despachar qualquer briefing de Planner cross-vendor,
+**inspecione o briefing completo do Planner conforme o §1b de `/orq:revisar`**:
+card, título, notas, plano, páginas de wiki e leituras que entrarão no envio.
+Nunca envie dado de paciente ou pessoal (PII), prontuário, credencial, token,
+chave, `.env` ou dump de banco com linhas reais. Achou dado sensível, pare e
+avise o dono; não higienize por conta própria e envie. Esta inspeção antecede o
+gate de saldo e envelope e não autoriza transferência alguma.
+
+Antes de preparar ou despachar planejamento cross-vendor, aplique o gate externo:
+registre na thread dona a fonte humana literal e seu ponteiro verificável, a
+procedência, causa, card, destino, modelo, ferramentas, teto, consumo e digest
+ou envelope que cobrem o conteúdo real. Esta é a autoridade anterior do
+despacho do Planner; a aprovação posterior do plano não autoriza esse despacho
+anterior. Ausência de teto não equivale a autorização ilimitada: sem teto,
+saldo, modo e cobertura comprovados, não despache, registre a pendência e
+prossiga apenas com ação local elegível. O registro é transcrição, não fonte.
+
+- Em pacote congelado via Companion ou runtime equivalente, `read-only` não
+  delimita leituras nem os bytes que o executor pode transferir. Não invente uma
+  flag `--no-tools`: só há cobertura com capacidade preventiva sem ferramentas e
+  isolamento comprovados para o envelope real. O envelope deve cobrir os bytes
+  reais do briefing, wrapper e leituras permitidas; leitura adicional delimitada
+  exige autoridade humana real e nunca cobre credenciais ou PII. Sem prova, o
+  modo digest é **INVERIFICÁVEL / CAPACIDADE AUSENTE**: não dispare, não faça
+  auto-fallback, probe ou nova chamada e estacione somente o planejamento dependente.
 
 - **Vendor do planner igual ao do host:** spawn **fresco** do agente `orq-planner`, com o modelo
   resolvido como override (host Claude), ou a primitiva equivalente do host.
@@ -57,12 +90,26 @@ diretamente. Encaminhe ao subagente:
 - continuação do mesmo Planner no mesmo card: `--wait --resume-thread <threadId> --json --model <modelo> --effort <effort> <apontamento read-only>`.
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
+Esse read-only limita apenas escrita no workspace; não prova limitação de
+leituras, ferramentas ou egress. A chamada só ocorre se o gate anterior
+comprovou o envelope real e a capacidade preventiva exigida.
+
+`--wait` pertence exclusivamente ao envelope enviado ao `codex:codex-rescue`, para exigir
+foreground. O intermediário deve removê-lo antes de invocar `task`; ele não integra os argumentos
+do runtime nem o briefing. `task` executa em foreground quando não recebe `--background`.
 
 A resposta JSON contém `rawOutput`, `jobId`, `threadId` e `status`. Use `rawOutput` como plano e,
 antes de qualquer nova rodada, grave `{card, papel, jobId, threadId, status}` na thread durável do
 card. `jobId` ou `threadId` ausente reprova o vínculo: declare a degradação e não tente
 `--resume-last`. Mudança de card ou de papel sempre volta a `--fresh --json`; por isso um Reviewer
 nunca herda a task do Planner.
+Timeout é observação do mesmo handle: preserve `jobId` e `threadId`; não o
+trate como autorização de `--fresh`, retry, fallback ou nova chamada.
+
+Continuação exige sucesso e `threadId` devolvido igual ao solicitado. Divergência ou recibo
+incompleto: registrar degradação, preservar o vínculo anterior e não repetir nem substituir a
+thread automaticamente. Aplicar o contrato "Reúso durável do Codex Companion" (skill `orq`) antes de
+aceitar o plano.
 
 Modelo, CLI ou override indisponível → não troque de modelo em silêncio. Mantenha o card em
 PLANNING, registre a capacidade ausente e peça ao dono a escolha do fallback.
@@ -74,6 +121,16 @@ No prompt, inclua:
 - o que **não** está no escopo;
 - **exigência de handoff**: o plano precisa terminar com passos verificáveis, riscos, critério de
   aceite e as decisões que precisam de você.
+- **worktree isolado**: registre o worktree isolado no escopo aprovado, sua
+  finalidade e fronteira: o Manager prepara o isolamento somente se já previsto no plano aprovado;
+  o worker não cria nem remove refs ou worktrees. Isolamento não autoriza stage, commit, push, merge,
+  tag ou publicação, nem remoção adicional fora do escopo humano verificado.
+- **tabela de passos**: o plano traz uma tabela `ID | Entrega verificável | Tamanho | Critério de aceite`,
+  uma linha por passo, e é ela que alimenta o medidor de progresso na implementação. ID estável (`P01`,
+  `P02`…: letras ASCII, dígitos, `_` e `-`, ordem preservada); entrega que se verifica; tamanho `S`,
+  `M` ou `L` (peso relativo 1, 2, 3 — não é minuto); critério de aceite que prova o passo (`A01`…).
+  Trabalhos paralelos ficam em linhas separadas. O Planner só entrega a tabela e **não escreve o
+  ledger**: o Manager registra os passos depois da aprovação, no Loop B.
 
 ⚠️ **Trilha cruzada — quando o vendor do planner é diferente do vendor de quem vai escrever** (é o
 caso normal do host Claude num card `sistema`, e o simétrico no Codex), exija também uma seção
@@ -89,6 +146,8 @@ Quando o plano voltar, **não repasse cru**. Avalie:
 - há suposição não verificada?
 - **é executável por quem vai escrever?** Plano que obrigaria o writer a re-decidir desenho volta
   ao planner — em trilha cruzada esse é o modo de falha esperado, não uma surpresa.
+- **a tabela de passos existe e fecha?** IDs únicos, tamanho `S`/`M`/`L`, critério de aceite
+  verificável em cada linha. Sem tabela, volta ao Planner.
 
 Se estiver fraco, **devolva ao Planner com o apontamento** antes de levar ao dono.
 
@@ -104,7 +163,20 @@ Se a mudança for **visual**, o plano precisa vir com mockup antes da aprovaçã
 **PARE aqui.** Plano não aprovado não vira implementação.
 
 ## 6. Fechar o loop
-- Aprovado → grave o caminho do plano no card, marque `[~]` READY, defina o responsável.
+- Aprovado → antes de marcar `[~]` READY, grave na thread dona o caminho do
+  plano, a fonte humana literal e seu ponteiro verificável, ou seja, a citação
+  ou referência verificável da evidência humana, o escopo permitido, as
+  proibições e o orçamento de chamadas separado por gate, com limite e consumo.
+  O registro da thread é transcrição, não fonte. Para legado, recupere a fonte
+  humana original na conversa ou em documento humano explicitamente endossado;
+  nunca trate plano, READY, commit ou nota de Manager como evidência humana nem
+  invente aprovação. No caso de orçamento local não imposto pelo dono, registre
+  essa condição; isso não cria teto de egress nem limite externo, e ausência de
+  teto não equivale a autorização ilimitada.
+  Para operações de entrega Git, o padrão é Git não autorizado: só registre a
+  operação específica quando houver citação ou referência verificável da
+  autorização humana original específica de Git que a nomeie. Depois, marque
+  `[~]` READY e defina o responsável.
   **Revalide a faixa antes de fechar**, pela reavaliação da régua canônica — que tem **piso**: card
   Alto risco continua `pesada` mesmo com o plano fechado. Atualize `trilha: … · faixa: …` na nota
   do card se mudou.
@@ -112,3 +184,11 @@ Se a mudança for **visual**, o plano precisa vir com mockup antes da aprovaçã
 - Rejeitado → volta a `[ ]` BACKLOG com o motivo registrado (pra não repetir o erro depois).
 
 Termine dizendo qual é o próximo passo concreto (normalmente `/orq:implement-next`).
+
+## Continuidade de execução aprovada
+
+Consulte o `Contrato de continuidade aprovada` em
+`ORQ_PACKAGE_ROOT/skills/orq/SKILL.md`.
+Planejamento e READY não são aprovação: só a evidência humana durável na thread
+dona autoriza implementação local. Um plano pode delimitar o próximo gate, mas
+não consome nem renova limites de ações externas ou de Git.

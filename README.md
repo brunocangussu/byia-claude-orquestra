@@ -172,7 +172,7 @@ arquivo do agente é só o padrão de fábrica.
 
 ```bash
 /orq:elenco                    # mostra a escalação atual
-/orq:elenco planner interface fable   # host Claude — Fable 5.1; no Codex esta trilha hoje é gpt-6-astra@max
+/orq:elenco planner interface claude-opus-5-5 # candidato Anthropic explícito; exige prova do mecanismo
 /orq:elenco implementer leve haiku    # troca o degrau barato de quem escreve
 /orq:elenco codex off                 # no host Claude: fica sem revisor independente
 /orq:elenco reviewer gpt-6-astra@high # o effort mora no modelo do papel, não na via
@@ -180,7 +180,7 @@ arquivo do agente é só o padrão de fábrica.
 /orq:elenco perfil padrao      # crédito voltou: time titular de volta
 ```
 
-Ou simplesmente fale: *"quero o Fable planejando"* · *"tira o GPT da revisão"* · *"quem tá revisando?"*
+Ou simplesmente fale: *"quero o Fable planejando"* (override legado) · *"tira o GPT da revisão"* · *"quem tá revisando?"*
 
 **Perfis** — além do ajuste papel a papel, o `_elenco.md` pode ter **times nomeados** (seção
 "Perfis"): `padrao` (o titular) e `economia` (crédito Claude curto). Presets são **por host**:
@@ -193,16 +193,17 @@ compensar — e o preset lista isso com todas as letras. O `manager` nunca entra
 **Padrões de fábrica — a tabela do host Claude.** O elenco é resolvido **sempre** assim: identifique
 o host, leia a tabela dele em `## Times por host`, aplique a Matriz de invocação. Não há outra
 tabela ativa; o host Codex tem a sua, com os modelos OpenAI equivalentes.
+Os valores de fábrica são candidatos e exigem o gate de capacidade abaixo antes de inicializar.
 
 | Papel | Modelo | Por quê |
 |---|---|---|
 | `manager` | *sessão principal* | definido pelo `/model` — não é spawn, não muda por aqui |
-| `planner·interface` | `fable` | trilha perceptual pensa com Anthropic — Fable 5.1 |
-| `planner·sistema` | `gpt-6-astra@max` | trilha comportamental pensa com OpenAI, read-only por CLI |
+| `planner·interface` | `claude-opus-5-5` | candidato Anthropic da trilha perceptual; exige prova de spawn nativo |
+| `planner·sistema` | `gpt-6-astra@xhigh` | trilha comportamental pensa com OpenAI, read-only pelo Companion |
 | `implementer·pesada` | `opus` | alto risco ou decisão de desenho ainda aberta |
 | `implementer·normal` | `sonnet` | plano fechado, execução dirigida |
 | `implementer·leve` | `haiku` | resultado determinado, verificação mecânica |
-| `reviewer` | `gpt-6-astra@max` | independência: sempre o vendor oposto ao host |
+| `reviewer` | `gpt-6-astra@xhigh` | independência: sempre o vendor oposto ao host |
 | `docs` | `sonnet` | escrita objetiva sobre código já pronto |
 | `scout` | `sonnet` | leitura ampla e barata |
 
@@ -217,11 +218,56 @@ réguas ficam escritas uma única vez, em `orq/commands/elenco.md`.
 **independência** (e ele é obrigado: sempre o vendor oposto ao host). `implementer`, `docs` e
 `scout` ficam no vendor do host: os dois primeiros porque escrevem, o `scout` porque leitura ampla
 e barata não se paga em domínio. Valores aceitos nesses três dependem do host: no Claude, `opus` ·
-`sonnet` · `haiku` · `fable` · `inherit` ou um id (`claude-opus-5`); no Codex, os modelos OpenAI
-com effort (`gpt-5.6-terra@xhigh`…). Nos que cruzam, qualquer vendor com célula na Matriz de
+`sonnet` · `haiku` · `fable` · `inherit` ou um ID Anthropic suportado pelo spawn nativo,
+com prova pelo gate abaixo; o mapa do runner não limita a via nativa. No Codex, modelos OpenAI
+com effort quando aplicável. A fábrica candidata do implementer Codex é leve `gpt-6-luna@medium`,
+normal `gpt-6.1-sol@high`, pesada `gpt-6.1-sol@xhigh`; não ativa o alvo no projeto.
+Os planners, docs e scout do elenco ativo não são redistribuídos, nem nasce preset `economia` do Codex.
+A fábrica candidata do Host Claude e de seu `padrao` troca apenas o planner de interface
+Fable por `claude-opus-5-5`; não reescreve a escolha do projeto. O implementer da fábrica
+Claude é pesada `opus`, normal `sonnet`, leve `haiku`; docs e scout permanecem `sonnet`.
+O preset `economia` do Claude preserva seu alias `opus` independente da substituição de Fable.
+Nos que cruzam, qualquer vendor com célula na Matriz de
 invocação, **desde que o mecanismo daquela célula execute aquele modelo** (a célula Anthropic×Codex
-é o runner Anthropic parametrizado por `--model <alias>`, que só aceita os aliases do mapa de prova
-— `opus`·`fable`·`sonnet`·`haiku` — e valida o prefixo do modelo antes de aceitar a saída).
+é o runner Anthropic parametrizado por `--model <alias-ou-id>`, que aceita `claude-opus-5-5`
+com identidade exata e os aliases legados com seus prefixos: `opus` → `claude-opus-5`,
+`fable` → `claude-fable-5-1`, `sonnet` → `claude-sonnet-5`, `haiku` → `claude-haiku-4-5`.
+Fable solicitado não é redirecionado; `OPUS_` no log e o nome do runner são contratos legados de fio).
+O runner não lê o elenco: toda chamada passa `--model` com o valor resolvido do host.
+Sem argumento, seu default segue `opus` por compatibilidade legada; a fábrica 5.5 exige
+`--model claude-opus-5-5` explícito, e o host confere identidade exata, não prefixo, para esse ID.
+
+**Gate de capacidade — ajuste, perfil e inicialização:** verifique somente os papéis que a operação altera.
+É global e vale para `init`, migração, perfil e criação de elenco ausente; não autoriza chamadas de prova.
+A prova se vincula a modelo + via + conta/host e registra modelo solicitado e observado, effort quando
+aplicável, mecanismo, sandbox, versão do executável/runtime, contexto de conta não sensível (rótulo
+local, sem login/token), data e recibo real. O recibo e os pressupostos ficam na thread do card,
+referenciada em `Revisores externos` para via externa e na justificativa do papel para via nativa.
+Catálogo não é prova; prova CLI não comprova spawn nativo e read-only não comprova escrita.
+Mudança nesses pressupostos exige revalidação; não há validade global entre contas, versões ou mecanismos.
+Sem prova, preserve o elenco inteiro (tabelas, presets e vias), não acione fallback e informe a limitação.
+Operação comum com padrão legado já comprovado conserva a capacidade e a política autorizadas; não exige nova
+sonda a cada uso. **Padrão legado comprovado** é uma combinação já usada e autorizada neste projeto, com recibo real consultável na
+thread. O Manager verifica a origem e a compatibilidade antes do despacho. É reaproveitamento de prova existente
+válida, nunca isenção de prova. Default, alias ou cache não certificam. Sem recibo ou se o contexto mudou, não
+despache essa operação. Não há sonda ou retry automáticos; prossiga com outras ações locais elegíveis. Quando o
+recibo válido ainda é compatível, o reuso dispensa sonda repetida em usos sucessivos.
+
+Fábrica nova e candidato não comprovado não viram fallback executável só porque a tabela não
+foi materializada. Adotar, gravar, promover, reativar ou executar candidato novo exige o gate específico e
+evidência contextual de executor, modelo, workspace e effort.
+Desligar exclusivamente uma via autorizada reduz exposição e é exceção expressa à nova sonda: anuncie o impacto
+e não escolha fallback. Reativar ou trocar via continua exigindo prova contextual e o gate específico. Remover
+override não recebe isenção genérica: pode promover fallback novo.
+Uma aquisição delimitada de prova autorizada exige autorização do dono para modelo/effort, mecanismo,
+sandbox, orçamento e número de chamadas; sem sondas ou retry silenciosos, nem promoção automática após falha.
+Com prova válida e aprovação do alvo, crie o elenco novo pelo template e referencie os recibos;
+em arquivo existente, aplique somente a alteração aprovada na seção do host.
+Na inicialização, valide todos os papéis a criar; sem prova, não crie nem reescreva o arquivo.
+O Manager permanece o modelo da sessão escolhido pelo dono; perfil ou template não troca a sessão viva.
+Effort declarado é solicitação, não observação nem garantia de qualidade: sonda `low` sem escrita
+não prova Luna6/medium ou Sol6.1/high/xhigh em `workspace-write`. Faixa mede risco e incerteza,
+não quantidade; o Manager justifica a escolha e conserva o piso de Alto risco.
 
 **Onde modelo forte se paga:** planner e reviewer. Um erro de plano custa a implementação inteira;
 um review fraco deixa passar o que vai quebrar depois. Docs e scout resolvem com modelo menor.
@@ -235,7 +281,7 @@ mesmo e declara a ausência. Não existe cair num revisor do mesmo fornecedor do
 ## Revisão independente
 
 Um revisor só, **sempre do fornecedor oposto ao do host**: no host Claude quem revisa é o GPT, no
-host Codex é o modelo Anthropic do elenco (hoje `fable`, Fable 5.1). A razão de existir do revisor é
+host Codex é o modelo Anthropic do elenco (candidato de fábrica `claude-opus-5-5`; override ativo preservado). A razão de existir do revisor é
 ser independente de quem escreveu — um revisor do mesmo fornecedor devolveria a aparência de revisão
 sem a independência que a justifica.
 
@@ -257,15 +303,17 @@ capacidade** das vias cross-vendor, não uma composição de painel:
 ## Revisores externos
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | ativo | `--model gpt-6-astra --effort max` (read-only) |
-| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | ativo | `scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido (hoje `fable` → `claude-fable-5-1`) · 16 KiB/lote · 600s |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | ativo | `--model gpt-6-astra --effort xhigh` pelo Companion (read-only) |
+| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | ativo | `scripts/run-opus-reviewer.py --model <alias-ou-id>` · identidade exata para `claude-opus-5-5`, prefixo para alias legado · 16 KiB/lote · 600s |
 ```
 
 Aqui, ativo significa política habilitada, não saúde de runtime: CLI, autenticação, modelo e saída
 são verificados a cada parecer. O modelo Anthropic escolhido roda por
-`orq/scripts/run-opus-reviewer.py --model <alias>`: briefings acima de 16 KiB são divididos por
-arquivo/hunk sem truncamento; cada lote tem timeout e só vale se o JSON comprovar o prefixo do alias
-pedido (hoje, `fable` exige `claude-fable-5-1`).
+`orq/scripts/run-opus-reviewer.py --model <alias-ou-id>`: briefings acima de 16 KiB são divididos por
+arquivo/hunk sem truncamento; cada lote tem timeout e só vale se o JSON comprovar a identidade exata
+de `claude-opus-5-5` ou o prefixo esperado do alias legado. Sem `--model`, o runner mantém o
+default legado `opus`; a fábrica usa o ID explícito `claude-opus-5-5`, e o consumidor sempre passa
+o modelo do elenco explicitamente.
 
 **Capacidade ausente não vira substituição.** Titular fora do ar (binário, autenticação, timeout,
 saída vazia) → **REVISÃO DEGRADADA** com a causa nomeada, e o card não avança sozinho. Diff com dado
@@ -296,6 +344,16 @@ travá-la**. É o que permite o modo noturno funcionar sem você.
 
 **Regras do board:** só o Manager move cards · `PLANNING → READY` exige sua aprovação explícita ·
 **commit não é critério de pronto** (card fecha em `VALIDATE`; você confirma usando o produto).
+
+**O medidor de progresso.** Na implementação, o Manager registra os passos do plano aprovado num
+ledger local (`.orq/progress/`, ignorado pelo Git) e a vista mostra a **fase** — que vem do board — e
+o **percentual do plano**, por exemplo `T-123 · revisão · 5/8 passos concluídos · 69% do plano`.
+100% do plano não é feito, só você fecha o card; para acompanhar num terminal ao lado, em qualquer
+host, rode `progress.py watch` (procedimento em `orq/skills/orq/references/progress.md`). Na barra
+completa do Claude (instalação opt-in do `/orq:init`), a sessão vinculada ao ledger mostra o andamento
+no fim da segunda linha, como `◎ T-123 · revisão · 5/8 · 69%`; sem medidor a barra não muda. No Claude
+e no Codex, um lembrete consultivo avisa o Manager, uma única vez, quando a execução segue sem plano
+registrado depois de algumas chamadas de ferramenta — ele nunca bloqueia nada.
 
 ---
 
@@ -402,7 +460,7 @@ orq/
 ├── agents/                       o time
 ├── skills/orq/SKILL.md           a disciplina (gatilhos naturais + regras)
 ├── stack.md                      catálogo da stack complementar (lido por IA)
-└── scripts/                      helpers (lint de coerência, guardiões, runners, board)
+└── scripts/                      helpers (lint de coerência, guardiões, runners, board, medidor de progresso)
 ```
 
 A **skill** é onde se mexe no comportamento geral (quando agir, o que é inviolável). Os **commands**
@@ -412,7 +470,8 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.27.11` (candidata local T-134; ainda não publicada) — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+`0.30.0` — fonte consolidada T-148: continuidade aprovada · identidade Companion · elenco/runner · medidor de progresso. Instalação e validação prática dos hosts permanecem separadas.
+· **medidor de progresso portátil** (fase do board + percentual dos passos do plano, `show`/`watch` em qualquer host, segmento na statusline do Claude e lembrete consultivo por hook nos dois hosts)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar
 auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**
