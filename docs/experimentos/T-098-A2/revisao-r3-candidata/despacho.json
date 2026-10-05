@@ -1,0 +1,14 @@
+{
+  "card": "T-098",
+  "round": "R3",
+  "state": "EXECUCAO_UNICA_CONCLUIDA_BLOCKED_FORMATO_INVALIDO",
+  "packet_bytes": 16115,
+  "packet_sha256": "a1500809c056cebdbee2953b38211fe20d33f81c0331155fdf9d287fdb1fdcf6",
+  "calls_started": 1,
+  "calls_completed": 1,
+  "orchestrator_retries": 0,
+  "requested_model": "claude-opus-5-5",
+  "authentication": "claude.ai_confirmada",
+  "destination": "Anthropic via Claude CLI",
+  "final_classification_payload_frozen": false
+}

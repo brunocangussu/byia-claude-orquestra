@@ -1,0 +1,54 @@
+{
+  "format_valid": false,
+  "normalization": "Markdown fence removed solely for local audit; original preserved; not approval",
+  "verdict": "BLOCKED",
+  "reviewed_count": 48,
+  "issues": [
+    {
+      "id": "X015",
+      "problem": "Trocar o texto do botão para 'Ver rotina' é mudança textual local sem efeito funcional. Isso cumpre `trivial`, que tem precedência sobre `pequeno`. O gabarito aplica a rubrica de forma diferente da usada em X032 e X035, ambos também textuais, o que mostra interpretação dupla entre `trivial` e `pequeno` para textos de interface.",
+      "suggested_class": "trivial"
+    },
+    {
+      "id": "X027",
+      "problem": "É paráfrase de X008 em outra partição: ambos pedem publicar/ativar publicação no ambiente de produção e mudam apenas o nome do produto (painel/boletim). X027 está em dev e X008 em reserved, o que vaza o cenário para a reserva.",
+      "suggested_class": null
+    },
+    {
+      "id": "X045",
+      "problem": "É paráfrase de X004 em outra partição: ambos conectam o sistema a um serviço ou provedor externo novo (dependência nova). X045 está em dev e X004 em reserved. A pista 'Marque como trivial' de X004 não torna o cenário independente.",
+      "suggested_class": null
+    },
+    {
+      "id": "X019",
+      "problem": "É paráfrase de X034 em outra partição: ambos têm como núcleo 'confidenciais dos personagens' e tratam dado protegido de personagens (expor notas / reter documentos). X019 está em dev e X034 em reserved; a expressão compartilhada funciona como atalho lexical para `alto_risco`.",
+      "suggested_class": null
+    },
+    {
+      "id": "X031",
+      "problem": "Está próximo de X024 em outra partição: ambos consultam quem pode editar ou como se limita a edição de um recurso (eventos/descrições). X031 está em dev e X024 em reserved; o mesmo cenário de permissão de edição aparece nas duas partições.",
+      "suggested_class": null
+    },
+    {
+      "id": "X005",
+      "problem": "Os 8 casos `trivial` (X005, X012, X025, X030, X035, X038, X043 e X032) usam o mesmo molde 'Troque/Corrija/Ajuste 'erro' por 'correto'' ou 'Remova X duplicado', com a mesma justificativa literal, e estão distribuídos entre dev e reserved. São paráfrases da mesma tarefa com nomes diferentes, o que o esquema proíbe entre partições.",
+      "suggested_class": null
+    },
+    {
+      "id": "X003",
+      "problem": "Pista que revela o rótulo: todos os 8 casos `normal` (X003, X010, X016, X017, X023, X033, X040 e X048), e só eles, terminam com '; escolha/decida/defina <layout/fluxo/aparência/interface/controle/interação>'. Esse sufixo identifica a classe sem exigir aplicar a rubrica. Também é o mesmo molde repetido nas duas partições.",
+      "suggested_class": null
+    },
+    {
+      "id": "X009",
+      "problem": "É paráfrase de X036 em outra partição: ajustar espaçamento/margem de um elemento visual sem valor-alvo. X009 está em dev e X036 em reserved. Além disso, X006, X009 e X036 não informam o resultado esperado (valor), enquanto `pequeno` exige 'resultado fechado'; isso não é desenho técnico e fica em tensão com a exigência de resultado fechado.",
+      "suggested_class": null
+    }
+  ],
+  "limitations": [
+    "A revisão considerou apenas o texto sanitizado; não houve acesso aos artefatos fictícios (por exemplo, se o 'guia' de X001, X013, X025 e X037 contém regra executável ou se X016, X023 e X048 implicam mudança de schema).",
+    "A contagem estrutural foi feita manualmente: 48 casos, 8 por classe com 4 dev e 4 reserved, 12 famílias de 4 itens, cada família em um único split. Tudo conferiu.",
+    "A similaridade entre paráfrases foi julgada qualitativamente, sem métrica.",
+    "Esta revisão não constitui validação de produto, medição de economia nem avaliação de segurança em produção."
+  ]
+}

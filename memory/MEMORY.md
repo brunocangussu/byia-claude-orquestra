@@ -4,7 +4,188 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.27.11 — candidata local T-134, ainda não publicada nem instalada. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-22 · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.27.11 — candidata local T-134, ainda não publicada nem instalada. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-26 (recuperação T-139) · **host padrão a partir de 2026-08-09: Codex**.
+
+**T-144 / T-146, 2026-10-04 — medidor de progresso portátil (`@frente-mods`):**
+- Feito a pedido do dono, que se perdia no `/goal` e no Loop B. A referência foi o Goal Meter, um
+  mod só do Claude; a solução é portátil para Claude, Codex e Orca.
+- Ledger por card/goal em `.orq/progress/`. A fase vem do board e o percentual dos passos do plano.
+  Vistas: `show`/`watch`, hook consultivo com lembrete único e segmento na statusline do Claude.
+- Fases 1 e 2 commitadas **só na branch** `claude/t144-medidor-progresso`, na worktree
+  `../byia-claude-orquestra-worktrees/t144-medidor-progresso`: `ba523e9` (0.28.0) e `064e726`
+  (0.29.0, versão candidata). Nada disso está na `main`.
+- Cards em `[?]`; fase 3 = `T-147`. A conciliação na `main` é do dono:
+  `../docs/handoff-claude-T-144-T-146-conciliacao-2026-10-04.md`.
+- O elenco do host Claude agora usa `gpt-6.1-sol@xhigh` no planner·sistema e no reviewer.
+- Thread: `wiki/threads/T-144-mods-claude-code.md`.
+
+**T-098 / T-131, 2026-09-24 — revisão e acesso CLI registrados:** índice, board canônico e threads
+relidos após compactação. Claude CLI atualizada de 2.1.278 para 2.1.280, Opus 5.5 comprovado por
+`modelUsage`. Migração local foi renomeada externamente para `t137-capacidade-modelos-runner`, sem
+perda aparente dos arquivos; conciliar referência com T-131 antes de nova escrita no produto.
+Sem bump/commit/push/cache; R1 autorizada executou cinco lotes Opus5.5, sem retry, com quatro grupos
+de correção auditados. Codex CLI global atualizada de 0.153.4 para 0.156.1, autorizada; Sol6 e Luna6
+responderam às duas sondas únicas em `low`, exit0, sem ferramentas/retry. Config, hooks e elenco
+preservados; acesso comprovado não ativa papéis. Benchmark em `../docs/plano_T-098-benchmark.md`: regras e
+Opus e JEV medidos; chave no Acesso às Chaves, autenticação confirmada. Uma chamada Jev 1.13.0,
+24 casos fictícios, 22/24 acertos, 8/8 alto risco, sem retry; US$ 0,00025074 estimados, sem ativar
+roteamento. A2 aprovada para avançar; protocolo/briefings em `../docs/experimentos/T-098-A2/`.
+Autoria Terra + revisão Opus 5.5 autorizadas e executadas, 1 chamada cada; amostra reprovada.
+Quatro causas-raiz da R1 em `../docs/experimentos/T-098-A2/auditoria-revisao.md`.
+A amostra R2 foi corrigida localmente; revisão Opus adicional em 2026-09-25 retornou JSON
+válido `BLOCKED`, por moldes de classe, dois gabaritos ambíguos e cobertura desigual de risco.
+JEV/Luna A2 seguem 0/4 cada. O custo Opus R2 de tabela foi US$ 1,636352, anômalo e sem causa
+provada; auditar antes de novo gate externo. Ver `../docs/experimentos/T-098-A2/auditoria-revisao-r2.md`.
+T-138 avaliou Agency Agents no SHA `053ddbb`: recomendar perfis seletivos, não outro Manager;
+relatório em `../docs/analise_T-138-agency-agents.md`; piloto seletivo aprovado, perfil API Tester v1
+e contratos B2 em `../docs/experimentos/T-138/`, ainda sem execução, instalação ou chamadas novas. Elenco vivo e
+worktrees T-096/T-123/T-125/T-128/T-130 preservados; estados nas threads T-098 e T-131.
+
+**T-139, 2026-09-25 — especialização dos papéis centrais:** pedido de ampliar a análise do
+Agency Agents para Manager, Planner e Reviewer, sem confundir perfil de instruções com modelo
+treinado. Comparação com contratos reais da Orquestra e desenho de ablation por papel em
+`wiki/threads/T-139-especializacao-papeis.md`. Direção aprovada: Manager único,
+skills compactas por domínio e gates preservados. Worktree isolado T-139 contém
+compositor e skills de Planner/Reviewer em piloto, ainda sem instalação, mudança de
+elenco ou adoção. Dois baselines sintéticos do Planner (Astra `max` e Luna
+`medium`) atingiram 5/5; os casos não discriminam ganho. O runner Anthropic
+recusou `haiku` ao observar `sonnet` no uso efetivo; T-098 A2 segue bloqueado e T-138 B2
+não executado. Suíte 432/432; skill de domínio exige opt-in `--pilot T-139` e
+os blocos de despacho fixam `none` por chamada para não herdar piloto de outro
+card; lint do worktree candidato acusa apenas cache
+0.27.10 divergente, sem bump/instalação. Retomar pela thread para os limites
+da bancada: `--ignore-user-config` reduziu o preflight sintético a 17.381
+tokens de entrada e zero evento de ferramenta, mas não deu recibo do modelo.
+R-004 foi congelado; A/B rejeitado antes do envio por incluir instruções
+internas do plugin. R-005 e P-003 foram retiradas por risco de efeito-teto;
+M-001 só serve como smoke de autoridade. R-006 foi retirada sem chamada:
+seu enunciado entregava os dois defeitos. R-007 cega foi composta localmente
+com oráculo separado; a autorização pedida para R-006 está obsoleta, não
+transferível. P-004 usa snapshot histórico anterior ao T-071, mas foi
+rebaixada a controle local por risco alto de efeito-teto. O gate de egress
+R-007/P-005 foi autorizado depois, mas o ensaio não gerou prova de ganho;
+ver o checkpoint final da thread.
+RED/GREEN local corrigiu a perda do LF final em `$(...)` nos dois comandos;
+o recibo agora corresponde à variável shell. Novo RED/GREEN corrigiu o caminho
+padrão sem `ROLE_SKILL`/`ROLE_PILOT`: ambos davam briefing vazio; agora usam
+`none`, com 429/429 testes. Falta prova da sessão Codex e de qualidade A/B.
+P-005 substitui P-004 como candidata Planner, com fixture/rubrica separadas
+e A/B compostos apenas localmente; nenhuma inferência foi feita.
+M-001 permanece smoke: seu enunciado antecipa a rubrica e o contrato-base
+do Manager já excede sozinho o teto de 16 KiB do runner Anthropic.
+M-002 foi congelado, mas a pré-auditoria o rebaixou a controle de autoridade
+por efeito-teto provável; A/B não executado. R-007/P-005 seguem candidatos.
+Em 2026-09-26, três chamadas sintéticas Luna `low` (R-007/A, R-007/B,
+P-005/A) registraram erro inicial de code-mode desativado; R-007/B e
+P-005/A recusaram trabalhar sem ferramentas. P-005/B não foi chamada,
+sem retry. Os JSONL/saídas foram preservados no worktree T-139 e a
+comparação foi invalidada, sem alegar ganho nem economia. T-139 está
+em `[~]` para corrigir o protocolo local; qualquer novo envio exige
+gate delimitado.
+O preflight local seguinte criou os casos fictícios R-008/P-006, com
+workspaces A/B e rubricas separadas, gate JSONL fail-closed e runner de
+uma chamada com hashes aprovados. A bancada passou 30/30 testes e a suíte
+do plugin 432/432; nenhuma inferência nova foi feita. A prova local de
+sandbox não comprova a via `codex exec` nem o modelo efetivo. Hashes e
+limites estão no resultado preliminar do worktree; novo A/B exige gate.
+O manifesto R-008/P-006 também vincula rubrica e teto; recibos vinculam
+resposta/plano e a nota A exige seis critérios com evidência antes de liberar
+B. Bancada local 44/44, sem nova chamada externa ou ganho demonstrado.
+Controle limpo R-009 do Reviewer preparado localmente, com patch reversível,
+oráculo separado e execução file-backed dos dois consumidores. Controle
+limpo P-007 do Planner confirma quatro anchors 0.4.2 e mutação detectada;
+bancada 50/50. Terceiras tarefas R-010 (override de autoridade) e P-008
+(thread de worktree apontando à main) também preparadas com RED/GREEN;
+bancada 55/55. Pré-auditoria bloqueou B com modelo/effort diferente de A ou
+recibo A sem vínculo ao snapshot; bancada 58/58. Faltam respostas para
+replicação e gate novo para qualquer A/B. Seis snapshots congelados em
+`../docs/T-139-preflight-freeze.json`, recomposição local 59/59.
+Em 2026-09-26, testes de entrega exata dos bytes A/B ao CLI fictício elevaram a
+bancada a 62/62; o runner também recusa manifesto divergente do congelamento,
+mesmo com hashes novos na chamada. R-008/A foi a única chamada nova de modelo, com recibo
+estrutural válido, workspace intacto, 117.347 tokens de entrada (99.840 em
+cache) e nota local provisória 1/6; modelo efetivo ainda sem prova. R-009/A
+foi barrada antes da CLI por revisão de permissões: instruções/patch internos
+exigem autorização de egress mais específica. Nenhum retry, B ou outro caso
+foi executado. Estado e recibos na thread T-139 e no worktree isolado.
+Após gate específico do dono, R-009/A e R-010/A produziram recibos
+estruturais válidos, ainda sem nota independente; P-006/A foi inválido
+(`PLAN_MISSING`, plano vazio) por capacidade de escrita não comprovada do
+perfil isolado. Na etapa seguinte, a falha de escrita foi reproduzida sem
+modelo e corrigida na bancada macOS com leitura mínima das Command Line
+Tools; P-007/A e P-008/A foram chamadas uma vez cada e saíram válidas.
+Dos seis A, cinco têm recibo estrutural válido; P-006/A permanece inválido,
+sem repetição. Bancada T-139 73/73, suíte do plugin 432/432, manifesto
+estrito e Ruff verdes; lint acusa somente divergência fonte/cache 0.27.10.
+Cinco briefings de nota independente foram preparados **sem envio**, com
+hashes em `../docs/T-139-inventario-egress-avaliacao-A.md`. Falta gate
+específico para Anthropic via Claude CLI e pontuação independente; B e
+adoção não autorizados. O gate local de B agora exige indicadores booleanos
+de falso achado crítico e violação de escopo na nota A, sem bloquear B por
+um erro do baseline. P-009, terceiro caso sintético Planner, foi preparado e
+testado somente em bancada local, fora dos seis snapshots congelados. O
+gerador de nota agora recusa marcadores estruturais na resposta/plano;
+cinco briefings preservaram os hashes. P-009 tem snapshot de preflight
+separado `LOCAL_ONLY`, sem registro no runner nem egress; bancada 79/79,
+sem chamada externa ou nota. Recibos e JSONL estão no worktree isolado;
+ver a thread.
+Após aprovação específica do dono, os cinco briefings A foram enviados uma
+única vez cada ao Anthropic via Claude CLI `opus` (modelo comprovado
+`claude-opus-5-5`), sem ferramentas nem retry. Notas auditadas: R-008 1/6,
+R-009 2/6, R-010 5/6, P-007 5/6 e P-008 5/6. R-009 devolveu os dois
+indicadores booleanos em objetos; a nota auditada converte apenas
+`present`, preservando o parecer bruto. Hashes de pacote, recibo,
+resposta/plano e rubrica conferidos nos cinco casos. P-006/A segue
+inválido; P-009 segue apenas local. B, segunda avaliação cega, replicação,
+custo até aceite e adoção continuam pendentes; nenhum ganho está provado.
+Após novo gate do dono em 2026-09-26, cinco B congelados foram chamados uma
+vez cada via `codex exec`, sem retry, e deram recibos estruturais válidos.
+Cinco pacotes cegos B foram preparados localmente; a avaliação independente,
+replicação e custo até aceite ainda faltam. O modelo efetivo não consta dos
+recibos; não inferir ganho nem economia. O estado atual está na thread T-139.
+Auditoria antes da pontuação B encontrou caminhos que revelavam A/B em
+três briefings A antigos e contradição entre rubrica e memória do controle
+R-009. Dez pacotes A/B v2 foram neutralizados e auditados; R-009 não vale
+como controle limpo, e R-008/B tem achado alto falso verificável. Ver
+`../docs/T-139-auditoria-local-B.md`; avaliação independente e adoção seguem
+pendentes. R-011 substitui localmente o controle contraditório: patch
+reversível e casos sucesso/falha/vazio testados, hashes A/B congelados localmente e
+nenhuma nova chamada de modelo; falta gate para execução e pontuação.
+Nos cinco pares A/B já executados, B somou 700.041 tokens de entrada e
+11.258 de saída, contra 594.710 e 7.648 em A; os JSONL não provam o
+modelo efetivo. Não alegar economia nem custo até aceite com essa amostra.
+O próximo gate proposto está inventariado em
+`../docs/T-139-inventario-egress-pos-B.md`: cinco pacotes fixos de
+pontuação, sem retry e sem novas chamadas A/B; R-011 fica para gate próprio.
+Em 2026-09-27, duas notas cegas adicionais foram enviadas uma vez cada:
+R-008/A à Codex CLI (`gpt-6-astra@max` pedido, modelo efetivo não exposto) e
+M-004/A à Claude CLI (`claude-opus-5-5` comprovado). R-008 recebeu 5/6 na
+reauditoria local após correção RED/GREEN do validador, que rejeitava `0/1`
+apesar de o briefing pedir `0/1`; o recibo original inválido foi preservado.
+M-004 trouxe corpo 7/7 provisório, mas a saída cercada por Markdown viola
+JSON puro e o recibo segue inválido. Sem retry, B, adoção ou prova de economia;
+estado e hashes na thread T-139 e na auditoria do worktree isolado.
+O dono aceitou a reauditoria R-008/A 5/6. A nota derivada vinculada às
+evidências externas passou no gate local, e o preflight de R-008/B congelado
+(9.537 bytes) passou sem chamada; egress de B exige gate específico.
+O dono autorizou esse gate: R-008/B foi enviado uma única vez pela Claude CLI
+ao `claude-opus-5-5`, sem retry. Resposta e recibo estão no worktree T-139;
+o runner marcou `STRUCTURAL_ONLY`, não qualidade aprovada. O dono autorizou
+em seguida a nota cega de B: uma chamada Codex CLI solicitando Astra@max,
+sem retry, com zero ferramentas e parecer estrutural válido. B recebeu 5/6,
+igual a A; ambos omitem a mutação explícita. B custou 18,7% mais na geração
+segundo a Claude CLI. Baseline mantido; próximo desenho local exige amostra
+inédita e controle sem defeito para testar uma regra curta de mutação. A CLI
+não comprovou o modelo efetivo do avaliador. Não houve adoção.
+Em 2026-09-28, o pacote A/B/C R-011/R-012/P-009 ganhou runner local de uma
+chamada com invocação congelada por SHA e gates A→B→C; CLIs falsas testaram
+as duas vias sem egress. O modelo efetivo do Codex, a nota cega e o custo
+até aceite ainda faltam. Ver o checkpoint final da thread T-139; sem adoção.
+O gate local de nota cega A/B/C foi acrescentado depois: pacote sanitizado,
+avaliação cross-vendor com recibo/transcript vinculado e custo acumulado
+até o teto cego, tudo testado com CLIs falsas. Ainda não há notas reais,
+custo até aceite humano, réplica ou prova do modelo efetivo Codex; ver a
+thread T-139. Nenhum egress ou adoção nesta etapa.
 
 **T-044 aprovado para integração, 2026-09-21:** os seis bloqueadores confirmados da R2 foram
 corrigidos com RED/GREEN e mutantes específicos; a suíte fresca passou 414/414, o manifesto estrito
@@ -443,6 +624,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-052-reconciliacao.md`](wiki/threads/T-052-reconciliacao.md) | **Thread ativa** — o plano e as 5 decisões da reconciliação `0.24.0` local × `0.22.7` publicada |
 | [`wiki/threads/T-054-economia-tokens.md`](wiki/threads/T-054-economia-tokens.md) | **Thread ativa** — a frente de economia de tokens: o diagnóstico, o baseline medido, o que o parecer mudou e o **⏭️ RETOMAR AQUI** |
 | [`wiki/threads/T-054-pareceres.md`](wiki/threads/T-054-pareceres.md) | **Evidência durável** — o parecer cross-vendor íntegro e a auditoria do Manager, que corrigiu um achado e confirmou outro |
+| [`wiki/threads/T-144-mods-claude-code.md`](wiki/threads/T-144-mods-claude-code.md) | **Em espera (`@frente-mods`)** — medidor de progresso portátil: análise dos mods, plano, rodadas de revisão, fases 1–2 na branch `claude/t144-medidor-progresso`, ledger T-146 e **⏭️ RETOMAR AQUI** |
 | [`wiki/threads/T-072-claude-mem.md`](wiki/threads/T-072-claude-mem.md) | **No gate** — o papel do claude-mem, a fiação de busca que nunca existiu, e a correção de uma medição minha que estava 4,4× errada |
 | [`wiki/threads/T-078-ai-memory.md`](wiki/threads/T-078-ai-memory.md) | **Ativa** — o AI-Memory 2.0: parecer do planner, revisão que derrubou o piloto, os 3 estágios, a decisão do dono contra a recomendação, e o root cause do Codex não capturar |
 | [`wiki/threads/_notas-de-cards.md`](wiki/threads/_notas-de-cards.md) | As notas longas que saíram do board na migração do `T-056`, íntegras, por ID de card. **Não é thread** — não tem RETOMAR AQUI |

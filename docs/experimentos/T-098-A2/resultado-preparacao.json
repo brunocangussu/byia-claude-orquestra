@@ -1,0 +1,96 @@
+{
+  "status": "blocked_before_classification",
+  "reason": "sample_semantic_review_blocked_and_format_invalid",
+  "author_calls": 1,
+  "gold_review_calls": 1,
+  "jev_a2_calls": 0,
+  "luna_a2_calls": 0,
+  "retries_by_manager": 0,
+  "author": {
+    "model_requested": "gpt-5.6-terra",
+    "model_reported": null,
+    "effort": "xhigh",
+    "thread_id": "01a0d61f-ddd1-7150-887d-e239487845b7",
+    "elapsed_ms": 124206,
+    "exit_code": 0,
+    "tool_items": 0,
+    "usage": {
+      "input_tokens": 19647,
+      "cached_input_tokens": 6912,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 6539,
+      "reasoning_output_tokens": 4301
+    }
+  },
+  "review": {
+    "model_reported": [
+      "claude-opus-5-5"
+    ],
+    "session_id": "67767ae1-7b6e-4da7-a928-331234dcccfe",
+    "elapsed_ms": 45499,
+    "exit_code": 0,
+    "cli_calls": 1,
+    "usage": {
+      "input_tokens": 2,
+      "cache_creation_input_tokens": 7731,
+      "cache_read_input_tokens": 531,
+      "output_tokens": 4825,
+      "output_tokens_details": {
+        "thinking_tokens": 3421
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 7731,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 4825,
+          "cache_read_input_tokens": 531,
+          "cache_creation_input_tokens": 7731,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 7731
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "model_usage": {
+      "claude-opus-5-5": {
+        "inputTokens": 2,
+        "outputTokens": 4825,
+        "cacheReadInputTokens": 531,
+        "cacheCreationInputTokens": 7731,
+        "webSearchRequests": 0,
+        "costUSD": 0.1584622,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "thinkingTokens": 3421,
+        "canonicalModel": "claude-opus-5-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "total_cost_usd_equivalent": 0.1584622,
+    "cost_basis": "list per modelUsage; not subscription invoice",
+    "format_valid": false,
+    "inner_verdict": "BLOCKED",
+    "reviewed_count": 48,
+    "findings": 8
+  },
+  "limitations": [
+    "No new JEV/Luna inference",
+    "No adoption or measured A2 accuracy",
+    "No retry by Manager; internal CLI transport retries not instrumented",
+    "OpenAI receipt exposes requested model, not independent resolved model metadata",
+    "Reserved cases opened only to audit review blockers; not a completed blind evaluation"
+  ]
+}

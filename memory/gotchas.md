@@ -882,3 +882,19 @@ perde.
 substituir — é o que o host Claude já faz e o que o preflight do `instalar.md` tenta proteger, sem
 sucesso, porque o instalador remove depois. Restaurar o diretório apagado destrava a sessão viva sem
 reiniciá-la.
+
+## Medidor: `done` encadeado com os gates marca passo como concluído com a suíte vermelha — 2026-10-04
+
+No T-146, o Manager rodou os gates e o `progress.py done` no mesmo comando. A suíte falhou (um teste
+de documentação fixava a frase antiga), mas o `done` gravou mesmo assim e o `watch` do dono subiu para
+100%. A correção foi `reopen` (o passo volta a `pending`), corrigir, gates verdes, `start` e `done`.
+**Regra:** `done` só depois de **ler** o exit dos gates, num comando separado. O medidor guarda o que
+o Manager declara; ele não sabe se a evidência é verdadeira.
+
+## Worktree do Claude dentro do repositório quebra a suíte da `main` — 2026-10-04
+
+`.claude/worktrees/<agente>/` fica **dentro** do checkout principal, e guardas que varrem o repo
+(ex.: `test_observation_types_guard`, `T-142`) leem os arquivos da worktree aninhada como se fossem
+da `main`. Para trabalho isolado que não pode afetar outras frentes, a worktree vai **fora** do
+repositório (ex.: `../byia-claude-orquestra-worktrees/<card>/`) e é liberada para a sessão por
+pedido de diretório, nunca por `isolation: "worktree"`.

@@ -1,0 +1,29 @@
+{
+  "stage": "A2_R2_gold_review",
+  "authorship": "manager_local_revision_after_independent_R1",
+  "new_author_model_call": false,
+  "sample": {
+    "path": "amostra-r2.json",
+    "sha256": "3aa96a93ac4b40821570d2f7d0eb1f33db14d3eb4286015d864170924185ea9f",
+    "cases": 48,
+    "per_class": 8,
+    "per_class_per_split": 4,
+    "families": 12
+  },
+  "review_request": {
+    "path": "revisao-r2-pacote.txt",
+    "sha256": "decc8bf6dbb0c641f8540711654a836dc49d3fc709ad1b8085cecebc5e80f8aa",
+    "bytes": 10046
+  },
+  "review_result": {
+    "path": "revisao-r2-parecer.json",
+    "sha256": "6d7794df80465acc9936d9cd33f32ddba633590e9f5d02bd7dc97cd34945381d",
+    "verdict": "BLOCKED",
+    "format_valid": true
+  },
+  "classifier_calls": {
+    "jev": 0,
+    "luna": 0
+  },
+  "rubric_and_prompts_changed_since_R1": false
+}

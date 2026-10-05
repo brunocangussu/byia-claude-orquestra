@@ -1,0 +1,30 @@
+{
+  "status": "blocked_before_classification",
+  "reason": "sample_semantic_review_r2_blocked",
+  "sample": "amostra-r2.json",
+  "author_calls": 1,
+  "gold_review_calls": 2,
+  "jev_a2_calls": 0,
+  "luna_a2_calls": 0,
+  "agency_b2_calls": 0,
+  "retries_by_manager": 0,
+  "review_r2": {
+    "model_reported": "claude-opus-5-5",
+    "exit_code": 0,
+    "format_valid": true,
+    "verdict": "BLOCKED",
+    "reviewed_count": 48,
+    "findings": 5,
+    "elapsed_ms": 45717,
+    "request_bytes": 10046,
+    "request_sha256": "decc8bf6dbb0c641f8540711654a836dc49d3fc709ad1b8085cecebc5e80f8aa",
+    "total_cost_usd_list": 1.636352
+  },
+  "limitations": [
+    "R2 tem autoria mista do Manager, não novo autor independente",
+    "Nomes de família e split não seriam enviados aos classificadores; moldes de texto ainda são enviesados",
+    "Nenhuma inferência JEV/Luna A2 nem execução Agency B2 foi feita",
+    "Custo de tabela do CLI não é cobrança de assinatura; causa do valor anômalo não foi provada",
+    "A revisão adicional autorizada foi consumida e não haverá retry"
+  ]
+}

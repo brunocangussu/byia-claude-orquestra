@@ -8,7 +8,17 @@
 
 ## ⏸️ Esperando você
 
+- [!] `T-143` 🔴 P0 — R7 Opus 5.5 GO, dois bloqueadores corrigidos e auditoria fechada; 465 testes/manifesto/lint/diff frescos verdes. Autenticação oficial recuperada; nenhum review pendente deste snapshot. Próximo gate: conciliação/entrega, sem Git/bump/release/instalação · sistema/normal · → threads/T-143-continuidade-aprovada.md @frente-continuidade @codex
+
+
+- [~] `T-138` Agency Agents — piloto seletivo aprovado; suplemento API Tester v1 e quatro contratos B2 preparados localmente. Aguardar A2, tokenização/capacidade da via e orçamento antes das 16 execuções; sem instalação, elenco alterado ou resultado medido · sistema/pesada · → threads/T-138-agency-agents.md @frente-jev-router @codex
+
+- [~] `T-139` Papéis especializados — A/B/C local com 3 casos sintéticos; geração e nota cega cruzada com recibos e custo até teto testados só com CLIs falsas, sem egress. P-008 deu sinal isolado 5/6→6/6; R-008 empatou 5/6, com B 18,7% mais caro. Faltam execução real aprovada, réplicas, custo até aceite humano e prova do modelo efetivo Codex; Manager M-004 inválido, sem retry. Sem adoção · sistema/pesada · → threads/T-139-especializacao-papeis.md @frente-jev-router @codex
+
+
 - [!] `T-094` B1 Luna — G/H 2/2; achado H válido, gate formal falhou; guarda isolada/desligada. Autoriza corrigir bloqueador T-062 e fazer só R7? · → threads/T-094-mini-revisor-luna.md @frente-gauntlet @codex
+
+- [~] `T-089` Pronto na branch `claude/t089-companion-identidade`, com patch p/ T-131/T-143; estacionado até eles fecharem · sistema/normal · → threads/T-089-companion-resume.md @frente-companion-runtime @claude
 
 - [?] `T-081` `OBSERVATION_TYPES` é chave morta — 0.27.6 publicada e instalada nos 2 hosts pela janela Claude, `exit 0`; falta restart e sua validação · → threads/T-072-claude-mem.md @frente-economia
 - [x] `T-020` Perfis de elenco — validado em 2026-09-07: agente sem contexto de teste ouviu a frase e trocou o time inteiro, com o que muda, o que se perde e como reverter · → threads/T-020-perfis-elenco.md
@@ -17,6 +27,15 @@
 ---
 
 ## 🟡 Fazendo
+
+- [~] `T-148` Conciliação das branches — entrega à main/local e GitHub delegada pelo dono; preservar snapshots GO, contratos T-089/T-144/T-146 e documentação alheia, gates completos por lote, sem restart de sessões vivas · sistema/pesada · → threads/T-148-consolidacao-main.md @frente-consolidacao @codex
+
+
+- [!] `T-131` Modelos — R9 Opus 5.5 GO, auditoria fechada com ressalvas não bloqueantes; 525 testes locais verdes e snapshot preservado. Próximo gate: conciliação/entrega, sem repetir review; elenco vivo/T-089 intactos, sem adoção/Git/release · sistema/normal · → threads/T-131-opus-55.md @frente-elenco-opus55 @codex
+
+- [!] `T-098` JEV — R9 Opus 5.5 GO para bancada v6, auditoria fechada; 447 + 31 testes locais verdes, v5/adjudicações preservadas. Review desta correção encerrado; campanha/adoção exigem gate próprio, A2/B2 zero; sem Git/release · sistema/pesada · → threads/T-098-jev-router.md @frente-jev-router @codex
+
+- [>] `T-141` Orca como IDE principal — desenho portátil preparado: Manager único, agentes via CLIs, despacho/recibos e hooks AI-Memory; sem migração nem execução de agentes. Revisar o desenho antes do piloto · sistema/pesada · → threads/T-141-orca-ide.md @frente-orca-portabilidade @codex
 
 - [x] `T-079` GPT-6 Astra no planejamento e na revisão, Fable 5.1 nomeado — validado por você nos dois hosts em 2026-09-06 · → threads/T-079-gpt6-astra.md
 
@@ -32,6 +51,8 @@
 
 ## 🟣 Validar
 
+- [?] `T-146` Medidor fase 2 — 0.29.0 commitada (064e726) na branch claude/t144-medidor-progresso; teste: watch, lembrete e segmento na statusline · → threads/T-144-mods-claude-code.md @frente-mods
+- [?] `T-144` Medidor de progresso fase 1 — 0.28.0 commitada (ba523e9) na branch claude/t144-medidor-progresso; teste: acompanhe o watch durante a fase 2 · → threads/T-144-mods-claude-code.md @frente-mods
 - [?] `T-075` claude-mem nos 2 hosts — patch, restart, caches e canários verificados; pool 3 provado com quatro sessões reais; falta validação prática do dono · sistema/pesada · → threads/T-072-claude-mem.md @frente-economia
 
 - [?] `T-078` AI-Memory global — Claude e Codex capturam; usar 1–2 semanas e reavaliar ganho vs. claude-mem · trilha: sistema · faixa: pesada · → threads/T-078-ai-memory.md
@@ -53,6 +74,12 @@
 ---
 
 ## 🔵 Backlog
+
+- [ ] `T-147` Medidor fase 3 — PLANO JÁ APROVADO (T-144): procedimento Orca + watch multi-raiz; antes, decidir espelho opt-in via update_plan no Codex · sistema/normal · → threads/T-144-mods-claude-code.md @frente-mods
+- [ ] `T-145` Contagens fixas de testes envelhecem no README (:384/:389) e distribuicao.md (:30/:116) — trocar por "a suíte descoberta" · sistema/leve · → threads/T-144-mods-claude-code.md @frente-mods
+- [ ] `T-142` Guarda de OBSERVATION_TYPES varre checkout histórico aninhado do Claude — main 447 testes/1 falha; guarda idêntica ao HEAD e testemunhas anteriores às R4. Registro/repro read-only; planejar fronteira da fonte sem remover checkout ou enfraquecer guarda · sistema/normal · → threads/T-142-guarda-checkouts-aninhados.md @frente-prontidao-jev
+
+- [ ] `T-140` Pi como executor opcional — estudo feito; JSON/RPC pode melhorar recibos de modelo/uso, ainda sem prova em runtime. Piloto isolado após T-139 e gate próprio, sem instalação ou adoção · sistema/pesada · → threads/T-140-pi-harness.md
 
 - [x] `T-097` Limpeza histórica — validado em 2026-09-22: raiz + T-096 ativo; 28 referências reversíveis e 4 refs remotas preservadas · → threads/T-097-organizacao-worktrees.md
 - [x] `T-080` Preset `padrao` diverge da tabela ativa sem o lint acusar — validado por você em 2026-09-06: a divergência foi acusada com papel, valor ativo e valor do preset · → threads/T-079-gpt6-astra.md
@@ -117,7 +144,6 @@
 - [ ] `T-092` Manager também trabalha em worktree por tarefa, removido ao integrar — hoje a regra só vale para o implementer spawnado · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
 - [~] `T-087` Adaptador determinístico monta os argumentos por código — APROVADO em 2026-09-08; o intermediário deixa de montar a chamada · trilha: sistema · faixa: pesada @claude · → docs/plano_coexistencia_hosts.md
 - [ ] `T-088` A guarda do `T-080` derruba a suíte se o perfil ativo não for `padrao` — o teste muta `padrao` fixo · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
-- [ ] `T-089` 🔴 O reúso `card+papel` da 0.27.2 não funciona — `--resume-thread` não existe no cache 1.0.5, que é o escolhido · trilha: sistema · faixa: normal · → docs/plano_coexistencia_hosts.md
 - [!] `T-093` 🔴 Atualizar o plugin MATA a sessão viva do Codex — o cache antigo é apagado e o hook resolvido no boot aponta pro que sumiu · trilha: sistema · faixa: pesada · → memory/gotchas.md
 - [ ] `T-090` O produto manda passar `--wait` ao `task`, que não é opção dele — está em `revisar.md`, `plan-next.md` e no `_elenco.md` · trilha: sistema · faixa: leve · → docs/plano_coexistencia_hosts.md
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md

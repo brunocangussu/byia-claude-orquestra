@@ -1,0 +1,62 @@
+{
+  "recorded_at_utc": "2026-09-30T02:12:28Z",
+  "scope": "STATUS_SOMENTE_SEM_INFERENCIA",
+  "cli_version": "2.1.280 (Claude Code)",
+  "probes": [
+    {
+      "surface": "context-mode",
+      "args": ["auth", "status"],
+      "exit": 1,
+      "json_valid": true,
+      "logged_in": false,
+      "auth_method": "none",
+      "stderr_present": false,
+      "timed_out": false
+    },
+    {
+      "surface": "context-mode",
+      "args": ["--safe-mode", "auth", "status"],
+      "exit": 1,
+      "json_valid": true,
+      "logged_in": false,
+      "auth_method": "none",
+      "stderr_present": false,
+      "timed_out": false
+    },
+    {
+      "surface": "exec_command",
+      "args": ["auth", "status"],
+      "exit": 1,
+      "json_valid": true,
+      "logged_in": false,
+      "auth_method": "none",
+      "stderr_present": false,
+      "timed_out": false
+    },
+    {
+      "surface": "context-mode-comparacao",
+      "args": ["auth", "status"],
+      "exit": 1,
+      "json_valid": true,
+      "logged_in": false,
+      "auth_method": "none",
+      "stderr_present": false,
+      "timed_out": false
+    }
+  ],
+  "normal_config_directory_matches_across_surfaces": true,
+  "normal_config_directory_sha256": "df888abbc4127cc55879ed27bf215036e3d213c8823d19b2d2db7ef21e7841bf",
+  "config_dir_override_present_across_normal_surfaces": false,
+  "inference_calls": 0,
+  "code_payload_transmitted": false,
+  "credential_values_recorded": false,
+  "login_logout_or_config_change": false,
+  "conclusion": "A autenticação está indisponível nestas execuções CLI da sessão Codex. Não é uma diferença demonstrada entre context-mode e exec_command.",
+  "not_proven": [
+    "Estado do login no terminal do dono ou em sessões Claude vivas",
+    "Causa da indisponibilidade: expiração, acesso ao Keychain ou outra condição",
+    "Causa do custo histórico da R2",
+    "Autenticação, modelo ou custo de uma inferência em safe-mode"
+  ],
+  "next_gate": "Não despachar a revisão; resolver o acesso CLI sem token manual, logout ou reautenticação implícita, e obter a autorização específica do pacote."
+}

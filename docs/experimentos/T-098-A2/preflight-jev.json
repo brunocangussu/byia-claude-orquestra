@@ -1,0 +1,22 @@
+{
+  "source": "https://docs.typesafe.ai/models",
+  "api_source": "https://docs.typesafe.ai/api",
+  "verified_date_local": "2026-09-24",
+  "model": "jev-1.13.0",
+  "price_usd_per_million_input_tokens": 0.042,
+  "price_usd_per_million_output_tokens": 0,
+  "max_request_tokens": 64000,
+  "max_state_plus_longest_question_tokens": 32000,
+  "max_calls": 4,
+  "conservative_cost_upper_bound_usd": 0.010752,
+  "authorized_budget_usd": 0.02,
+  "endpoint": "https://api.typesafe.ai/v1/systemone",
+  "transport": "HTTPS direto; TLS validado; sem redirecionamento, proxy herdado, SDK ou retry",
+  "credential_read": false,
+  "api_calls_started": 0,
+  "limitations": [
+    "Preço consultado, não extrato de cobrança",
+    "Cada pergunta deve citar seu ID no texto; a chave do mapa não entra na inferência",
+    "Nenhum payload será enviado antes de amostra e gabarito aprovados"
+  ]
+}

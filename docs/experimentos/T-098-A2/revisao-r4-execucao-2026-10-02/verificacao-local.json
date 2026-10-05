@@ -1,0 +1,184 @@
+{
+  "gates": [
+    {
+      "host_source": "main",
+      "gate": "suite",
+      "exit": 1,
+      "elapsed_seconds": 50.736,
+      "tests": 447,
+      "ok_marker": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e6918f6d13b6c72c9c6356d7827ba3fa5c69b09ee5e42e605395a418f4465975",
+      "failure_tail": "..........................................................................................................................................................................................................................................................................................F.....................................................\n======================================================================\nFAIL: test_superficies_prescritivas_nao_prescrevem_chave_morta (test_observation_types_guard.ObservationTypesGuardTest.test_superficies_prescritivas_nao_prescrevem_chave_morta)\nA regressão é prescrição funcional, não a menção histórica da chave.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/Users/brunocangucu/Projetos DEV - Cursor/byia-claude-orquestra/orq/scripts/test_observation_types_guard.py\", line 112, in test_superficies_prescritivas_nao_prescrevem_chave_morta\n    self.assertEqual(achar_prescricoes_mortas(REPO_ROOT), [])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['.claude/worktrees/agent-a054e5c8dd838fcb[279 chars].py'] != []\n\nFirst list contains 4 additional elements.\nFirst extra element 0:\n'.claude/worktrees/agent-a054e5c8dd838fcb5/docs/superpowers/plans/2026-09-08-t081-observation-types.md'\n\n+ []\n- ['.claude/worktrees/agent-a054e5c8dd838fcb5/docs/superpowers/plans/2026-09-08-t081-observation-types.md',\n-  '.claude/worktrees/agent-a054e5c8dd838fcb5/memory/fixes-history.md',\n-  '.claude/worktrees/agent-a054e5c8dd838fcb5/memory/gotchas.md',\n-  '.claude/worktrees/agent-a054e5c8dd838fcb5/orq/scripts/test_observation_types_guard.py']\n\n----------------------------------------------------------------------\nRan 447 tests in 50.503s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "host_source": "main",
+      "gate": "manifesto",
+      "exit": 0,
+      "elapsed_seconds": 0.824,
+      "tests": null,
+      "ok_marker": false,
+      "stdout_sha256": "a1f5f27dd736b914b139033d439795ea43c71e6cd76bdb10527103fcb9ab13b4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "failure_tail": null
+    },
+    {
+      "host_source": "main",
+      "gate": "lint",
+      "exit": 0,
+      "elapsed_seconds": 0.165,
+      "tests": null,
+      "ok_marker": false,
+      "stdout_sha256": "2aea349869ffa0286e9120ffcf6e59865eb83ce89edd4af6326655f10f8b8ece",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "failure_tail": null
+    },
+    {
+      "host_source": "main",
+      "gate": "diff_check",
+      "exit": 0,
+      "elapsed_seconds": 0.017,
+      "tests": null,
+      "ok_marker": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "failure_tail": null
+    },
+    {
+      "host_source": "front_T131",
+      "gate": "suite",
+      "exit": 0,
+      "elapsed_seconds": 57.66,
+      "tests": 484,
+      "ok_marker": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a9578071c57f79e4e0f37e8bc7f87ee9dc4ce3afd4f95ec0b00f743367e68cee",
+      "failure_tail": null
+    },
+    {
+      "host_source": "front_T131",
+      "gate": "manifesto",
+      "exit": 0,
+      "elapsed_seconds": 0.648,
+      "tests": null,
+      "ok_marker": false,
+      "stdout_sha256": "84af66b5fbb8206b9322eb8bea0be6e8063f842029392ab52ac9177f35ce5009",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "failure_tail": null
+    },
+    {
+      "host_source": "front_T131",
+      "gate": "lint",
+      "exit": 0,
+      "elapsed_seconds": 0.158,
+      "tests": null,
+      "ok_marker": false,
+      "stdout_sha256": "2aea349869ffa0286e9120ffcf6e59865eb83ce89edd4af6326655f10f8b8ece",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "failure_tail": null
+    },
+    {
+      "host_source": "front_T131",
+      "gate": "diff_check",
+      "exit": 0,
+      "elapsed_seconds": 0.025,
+      "tests": null,
+      "ok_marker": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "failure_tail": null
+    }
+  ],
+  "checks": {
+    "protected_main": {
+      "memory/MEMORY.md": true,
+      "memory/fixes-history.md": true,
+      "memory/wiki/_elenco.md": true
+    },
+    "board_others_unchanged": true,
+    "cards": [
+      "- [!] `T-098` JEV — R4 consumida 1/1, Opus 5.5 confirmado, CLI/runner 0, JSON/cobertura válidos; NO-GO com 3 bloqueadores auditados: atalho lexical 48/48, quase paráfrases cruzadas e Y006 incoerente. Sem correções/retry; gabarito não aprovado, JEV/Luna A2 0/4 cada, B2 0/16. Aguarda gate de correção delimitada · sistema/pesada · → threads/T-098-jev-router.md @frente-jev-router @codex",
+      "- [!] `T-131` Modelos — R4 consumida 1/1, Opus 5.5 confirmado, CLI/runner 0, JSON/11 arquivos/41 hunks válidos; NO-GO com 2 bloqueadores auditados: template ativo se declara candidato e defaults contraditórios no README. Riscos técnicos auditados, sem correções/retry; ativo/T-089/protegidos preservados. Aguarda gate delimitado · sistema/normal · → threads/T-131-opus-55.md @frente-elenco-opus55 @codex"
+    ],
+    "T131": {
+      "payload_bytes": 138789,
+      "payload_hash_matches": true,
+      "source_count": 11,
+      "all_source_hashes_match": true,
+      "reply_hash_matches": true,
+      "json_valid": true,
+      "attempts_started": 1,
+      "sent": 1,
+      "child_calls": 1,
+      "runner_exit": 0,
+      "cli_exit": 0,
+      "model_keys": [
+        "claude-opus-5-5"
+      ],
+      "validated": true,
+      "state": "CONSUMED_VALID_REVIEW_REPROVADO_AUDITED_NO_RETRY",
+      "verdict": "REPROVADO"
+    },
+    "T098": {
+      "payload_bytes": 51176,
+      "payload_hash_matches": true,
+      "source_count": 7,
+      "all_source_hashes_match": true,
+      "reply_hash_matches": true,
+      "json_valid": true,
+      "attempts_started": 1,
+      "sent": 1,
+      "child_calls": 1,
+      "runner_exit": 0,
+      "cli_exit": 0,
+      "model_keys": [
+        "claude-opus-5-5"
+      ],
+      "validated": true,
+      "state": "CONSUMED_VALID_REVIEW_REPROVADO_AUDITED_NO_RETRY",
+      "verdict": "REPROVADO"
+    },
+    "main_head": "4e58e7f19a8b6b51cb8ab33232862be431b3005d",
+    "main_index_empty": true,
+    "front_head": "4e58e7f19a8b6b51cb8ab33232862be431b3005d",
+    "front_index_empty": true,
+    "t089_ref": "2a879d94df86c998b401c84361603705ea1d06b6"
+  },
+  "external_model_calls_in_verification": 0,
+  "main_suite_diagnosis": {
+    "scanner_matches": [
+      ".claude/worktrees/agent-a054e5c8dd838fcb5/docs/superpowers/plans/2026-09-08-t081-observation-types.md",
+      ".claude/worktrees/agent-a054e5c8dd838fcb5/memory/fixes-history.md",
+      ".claude/worktrees/agent-a054e5c8dd838fcb5/memory/gotchas.md",
+      ".claude/worktrees/agent-a054e5c8dd838fcb5/orq/scripts/test_observation_types_guard.py"
+    ],
+    "guard_identical_to_HEAD": true,
+    "witnesses": [
+      {
+        "path": ".claude/worktrees/agent-a054e5c8dd838fcb5/docs/superpowers/plans/2026-09-08-t081-observation-types.md",
+        "mtime_utc": "2026-09-29T23:01:14.302155+00:00",
+        "sha256": "dd70eff4e5710519b6e63d6eabe85c4660efbade5ad214d87bc3e13f9fd1cc0d"
+      },
+      {
+        "path": ".claude/worktrees/agent-a054e5c8dd838fcb5/memory/fixes-history.md",
+        "mtime_utc": "2026-09-29T23:01:14.302863+00:00",
+        "sha256": "f1687c7a397dd381b7d69fbca5d43af1ecabce2f17a134cb407d61833d0322a6"
+      },
+      {
+        "path": ".claude/worktrees/agent-a054e5c8dd838fcb5/memory/gotchas.md",
+        "mtime_utc": "2026-09-29T23:01:14.305026+00:00",
+        "sha256": "48bdf969d795db39cf902bd9dca03071347d8c8dc25a33ba465a9566c9b95941"
+      },
+      {
+        "path": ".claude/worktrees/agent-a054e5c8dd838fcb5/orq/scripts/test_observation_types_guard.py",
+        "mtime_utc": "2026-09-29T23:01:14.300499+00:00",
+        "sha256": "1f47f5837e70c4bb3bd3e7a22b5803e9dafaefd9c950d02e77b5924fa7f19723"
+      }
+    ],
+    "local_reproduction_only": true,
+    "actual_cli_calls": 0,
+    "fixes": false
+  },
+  "suite_main_passed": false,
+  "suite_front_passed": true
+}

@@ -1,0 +1,21 @@
+{
+  "valid": true,
+  "checks": [],
+  "counts": {
+    "alto_risco": 8,
+    "consulta": 8,
+    "normal": 8,
+    "trivial": 8,
+    "pequeno": 8,
+    "abster": 8
+  },
+  "splits": {
+    "dev": 24,
+    "reserved": 24
+  },
+  "family_count": 12,
+  "size_issues": [],
+  "content_flags": [],
+  "semantic_review": "pending",
+  "raw_response_modified": false
+}

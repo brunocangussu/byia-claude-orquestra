@@ -64,7 +64,7 @@ Regras, cada uma escrita 1×:
 
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
-| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo `gpt-6-astra` @ `max` · `jobId` + `threadId` sustentam o reúso exato · ver **Matriz de invocação** |
+| codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo resolvido na tabela do host Claude (hoje `gpt-6.1-sol` @ `xhigh`, desde 2026-10-04) · `jobId` + `threadId` sustentam o reúso exato · ver **Matriz de invocação** |
 | runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s · sonda real com `--model fable` em 2026-09-05 comprovou `claude-fable-5-1` (thread `T-079`) |
 
 A coluna **Consumida por** existe para o efeito de ligar/desligar ser anunciável sem chute: a via
@@ -151,15 +151,15 @@ time da outra.
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono**, em qualquer host |
 | planner·interface | `fable` | spawn nativo, read-only — Fable 5.1 (id `claude-fable-5-1`), comprovado |
-| planner·sistema | `gpt-6-astra@xhigh` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
+| planner·sistema | `gpt-6.1-sol@xhigh` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato — decisão do dono em 2026-10-04, comprovado no rollout do Companion |
 | implementer·pesada | `sonnet` | worktree dedicado, writer único |
 | implementer·normal | `sonnet` | worktree dedicado, writer único |
 | implementer·leve | `sonnet` | worktree quando houver trabalho paralelo |
-| reviewer | `gpt-6-astra@xhigh` | vendor oposto ao host; Codex Companion read-only e retomada pelo `threadId` exato |
+| reviewer | `gpt-6.1-sol@xhigh` | vendor oposto ao host; Codex Companion read-only e retomada pelo `threadId` exato — decisão do dono em 2026-10-04, comprovado no rollout do Companion |
 | docs | `sonnet` | arquivos de documentação autorizados |
 | scout | `sonnet` | read-only |
 
-**Perfil ativo:** `padrao` — desde 2026-09-01, sem desvio.
+**Perfil ativo:** `padrao` — desde 2026-09-01 · desvio: planner·sistema→gpt-6.1-sol@xhigh; reviewer→gpt-6.1-sol@xhigh
 *(A linha vale por host. Trocar o perfil reescreve a tabela acima e vale a partir do **próximo
 spawn, em todas as janelas deste host** — crédito é da conta, não da frente. Agente já em execução
 termina no modelo antigo; não se refaz nada. Ajuste papel a papel que diverge do preset ativo —
@@ -175,6 +175,15 @@ ajustar".)*
 (`Unsupported reasoning effort "max". Use one of: none, minimal, low, medium, high, xhigh`), então
 `@max` era intenção declarada e nunca effort exercitado. **A tabela do host Codex não foi tocada** —
 lá a via é `codex exec`, onde essa recusa não foi comprovada, e cada host só edita a própria seção.
+Em **2026-10-04**, o dono trocou `planner·sistema` e `reviewer` deste host de `gpt-6-astra@xhigh`
+para `gpt-6.1-sol@xhigh`, no dia do lançamento do Sol 6.1: *"prefiro que seja usado o GPT 6.1 Sol
+no Xhigh do que usar o GPT 6 Astra no momento"*. A troca está registrada como **desvio** do
+`padrao`, que segue com Astra. **Prova:** sonda única pelo Companion
+(`task --fresh --json --model gpt-6.1-sol --effort xhigh`), com resposta literal `SOL61_OK`, exit 0
+e thread `01a10816-9f6a-7ff0-a425-124db286f606`; o rollout dessa thread em `~/.codex/sessions/`
+registra `"model":"gpt-6.1-sol"` e `"effort":"xhigh"`. A saída JSON do Companion não expõe o modelo;
+a prova vem do rollout. Tasks já abertas com Astra (T-144 planner/reviewer) terminam nele. A tabela
+do host Codex segue com `gpt-6-astra@max`.
 ⚠️ **Com as três faixas no mesmo modelo, a faixa deixa de escolher executor neste host** e passa a
 medir só cerimônia. A régua continua válida (ela também governa o gate e o piso de Alto risco), mas
 não espere que `pesada` traga um modelo mais forte aqui — não traz mais.

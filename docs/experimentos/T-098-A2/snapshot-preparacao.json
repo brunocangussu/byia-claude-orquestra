@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "status": "prepared_not_executed",
+  "scope": "T-098-A2 e T-138, somente bancada",
+  "base_commit": "a82a35f22f6c285aaa929da0e5b8a93c74685046",
+  "artifacts": [
+    {
+      "path": "docs/T-098-rubrica-v2.md",
+      "bytes": 8725,
+      "sha256": "756c04b76dfa47631fd5c418323a45dec34aaac239d463cbb2da664243b60a19"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/briefing-autoria.md",
+      "bytes": 2969,
+      "sha256": "b0e35af56043088b0a5511c9f9cca13b23b2eb1a19031fb6cf17b63a7ef2b875"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/briefing-classificacao.md",
+      "bytes": 1798,
+      "sha256": "5982f3df6346ed4d7acdac4446f6dbbb545ca3f08476674c71bb7073d382f007"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/briefing-revisao.md",
+      "bytes": 2145,
+      "sha256": "9b90bda2afeedf6a6aac1323ec8b84610cc1860dcfc4779ac397655943b1b1ff"
+    },
+    {
+      "path": "docs/experimentos/T-138/api-tester-enxuto.md",
+      "bytes": 2289,
+      "sha256": "bd8db40b70285d6c9aecddb293ea64efb946232ed14dec35bc7e252c1ee5ad26"
+    },
+    {
+      "path": "docs/experimentos/T-138/tarefas-b2.md",
+      "bytes": 3570,
+      "sha256": "6ca03c95a81cdb7879a67c25ea5e0daae8e037ae52cfc2c4bd2c72b7c07ce67c"
+    }
+  ],
+  "call_counts": {
+    "author": 0,
+    "gold_review": 0,
+    "jev_a2": 0,
+    "luna_a2": 0,
+    "delivery_b2": 0
+  },
+  "pending": [
+    "Decisão sobre duas chamadas preparatórias adicionais",
+    "Amostra nova e gabarito independente",
+    "Regra local congelada antes de abrir os casos reservados",
+    "Tokenização do suplemento na via efetiva",
+    "Preflight e orçamento B2"
+  ],
+  "installed": false,
+  "live_roster_changed": false
+}

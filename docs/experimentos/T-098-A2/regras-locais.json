@@ -1,0 +1,16 @@
+{
+  "version": "a2-lexical-1",
+  "purpose": "Baseline lexical de bancada, não política de produção; congelado antes da autoria dos casos",
+  "normalization": "Unicode NFD sem marcas combinantes, minúsculas, espaços consecutivos reduzidos",
+  "match": "primeira regra com qualquer expressão regular correspondente, flags Unicode; nenhum acesso a gold",
+  "rules": [
+    {"label":"alto_risco","patterns":["\\bproducao\\b","\\b(remov|desativ|deslig|relax|alter|troqu|migr|apag|exclu)[a-z]*.{0,75}(autentic|autoriz|permiss|seguranca|schema|esquema do banco|tabela do banco|irrevers|sem backup)","\\b(instal|adicion|inclu)[a-z]*.{0,65}(dependencia|biblioteca externa|pacote externo)","\\b(lei|ler|consult|exib|envi|export|transmit)[a-z]*.{0,75}(dados pessoais|dados sensiveis|dados privados|credenciais|prontuarios|segredos)","\\b(migracao|migrar|altere|alterar)\\b.{0,60}(banco|schema)"]},
+    {"label":"abster","patterns":["nao (sei|sabemos|informaram|foi informado|foi especificado)","sem (dizer|informar|especificar).{0,50}(qual|arquivo|ambiente|objetivo|valor|escopo)","\\b(isso|aquilo)\\b.{0,50}sem contexto"]},
+    {"label":"consulta","patterns":["\\b(explique|explicar|resuma|resumir|liste|listar|compare|comparar|leia|ler|descreva|descrever)\\b","somente leitura|apenas leitura|sem (editar|alterar|modificar)"]},
+    {"label":"trivial","patterns":["ortograf|acentuacao|pontuacao|typo|erro de digitacao|quebra de linha|espaco duplicado"]},
+    {"label":"pequeno","patterns":["(um (unico )?arquivo|uma constante|patch exato|contrato existente|valor documentado)"]},
+    {"label":"normal","patterns":["\\b(implemente|implementar|crie|criar|adicione|adicionar|desenvolva|desenvolver)\\b|funcionalidade nova|novo contrato"]}
+  ],
+  "fallback": "abster",
+  "limitations": ["Léxico não interpreta todas as negações nem contexto", "Falhas serão reportadas, sem ajuste vendo o reservado", "Este baseline não representa toda a capacidade do Manager"]
+}

@@ -1,0 +1,479 @@
+{
+  "state": "local_analytical_diagnostic_not_discovered_suite",
+  "rule_sha256": "1099ea053837a70a5e1c7a9da7b4c9d7c6f19a0b6663103fb9f74521eee9a751",
+  "scored_after_freeze_receipt": true,
+  "exploratory_not_blind": true,
+  "scores": [
+    {
+      "split": "dev",
+      "n": 24,
+      "correct": 23,
+      "old_cascade_correct": 10,
+      "by_class": [
+        {
+          "class": "abster",
+          "n": 4,
+          "correct": 3
+        },
+        {
+          "class": "alto_risco",
+          "n": 4,
+          "correct": 4
+        },
+        {
+          "class": "consulta",
+          "n": 4,
+          "correct": 4
+        },
+        {
+          "class": "normal",
+          "n": 4,
+          "correct": 4
+        },
+        {
+          "class": "pequeno",
+          "n": 4,
+          "correct": 4
+        },
+        {
+          "class": "trivial",
+          "n": 4,
+          "correct": 4
+        }
+      ],
+      "confusion": {
+        "trivial -> trivial": 4,
+        "consulta -> consulta": 4,
+        "pequeno -> pequeno": 4,
+        "abster -> abster": 3,
+        "normal -> normal": 4,
+        "alto_risco -> alto_risco": 4,
+        "abster -> alto_risco": 1
+      }
+    },
+    {
+      "split": "reserved",
+      "n": 24,
+      "correct": 16,
+      "old_cascade_correct": 10,
+      "by_class": [
+        {
+          "class": "abster",
+          "n": 4,
+          "correct": 3
+        },
+        {
+          "class": "alto_risco",
+          "n": 4,
+          "correct": 1
+        },
+        {
+          "class": "consulta",
+          "n": 4,
+          "correct": 0
+        },
+        {
+          "class": "normal",
+          "n": 4,
+          "correct": 4
+        },
+        {
+          "class": "pequeno",
+          "n": 4,
+          "correct": 4
+        },
+        {
+          "class": "trivial",
+          "n": 4,
+          "correct": 4
+        }
+      ],
+      "confusion": {
+        "normal -> normal": 4,
+        "alto_risco -> alto_risco": 1,
+        "alto_risco -> abster": 2,
+        "pequeno -> pequeno": 4,
+        "trivial -> trivial": 4,
+        "alto_risco -> normal": 1,
+        "consulta -> trivial": 1,
+        "abster -> alto_risco": 1,
+        "consulta -> abster": 2,
+        "abster -> abster": 3,
+        "consulta -> alto_risco": 1
+      }
+    }
+  ],
+  "predictions": [
+    {
+      "id": "Y001",
+      "split": "reserved",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y002",
+      "split": "dev",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y003",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "prediction": "alto_risco",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y004",
+      "split": "dev",
+      "gold": "consulta",
+      "prediction": "consulta",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y005",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "prediction": "abster",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y006",
+      "split": "dev",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y007",
+      "split": "dev",
+      "gold": "abster",
+      "prediction": "abster",
+      "old_cascade": "alto_risco"
+    },
+    {
+      "id": "Y008",
+      "split": "reserved",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y009",
+      "split": "dev",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "normal"
+    },
+    {
+      "id": "Y010",
+      "split": "reserved",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y011",
+      "split": "dev",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "trivial"
+    },
+    {
+      "id": "Y012",
+      "split": "dev",
+      "gold": "alto_risco",
+      "prediction": "alto_risco",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y013",
+      "split": "reserved",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y014",
+      "split": "reserved",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y015",
+      "split": "dev",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "normal"
+    },
+    {
+      "id": "Y016",
+      "split": "dev",
+      "gold": "consulta",
+      "prediction": "consulta",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y017",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "prediction": "abster",
+      "old_cascade": "normal"
+    },
+    {
+      "id": "Y018",
+      "split": "dev",
+      "gold": "alto_risco",
+      "prediction": "alto_risco",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y019",
+      "split": "reserved",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y020",
+      "split": "dev",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "normal"
+    },
+    {
+      "id": "Y021",
+      "split": "reserved",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y022",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "prediction": "normal",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y023",
+      "split": "dev",
+      "gold": "consulta",
+      "prediction": "consulta",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y024",
+      "split": "reserved",
+      "gold": "consulta",
+      "prediction": "trivial",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y025",
+      "split": "dev",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "normal"
+    },
+    {
+      "id": "Y026",
+      "split": "reserved",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y027",
+      "split": "dev",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "normal"
+    },
+    {
+      "id": "Y028",
+      "split": "reserved",
+      "gold": "abster",
+      "prediction": "alto_risco",
+      "old_cascade": "abster"
+    },
+    {
+      "id": "Y029",
+      "split": "dev",
+      "gold": "consulta",
+      "prediction": "consulta",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y030",
+      "split": "reserved",
+      "gold": "consulta",
+      "prediction": "abster",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y031",
+      "split": "dev",
+      "gold": "abster",
+      "prediction": "abster",
+      "old_cascade": "abster"
+    },
+    {
+      "id": "Y032",
+      "split": "reserved",
+      "gold": "abster",
+      "prediction": "abster",
+      "old_cascade": "abster"
+    },
+    {
+      "id": "Y033",
+      "split": "dev",
+      "gold": "normal",
+      "prediction": "normal",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y034",
+      "split": "reserved",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y035",
+      "split": "reserved",
+      "gold": "consulta",
+      "prediction": "alto_risco",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y036",
+      "split": "reserved",
+      "gold": "consulta",
+      "prediction": "abster",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y037",
+      "split": "dev",
+      "gold": "alto_risco",
+      "prediction": "alto_risco",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y038",
+      "split": "dev",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y039",
+      "split": "reserved",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y040",
+      "split": "reserved",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y041",
+      "split": "dev",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y042",
+      "split": "reserved",
+      "gold": "abster",
+      "prediction": "abster",
+      "old_cascade": "alto_risco"
+    },
+    {
+      "id": "Y043",
+      "split": "reserved",
+      "gold": "abster",
+      "prediction": "abster",
+      "old_cascade": "abster"
+    },
+    {
+      "id": "Y044",
+      "split": "dev",
+      "gold": "abster",
+      "prediction": "alto_risco",
+      "old_cascade": "normal"
+    },
+    {
+      "id": "Y045",
+      "split": "dev",
+      "gold": "abster",
+      "prediction": "abster",
+      "old_cascade": "abster"
+    },
+    {
+      "id": "Y046",
+      "split": "dev",
+      "gold": "pequeno",
+      "prediction": "pequeno",
+      "old_cascade": "consulta"
+    },
+    {
+      "id": "Y047",
+      "split": "reserved",
+      "gold": "trivial",
+      "prediction": "trivial",
+      "old_cascade": "pequeno"
+    },
+    {
+      "id": "Y048",
+      "split": "dev",
+      "gold": "alto_risco",
+      "prediction": "alto_risco",
+      "old_cascade": "consulta"
+    }
+  ],
+  "analytical_counterfactuals": [
+    {
+      "name": "cascata histórica volta a separar dev",
+      "status": "KILLED_ASSERTION"
+    },
+    {
+      "name": "cascata histórica volta a separar reservado",
+      "status": "KILLED_ASSERTION"
+    },
+    {
+      "name": "Y006 volta a edição sem resultado observável",
+      "status": "KILLED_ASSERTION"
+    },
+    {
+      "name": "gold por ID trocado sem alterar contagens",
+      "status": "KILLED_ASSERTION"
+    },
+    {
+      "name": "Y038 preserva bug atual",
+      "status": "KILLED_ASSERTION"
+    },
+    {
+      "name": "Y047 perde isolamento da prosa humana",
+      "status": "KILLED_ASSERTION"
+    },
+    {
+      "name": "projeção inclui gold",
+      "status": "KILLED_ASSERTION"
+    },
+    {
+      "name": "regra é retreinada após o selo",
+      "status": "KILLED_ASSERTION"
+    }
+  ],
+  "remaining": "bancada persistente isolada e revisão semântica independente; não GO"
+}

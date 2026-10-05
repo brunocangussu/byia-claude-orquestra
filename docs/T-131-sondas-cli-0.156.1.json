@@ -1,0 +1,98 @@
+{
+  "date": "2026-09-24",
+  "cli_before": "0.153.4",
+  "cli_after": "0.156.1",
+  "installation": "npm global existente /usr/local",
+  "model_calls": 2,
+  "retries": 0,
+  "mode": "ChatGPT existente; --ignore-user-config --ephemeral --sandbox read-only --skip-git-repo-check; model_reasoning_effort=low",
+  "probes": [
+    {
+      "requested_model": "gpt-6-sol",
+      "exit_code": 0,
+      "thread_id": "01a0d444-f6ac-7583-bfd9-f0d3c68d8152",
+      "response": "SOL6_OK",
+      "observed_non_message_items": 0,
+      "usage": {
+        "input_tokens": 19396,
+        "cached_input_tokens": 7040,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 7,
+        "reasoning_output_tokens": 0
+      },
+      "events": [
+        {
+          "type": "thread.started",
+          "thread_id": "01a0d444-f6ac-7583-bfd9-f0d3c68d8152"
+        },
+        {
+          "type": "turn.started"
+        },
+        {
+          "type": "item.completed",
+          "item": {
+            "id": "item_0",
+            "type": "agent_message",
+            "text": "SOL6_OK"
+          }
+        },
+        {
+          "type": "turn.completed",
+          "usage": {
+            "input_tokens": 19396,
+            "cached_input_tokens": 7040,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 7,
+            "reasoning_output_tokens": 0
+          }
+        }
+      ]
+    },
+    {
+      "requested_model": "gpt-6-luna",
+      "exit_code": 0,
+      "thread_id": "01a0d445-08c9-79b3-8772-48be9ba5e7c7",
+      "response": "LUNA6_OK",
+      "observed_non_message_items": 0,
+      "usage": {
+        "input_tokens": 18913,
+        "cached_input_tokens": 6912,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 8,
+        "reasoning_output_tokens": 0
+      },
+      "events": [
+        {
+          "type": "thread.started",
+          "thread_id": "01a0d445-08c9-79b3-8772-48be9ba5e7c7"
+        },
+        {
+          "type": "turn.started"
+        },
+        {
+          "type": "item.completed",
+          "item": {
+            "id": "item_0",
+            "type": "agent_message",
+            "text": "LUNA6_OK"
+          }
+        },
+        {
+          "type": "turn.completed",
+          "usage": {
+            "input_tokens": 18913,
+            "cached_input_tokens": 6912,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 8,
+            "reasoning_output_tokens": 0
+          }
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Sonda de disponibilidade, não benchmark nem prova de execução em workspace-write.",
+    "Modelo foi selecionado explicitamente pelo argumento da CLI; os eventos JSONL não incluem campo modelUsage.",
+    "Sem mudança de elenco, plugins, login, restart, commit ou push."
+  ]
+}

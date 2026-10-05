@@ -1,5 +1,91 @@
 # Log de mudanças — append-only
 
+## [2026-10-04] feat | @frente-companion-runtime · T-089 pronto na branch, estacionado até T-131/T-143
+
+Prova do Companion 1.0.6 (fresh+resume) passou com `threadId` igual; correção do produto (identidade do
+`threadId` + `--wait` só no envelope, absorve T-090) implementada, revisada em 2 rodadas (NO-GO→corrigido) e
+commitada **só na branch** `claude/t089-companion-identidade` (`2a879d9`, `53dabd6`). `main` e versão 0.27.11
+intactas. Mapa de conciliação + patch sobre T-131/T-143 provados em árvore temporária (535 testes OK, validate e
+lint exit 0). **Sem revisão independente da fusão**; versão/release não decididos. A R3/R4 pedida a esta
+janela falhou em 2 s (`--safe-mode` por wrapper, causa não provada) e foi superada pelas R4/R5 da frente
+T-131; nada repetido.
+
+## [2026-10-04] feat | @frente-mods · T-146 medidor fase 2 (0.29.0 na branch) — hook consultivo e statusline
+
+Fase 2 do medidor na mesma branch `claude/t144-medidor-progresso`, commit local `064e726`, sem push.
+Fechou tudo o que a fase 1 deixou de fora em Claude e Codex, menos o Orca:
+- **Recibo:** traz o `view` da projeção.
+- **Duas chaves:** a de dono, do `begin`, sobrevive a `/clear`; a nativa,
+  `sha256(host\0session_id)`, só serve ao `bind --native-key`.
+- **Hook consultivo** `progress-hook.py`: entrega a chave, faz um anúncio único e um lembrete único
+  sem plano. Nunca bloqueia, custa ~36 ms sem medidor, e as 6 entradas do guardião ficaram intactas.
+- **Statusline:** segmento na statusline do Claude.
+- **`init.md`:** instala o trio com hash antes de cada operação e rollback que preserva alteração
+  concorrente.
+
+Revisão Sol 6.1 `@xhigh` em 3 rodadas (a 3ª autorizada pelo dono), APROVADO_COM_RESSALVAS. Suíte
+715 → 730.
+
+O próprio card foi acompanhado pelo medidor (`ledger` T-146, 9/9). O Manager encadeou `done` com os
+gates num mesmo comando e a suíte tinha falhado; desfez com `reopen`, `start` e `done` depois do
+verde. Ficou como gotcha.
+
+Checkpoint feito a pedido do dono, que vai unificar as branches paralelas na `main` em outro chat.
+O handoff está em `docs/handoff-claude-T-144-T-146-conciliacao-2026-10-04.md`.
+
+## [2026-10-04] feat | @frente-mods · T-144 medidor de progresso portátil, fase 1 (0.28.0 na branch)
+
+Pedido do dono: no `/goal` e no Loop B ele se perdia. A referência é o Goal Meter, um mod que só
+roda no Claude; a solução é portátil.
+
+**Entrega:**
+- **Ledger:** um por card ou goal em `<front_root>/.orq/progress/v1/`, autoignorado.
+- **`progress.py`:** script stdlib com CLI e `show`/`watch`.
+- **Cálculo:** a fase vem do board; o percentual vem dos passos do plano aprovado.
+
+**Ciclo:**
+- Plano do Astra com errata do Manager.
+- Sonnet trabalhou numa worktree **fora** do repositório: a aninhada quebra a suíte da `main`
+  (`T-142`).
+- Revisão em 4 rodadas, Sol 6.1 a partir da R3: APROVADO_COM_RESSALVAS. Suíte 447 → 593.
+- Commit local `ba523e9`.
+
+**Parecer do Codex** (`docs/parecer_T-144-codex.md`): confirmou o desenho e trouxe o recibo com
+projeção, o dedupe dos hooks e o `get_goal`. O espelho opt-in via `update_plan` ficou para decisão
+no `T-147`.
+
+## [2026-10-04] decisão | @frente-mods · elenco do host Claude passa a gpt-6.1-sol@xhigh
+
+No dia do lançamento do Sol 6.1, o dono trocou `planner·sistema` e `reviewer` do host Claude de
+Astra para `gpt-6.1-sol@xhigh`, registrado como desvio do `padrao`. A prova veio de uma sonda única
+pelo Companion (`SOL61_OK`), e o rollout registra `model`/`effort`. A tabela do host Codex não mudou.
+O `--wait` não chega ao `task`: é controle do lado Claude, retirado pelo wrapper.
+
+## [2026-09-26] investig | @frente-jev-router · limite dos casos Manager e Planner
+
+M-001 preserva a skill-base completa e os briefings locais A/B medem
+37.248/38.595 bytes; a candidata acrescenta 1.347 bytes, mas o caso
+repete regras de autoridade e não demonstra qualidade. P-003 também saiu
+da fila: a fixture expunha quase todos os pontos do oráculo, com alto risco
+de efeito-teto. Nenhuma chamada de modelo, ativação ou versão nova.
+
+## [2026-09-26] investig | @frente-jev-router · R-006 do T-139 preparada sem egress
+
+R-005 foi retirada da fila porque seus contratos anexos entregavam os três
+critérios do oráculo, com alto risco de efeito-teto. R-006 fictícia testa
+caminho de composição no Codex e retomada por `(card, papel)` após tasks
+intercaladas; fixture e oráculo foram congelados antes de qualquer chamada.
+A/B compuseram localmente, suíte 427/427 e manifesto estrito passaram;
+qualidade, custo e latência seguem não medidos. O gate específico de egress
+foi atualizado no board, sem transportar a autorização antiga.
+
+## [2026-09-26] processo | @frente-jev-router · recuperação do T-139
+
+Após compactação, o índice, board canônico e thread T-139 foram recuperados.
+Auditoria local distinguiu a entrega testada ao runner Anthropic da via Codex
+ainda descrita apenas em instruções; não houve novo teste com modelo nem prova
+de ganho de qualidade. A autorização R-005 permanece pendente.
+
 ## [2026-09-15] release | 0.27.8 — seção arquivada exata e cercas Markdown coerentes
 
 `T-071`: statusline e guarda de posse agora encerram a parte ativa somente nos cinco títulos H2
@@ -2149,3 +2235,148 @@ A auditoria pós-push encontrou `.worktrees/t096-board-path-contract`, criado du
 e com duas alterações não commitadas. A afirmação de “um checkout/somente main” foi corrigida: a
 limpeza histórica terminou, mas o estado atual inclui a raiz e o checkout ativo T-096, com duas
 branches locais. O T-096 não foi removido nem atualizado; seu destino pertence à frente dona.
+
+## [2026-09-26] correção candidata | T-139 · recibo de briefing perdia byte no shell
+
+O compositor emitia LF final e SHA-256 dos bytes completos, mas os blocos
+`PLANNER_PROMPT=$(...)` e `REVIEWER_PROMPT=$(...)` removiam esse LF antes da
+entrega. Teste executando os blocos reais falhou em ambos os papéis (um byte
+a menos); sentinela de sucesso removida após a substituição preservou os
+bytes e o recibo. Foco 14/14, suíte 428/428, manifesto e Ruff verdes;
+lint vermelho só pela divergência esperada da fonte candidata com o cache
+0.27.10. Sem bump, instalação ou prova de qualidade do modelo. R-006 foi
+retirada antes de inferência por enunciado com resposta embutida; R-007
+cega permanece local e exigirá gate próprio de egress.
+
+## [2026-09-26] correção candidata | T-139 · padrão sem piloto falhava nos dois papéis
+
+Os comandos diziam que a skill padrão era `none`, mas passavam variáveis
+ausentes como string vazia ao compositor. Os blocos reais de Planner e
+Reviewer retornavam `SKILL_DESCONHECIDA`, exit 2 e briefing vazio. Teste
+RED em ambos, GREEN com defaults shell `none`, mutação do default voltou a
+falhar. Suíte 429/429, manifesto estrito, Ruff e diff-check verdes; lint
+continua apontando só fonte candidata versus cache instalado 0.27.10.
+Sem bump, instalação, chamada externa ou evidência de ganho A/B.
+
+## [2026-09-26] correção candidata | T-139 · sandbox do Planner e pacote de avaliação
+
+O P-006/A inválido foi reproduzido sem modelo: o sandbox permitia escrita no
+workspace, mas vedava a leitura das Command Line Tools exigidas por
+`/usr/bin/python3`. A bancada macOS ganhou somente essa leitura, com teste
+RED/GREEN; P-006/A não foi repetido. P-007/A e P-008/A consumiram as duas
+chamadas A restantes e geraram planos não vazios. Cinco dos seis A são
+estruturalmente válidos; nenhuma nota independente foi atribuída. O gerador
+local de pacote de avaliação tem cinco testes de vínculo e recusa de drift,
+e preparou cinco briefings sem egress. Mutação `braço A` com recibo coerente
+revelou a lacuna de Unicode; a guarda corrigida e a de dado sensível
+passaram, com sete testes do gerador. Bancada 70/70, suíte 432/432,
+manifesto estrito e Ruff verdes; lint ainda acusa a divergência conhecida
+fonte/cache 0.27.10. Sem B, bump, commit, push, instalação ou restart.
+
+## [2026-09-26] correção candidata | T-139 · nota A registra achados críticos antes de B
+
+O runner permitia B após nota A abaixo do teto mesmo que faltassem os
+indicadores separados `false_critical` e `scope_violation`, ou que viessem
+como texto. Testes RED reproduziram os dois despachos indevidos; GREEN
+exige booleanos explícitos e preserva B quando o baseline A marcou falso
+achado crítico. Bancada 73/73, suíte 432/432, manifesto e Ruff verdes;
+lint da fonte candidata permanece vermelho só pela divergência conhecida
+do cache 0.27.10. Nenhuma chamada de modelo ou B ocorreu nesta correção.
+
+## [2026-09-26] fixture candidata | T-139 · P-009 para replicação Planner
+
+P-006/A ficou inválido sem retry. P-009 foi criado somente como caso
+sintético local: limites persistidos de quatro revisões e duas reavaliações
+sem progresso são burlados após retomada; estado corrompido também falha
+aberto. Controles permitido e bloqueado evitam um oráculo sempre-DENY.
+Testes RED/GREEN da fixture, bancada 76/76, suíte 432/432, manifesto
+estrito e Ruff verdes. Briefings A/B locais distintos e sem oráculo; caso
+fora do lote congelado e sem chamada externa, bump, commit ou instalação.
+
+## [2026-09-26] correção candidata | T-139 · fronteira de dados do avaliador
+
+O gerador de briefing aceitou `</candidato_resposta>` e
+`</candidato_plano>` dentro do conteúdo de candidato quando o recibo
+carregava o hash correspondente. Dois testes RED montaram pacotes com
+rubrica fictícia injetada; a guarda GREEN recusa marcadores estruturais
+reservados antes da concatenação. Cinco briefings pré-existentes mantiveram
+bytes e SHA-256. Bancada 78/78, suíte 432/432, manifesto estrito e Ruff
+verdes; lint candidato ainda acusa só a divergência fonte/cache conhecida.
+Sem egress, B, bump, commit, push ou instalação.
+
+## [2026-09-26] preflight local | T-139 · P-009 separado do lote A
+
+Snapshot `LOCAL_ONLY` de P-009 vincula task, rubrica, fixture e briefings
+A/B sem tocar no manifesto original de seis casos. O teste RED/GREEN
+recompõe os hashes; o preparador continua recusando P-009 como caso
+desconhecido. Bancada 79/79, suíte 432/432, manifesto e Ruff verdes;
+lint candidato conserva apenas a divergência fonte/cache conhecida.
+Mutation check por edição temporária do hash foi rejeitado pelo
+auto-review e não contornado. Sem chamada de modelo, egress ou release.
+
+## [2026-09-26] experimento autorizado | T-139 · cinco braços B e pacote cego
+
+O gate específico do dono liberou cinco prompts/fixtures sintéticos B para
+OpenAI via `codex exec`, uma chamada por caso e sem retry. Preflight 5/5,
+permissões privadas e cinco recibos `STRUCTURAL_ONLY` válidos; os dois
+Planners escreveram planos vinculados. O gerador de pacotes de avaliação
+passou a aceitar B com RED/GREEN; cinco pacotes cegos locais preparados.
+Bancada 82/82 e suíte do plugin 432/432, manifesto estrito e Ruff verdes.
+Lint da candidata continua vermelho pela divergência conhecida com o cache
+0.27.10. Falta avaliação independente e replicação; nenhum ganho alegado.
+Sem bump, commit, push, publicação, instalação ou restart.
+
+## [2026-09-26] correção candidata | T-139 · rótulo do braço no caminho
+
+Inspeção pré-egress da pontuação B encontrou links absolutos com
+`workspaces/A|B/` nos candidatos. Três briefings A antigos já pontuados
+tinham o rótulo, logo não sustentam alegação de cegamento estrito. Teste
+RED reproduziu o vazamento; GREEN vincula hash do original, neutraliza o
+prefixo de caminho no pacote e recusa marcador remanescente. Dez pacotes
+A/B v2 passaram a auditoria de rótulo, hash e teto. O controle R-009 foi
+retirado da comparação limpa por contradição entre memória e rubrica; o
+R-008/B contém achado alto falso comprovado. Bancada 83/83, suíte 432/432,
+manifesto estrito e Ruff verdes; lint mantém só o desvio fonte/cache
+conhecido. Sem nova chamada, bump, commit, push ou instalação.
+
+## [2026-09-26] controle local | T-139 · R-011 substitui oráculo contraditório
+
+Após recuperar contexto canônico e confirmar a meta Codex `active`, o
+controle R-009 continuou excluído e não foi reescrito. R-011 criou nova
+fixture sintética sem contrato de recibo: teste RED/GREEN do preparador e
+do comando real em shell cobre sucesso, falha e saída vazia; patch reverso
+validado. Manifesto local A/B tem fixture idêntica, prompts distintos e
+`model_calls=0`; hashes foram vinculados por teste à freeze local e teto
+proposto para gate posterior está na auditoria T-139. Bancada 85/85 antes
+da freeze, 86/86 após; suíte 432/432, manifesto e Ruff verdes;
+lint candidato mantém somente divergência fonte/cache 0.27.10 já conhecida.
+Sem novo envio, adoção, bump, commit, push, instalação ou restart.
+
+## [2026-09-26] medição local | T-139 · consumo não demonstra economia
+
+Dez recibos dos cinco pares executados somam A 594.710 input/7.648 output
+e B 700.041 input/11.258 output. O cache de entrada é subconjunto dessas
+contagens, não adicional. Nenhum JSONL apresenta campo estrutural de
+modelo ou effort; `effective_model=null` permanece honesto. R-009 não
+compõe prova de qualidade. Resultado registrado sem nova chamada externa,
+preço estimado, adoção ou mudança de versão.
+
+## [2026-09-26] clareza candidata | T-139 · origem dos briefings por despacho
+
+Os comandos Planner/Reviewer candidatos citavam variáveis de briefing
+sem declarar a origem no texto operacional. Esclareci que Planner usa o
+briefing completo do card corrente e Reviewer o lote sanitizado corrente,
+sem herança entre despachos. Skills continuam opt-in do piloto. Gates após
+a edição: bancada 86/86, suíte 432/432, manifesto, Ruff e diff verdes;
+lint acusa somente fonte/cache 0.27.10 ainda não instalada.
+
+## [2026-09-29] ambiente | T-089 · Companion `user` 1.0.5 → 1.0.6, prova pendente de restart
+
+Com o gate do dono, o upstream `openai/codex-plugin-cc` foi conferido (`db52e28`, 1.0.6, igual ao
+catálogo local), o backup ficou em `~/Backups/orquestra/T-089-companion-20260929T160728/` e
+`claude plugin update codex@openai-codex --scope user` levou só a entrada `user` a 1.0.6. Registros
+de projeto, outros plugins e caches 1.0.2/1.0.5 ficaram idênticos; o 1.0.6 só perdeu o
+`.orphaned_at`; o broker órfão de outra frente seguiu vivo. A prova fresh+resume não rodou: esta
+sessão segue com 1.0.5 carregado e o CLI de terminal está deslogado, então o processo headless
+parou em `Not logged in` antes de qualquer chamada (custo 0, nenhum job). Reúso não declarado
+funcional; falta o restart da sessão pelo dono. Sem bump, commit, push ou publicação.

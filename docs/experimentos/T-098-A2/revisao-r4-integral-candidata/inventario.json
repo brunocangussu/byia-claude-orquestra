@@ -1,0 +1,95 @@
+{
+  "card": "T-098",
+  "round": "R4",
+  "base": "4e58e7f19a8b6b51cb8ab33232862be431b3005d",
+  "state": "CONSUMED_VALID_REVIEW_REPROVADO_AUDITED_NO_RETRY",
+  "sent": 1,
+  "calls_proposed": 1,
+  "retry": false,
+  "destination": "Anthropic via Claude CLI (assinatura)",
+  "requested_model": "claude-opus-5-5",
+  "max_input_bytes_proposed": 65536,
+  "policy_exception_required": "Exceção pontual explicitamente autorizada e consumida nesta R4; default do produto 16384 bytes intacto; não herda nem concede gate de revisão futura.",
+  "payload": {
+    "path": "docs/experimentos/T-098-A2/revisao-r4-integral-candidata/pacote.txt",
+    "bytes": 51176,
+    "sha256": "0934fda33cdca92add01e4fb8f4dfbaaa8543d26470d08605e787900349e4281"
+  },
+  "source": [
+    {
+      "path": "docs/T-098-rubrica-v2.md",
+      "bytes": 8725,
+      "sha256": "756c04b76dfa47631fd5c418323a45dec34aaac239d463cbb2da664243b60a19",
+      "scope": "arquivo integral",
+      "lines": 121
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/amostra.json",
+      "bytes": 17314,
+      "sha256": "a69c8eac25ac8981ded509c9f1e4cb7df7aa796124357c945db5a4e8b53642ea",
+      "scope": "arquivo integral",
+      "lines": 52
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/preflight.py",
+      "bytes": 4178,
+      "sha256": "90629815af66061a2299ea124944592e6c90acf75004a45372f0ff685db3f105",
+      "scope": "arquivo integral",
+      "lines": 76
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/test_preflight.py",
+      "bytes": 3339,
+      "sha256": "e99868347e01ff07e9a7e5ea87a4f35a679c6d2b7488b128b5310d458d8bd3ed",
+      "scope": "arquivo integral",
+      "lines": 85
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/test_mutations.py",
+      "bytes": 2433,
+      "sha256": "9dc0e391bf39cd7e9cb84857aeee9de38d8e593248c082b3acc7c992a145f533",
+      "scope": "arquivo integral",
+      "lines": 46
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/plano-local.md",
+      "bytes": 2587,
+      "sha256": "dbe42b7a9044c916518c14ae5b76951684f1930ead415d5b9cee21838c926c73",
+      "scope": "arquivo integral",
+      "lines": 42
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/resultado-local.md",
+      "bytes": 5875,
+      "sha256": "925e6f8179874b09b523789e748e2d03b9176513c820f043e8e5079679e7bd12",
+      "scope": "arquivo integral",
+      "lines": 93
+    }
+  ],
+  "recomposition_exact": true,
+  "sample": {
+    "cases": 48,
+    "families": 18,
+    "partitions": [
+      "dev",
+      "reserved"
+    ],
+    "independent_gold_approved": false,
+    "blind": false,
+    "exploratory": true
+  },
+  "sanitization": "allowlist de código/instruções e amostra fictícia; scanner sem achados; sem PII/credenciais reais identificadas",
+  "scanner_counts": {
+    "caminho_pessoal": 0,
+    "email": 0,
+    "chave_privada": 0,
+    "aws_key": 0,
+    "token_sk": 0
+  },
+  "output": "JSON puro; não normalizar cercas nem converter inválido em aprovação",
+  "scope": "preparação somente; sem classificação JEV/Luna, bump, commit, push, integração, publicação, instalação ou restart",
+  "blocked_by": "R4 consumida com REPROVADO; três bloqueadores confirmados na auditoria do Manager. Correção/nova revisão/classificação continuam fora da autorização consumida.",
+  "access_update": "2026-10-02: autenticação isolada concluída; as duas R4 retornaram modelo claude-opus-5-5 observado, CLI/runner 0. Não comprova outras contas/vias/sessões ou acesso futuro.",
+  "authorization_reported_by_owner": "Autorização humana explícita atual: 189.965 bytes, tetos 192/64 KiB, uma chamada por pacote, sem retry; duas chamadas consumidas, sem falha técnica na primeira.",
+  "payload_unchanged": true
+}

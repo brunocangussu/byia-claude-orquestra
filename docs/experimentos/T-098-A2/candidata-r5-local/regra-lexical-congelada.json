@@ -1,0 +1,233 @@
+{
+  "state": "frozen_local_diagnostic_not_campaign",
+  "trained_partition": "dev",
+  "trained_cases": 24,
+  "used_reserved_for_fitting": false,
+  "exploratory_not_blind": true,
+  "algorithm": "presence_top5_log_odds_v1",
+  "normalization": "NFKD; remove U+0300..U+036F; lowercase; tokens [a-z0-9]+ with length>=2; presence only",
+  "selection": "per class: log((positive+1)/6)-log((negative+1)/22); descending weight then ASCII word; retain 5",
+  "prediction": "sum retained weights for present words per class; highest score; ties ASCII class order",
+  "training_projection": "cases split=dev; sort by id; fields id,text,gold; compact JSON UTF-8",
+  "training_sha256": "0ca1a92733cdf4d6c8f419dc8e022fdaaa4887d1d1f7dc0924a376f1380a8875",
+  "classes": [
+    "abster",
+    "alto_risco",
+    "consulta",
+    "normal",
+    "pequeno",
+    "trivial"
+  ],
+  "rules": [
+    {
+      "class": "abster",
+      "features": [
+        {
+          "word": "escolher",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "conversa",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "explicar",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "politica",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "se",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        }
+      ]
+    },
+    {
+      "class": "alto_risco",
+      "features": [
+        {
+          "word": "ative",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "leitura",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "mudanca",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "seja",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "pedido",
+          "positive": 3,
+          "negative": 1,
+          "weight": 1.9924301646902063
+        }
+      ]
+    },
+    {
+      "class": "consulta",
+      "features": [
+        {
+          "word": "conta",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "mostre",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "aceita",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "aceitar",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "audiencia",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        }
+      ]
+    },
+    {
+      "class": "normal",
+      "features": [
+        {
+          "word": "testes",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "ainda",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "inexistente",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "interface",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "local",
+          "positive": 3,
+          "negative": 1,
+          "weight": 1.9924301646902063
+        }
+      ]
+    },
+    {
+      "class": "pequeno",
+      "features": [
+        {
+          "word": "contrato",
+          "positive": 4,
+          "negative": 0,
+          "weight": 2.908720896564361
+        },
+        {
+          "word": "corrija",
+          "positive": 4,
+          "negative": 0,
+          "weight": 2.908720896564361
+        },
+        {
+          "word": "regressao",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "restaure",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "crie",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        }
+      ]
+    },
+    {
+      "class": "trivial",
+      "features": [
+        {
+          "word": "agentes",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "comandos",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "apresentacao",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "estao",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "humana",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        }
+      ]
+    }
+  ]
+}
