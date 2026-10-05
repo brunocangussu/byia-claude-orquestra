@@ -2380,3 +2380,26 @@ de projeto, outros plugins e caches 1.0.2/1.0.5 ficaram idênticos; o 1.0.6 só 
 sessão segue com 1.0.5 carregado e o CLI de terminal está deslogado, então o processo headless
 parou em `Not logged in` antes de qualquer chamada (custo 0, nenhum job). Reúso não declarado
 funcional; falta o restart da sessão pelo dono. Sem bump, commit, push ou publicação.
+
+## 2026-10-05 — T-148: fonte 0.30.0 conciliada e entregue
+
+Sob a delegação humana de organização das branches, a fonte de T-131,
+T-143, T-089/T-090 e T-144/T-146 foi conciliada em checkout isolado e
+entregue na main local e em origin/main (`d760069`). Quatro âncoras no
+mesmo commit; nenhuma alteração alheia restaurada ou commit estrangeiro
+reescrito. Checkpoint documental anterior `8b4ad8a` também publicado.
+
+838 testes descobertos, manifesto estrito, lint e diff-check de produto
+verdes; descoberta com PYTHONDONTWRITEBYTECODE=1. Revisão independente da
+fusão: dois pacotes/duas chamadas únicas, Opus 5.5 via CLI oficial, sem
+retry. Auditoria corrigiu ambiguidade de alias, custódia da chave do medidor,
+DONE, Git pendente e recibo inicial; nove mutações contratuais rejeitadas.
+Compatibilidade legada do matcher não foi estreitada; adoção de 5.5 exige ID
+explícito. Recibos/auditoria são preservados em docs/delivery/.
+
+Sem instalação, publicação de release/tag, restart ou alteração dos caches
+de hosts. Chats vivos não foram declarados atualizados. Ledger T-146 e
+chave privados permanecem locais/ignorados. Worktree Claude do medidor
+será mantida enquanto houver processos com cwd nela; nenhum processo foi
+encerrado para produzir uma aparência de limpeza. Bancada JEV e experimentos
+de papéis continuam distintos de inferência/adoção em produção.
