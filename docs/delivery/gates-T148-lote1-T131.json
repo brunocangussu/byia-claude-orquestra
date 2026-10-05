@@ -1,0 +1,28 @@
+{
+  "label": "T148-lote1-T131-reconciliado",
+  "utc": "2026-10-05T02:12:51.472262+00:00",
+  "exit": 0,
+  "source_sha256": "8a868f53ae8bdf462c5c4deffa7141c55798eb134439b8d98bdded0fe876a558",
+  "source_unchanged": true,
+  "gates": [
+    {
+      "gate": "suite",
+      "exit": 0,
+      "tests": 525,
+      "seconds": 97.217,
+      "output_sha256": "426b8b7b35e950f266579bf1e26617f9056dfb2a340a73c88d0840089f715c38"
+    },
+    {
+      "gate": "manifest",
+      "exit": 0
+    },
+    {
+      "gate": "lint",
+      "exit": 0
+    },
+    {
+      "gate": "diff",
+      "exit": 0
+    }
+  ]
+}

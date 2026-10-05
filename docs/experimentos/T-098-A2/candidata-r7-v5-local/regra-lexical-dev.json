@@ -1,0 +1,351 @@
+{
+  "algorithm": "presence_top5_log_odds_v3_exact_ratio",
+  "classes": [
+    "abster",
+    "alto_risco",
+    "consulta",
+    "normal",
+    "pequeno",
+    "trivial"
+  ],
+  "parameters": {
+    "minimum_token_length": 2,
+    "smoothing": 1,
+    "top_k": 5
+  },
+  "rules": [
+    {
+      "class": "abster",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 3,
+          "weight": "ln(44/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 44
+          },
+          "word": "ainda"
+        },
+        {
+          "negative": 0,
+          "positive": 3,
+          "weight": "ln(44/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 44
+          },
+          "word": "foi"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": "ln(11/1)",
+          "weight_ratio": {
+            "denominator": 1,
+            "numerator": 11
+          },
+          "word": "definido"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": "ln(11/1)",
+          "weight_ratio": {
+            "denominator": 1,
+            "numerator": 11
+          },
+          "word": "tarefa"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "aos"
+        }
+      ]
+    },
+    {
+      "class": "alto_risco",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": "ln(11/1)",
+          "weight_ratio": {
+            "denominator": 1,
+            "numerator": 11
+          },
+          "word": "producao"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": "ln(11/1)",
+          "weight_ratio": {
+            "denominator": 1,
+            "numerator": 11
+          },
+          "word": "seja"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "aceitos"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "alteracao"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "anonimizacao"
+        }
+      ]
+    },
+    {
+      "class": "consulta",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 4,
+          "weight": "ln(55/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 55
+          },
+          "word": "atual"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "aceita"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "aceitar"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "alterar"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "aplica"
+        }
+      ]
+    },
+    {
+      "class": "normal",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 3,
+          "weight": "ln(44/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 44
+          },
+          "word": "com"
+        },
+        {
+          "negative": 0,
+          "positive": 3,
+          "weight": "ln(44/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 44
+          },
+          "word": "local"
+        },
+        {
+          "negative": 1,
+          "positive": 4,
+          "weight": "ln(55/6)",
+          "weight_ratio": {
+            "denominator": 6,
+            "numerator": 55
+          },
+          "word": "uma"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "24"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "acompanhar"
+        }
+      ]
+    },
+    {
+      "class": "pequeno",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": "ln(11/1)",
+          "weight_ratio": {
+            "denominator": 1,
+            "numerator": 11
+          },
+          "word": "acrescente"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": "ln(11/1)",
+          "weight_ratio": {
+            "denominator": 1,
+            "numerator": 11
+          },
+          "word": "ajuste"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": "ln(11/1)",
+          "weight_ratio": {
+            "denominator": 1,
+            "numerator": 11
+          },
+          "word": "limite"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "adaptador"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "apenas"
+        }
+      ]
+    },
+    {
+      "class": "trivial",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "alinhe"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "alterado"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "apresentacao"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "apresentados"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": "ln(22/3)",
+          "weight_ratio": {
+            "denominator": 3,
+            "numerator": 22
+          },
+          "word": "assets"
+        }
+      ]
+    }
+  ],
+  "trained_cases": 24,
+  "trained_split": "dev",
+  "used_reserved_for_fit": false
+}

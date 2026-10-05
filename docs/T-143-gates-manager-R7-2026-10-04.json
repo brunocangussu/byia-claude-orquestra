@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "card": "T-143",
+  "round": "R7",
+  "state": "ALL_LOCAL_GATES_PASSED_CURRENT_APPROVED_SOURCE_UNCHANGED",
+  "recorded_at_utc": "2026-10-05T00:45:56Z",
+  "tool_session_id": 17753,
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "command_receipt": {
+    "terminal_gates": true,
+    "card": "T-143 R7 current-snapshot verification",
+    "commands": [
+      {
+        "label": "suite",
+        "returncode": 0,
+        "seconds": 51.327,
+        "output": ".................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 465 tests in 51.155s\n\nOK\n"
+      },
+      {
+        "label": "manifest",
+        "returncode": 0,
+        "seconds": 0.828,
+        "output": "Validating plugin manifest: /Users/brunocangucu/.codex/worktrees/t143-continuidade-aprovada/byia-claude-orquestra/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n"
+      },
+      {
+        "label": "lint",
+        "returncode": 0,
+        "seconds": 0.15,
+        "output": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n"
+      },
+      {
+        "label": "diff",
+        "returncode": 0,
+        "seconds": 0.014,
+        "output": ""
+      }
+    ]
+  },
+  "source_hashes_verified_after_review": true,
+  "source_count": 13,
+  "packet_sha256": "09e8127aeea9d4085df486f43c4eeab0afcf8c11ebb0795f7fb161ae0b5f869f",
+  "limits": [
+    "local tests do not certify LLM/runtime behavior",
+    "GO is scoped to approved snapshot, not delivery authorization"
+  ]
+}

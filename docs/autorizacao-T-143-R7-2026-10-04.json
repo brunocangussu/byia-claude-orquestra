@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "card": "T-143",
+  "round": "R7",
+  "state": "TERMINAL_GO_AUDITED_LOCAL_GATES_PASSED",
+  "date_local": "2026-10-04",
+  "prepared_at_utc": "2026-10-05T00:34:38Z",
+  "human_source": {
+    "literal": "prossiga - autorizo",
+    "thread_id": "01a07216-f99e-7360-94aa-19f30fb20a40",
+    "context": "one focused external recheck of corrected T143 only; T131/T098 approved reviews preserved"
+  },
+  "packet": {
+    "path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/pacote.txt",
+    "bytes": 178436,
+    "sha256": "09e8127aeea9d4085df486f43c4eeab0afcf8c11ebb0795f7fb161ae0b5f869f"
+  },
+  "runner": {
+    "path": "/Users/brunocangucu/.codex/worktrees/t131-elenco-sol61-luna6/byia-claude-orquestra/orq/scripts/run-opus-reviewer.py",
+    "sha256": "625d9d2998696e67ccfe11b0bf731920be03617d31ee0762ff891b3d552af2ce"
+  },
+  "model_requested": "claude-opus-5-5",
+  "provider": "Anthropic via official Claude CLI",
+  "limits": {
+    "calls": 1,
+    "retry": false,
+    "max_input_bytes": 196608,
+    "timeout_seconds": 600
+  },
+  "calls_started": 1,
+  "calls_remaining_to_start": 0,
+  "authentication_preflight": {
+    "binary": "/Users/brunocangucu/.local/bin/claude",
+    "version": "2.1.289",
+    "official_status_exit": 1,
+    "loggedIn": false,
+    "authMethod": "none",
+    "apiProvider": "firstParty",
+    "same_result_in_candidate_and_previous_empty_cwd": true,
+    "keychain_credential_record_present": true,
+    "keychain_secret_not_requested": true,
+    "keychain_metadata_updated_at_utc": "2026-10-04T22:23:52Z",
+    "oauth_account_metadata_present": true,
+    "credentials_file_absent": true,
+    "credential_environment_variables_present": false,
+    "tty_check": {
+      "exit": 1,
+      "status_json_valid": false,
+      "raw_output_suppressed": true
+    },
+    "cause": "UNPROVEN; saved record exists, official CLI does not recognize authenticated access; not evidence of global logout"
+  },
+  "local_gates": {
+    "terminal_gates": true,
+    "card": "T-143 R7 preflight",
+    "commands": [
+      {
+        "label": "suite",
+        "returncode": 0,
+        "seconds": 51.244,
+        "output": ".................................................................................................................................................................................................................................................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 465 tests in 51.042s\n\nOK\n"
+      },
+      {
+        "label": "manifest",
+        "returncode": 0,
+        "seconds": 0.693,
+        "output": "Validating plugin manifest: /Users/brunocangucu/.codex/worktrees/t143-continuidade-aprovada/byia-claude-orquestra/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n"
+      },
+      {
+        "label": "lint",
+        "returncode": 0,
+        "seconds": 0.166,
+        "output": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n"
+      },
+      {
+        "label": "diff",
+        "returncode": 0,
+        "seconds": 0.015,
+        "output": ""
+      }
+    ]
+  },
+  "forbidden": [
+    "additional model calls",
+    "retry",
+    "manual token",
+    "API key",
+    "logout",
+    "bump",
+    "commit",
+    "push",
+    "merge",
+    "publication",
+    "installation",
+    "restart"
+  ],
+  "authentication_mutations_performed": 0,
+  "prior_ledger_immutable": "docs/autorizacao-rechecagem-525367-2026-10-04.json",
+  "authentication_gate": {
+    "human_source": {
+      "literal": "sim",
+      "thread_id": "01a07216-f99e-7360-94aa-19f30fb20a40",
+      "context": "authorize one official browser login in Codex context, no logout/manual token/API key; then existing authorized R7 once"
+    },
+    "attempts_authorized": 1,
+    "attempts_started": 1,
+    "attempts_remaining": 0,
+    "state": "TERMINAL_SUCCESS_VERIFIED",
+    "tool_session_id": 59455,
+    "login_exit": 0,
+    "verified_at_utc": "2026-10-05T00:42:12Z",
+    "official_status_after": {
+      "exit": 0,
+      "loggedIn": true,
+      "authMethod": "claude.ai",
+      "apiProvider": "firstParty"
+    }
+  },
+  "attempt_id": "f6e15000-99f2-4942-8d90-b18d82b16645",
+  "empty_cwd": "/private/tmp/orq-T143-R7-recheck.3shhfgjl",
+  "verdict": "GO",
+  "review_format_valid": true,
+  "returncode": 0,
+  "elapsed_seconds": 61.332,
+  "started_at_utc": "2026-10-05T00:42:54.641199+00:00",
+  "ended_at_utc": "2026-10-05T00:43:55.972845+00:00",
+  "receipt_path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/recibo-r7-opus55.json",
+  "manager_audit": "docs/T-143-auditoria-manager-R7-2026-10-04.md",
+  "manager_gates": "docs/T-143-gates-manager-R7-2026-10-04.json",
+  "revised_snapshot_unchanged": true,
+  "next_gate": "reconciliation and Git delivery; installation/release/campaign are separate"
+}

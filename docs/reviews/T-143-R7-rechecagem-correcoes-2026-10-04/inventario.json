@@ -1,0 +1,157 @@
+{
+  "card": "T-143",
+  "round": "R7",
+  "state": "FROZEN_AUTHORIZED_AUTH_PREFLIGHT_BLOCKED_NOT_SENT",
+  "source": [
+    {
+      "path": "docs/reviews/T-143-R6-rechecagem-correcoes-2026-10-04/parecer-r6-opus55.raw.md",
+      "bytes": 9531,
+      "sha256": "583209b6ab36165a868a2fa92f5ed9829e38a33437a0e3ee36649b84151e64f0"
+    },
+    {
+      "path": "docs/T-143-auditoria-manager-R6-2026-10-04.md",
+      "bytes": 3259,
+      "sha256": "b189d295727fcba0f0fdd99a0f0785efc37904a23499d3210780e1e544cbcbf3"
+    },
+    {
+      "path": "docs/T-143-auditoria-manager-pos-R6-local-2026-10-04.md",
+      "bytes": 2263,
+      "sha256": "647d7c214caed227ad569fe4ac17009cb26817bc40fc8c82e4666378db689b22"
+    },
+    {
+      "path": "docs/T-143-pos-R6-local-handoff-2026-10-04.md",
+      "bytes": 2871,
+      "sha256": "0c1fae7303a0272b8ec26eb1e087a5aec7fe7d6881818df9260427c2939688de"
+    },
+    {
+      "path": "docs/T-143-pos-R6-local-handoff-2026-10-04.json",
+      "bytes": 2241,
+      "sha256": "4e67ad25928ea2737b5d71ec9614f351b563deef4e31580487dd2e9c8d3a3489"
+    },
+    {
+      "path": "docs/T-143-gates-manager-pos-R6-rechecagem-525367-2026-10-04.json",
+      "bytes": 1614,
+      "sha256": "510748d314b0bd32f30858108ddbe79eae3be2466a493f4e43efc9c81c7d4db4"
+    },
+    {
+      "path": "orq/skills/orq/SKILL.md",
+      "bytes": 42587,
+      "sha256": "451a69c4fd7503ad81e7ed6fd298987813ff747a0729b8d689ff97afe65b5b52"
+    },
+    {
+      "path": "orq/commands/implement-next.md",
+      "bytes": 10913,
+      "sha256": "c1f698a59661d6a6fa0824550e2f02b737b072133b1dc4a3997e93ec5d84e4b1"
+    },
+    {
+      "path": "orq/commands/revisar.md",
+      "bytes": 16699,
+      "sha256": "2d9e7a728ff023ac8edddd66b88c2908cee77aa3f37ee55af52d357606ba3e1d"
+    },
+    {
+      "path": "orq/commands/plan-next.md",
+      "bytes": 12212,
+      "sha256": "1a94759ad602aaa9fa5d8d95884b7ada10e41e9ae141fa6244cead736a4c392b"
+    },
+    {
+      "path": "orq/commands/checkpoint.md",
+      "bytes": 16102,
+      "sha256": "17717c398e48b5d68b507fb885d3fe2096a958a09396a18ae2323cb8324aebd5"
+    },
+    {
+      "path": "memory/wiki/_schema.md",
+      "bytes": 17315,
+      "sha256": "3882acc16b9cb316095b27432c1989b19ae03327ad873bbae06a41ec850d0c45"
+    },
+    {
+      "path": "orq/scripts/test_continuidade_aprovada.py",
+      "bytes": 36827,
+      "sha256": "9ee3369bdbc61f05d9f73044e03fcc2c0455b89d20977f709c91b8282c9dca31"
+    }
+  ],
+  "contexts": [
+    {
+      "path": "docs/reviews/T-143-R6-rechecagem-correcoes-2026-10-04/parecer-r6-opus55.raw.md",
+      "complete": true
+    },
+    {
+      "path": "docs/T-143-auditoria-manager-R6-2026-10-04.md",
+      "complete": true
+    },
+    {
+      "path": "docs/T-143-auditoria-manager-pos-R6-local-2026-10-04.md",
+      "complete": true
+    },
+    {
+      "path": "docs/T-143-pos-R6-local-handoff-2026-10-04.md",
+      "complete": true
+    },
+    {
+      "path": "docs/T-143-pos-R6-local-handoff-2026-10-04.json",
+      "complete": true
+    },
+    {
+      "path": "docs/T-143-gates-manager-pos-R6-rechecagem-525367-2026-10-04.json",
+      "complete": true
+    },
+    {
+      "path": "orq/skills/orq/SKILL.md",
+      "complete": true
+    },
+    {
+      "path": "orq/commands/implement-next.md",
+      "complete": true
+    },
+    {
+      "path": "orq/commands/revisar.md",
+      "complete": true
+    },
+    {
+      "path": "orq/commands/plan-next.md",
+      "complete": true
+    },
+    {
+      "path": "orq/commands/checkpoint.md",
+      "complete": true
+    },
+    {
+      "path": "memory/wiki/_schema.md",
+      "complete": true
+    },
+    {
+      "path": "orq/scripts/test_continuidade_aprovada.py",
+      "complete": true
+    }
+  ],
+  "omitted_unchanged": [
+    {
+      "path": "orq/commands/dormir.md",
+      "sha256": "e82d005001ad8ff646f356d239da711c7ba529298035923b9372e9d0a0b98695",
+      "matches_R6_source": true,
+      "reason": "consumer unchanged; outside the two corrected points; no new full coverage claim"
+    },
+    {
+      "path": "memory/wiki/arquitetura.md",
+      "sha256": "d2b1a43ddad2a49dcd3a794c9bca3a0790c6a4bbe13489980fd3a01bd557374a",
+      "matches_R6_source": true,
+      "reason": "consumer unchanged; outside the two corrected points; no new full coverage claim"
+    }
+  ],
+  "payload": {
+    "path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/pacote.txt",
+    "bytes": 178436,
+    "sha256": "09e8127aeea9d4085df486f43c4eeab0afcf8c11ebb0795f7fb161ae0b5f869f"
+  },
+  "limits": {
+    "max_input_bytes": 196608,
+    "timeout_seconds": 600,
+    "calls": 1,
+    "retry": false
+  },
+  "sanitization": {
+    "local_identifiers": "normalized",
+    "personal_emails": 0,
+    "credential_patterns": 0
+  },
+  "coverage": "R6 two blockers; seven full current product sources; six full supporting sources; two unchanged consumers explicitly omitted"
+}

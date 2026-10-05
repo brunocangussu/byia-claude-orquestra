@@ -1,0 +1,12 @@
+[
+  {
+    "gate": "suite-bancada",
+    "exit": 0,
+    "diagnostic": "...............................\n----------------------------------------------------------------------\nRan 31 tests in 2.309s\n\nOK\n"
+  },
+  {
+    "gate": "preflight-bancada",
+    "exit": 0,
+    "diagnostic": "{\"candidate\": \"T-098-A2-R8-v6-local\", \"historical_counts\": {\"r5\": 14, \"r6_v1\": 9, \"r6_v2\": 10, \"r6_v3\": 10, \"r6_v4\": 10, \"r7_v5\": 11}, \"lexical_profile\": {\"exclusive_tokens\": [], \"phrase_ainda_nao\": {\"abster\": 4, \"other\": 1}}, \"scores\": \"not_evaluated\", \"totals\": {\"abster\": 8, \"alto_risco\": 8, \"consulta\": 8, \"normal\": 8, \"pequeno\": 8, \"trivial\": 8}}\n"
+  }
+]

@@ -1,0 +1,148 @@
+{
+  "card": "T-131",
+  "round": "R9",
+  "state": "FROZEN_AUTHORIZED_NOT_SENT",
+  "source": [
+    {
+      "path": "docs/reviews/T-131-pos-R7-local-corrigido-2026-10-04/parecer-r8-opus55.raw.md",
+      "bytes": 5950,
+      "sha256": "89ebdf72e867ebf4fb648137b45ee69964c821ae7ebc2ae1deed595fa2e8776c"
+    },
+    {
+      "path": "docs/T-131-auditoria-manager-R8-2026-10-04.md",
+      "bytes": 2350,
+      "sha256": "43b8c93a730368ab604c385d888242ff30bcdbe4dc36087ae358d79b4c3d82f0"
+    },
+    {
+      "path": "docs/T-131-pos-R8-local-handoff-2026-10-04.md",
+      "bytes": 3613,
+      "sha256": "f03631b9cd41b54c7026a2a4ffece613a144428b3711d8fe475015efda6efd50"
+    },
+    {
+      "path": "docs/T-131-pos-R8-local-handoff-2026-10-04.json",
+      "bytes": 3112,
+      "sha256": "5e20b951423c66e5ec60e8a870bd76add96eb70399c704df331037eaefca5f2a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 36184,
+      "sha256": "14c2baada48b4228e2bb24e66b8c49a8a539cbce75bb099afd93a1db2a116d0b"
+    },
+    {
+      "path": "orq/commands/elenco.md",
+      "bytes": 38658,
+      "sha256": "b009fd015fc3c55d381119ac04989557cb299261ae87b761e1b5a639a917657f"
+    },
+    {
+      "path": "orq/commands/init.md",
+      "bytes": 66001,
+      "sha256": "f7a5947aa74b8fc0a7fd4ccded200f9743d0086795ce42cb746430a32330b3e6"
+    },
+    {
+      "path": "orq/commands/plan-next.md",
+      "bytes": 9282,
+      "sha256": "d7486e6a12247a49df268a581f2c35140d408a41c210642558f8600eb51cf50d"
+    },
+    {
+      "path": "orq/commands/implement-next.md",
+      "bytes": 7573,
+      "sha256": "ac17cd7d5565b950f1dadee02bddad282b64464e3fb7bf2c5a5deac2cbefb2a0"
+    },
+    {
+      "path": "orq/commands/revisar.md",
+      "bytes": 14932,
+      "sha256": "7e8fd62927e04ac059fe01a5e2ff467958044157258244735965baa1c6e71ec4"
+    },
+    {
+      "path": "orq/skills/orq/SKILL.md",
+      "bytes": 36881,
+      "sha256": "aec80214c1cb827df2862447f2112c7498e4892412d0f98b6f83b5b2c51d3fff"
+    },
+    {
+      "path": "orq/scripts/test_elenco_perfis.py",
+      "bytes": 85377,
+      "sha256": "e5b753d24fd3a6495051348311b3d0ec7ef1b4d9fa7a6654d100280ab3193f12"
+    },
+    {
+      "path": "orq/scripts/run-opus-reviewer.py",
+      "bytes": 16518,
+      "sha256": "625d9d2998696e67ccfe11b0bf731920be03617d31ee0762ff891b3d552af2ce"
+    }
+  ],
+  "contexts": [
+    {
+      "path": "docs/reviews/T-131-pos-R7-local-corrigido-2026-10-04/parecer-r8-opus55.raw.md",
+      "first": 1,
+      "last": 27,
+      "complete": true,
+      "sanitized_sha256": "89ebdf72e867ebf4fb648137b45ee69964c821ae7ebc2ae1deed595fa2e8776c"
+    },
+    {
+      "path": "docs/T-131-auditoria-manager-R8-2026-10-04.md",
+      "first": 1,
+      "last": 40,
+      "complete": true,
+      "sanitized_sha256": "43b8c93a730368ab604c385d888242ff30bcdbe4dc36087ae358d79b4c3d82f0"
+    },
+    {
+      "path": "docs/T-131-pos-R8-local-handoff-2026-10-04.md",
+      "first": 1,
+      "last": 59,
+      "complete": true,
+      "sanitized_sha256": "f03631b9cd41b54c7026a2a4ffece613a144428b3711d8fe475015efda6efd50"
+    },
+    {
+      "path": "orq/scripts/run-opus-reviewer.py",
+      "first": 1,
+      "last": 416,
+      "complete": true,
+      "sanitized_sha256": "625d9d2998696e67ccfe11b0bf731920be03617d31ee0762ff891b3d552af2ce"
+    },
+    {
+      "path": "orq/scripts/test_elenco_perfis.py",
+      "first": 1,
+      "last": 110,
+      "complete": false,
+      "sanitized_sha256": "90cc4d090c3d4dd5d3759782c3323c7473109e918bbf99e521782973968eb723"
+    },
+    {
+      "path": "orq/scripts/test_elenco_perfis.py",
+      "first": 1633,
+      "last": 1812,
+      "complete": false,
+      "sanitized_sha256": "a4e9f6c8de4b724a8bbd0b372b47c744b13b7c4142d96c59634a0af6ebd6532f"
+    },
+    {
+      "path": "orq/commands/elenco.md",
+      "first": 87,
+      "last": 189,
+      "complete": false,
+      "sanitized_sha256": "edef8ab7dcf531a9f714524aea3364045c28b19d891576f20bb87572c39d3984"
+    },
+    {
+      "path": "orq/commands/elenco.md",
+      "first": 110,
+      "last": 212,
+      "complete": false,
+      "sanitized_sha256": "3d75d6d91a08bd25578dcf490ceafd8143cd00ca74666fb7bc48ec92001fa50c"
+    }
+  ],
+  "coverage": "parecer anterior + auditoria Manager + correções/consumidores e testes; contextos selecionados declarados",
+  "payload": {
+    "bytes": 152325,
+    "sha256": "0bc69e45283654e4272f7ad3df83eec15ed0f175ad065b5248b14e5cadf6a22e",
+    "path": "docs/reviews/T-131-R9-rechecagem-correcoes-2026-10-04/pacote.txt"
+  },
+  "limits": {
+    "max_input_bytes": 196608,
+    "timeout_seconds": 600,
+    "calls": 1,
+    "retry": false
+  },
+  "sanitization": {
+    "local_user_paths": "<HOME>",
+    "owner_identifier": "<OWNER>",
+    "personal_emails": 0,
+    "credential_pattern_matches": 0
+  }
+}

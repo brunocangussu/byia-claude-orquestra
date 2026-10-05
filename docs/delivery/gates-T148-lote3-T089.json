@@ -1,0 +1,42 @@
+{
+  "label": "T148-lote3-identidade-host-atual",
+  "root": "/Users/brunocangucu/.codex/worktrees/consolidacao-main-20261004/byia-claude-orquestra",
+  "utc": "2026-10-05T02:24:08.897072+00:00",
+  "source_sha256_before": "9a8b0de9ce1a710ec012de50193f1ece97b55f2b49a871c3268e027e571c132a",
+  "source_sha256_after": "9a8b0de9ce1a710ec012de50193f1ece97b55f2b49a871c3268e027e571c132a",
+  "source_unchanged": true,
+  "gates": [
+    {
+      "gate": "suite",
+      "exit": 0,
+      "tests": 549,
+      "seconds": 98.685,
+      "output_sha256": "d610d0cbf89f133aa124b75771d7ed7d3aff449d7650befd4879279cf622084a",
+      "diagnostic": ".........................................................................................................................................................................................................................................................\n----------------------------------------------------------------------\nRan 549 tests in 98.551s\n\nOK\n"
+    },
+    {
+      "gate": "manifest",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.802,
+      "output_sha256": "fcc6536f6069221c3ef51b58b8bdc4f33d7ee97da472d02b6ef0f9654fa0d929",
+      "diagnostic": "Validating plugin manifest: /Users/brunocangucu/.codex/worktrees/consolidacao-main-20261004/byia-claude-orquestra/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n"
+    },
+    {
+      "gate": "lint",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.146,
+      "output_sha256": "2aea349869ffa0286e9120ffcf6e59865eb83ce89edd4af6326655f10f8b8ece",
+      "diagnostic": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n"
+    },
+    {
+      "gate": "diff",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.024,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diagnostic": ""
+    }
+  ]
+}

@@ -1,0 +1,233 @@
+{
+  "algorithm": "presence_top5_log_odds_v2",
+  "trained_split": "dev",
+  "trained_cases": 24,
+  "used_reserved_for_fit": false,
+  "classes": [
+    "abster",
+    "alto_risco",
+    "consulta",
+    "normal",
+    "pequeno",
+    "trivial"
+  ],
+  "parameters": {
+    "top_k": 5,
+    "smoothing": 1,
+    "minimum_token_length": 2
+  },
+  "rules": [
+    {
+      "class": "abster",
+      "features": [
+        {
+          "word": "ainda",
+          "positive": 4,
+          "negative": 0,
+          "weight": 2.908720896564361
+        },
+        {
+          "word": "foi",
+          "positive": 4,
+          "negative": 0,
+          "weight": 2.908720896564361
+        },
+        {
+          "word": "definido",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "tarefa",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "qual",
+          "positive": 3,
+          "negative": 1,
+          "weight": 1.9924301646902063
+        }
+      ]
+    },
+    {
+      "class": "alto_risco",
+      "features": [
+        {
+          "word": "producao",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "seja",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "aceitos",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "alteracao",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "anonimizacao",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        }
+      ]
+    },
+    {
+      "class": "consulta",
+      "features": [
+        {
+          "word": "atual",
+          "positive": 4,
+          "negative": 0,
+          "weight": 2.908720896564361
+        },
+        {
+          "word": "aceita",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "aceitar",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "alterar",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "aplica",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        }
+      ]
+    },
+    {
+      "class": "normal",
+      "features": [
+        {
+          "word": "com",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "local",
+          "positive": 3,
+          "negative": 0,
+          "weight": 2.685577345250151
+        },
+        {
+          "word": "uma",
+          "positive": 4,
+          "negative": 1,
+          "weight": 2.215573716004416
+        },
+        {
+          "word": "24",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "acompanhar",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        }
+      ]
+    },
+    {
+      "class": "pequeno",
+      "features": [
+        {
+          "word": "acrescente",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "ajuste",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "limite",
+          "positive": 2,
+          "negative": 0,
+          "weight": 2.3978952727983702
+        },
+        {
+          "word": "adaptador",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "apenas",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        }
+      ]
+    },
+    {
+      "class": "trivial",
+      "features": [
+        {
+          "word": "alinhe",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "alterado",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "apresentacao",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "apresentados",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        },
+        {
+          "word": "assets",
+          "positive": 1,
+          "negative": 0,
+          "weight": 1.9924301646902058
+        }
+      ]
+    }
+  ]
+}
+
+

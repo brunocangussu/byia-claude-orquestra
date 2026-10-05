@@ -1,0 +1,231 @@
+{
+  "algorithm": "presence_log_odds_top5_v2",
+  "classes": [
+    "trivial",
+    "pequeno",
+    "normal",
+    "consulta",
+    "alto_risco",
+    "abster"
+  ],
+  "parameters": {
+    "minimum_token_length": 2,
+    "smoothing": 1,
+    "top_k": 5
+  },
+  "rules": [
+    {
+      "class": "trivial",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "grafico"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "resumo"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "artefato"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "aumente"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "auxiliar"
+        }
+      ]
+    },
+    {
+      "class": "pequeno",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "corrija"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "existente"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "anterior"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "botao"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "busca"
+        }
+      ]
+    },
+    {
+      "class": "normal",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 3,
+          "weight": 1.386294,
+          "word": "local"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "crie"
+        },
+        {
+          "negative": 1,
+          "positive": 4,
+          "weight": 0.916291,
+          "word": "uma"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "acompanhamento"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "adicione"
+        }
+      ]
+    },
+    {
+      "class": "consulta",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "aparecer"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "aprovada"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "assinado"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "csv"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "datas"
+        }
+      ]
+    },
+    {
+      "class": "alto_risco",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "chave"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "fornecedor"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "aberto"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "acesso"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "ao"
+        }
+      ]
+    },
+    {
+      "class": "abster",
+      "features": [
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "acao"
+        },
+        {
+          "negative": 0,
+          "positive": 2,
+          "weight": 1.098612,
+          "word": "quem"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "alerta"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "altera"
+        },
+        {
+          "negative": 0,
+          "positive": 1,
+          "weight": 0.693147,
+          "word": "antes"
+        }
+      ]
+    }
+  ],
+  "trained_cases": 24,
+  "trained_split": "dev",
+  "used_reserved_for_fit": false
+}

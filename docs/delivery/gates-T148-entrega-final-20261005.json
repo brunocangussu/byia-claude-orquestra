@@ -1,0 +1,42 @@
+{
+  "label": "T148-entrega-final-20261005",
+  "root": "/Users/brunocangucu/.codex/worktrees/consolidacao-main-20261004/byia-claude-orquestra",
+  "utc": "2026-10-05T23:50:07.040186+00:00",
+  "source_sha256_before": "1950b35871cd71b2f43a9472b96770ef6957915a778608669969f3c3d4b73548",
+  "source_sha256_after": "1950b35871cd71b2f43a9472b96770ef6957915a778608669969f3c3d4b73548",
+  "source_unchanged": true,
+  "gates": [
+    {
+      "gate": "suite",
+      "exit": 0,
+      "tests": 838,
+      "seconds": 267.603,
+      "output_sha256": "5a340e9c33d551f7335ee3f01b21de9f1349dd8957f79014b413dbd186a56d4b",
+      "diagnostic": "\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n............................................................................................................................\n----------------------------------------------------------------------\nRan 838 tests in 267.364s\n\nOK\n"
+    },
+    {
+      "gate": "manifest",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.79,
+      "output_sha256": "fcc6536f6069221c3ef51b58b8bdc4f33d7ee97da472d02b6ef0f9654fa0d929",
+      "diagnostic": "Validating plugin manifest: /Users/brunocangucu/.codex/worktrees/consolidacao-main-20261004/byia-claude-orquestra/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n"
+    },
+    {
+      "gate": "lint",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.157,
+      "output_sha256": "2aea349869ffa0286e9120ffcf6e59865eb83ce89edd4af6326655f10f8b8ece",
+      "diagnostic": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n"
+    },
+    {
+      "gate": "diff",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.009,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diagnostic": ""
+    }
+  ]
+}

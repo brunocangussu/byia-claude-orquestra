@@ -1,0 +1,124 @@
+{
+  "candidate": "T-098-A2-R8-v6-local",
+  "date": "2026-10-04",
+  "state": "local_exploratory_not_campaign",
+  "scope": "correção local pós-R8; sem ação externa",
+  "authority": {
+    "ledger": "docs/autorizacao-local-continua-2026-10-04.json do worktree T-143",
+    "boundaries": [
+      "sem inferência, score, campanha, chamada A2/B2, rede, login ou retry",
+      "sem Git, bump, release, pacote externo, instalação ou restart"
+    ]
+  },
+  "v6_files_sha256": {
+    "amostra.json": "646b985babd4f14c0545bd21060698315502bff78b8a936e5cba09617608b491",
+    "evidencias-bancada-local.md": "391971ab2a13291afb2878c5836cde4c135e07fd55bcbf132ea349c2e2427268",
+    "manifesto.json": "b036048c7d9d32af437f540d5c928ab28e733eec373742204dba156bd3de96aa",
+    "oraculo-adjudicacao-red-green.py": "ccf7118563e12a46dc205696f27437e25d9730eeae86f3c068b53789ade85c09",
+    "oraculo-red-green.py": "d20d59745b3514e4a0ba3d72d64294b53ad15d28345220d6ff1b3a1ce6cac646",
+    "politica-e-limites.md": "541fdfd159bde32b21706ac2573a8feb1bac043ccd1c1a4a4217b0e65930bc53",
+    "preflight.py": "aafd2ac38daef0023f0e416751f6437de46dcc0d7f57816fea4ba40b62cefa06",
+    "recibo-congelamento-r8-v6.md": "c24698cc1c7e37eb9d38abfb4f406460aa8adf19e527e7f32a9c27b75cfc7843",
+    "regra-lexical-dev.json": "63f5433b75a02dd90e57bcc976b7f718a91d807b1eeb7f756ca74dc748d0a4fb",
+    "selo-congelamento-r8-v6.json": "52af237ba848ae5df6671c26b09abb002f2ab34c5642b51ad4f13a3074d53c2b",
+    "test_mutations.py": "5833062a651e3a17e663887aa5ef342c46385199f384d155f1056fe703cf7f29",
+    "test_preflight.py": "e7140e22f416b048ea8d594c8108fa4706f44cead9f1f6c796d25a56a987705e",
+    "test_v6_integrity.py": "cf13f3515eb2fc8bfe33f933a83ae986bbbfc3d16224c36cb1b83d8261764b70"
+  },
+  "seal": {
+    "verified": true,
+    "covered_files": 12,
+    "self_exclusion": "selo-congelamento-r8-v6.json",
+    "not_authorization": true
+  },
+  "diffcheck": {
+    "new_artifacts_without_amostra": 14,
+    "whitespace_failures": 0,
+    "preserved_exception": "amostra.json tem linha em branco final herdada da v5; não foi reformatada para preservar o snapshot textual"
+  },
+  "preservation": {
+    "v5_original_preserved": true,
+    "v5_history_file_count": 11,
+    "v5_complemento_external_sha256": "8f2b1595f983767b2a7d1b7cf4332a1fcae632f6b3e2a28cd52b212da2f35ac0",
+    "historical_counts": {
+      "R5": 14,
+      "R6_v1": 9,
+      "R6_v2": 10,
+      "R6_v3": 10,
+      "R6_v4": 10,
+      "R7_v5": 11
+    },
+    "texts_v5_byte_identical": 48,
+    "adjudications_full_metadata_equal_v1": 48,
+    "full_metadata_fields": ["gold", "split", "family", "policy_code", "facts", "rationale"],
+    "global_metadata_equal_v1": ["policy_codes", "taxonomy", "batches"],
+    "protected_texts_equal_v1": 37,
+    "candidate_pycache": []
+  },
+  "red_green": [
+    {
+      "phase": "RED",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest test_v6_integrity.R8V6IntegrityTest.test_adjudicacoes_integrais_dos_48_igualam_o_baseline_v1",
+      "exit": 1,
+      "count": 1,
+      "evidence": "AttributeError: validate_full_metadata_baseline inexistente"
+    },
+    {
+      "phase": "GREEN",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest test_v6_integrity",
+      "exit": 0,
+      "count": 6,
+      "evidence": "guarda integral e selação inicial verdes"
+    },
+    {
+      "phase": "RED",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s docs/experimentos/T-098-A2/candidata-r8-v6-local -p 'test_preflight.py'",
+      "exit": 1,
+      "count": 12,
+      "evidence": "KeyError: r7_v5 ausente no resumo do preflight"
+    },
+    {
+      "phase": "GREEN",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s docs/experimentos/T-098-A2/candidata-r8-v6-local -p 'test_preflight.py'",
+      "exit": 0,
+      "count": 12,
+      "evidence": "resumo inclui R7 v5"
+    }
+  ],
+  "mutation_checks": [
+    "policy_code, facts e rationale alterados sem reanotar falham contra o baseline integral",
+    "policy_codes, taxonomy e batches alterados falham contra o baseline integral",
+    "remoções de is_symlink, guarda relativa e is_file aceitam casos sintéticos indevidos e são detectadas",
+    "documentação mutada em cópia descartável falha no selo local"
+  ],
+  "commands": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s docs/experimentos/T-098-A2/candidata-r8-v6-local -p 'test_*.py'",
+      "exit": 0,
+      "count": 31
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 docs/experimentos/T-098-A2/candidata-r8-v6-local/preflight.py",
+      "exit": 0,
+      "scores": "not_evaluated"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'",
+      "exit": 0,
+      "count": 447
+    },
+    {
+      "command": "claude plugin validate ./orq --strict",
+      "exit": 0
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 orq/scripts/lint-coerencia.py .",
+      "exit": 0
+    }
+  ],
+  "limits": [
+    "Atalhos lexicais e pontuação não provam qualidade, ausência de atalho, generalização ou holdout.",
+    "Y042, corpus, gold e adjudicações não foram reescritos para esta correção.",
+    "Resultado local não constitui GO, aprovação independente, release ou autorização de próxima etapa."
+  ]
+}

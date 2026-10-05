@@ -1,0 +1,64 @@
+REVISÃO INDEPENDENTE T-148 — FUSÃO, NÃO REVISÃO INTEGRAL DE RAMOS.
+Você é o revisor único Anthropic. Leia as instruções como um modelo hostil: dupla interpretação, contradição entre contratos e referência inexistente. Apenas os trechos numerados abaixo estão no seu escopo; não use ferramentas, não leia arquivos, não execute código e não faça login. Responda com ## BLOQUEADORES (arquivo:linha, cenário concreto, correção mínima ou nenhum), ## RISCOS (idem ou nenhum), ## VEREDITO (APROVADO/APROVADO_COM_RESSALVAS/REPROVADO).
+Contexto comprovado pelo Manager: T-131 R9, T-143 R7 e bancada T-098 R9 têm GO próprios; T-144/T-146 têm revisões anteriores e os arquivos novos de runtime/testes foram preservados byte a byte. Este parecer não repete essas revisões. A candidata integrada 0.30.0 passou 832 testes, manifesto, lint e diff; a bancada passou 31 checks, sem inferência/campanha JEV. A fonte permanece isolada, sem instalação/restart. Overrides ativos do Claude e as branches/commits originais são preservados.
+Aceite da fusão: threadId devolvido exatamente igual ao solicitado, status 0/JSON válido/jobId/threadId completos; divergência preserva vínculo anterior, sem retry/fallback/fresh/resume-last; --wait só envelope, --write continua proibido; dividir briefing exige autorização dos novos digests. Medidor não concede Git nem passa card a VALIDATE, worker não recebe session_key; pausar para validar só após entrega/transição autorizadas. Não torne preexistência sem cenário concreto em bloqueador nem declare revisado código omitido, que já foi revisado nas frentes de origem.
+
+## orq/commands/revisar.md:181 — Divisão exige autorização de digests e mantém prova exata/legada de modelo
+181: O runner anuncia `OPUS_STARTED` imediatamente **no stderr** e aplica timeout de 600s. Esse teto
+182: acomoda a latência real observada de 267,1s em revisão arquitetural, sem remover a proteção contra
+183: processo órfão. A validação
+184: de tamanho ocorre antes do anúncio: `BRIEFING_TOO_LARGE` significa que nenhuma chamada começou;
+185: redivida somente se a autorização cobrir os novos digests finais sanitizados — um digest congelado
+186: não autoriza a divisão — e execute sem contar isso como retry. O runner exige identidade exata para
+187: `claude-opus-5-5` no `modelUsage` JSON ou o prefixo do alias legado pedido e não imprime parecer em modelo errado,
+188: timeout, erro ou saída vazia (`OPUS_EMPTY_RESULT`). Subtype ausente legado ou `success` só passam
+189: com os demais contratos; subtype presente desconhecido ou fora de tipo falha fechado, com diagnóstico
+190: `OPUS_` sanitizado. `OPUS_EXIT != 0`, `OPUS_OUT` vazio ou qualquer
+191: lote incompleto → **REVISÃO DEGRADADA** com o diagnóstico do stderr;
+192: não faça retry automático após chamada iniciada, para não duplicar custo.
+193: Todo host passa `--model` com o valor resolvido do elenco: o runner não lê esse arquivo.
+194: Antes de aceitar o parecer, confira `modelUsage`: igualdade exata para `claude-opus-5-5`.
+195: Para alias legado, o runner reconhece somente a identidade base ou sufixo numérico permitido depois
+196: dela. Todo sucesso tem uma única identidade `modelUsage` reconhecida e compatível; chave desconhecida,
+197: incompatível ou ambígua falha fechado sem ecoar chave arbitrária. Sem argumento o default continua `opus` apenas por
+198: compatibilidade; não omita a flag para adotar a fábrica 5.5. Se a resolução não puder ser comprovada,
+199: trate o modelo como ausente e marque **REVISÃO DEGRADADA**, sem troca ou ampliação da identidade aceita.
+200: 
+201: Aliases preservados: `opus` → `claude-opus-5`, `fable` → `claude-fable-5-1`,
+202: `sonnet` → `claude-sonnet-5`, `haiku` → `claude-haiku-4-5` (identidade base e sufixos numéricos de release).
+203: O ID explícito rejeita Opus 5 e `claude-opus-5-50`; pedir Fable e receber Opus 5.5 reprova.
+204: `OPUS_` e `REVIEWER_MODEL_ALIAS` são nomes legados de fio, não prova de identidade do parecer.
+205: 
+206: ### Titular indisponível → REVISÃO DEGRADADA, e o card não avança sozinho
+207: 
+
+## memory/wiki/arquitetura.md:115 — Capacidade preventiva, continuação e reviewer resolvido da tabela ativa
+115: Claude e vice-versa) mais `## Matriz de invocação` (o mecanismo real por vendor × host) e
+116: `## Perfis` (times nomeados por contexto de crédito, só do host Claude hoje; ativar um preset
+117: reescreve a tabela do host e nunca toca `manager` nem o estado das vias cross-vendor).
+118: 
+119: No host Claude, papéis read-only OpenAI passam pelo `codex:codex-rescue`/Codex Companion. A unidade
+120: de isolamento e reúso é `card+papel`: primeira chamada fresca, continuação pela `threadId` exata;
+121: mudou card ou papel, nasce outra task. O handoff durável guarda `card`, `papel`, `jobId`,
+122: `threadId` e `status`, e o resultado vem de `rawOutput`. Isso evita uma task por mensagem sem
+123: misturar Planner e Reviewer nem depender da ambiguidade de "última task".
+124: 
+125: No Companion, ausência de `--write` não prova limitação de leituras, ferramentas ou egress. A rota
+126: de pacote congelado só é elegível com capacidade preventiva sem ferramentas e isolamento comprovados
+127: para o envelope real; sem isso, o digest é **INVERIFICÁVEL / CAPACIDADE AUSENTE**, a chamada não
+128: ocorre e somente a dependência externa estaciona. Não se inventa `--no-tools`, fallback ou probe.
+129: 
+130: A continuação só vale se a chamada terminar com `status: 0`, `jobId` e `threadId` presentes e o
+131: `threadId` devolvido for igual ao solicitado. Divergência ou recibo incompleto degrada a
+132: continuação: o vínculo anterior é preservado e nada é repetido, substituído por outra task ou
+133: recolhido pela "última" automaticamente. O `--wait` é do envelope enviado ao `codex-rescue`, que o
+134: remove antes de invocar o `task`; o runtime não o recebe.
+135: 
+136: ## A revisão independente
+137: 
+138: Contrato canônico em `orq/commands/revisar.md` — aqui só o que muda o desenho:
+139: 
+140: - **Um revisor só, sempre do vendor oposto ao host.** Host Claude → OpenAI; host Codex → Anthropic
+141:   (pelo `orq/scripts/run-opus-reviewer.py --model <alias>`, via Anthropic parametrizada pelo alias
+142:   do elenco, sem hardcode de modelo: alias ou ID da linha `reviewer` do host). Não existe painel, não existe
+143:   "confirmado por 2+", e o Manager não conta como parecer — ele **audita**.

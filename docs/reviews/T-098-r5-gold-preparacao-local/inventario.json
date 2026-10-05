@@ -1,0 +1,117 @@
+{
+  "sanitizations": [
+    {
+      "file": "docs/experimentos/T-098-A2/protocolo-operacional.md",
+      "line": 10,
+      "kind": "absolute_account_home_prefix",
+      "replacement": "<HOME_LOCAL>",
+      "occurrences": 1
+    }
+  ],
+  "delivery_authorized": true,
+  "card": "T-098",
+  "round": "R5",
+  "state": "R5_NO_GO_AUDITED",
+  "sent": true,
+  "review_calls": 1,
+  "calls_remaining": 0,
+  "previous_R4_consumed": 1,
+  "base": "4e58e7f19a8b6b51cb8ab33232862be431b3005d",
+  "files": [
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/amostra.json",
+      "sha256": "fba8c8a5f07375540369cb471c6cd8a21959564259edc7a823f2d897096ca4fb",
+      "bytes": 27883
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/preflight.py",
+      "sha256": "cf9c5b57def3a7c4a3e1a28566b64be134dfecf5db37c7c18121b5e342b441cc",
+      "bytes": 12734
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/test_preflight.py",
+      "sha256": "7846e6bf415821736ae7f873b4e6360342e85e3bf9d70acbdc8d42fe9612bd54",
+      "bytes": 3383
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/test_mutations.py",
+      "sha256": "5037617818a663e9267f69fbf931455e57f24141f2296d655c20153168c48c7b",
+      "bytes": 5006
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/regra-lexical-congelada.json",
+      "sha256": "1099ea053837a70a5e1c7a9da7b4c9d7c6f19a0b6663103fb9f74521eee9a751",
+      "bytes": 5423
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/resultado-diagnostico-local.json",
+      "sha256": "1bbc316515b66fa2ee0c3dc575c4aee7006b94e5d6f9567503f8ad4a2ab29b49",
+      "bytes": 10219
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/recuperacao-e-baseline.md",
+      "sha256": "cd6ac2b9eeab6cf958aaaf11125ee3a74d02961d1015de315628ecbc723e5062",
+      "bytes": 2669
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/mecanismos-e-limites.md",
+      "sha256": "38659bfa10574b6d5c1ce22418ac149c0a787898749b48e4d0dd4c4696bd3d54",
+      "bytes": 6598
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/recibo-congelamento-lexical.md",
+      "sha256": "0e7232b3f2e659ebac2f7a26b37dc81398b69541e861839474cc0db1af9e8d29",
+      "bytes": 1962
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/verificacao-e-handoff-local.md",
+      "sha256": "22b5e638d00dffe4e06de16a4e688dae3df54ad20d03d528f5d7b719f4cd2544",
+      "bytes": 4369
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/evidencias-bancada-local.md",
+      "sha256": "4f9fb39bfa47273f8d36e4384a556724fd69e203ca73151a1b37a4c489a41661",
+      "bytes": 3320
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/protocolo-operacional.md",
+      "sha256": "3586275e4aa29fc1d2c75f517934323f375e5f6e224f9fbefa82154ef4df564d",
+      "bytes": 6885
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/amostra.json",
+      "sha256": "a69c8eac25ac8981ded509c9f1e4cb7df7aa796124357c945db5a4e8b53642ea",
+      "bytes": 17314
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r4/preflight.py",
+      "sha256": "90629815af66061a2299ea124944592e6c90acf75004a45372f0ff685db3f105",
+      "bytes": 4178
+    }
+  ],
+  "diff_files": [
+    "docs/experimentos/T-098-A2/candidata-r5-local/preflight.py",
+    "docs/experimentos/T-098-A2/candidata-r5-local/test_preflight.py",
+    "docs/experimentos/T-098-A2/candidata-r5-local/test_mutations.py",
+    "docs/experimentos/T-098-A2/candidata-r5-local/evidencias-bancada-local.md"
+  ],
+  "source_sections": 14,
+  "packet_bytes": 150624,
+  "packet_sha256": "604b4bf49c0530030f5eadae6bd674de5569d2636609fef2dad758a1bdf928d4",
+  "diff_bytes": 26119,
+  "diff_sha256": "d8ffa1dd587036c428596a846ce28db7a88c0110dd77d5fe4b8454a2f1390063",
+  "proposed_max_input_bytes": 196608,
+  "classification_calls": 0,
+  "sanitization": {
+    "absolute_account_paths": false,
+    "email_markers": 0,
+    "credential_markers": 0
+  },
+  "limits": [
+    "gold review is not blind",
+    "structural gates do not approve semantic gold",
+    "no JEV/Luna campaign",
+    "review extension and egress require owner gate",
+    "no Git/release/install/restart"
+  ]
+}

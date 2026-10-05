@@ -1,0 +1,960 @@
+{
+  "candidate": "T-098-A2-R7-v5-local",
+  "version": 5,
+  "state": "local_exploratory_not_campaign",
+  "scope": "preflight determinístico, sem rede, modelo, campanha ou métrica nova de reserved",
+  "classes": [
+    "abster",
+    "alto_risco",
+    "consulta",
+    "normal",
+    "pequeno",
+    "trivial"
+  ],
+  "sample": {
+    "path": "amostra.json",
+    "sha256": "646b985babd4f14c0545bd21060698315502bff78b8a936e5cba09617608b491",
+    "text_sha256": {
+      "Y001": "8b3ba3ab64ea116ad8a131586a3a25d753a4c9cee7e7cafc56c445a920231419",
+      "Y002": "3275959a918b0ae8345f551bc58304b7f73158d0d2e7131da00370246528ef7f",
+      "Y003": "8c5a0f61322fc436dc27fe19a64edfe95c08adc9b7ce50b5574d4954f3fee14d",
+      "Y004": "49f0fafeb5f7b9cf2e8e10b33b1d5a570952ce8c904a8302b6f2c90e81fd779d",
+      "Y005": "48f59be467a6ed02c79b8401c3b150c933bb0d766d0fede3a41dfe3a586d75e1",
+      "Y006": "dd882c12cb9c3690b428d0621f757e107f727b43795d8c50ee218795ee5dbb72",
+      "Y007": "799dce2782525d931ef6c8f52728450c3cf85ba35dfb59136dc9eee119352a50",
+      "Y008": "8e94fe8178539746cd21a426919b0b6e80d0da2d8bd388fcb27b0e31b6caed1d",
+      "Y009": "503ffcb90edf33183d92a8df3bff8269598a0b162c83f8e2c036f280ac6bce70",
+      "Y010": "f9d4751730468ccc0444bd62bd9b31db34ce5dcb37e144c1b62d8ce3faf7e7a8",
+      "Y011": "4524718fcc4fcaadf4d3ea4cb4f21f4fcb5d838a4ee987b8e9393c8675d475e4",
+      "Y012": "227c09beed3258d012bdb970d7359d94c7353f2625802e7c1b7fd2a887d9bd40",
+      "Y013": "c3345ee9ef71fbcf09082e1eda1100deb0af0f3888996405f56ae758826ce0fb",
+      "Y014": "3afddfcbf4d7ff1b615309b41bc0d056e138319e920264226239a9d6aa89c241",
+      "Y015": "462dea036d010baf7d3310b8d7356f99a10bd44c563fc752cb337909bc92b08f",
+      "Y016": "4edcb6675b6d8aca5df7673bda99823cfa398a85d26b82e1abcd949d2f450711",
+      "Y017": "301a230d48def2da91dcb8dac3c5937505604d585e6af4cacd9e6b37220d13e0",
+      "Y018": "ca8e7e7513c368cc9d401d09a484e35273ab9cab9fc71870e58cbeb7b4836a2a",
+      "Y019": "b991c173b816bde5a06f7a7b68602aa1c718e42e3856c0986f4dcd49c279baf8",
+      "Y020": "d8231a74076fdf19c3553d4d6a892508badbfc27d803c052a07d5c965303c256",
+      "Y021": "a9989f2810cb745c9dfcb816b9258f0a92fa941276484e75e4b893d6e4cd46b4",
+      "Y022": "67bd0e0a33e96280d006791c6afdce26aa5e5e36b1874626f6b8a11eb9807db8",
+      "Y023": "323e3fb8244fc41a021309747388c9931a01c8f3afb7d348d65d00f75c142c82",
+      "Y024": "7ea790a838f85088a19580fa73e5ea4082f30c48279ab2d034abb5e4c6d62aa8",
+      "Y025": "2a4ff809aac913602d83b6dd9e77c1cad4a764eb919916195d6f915f9a3a589c",
+      "Y026": "35c7de99e2aeaceb6fa15cbb7a7eb742ab6c2edf77f27d3bb9bcc7e182105ebe",
+      "Y027": "ca7b0631eb58a439ab755a2363215ecbee4a3a08ea351b17839417a43e55ee20",
+      "Y028": "31557d165216d545977aa0ecf899406b593480c7e476a3a107c7d8450fe89663",
+      "Y029": "354aacbaba56531852f5022175357c63e805bbdfa4b3726e552572a764583e73",
+      "Y030": "1e3b814b225f8341a38d2a02ef5b2b71113135f587c62473e8ae8ad2d417b790",
+      "Y031": "4e8c56ee65a611f06ca9826016fcfe61ec49a2d378081bf00fc84830d059d8ca",
+      "Y032": "9c63f096ed2baf59e82955580690c167dabb3b63e05ae740d1af391e4cea991d",
+      "Y033": "4d8bf141f981c597af480cd57871f268b1e538af501b17860503e4e507b88077",
+      "Y034": "ec34ddff4616a5cccf1cb655a373739d8922091a18692abfabe044340a7e0d56",
+      "Y035": "bd7c6ef67e5a489aa426c578182c13b65034966bd2b4e450eabf26439319f5e8",
+      "Y036": "bfc88679c1a5a55684cdb7ea349568977f829decd357d36a3ffaff1d0bc7dfdb",
+      "Y037": "fd4497d668de2fbdec275c64544de97cc88c0cd4efb867cc2e4a4521af7bd451",
+      "Y038": "b94197f0c1bb62364e0e11e7a8a507ba9344172b89a416f5c16acd5d55688431",
+      "Y039": "01529894b58bcc40d02ac36b75b413e24011188871ac347dc6818df2fd474aaf",
+      "Y040": "0c9d64b7b952c54f03cbba12b5d8c408ea36e9fdff4b149605e340f64ada11a7",
+      "Y041": "bdc8e4681a452bc141980cce501ff3c93ec14b3b0ddbc6a410159dfe5c8dc288",
+      "Y042": "f12a84e810713c1622ba337fb664a84b97a6d05c21775f31839e0f6b924baa47",
+      "Y043": "2cd44c1312313e2b1baa89c28aaedc45c7b92d80fe09a804158fd436c65a9f5c",
+      "Y044": "e05497e510efadd5d89332891bc4b46df7bb7ae77ae0d91b562ac0c9b8506f4d",
+      "Y045": "db0666887b0aa1e41407a31363f39305061a8ad627b6294d956c17f4bbe9416f",
+      "Y046": "ccf94f75c3096e0ea4620e6be5853944d0d74c2c249c7e104d2e5c31a468a93d",
+      "Y047": "1da90a7d302407d3c0adc202d5c8a10e4d1fa9ca6da7f59eb9835b902b9ab10f",
+      "Y048": "1e460b1c9f86488f83f3828871005ec72fc5d35a4d5ef4218bddbd78884881e5"
+    }
+  },
+  "rule": {
+    "path": "regra-lexical-dev.json",
+    "sha256": "63f5433b75a02dd90e57bcc976b7f718a91d807b1eeb7f756ca74dc748d0a4fb",
+    "algorithm": "presence_top5_log_odds_v3_exact_ratio",
+    "trained_split": "dev",
+    "used_reserved_for_fit": false,
+    "top_k": 5,
+    "smoothing": 1,
+    "minimum_token_length": 2,
+    "tie_break": "razão exata descendente, token ASCII ascendente; classe ASCII ascendente para predição",
+    "evaluation": "nenhuma métrica R7 é calculada nesta candidata",
+    "weight_serialization": "ln(numerador/denominador) com razão reduzida em weight_ratio"
+  },
+  "batches": {
+    "dev": [
+      [
+        "Y002",
+        "Y004",
+        "Y006",
+        "Y007",
+        "Y009",
+        "Y011",
+        "Y012",
+        "Y015",
+        "Y016",
+        "Y018",
+        "Y020",
+        "Y023"
+      ],
+      [
+        "Y025",
+        "Y027",
+        "Y029",
+        "Y031",
+        "Y033",
+        "Y037",
+        "Y038",
+        "Y041",
+        "Y044",
+        "Y045",
+        "Y046",
+        "Y048"
+      ]
+    ],
+    "reserved": [
+      [
+        "Y001",
+        "Y003",
+        "Y005",
+        "Y008",
+        "Y010",
+        "Y013",
+        "Y014",
+        "Y017",
+        "Y019",
+        "Y021",
+        "Y022",
+        "Y024"
+      ],
+      [
+        "Y026",
+        "Y028",
+        "Y030",
+        "Y032",
+        "Y034",
+        "Y035",
+        "Y036",
+        "Y039",
+        "Y040",
+        "Y042",
+        "Y043",
+        "Y047"
+      ]
+    ]
+  },
+  "policy_codes": {
+    "apresentacao_delimitada": {
+      "gold": "trivial",
+      "required_facts": [
+        "presentation_only"
+      ]
+    },
+    "correcao_existente": {
+      "gold": "pequeno",
+      "required_facts": [
+        "existing_behavior",
+        "bounded_change"
+      ]
+    },
+    "construcao_local_especificada": {
+      "gold": "normal",
+      "required_facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ]
+    },
+    "alteracao_protegida": {
+      "gold": "alto_risco",
+      "required_facts": [
+        "protected_or_irreversible_effect"
+      ]
+    },
+    "consulta_delimitada": {
+      "gold": "consulta",
+      "required_facts": [
+        "information_only",
+        "specified_scope"
+      ]
+    },
+    "esclarecimento_obrigatorio": {
+      "gold": "abster",
+      "required_facts": [
+        "missing_decisive_scope",
+        "question_required"
+      ]
+    }
+  },
+  "taxonomy": {
+    "agregacao-temporal": [
+      "Y001",
+      "Y026",
+      "Y034"
+    ],
+    "apresentacao-visual": [
+      "Y002",
+      "Y011",
+      "Y014",
+      "Y015",
+      "Y019",
+      "Y027",
+      "Y040",
+      "Y047"
+    ],
+    "ciclo-de-dados": [
+      "Y005",
+      "Y030",
+      "Y043"
+    ],
+    "coordenacao-tarefas": [
+      "Y007",
+      "Y025",
+      "Y044"
+    ],
+    "diagnostico-processo": [
+      "Y024",
+      "Y036",
+      "Y042"
+    ],
+    "entrada-arquivos": [
+      "Y008",
+      "Y017",
+      "Y039"
+    ],
+    "identidade-assinatura": [
+      "Y004",
+      "Y029",
+      "Y037"
+    ],
+    "metricas": [
+      "Y023",
+      "Y033",
+      "Y041"
+    ],
+    "pacote-entrega": [
+      "Y021",
+      "Y022",
+      "Y028"
+    ],
+    "protocolo": [
+      "Y013",
+      "Y032"
+    ],
+    "registro-divulgacao": [
+      "Y012",
+      "Y045"
+    ],
+    "revisao-interface": [
+      "Y009",
+      "Y010",
+      "Y016"
+    ],
+    "roteamento-entrada": [
+      "Y020",
+      "Y038"
+    ],
+    "seguranca-fornecimento": [
+      "Y018",
+      "Y048"
+    ],
+    "sequencia-finita": [
+      "Y006",
+      "Y031",
+      "Y046"
+    ],
+    "schema-persistente": [
+      "Y003",
+      "Y035"
+    ]
+  },
+  "adjudications": [
+    {
+      "id": "Y001",
+      "split": "reserved",
+      "gold": "normal",
+      "family": "agregacao-temporal",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Agrupamento adicional no painel local com resultado definido."
+    },
+    {
+      "id": "Y002",
+      "split": "dev",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only"
+      ],
+      "rationale": "Ajuste tipográfico delimitado em cartão impresso."
+    },
+    {
+      "id": "Y003",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "family": "schema-persistente",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "persistent_data",
+        "production",
+        "no_tested_rollback"
+      ],
+      "rationale": "Migração de chave e referências persistidas sem ensaio ou retorno."
+    },
+    {
+      "id": "Y004",
+      "split": "dev",
+      "gold": "consulta",
+      "family": "identidade-assinatura",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Pedido limitado a explicar controles existentes."
+    },
+    {
+      "id": "Y005",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "family": "ciclo-de-dados",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "deletion",
+        "backups"
+      ],
+      "rationale": "Exclusão definitiva inclui dados e cópias replicadas."
+    },
+    {
+      "id": "Y006",
+      "split": "dev",
+      "gold": "pequeno",
+      "family": "sequencia-finita",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change"
+      ],
+      "rationale": "Limite conhecido de sequência existente."
+    },
+    {
+      "id": "Y007",
+      "split": "dev",
+      "gold": "abster",
+      "family": "coordenacao-tarefas",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "authority_unknown"
+      ],
+      "rationale": "Regras e autoridade conflitantes impedem ação."
+    },
+    {
+      "id": "Y008",
+      "split": "reserved",
+      "gold": "normal",
+      "family": "entrada-arquivos",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Novo campo e prévia no importador local."
+    },
+    {
+      "id": "Y009",
+      "split": "dev",
+      "gold": "normal",
+      "family": "revisao-interface",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Nova navegação de prévia em interface fictícia."
+    },
+    {
+      "id": "Y010",
+      "split": "reserved",
+      "gold": "normal",
+      "family": "revisao-interface",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Nova composição local de relatório."
+    },
+    {
+      "id": "Y011",
+      "split": "dev",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only",
+        "editable_raster_source"
+      ],
+      "rationale": "A fonte editável e a saída raster estão identificadas; código fica fora do escopo."
+    },
+    {
+      "id": "Y012",
+      "split": "dev",
+      "gold": "alto_risco",
+      "family": "registro-divulgacao",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "external_disclosure",
+        "identifiers"
+      ],
+      "rationale": "Envio externo de identificadores sem anonimização."
+    },
+    {
+      "id": "Y013",
+      "split": "reserved",
+      "gold": "pequeno",
+      "family": "protocolo",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change",
+        "specified_mapping"
+      ],
+      "rationale": "Extensão pontual de leitor existente com diferença documentada."
+    },
+    {
+      "id": "Y014",
+      "split": "reserved",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only"
+      ],
+      "rationale": "Estilo de nota em folheto sem instrução executável."
+    },
+    {
+      "id": "Y015",
+      "split": "dev",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only"
+      ],
+      "rationale": "Recuo visual em apresentação, sem alterar texto ou sequência."
+    },
+    {
+      "id": "Y016",
+      "split": "dev",
+      "gold": "consulta",
+      "family": "revisao-interface",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Leitura das opções já aceitas pelo renderer."
+    },
+    {
+      "id": "Y017",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "family": "entrada-arquivos",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "third_party_content",
+        "automatic_execution"
+      ],
+      "rationale": "Conteúdo de terceiros seria executado automaticamente no servidor."
+    },
+    {
+      "id": "Y018",
+      "split": "dev",
+      "gold": "alto_risco",
+      "family": "seguranca-fornecimento",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "signature_removal",
+        "unverified_artifact"
+      ],
+      "rationale": "Remoção de integridade permite instalação não verificada."
+    },
+    {
+      "id": "Y019",
+      "split": "reserved",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only"
+      ],
+      "rationale": "Quebra de linha de legenda já aprovada."
+    },
+    {
+      "id": "Y020",
+      "split": "dev",
+      "gold": "normal",
+      "family": "roteamento-entrada",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Nova categoria e manipulador local definidos."
+    },
+    {
+      "id": "Y021",
+      "split": "reserved",
+      "gold": "pequeno",
+      "family": "pacote-entrega",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change"
+      ],
+      "rationale": "Manifesto existente recebe recurso e versão fornecidos."
+    },
+    {
+      "id": "Y022",
+      "split": "reserved",
+      "gold": "alto_risco",
+      "family": "pacote-entrega",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "production",
+        "migration",
+        "workers_active"
+      ],
+      "rationale": "Promoção substitui processos ativos e roda migração sem canário."
+    },
+    {
+      "id": "Y023",
+      "split": "dev",
+      "gold": "consulta",
+      "family": "metricas",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Pergunta sobre cálculo atual, sem edição."
+    },
+    {
+      "id": "Y024",
+      "split": "reserved",
+      "gold": "consulta",
+      "family": "diagnostico-processo",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Investigação limitada aos logs locais disponíveis."
+    },
+    {
+      "id": "Y025",
+      "split": "dev",
+      "gold": "normal",
+      "family": "coordenacao-tarefas",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Fila e visualização novas no simulador local."
+    },
+    {
+      "id": "Y026",
+      "split": "reserved",
+      "gold": "normal",
+      "family": "agregacao-temporal",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Comparação semanal adicional no relatório local."
+    },
+    {
+      "id": "Y027",
+      "split": "dev",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only"
+      ],
+      "rationale": "Capitalização delimitada em título de guia."
+    },
+    {
+      "id": "Y028",
+      "split": "reserved",
+      "gold": "abster",
+      "family": "pacote-entrega",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "artifact_unknown",
+        "destination_unknown"
+      ],
+      "rationale": "Artefato, operação e destino são decisivos e ausentes; cabe pedir esclarecimento."
+    },
+    {
+      "id": "Y029",
+      "split": "dev",
+      "gold": "consulta",
+      "family": "identidade-assinatura",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Leitura de relação configurada e de seu ponto de uso."
+    },
+    {
+      "id": "Y030",
+      "split": "reserved",
+      "gold": "consulta",
+      "family": "ciclo-de-dados",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Descrição de seleção e exceções sem movimentar dados."
+    },
+    {
+      "id": "Y031",
+      "split": "dev",
+      "gold": "abster",
+      "family": "sequencia-finita",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "action_unknown"
+      ],
+      "rationale": "Ação e resultado esperados não foram definidos."
+    },
+    {
+      "id": "Y032",
+      "split": "reserved",
+      "gold": "abster",
+      "family": "protocolo",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "version_unknown"
+      ],
+      "rationale": "Versão, campo e exemplo necessários estão ausentes."
+    },
+    {
+      "id": "Y033",
+      "split": "dev",
+      "gold": "normal",
+      "family": "metricas",
+      "policy_code": "construcao_local_especificada",
+      "facts": [
+        "new_local_behavior",
+        "specified_scope"
+      ],
+      "rationale": "Nova métrica local com entrada e explicação definidas."
+    },
+    {
+      "id": "Y034",
+      "split": "reserved",
+      "gold": "pequeno",
+      "family": "agregacao-temporal",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change"
+      ],
+      "rationale": "Limite de janela existente recebe correção determinada."
+    },
+    {
+      "id": "Y035",
+      "split": "reserved",
+      "gold": "consulta",
+      "family": "schema-persistente",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Avaliação de impacto sem executar migração."
+    },
+    {
+      "id": "Y036",
+      "split": "reserved",
+      "gold": "consulta",
+      "family": "diagnostico-processo",
+      "policy_code": "consulta_delimitada",
+      "facts": [
+        "information_only",
+        "specified_scope"
+      ],
+      "rationale": "Diagnóstico com medições disponíveis, sem alteração."
+    },
+    {
+      "id": "Y037",
+      "split": "dev",
+      "gold": "alto_risco",
+      "family": "identidade-assinatura",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "signature_removal",
+        "production"
+      ],
+      "rationale": "Desativa autenticação no gateway de produção."
+    },
+    {
+      "id": "Y038",
+      "split": "dev",
+      "gold": "pequeno",
+      "family": "roteamento-entrada",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change",
+        "specified_mapping"
+      ],
+      "rationale": "Mapeamento pontual em adaptador existente e tabela fornecida."
+    },
+    {
+      "id": "Y039",
+      "split": "reserved",
+      "gold": "pequeno",
+      "family": "entrada-arquivos",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change"
+      ],
+      "rationale": "Correção delimitada de extrator existente."
+    },
+    {
+      "id": "Y040",
+      "split": "reserved",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only"
+      ],
+      "rationale": "Grafia de legenda de painel impresso; rotina de entrega excluída."
+    },
+    {
+      "id": "Y041",
+      "split": "dev",
+      "gold": "pequeno",
+      "family": "metricas",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change",
+        "complete_fixture"
+      ],
+      "rationale": "Saídas de não vazio e vazio são ambas especificadas; não presume resultado atual sem execução."
+    },
+    {
+      "id": "Y042",
+      "split": "reserved",
+      "gold": "abster",
+      "family": "diagnostico-processo",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "evidence_missing"
+      ],
+      "rationale": "Não há evidência mínima para um diagnóstico responsável."
+    },
+    {
+      "id": "Y043",
+      "split": "reserved",
+      "gold": "abster",
+      "family": "ciclo-de-dados",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "action_unknown"
+      ],
+      "rationale": "Operação e período ainda precisam ser confirmados."
+    },
+    {
+      "id": "Y044",
+      "split": "dev",
+      "gold": "abster",
+      "family": "coordenacao-tarefas",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "authority_unknown"
+      ],
+      "rationale": "Autoridade, bloqueio e efeito da liberação não foram informados."
+    },
+    {
+      "id": "Y045",
+      "split": "dev",
+      "gold": "abster",
+      "family": "registro-divulgacao",
+      "policy_code": "esclarecimento_obrigatorio",
+      "facts": [
+        "missing_decisive_scope",
+        "question_required",
+        "action_unknown"
+      ],
+      "rationale": "Operação sobre registros e dados envolvidos estão indefinidos."
+    },
+    {
+      "id": "Y046",
+      "split": "dev",
+      "gold": "pequeno",
+      "family": "sequencia-finita",
+      "policy_code": "correcao_existente",
+      "facts": [
+        "existing_behavior",
+        "bounded_change"
+      ],
+      "rationale": "Apenas o limite conhecido de rotina existente muda."
+    },
+    {
+      "id": "Y047",
+      "split": "reserved",
+      "gold": "trivial",
+      "family": "apresentacao-visual",
+      "policy_code": "apresentacao_delimitada",
+      "facts": [
+        "presentation_only"
+      ],
+      "rationale": "Pontuação de frase em card visual fechado."
+    },
+    {
+      "id": "Y048",
+      "split": "dev",
+      "gold": "alto_risco",
+      "family": "seguranca-fornecimento",
+      "policy_code": "alteracao_protegida",
+      "facts": [
+        "protected_or_irreversible_effect",
+        "escape_removal",
+        "production",
+        "untrusted_input"
+      ],
+      "rationale": "Remove proteção de saída e publica conteúdo externo sem tratamento."
+    }
+  ],
+  "historical_r5": {
+    "state": "R5_NO_GO_AUDITED",
+    "inventory": "docs/reviews/T-098-r5-gold-preparacao-local/inventario.json",
+    "files": {
+      "docs/experimentos/T-098-A2/candidata-r5-local/amostra.json": "fba8c8a5f07375540369cb471c6cd8a21959564259edc7a823f2d897096ca4fb",
+      "docs/experimentos/T-098-A2/candidata-r5-local/preflight.py": "cf9c5b57def3a7c4a3e1a28566b64be134dfecf5db37c7c18121b5e342b441cc",
+      "docs/experimentos/T-098-A2/candidata-r5-local/test_preflight.py": "7846e6bf415821736ae7f873b4e6360342e85e3bf9d70acbdc8d42fe9612bd54",
+      "docs/experimentos/T-098-A2/candidata-r5-local/test_mutations.py": "5037617818a663e9267f69fbf931455e57f24141f2296d655c20153168c48c7b",
+      "docs/experimentos/T-098-A2/candidata-r5-local/regra-lexical-congelada.json": "1099ea053837a70a5e1c7a9da7b4c9d7c6f19a0b6663103fb9f74521eee9a751",
+      "docs/experimentos/T-098-A2/candidata-r5-local/resultado-diagnostico-local.json": "1bbc316515b66fa2ee0c3dc575c4aee7006b94e5d6f9567503f8ad4a2ab29b49",
+      "docs/experimentos/T-098-A2/candidata-r5-local/recuperacao-e-baseline.md": "cd6ac2b9eeab6cf958aaaf11125ee3a74d02961d1015de315628ecbc723e5062",
+      "docs/experimentos/T-098-A2/candidata-r5-local/mecanismos-e-limites.md": "38659bfa10574b6d5c1ce22418ac149c0a787898749b48e4d0dd4c4696bd3d54",
+      "docs/experimentos/T-098-A2/candidata-r5-local/recibo-congelamento-lexical.md": "0e7232b3f2e659ebac2f7a26b37dc81398b69541e861839474cc0db1af9e8d29",
+      "docs/experimentos/T-098-A2/candidata-r5-local/verificacao-e-handoff-local.md": "22b5e638d00dffe4e06de16a4e688dae3df54ad20d03d528f5d7b719f4cd2544",
+      "docs/experimentos/T-098-A2/candidata-r5-local/evidencias-bancada-local.md": "4f9fb39bfa47273f8d36e4384a556724fd69e203ca73151a1b37a4c489a41661",
+      "docs/experimentos/T-098-A2/protocolo-operacional.md": "3586275e4aa29fc1d2c75f517934323f375e5f6e224f9fbefa82154ef4df564d",
+      "docs/experimentos/T-098-A2/candidata-r4/amostra.json": "a69c8eac25ac8981ded509c9f1e4cb7df7aa796124357c945db5a4e8b53642ea",
+      "docs/experimentos/T-098-A2/candidata-r4/preflight.py": "90629815af66061a2299ea124944592e6c90acf75004a45372f0ff685db3f105"
+    },
+    "inventory_sha256": "acd783acf6df30fffbb91a068b7da8530c72626228993c086374d19a1d4a8c50"
+  },
+  "corpus_lineage": {
+    "base": "docs/experimentos/T-098-A2/candidata-r6-v4-local/amostra.json",
+    "base_sha256": "f1f9e950d16b4ddfea14ae96ac907996045025e726405551c530ab29edc4f9fe",
+    "allowlist_ids": [
+      "Y004",
+      "Y007",
+      "Y016",
+      "Y023",
+      "Y028",
+      "Y031",
+      "Y032",
+      "Y042",
+      "Y043",
+      "Y044",
+      "Y045"
+    ],
+    "changed_text_ids": [
+      "Y007",
+      "Y031",
+      "Y042",
+      "Y045"
+    ]
+  },
+  "historical_r6_v1": {
+    "files": {
+      "docs/experimentos/T-098-A2/candidata-r6-local/amostra.json": "db8ff9a874315012a9799c7794a741bc39270e30303df506cc7210c3fdae55ed",
+      "docs/experimentos/T-098-A2/candidata-r6-local/evidencias-bancada-local.md": "566bc2c23548d514663c27414a7fe977732b4f434d0ae0724ab74116790fde81",
+      "docs/experimentos/T-098-A2/candidata-r6-local/manifesto.json": "39868f71f5f4210c0ee3320165e014fc1e0f0ab2ba5a77b00460618556dba23c",
+      "docs/experimentos/T-098-A2/candidata-r6-local/politica-e-limites.md": "fca6e77dbfb4466572ef2a86c58c3e9da8035d6df6a96c2c771373ecf2d860fa",
+      "docs/experimentos/T-098-A2/candidata-r6-local/preflight.py": "42581ffebf7a57002b2e15288f57d35894b7145c675dec0d2453e4bb082a9eda",
+      "docs/experimentos/T-098-A2/candidata-r6-local/recibo-congelamento-r6.md": "68b5d1c96c004b8b0553100ce41f594682310b44d272fe7a08b0f45866e188ff",
+      "docs/experimentos/T-098-A2/candidata-r6-local/regra-lexical-dev.json": "4178d93a8f1a7c0cd91a7c13c88df1dff106c97387913c75745c12e5713b6653",
+      "docs/experimentos/T-098-A2/candidata-r6-local/test_mutations.py": "70d9f37c7137b87ab0207d4f67869c18fb754a8ab2246d394c56a7ef29e762e6",
+      "docs/experimentos/T-098-A2/candidata-r6-local/test_preflight.py": "f0e94b2bb2b9b7986260877d5df28b9d15e2e91b6e15df37b91a71eb0344e65f"
+    }
+  },
+  "historical_r6_v2": {
+    "files": {
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/amostra.json": "df30aa31e7951d859c75bbbb749cecfd7d2eef9461824351aac1affc9042170b",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/evidencias-bancada-local.md": "75614622519fd8ef3fbe1b2f66358d7cb364432b8a30a5e11a6f169dd172501d",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/manifesto.json": "1309847be7ae1d868e9e2c8205f3b919a53841768dabf34211cc0abffbfeb0e2",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/politica-e-limites.md": "df3895242beb551d28b040cf0fc4cd8036b6d4854392b0d4fd608e1fc2df5aac",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/preflight.py": "250a13f01bd4dc4c64899ea9bb0086ca2cfd070a4da711a3a0d7b335630e2f0b",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/recibo-congelamento-r6-v2.md": "f4f1de303474704cb7e1f5e6d22c7006b4abf9b1ebbbf28d3a1003a997d44a21",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/regra-lexical-dev.json": "af09d3d82f9e190fde8286de6cdab27d76aba85891dc6140590cd8dd8ff852a6",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/test_mutations.py": "c993fd0d32480583594b818bfeea4720a220354dbfba7e3d9fd2c748505699ed",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/test_preflight.py": "1b6cc57aab0f984beea4518980eb2537d9563862cdacb61bade41e065d0a36d5",
+      "docs/experimentos/T-098-A2/candidata-r6-v2-local/test_semantic_red.py": "c38b5024d699f8950cc74f85df483e7c9a6d643b72e1471774ace989eb66d0cb"
+    }
+  },
+  "historical_r6_v3": {
+    "files": {
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/amostra.json": "c72e66afad83cf36577509c3d62723bd677f42b17f188d46f7520ee0654522b9",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/evidencias-bancada-local.md": "db013beb2849870d758547374282a1da6434f438e234a0003bd4ddc5c3c750fb",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/manifesto.json": "41a53ca31bac12b6de9b0cbac70ddd5112ced501ea44ded01623ef78ef0ef08c",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/politica-e-limites.md": "91df30957f0945ace9d3e5fead4822524996c90529f3984bf91c83ee1e7ad2ad",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/preflight.py": "a9f8a7ba238f69a1e305a13c0485b2076eb6c515f8f2b79c19aecacf2273d013",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/recibo-congelamento-r6-v3.md": "f02f6edc1fb8cd62d22dc1a7cc0f4cfb930e558c06d5b52e5a785322f685c72b",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/regra-lexical-dev.json": "35ea7d20548104ba04ac6cf1ed2e982b5f95c6ca3d0507cbbca606c474b5d3c6",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/test_mutations.py": "af278373641dff69f68149e17b91c71914af239d92b01b69633249c5e1b347d7",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/test_preflight.py": "716b271fad4c4777062305395599eba0b41d6db5aef998068d4e6b07d510c5ad",
+      "docs/experimentos/T-098-A2/candidata-r6-v3-local/test_semantic_red.py": "0ed08eaacb6df17ac95ea7e7c226e3c95a3bb279fa9d77af788ab44586c8a331"
+    }
+  },
+  "historical_r6_v4": {
+    "files": {
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/amostra.json": "f1f9e950d16b4ddfea14ae96ac907996045025e726405551c530ab29edc4f9fe",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/evidencias-bancada-local.md": "d7f7d6ae3aa1699c1ed4d1d9798c59691e065ce7fa116f49fe04b285ab27ba97",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/manifesto.json": "99f2aa2286d73b8641f331b933b2e288e3d24716b01b4ec67986888ae3ebb65a",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/oraculo-red-green.py": "703606ae0f46491b65ccae5354a81fbc5047ca907bfea7d6f1f65fcda57712f2",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/politica-e-limites.md": "8a789da61fa17806d2c5593accc8a8aa4709d64be221463888e17d8166de23ee",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/preflight.py": "5197d1efd892f363a702990524bc720102d0dfac18139133b53a7102fb6b8a8f",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/recibo-congelamento-r6-v4.md": "756f4776cf3a0b94c628d143c680a65e190a111344dc193f7cc476f3c9879fa5",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/regra-lexical-dev.json": "9cc679299fd3ef02d578977bd922f7b3deac85e550853051eac18016e64ca6c8",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/test_mutations.py": "c0007b3b938133cf7ed83e5ba32a26646383f1cdbffd88951d2742c574b8da53",
+      "docs/experimentos/T-098-A2/candidata-r6-v4-local/test_preflight.py": "444cfedf0de56661f3c94ea851bb3fa538795fb3331afeb8e965f3c405d4b83b"
+    }
+  }
+}

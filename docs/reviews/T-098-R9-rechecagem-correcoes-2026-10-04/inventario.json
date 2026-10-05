@@ -1,0 +1,243 @@
+{
+  "card": "T-098",
+  "round": "R9",
+  "state": "FROZEN_AUTHORIZED_NOT_SENT",
+  "source": [
+    {
+      "path": "docs/reviews/T-098-pos-R7-v5-complemento-manager-2026-10-04/parecer-r8-opus55.raw.md",
+      "bytes": 5848,
+      "sha256": "1d0a738aaf16a475320aa87d1a8216d44ca48a6dfb7dd4c8ab41857839965e3f"
+    },
+    {
+      "path": "docs/T-098-auditoria-manager-R8-2026-10-04.md",
+      "bytes": 3423,
+      "sha256": "2e856f97a688acb30210be87b76e337657a740e12483f39b5bb4dabf564367c4"
+    },
+    {
+      "path": "docs/T-098-pos-R8-v6-local-handoff-2026-10-04.md",
+      "bytes": 3113,
+      "sha256": "13301e691c3c8e7b97aea7e438f10731ff70279bdbed13a0f4ec9dbda5294948"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/amostra.json",
+      "bytes": 9549,
+      "sha256": "646b985babd4f14c0545bd21060698315502bff78b8a936e5cba09617608b491"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/evidencias-bancada-local.md",
+      "bytes": 2314,
+      "sha256": "391971ab2a13291afb2878c5836cde4c135e07fd55bcbf132ea349c2e2427268"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/manifesto.json",
+      "bytes": 35015,
+      "sha256": "b036048c7d9d32af437f540d5c928ab28e733eec373742204dba156bd3de96aa"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/oraculo-adjudicacao-red-green.py",
+      "bytes": 2578,
+      "sha256": "ccf7118563e12a46dc205696f27437e25d9730eeae86f3c068b53789ade85c09"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/oraculo-red-green.py",
+      "bytes": 2317,
+      "sha256": "d20d59745b3514e4a0ba3d72d64294b53ad15d28345220d6ff1b3a1ce6cac646"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/politica-e-limites.md",
+      "bytes": 1682,
+      "sha256": "541fdfd159bde32b21706ac2573a8feb1bac043ccd1c1a4a4217b0e65930bc53"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/preflight.py",
+      "bytes": 39065,
+      "sha256": "aafd2ac38daef0023f0e416751f6437de46dcc0d7f57816fea4ba40b62cefa06"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/recibo-congelamento-r8-v6.md",
+      "bytes": 1358,
+      "sha256": "c24698cc1c7e37eb9d38abfb4f406460aa8adf19e527e7f32a9c27b75cfc7843"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/regra-lexical-dev.json",
+      "bytes": 7647,
+      "sha256": "63f5433b75a02dd90e57bcc976b7f718a91d807b1eeb7f756ca74dc748d0a4fb"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/selo-congelamento-r8-v6.json",
+      "bytes": 1673,
+      "sha256": "52af237ba848ae5df6671c26b09abb002f2ab34c5642b51ad4f13a3074d53c2b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_mutations.py",
+      "bytes": 8026,
+      "sha256": "5833062a651e3a17e663887aa5ef342c46385199f384d155f1056fe703cf7f29"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_preflight.py",
+      "bytes": 12211,
+      "sha256": "e7140e22f416b048ea8d594c8108fa4706f44cead9f1f6c796d25a56a987705e"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_v6_integrity.py",
+      "bytes": 6599,
+      "sha256": "cf13f3515eb2fc8bfe33f933a83ae986bbbfc3d16224c36cb1b83d8261764b70"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/amostra.json",
+      "bytes": 8967,
+      "sha256": "db8ff9a874315012a9799c7794a741bc39270e30303df506cc7210c3fdae55ed"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/manifesto.json",
+      "bytes": 20843,
+      "sha256": "39868f71f5f4210c0ee3320165e014fc1e0f0ab2ba5a77b00460618556dba23c"
+    }
+  ],
+  "contexts": [
+    {
+      "path": "docs/reviews/T-098-pos-R7-v5-complemento-manager-2026-10-04/parecer-r8-opus55.raw.md",
+      "first": 1,
+      "last": 66,
+      "complete": true,
+      "sanitized_sha256": "1d0a738aaf16a475320aa87d1a8216d44ca48a6dfb7dd4c8ab41857839965e3f"
+    },
+    {
+      "path": "docs/T-098-auditoria-manager-R8-2026-10-04.md",
+      "first": 1,
+      "last": 58,
+      "complete": true,
+      "sanitized_sha256": "2e856f97a688acb30210be87b76e337657a740e12483f39b5bb4dabf564367c4"
+    },
+    {
+      "path": "docs/T-098-pos-R8-v6-local-handoff-2026-10-04.md",
+      "first": 1,
+      "last": 62,
+      "complete": true,
+      "sanitized_sha256": "13301e691c3c8e7b97aea7e438f10731ff70279bdbed13a0f4ec9dbda5294948"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/amostra.json",
+      "first": 1,
+      "last": 197,
+      "complete": true,
+      "sanitized_sha256": "646b985babd4f14c0545bd21060698315502bff78b8a936e5cba09617608b491"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/evidencias-bancada-local.md",
+      "first": 1,
+      "last": 43,
+      "complete": true,
+      "sanitized_sha256": "391971ab2a13291afb2878c5836cde4c135e07fd55bcbf132ea349c2e2427268"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/manifesto.json",
+      "first": 1,
+      "last": 992,
+      "complete": true,
+      "sanitized_sha256": "b036048c7d9d32af437f540d5c928ab28e733eec373742204dba156bd3de96aa"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/oraculo-adjudicacao-red-green.py",
+      "first": 1,
+      "last": 74,
+      "complete": true,
+      "sanitized_sha256": "ccf7118563e12a46dc205696f27437e25d9730eeae86f3c068b53789ade85c09"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/oraculo-red-green.py",
+      "first": 1,
+      "last": 66,
+      "complete": true,
+      "sanitized_sha256": "d20d59745b3514e4a0ba3d72d64294b53ad15d28345220d6ff1b3a1ce6cac646"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/politica-e-limites.md",
+      "first": 1,
+      "last": 35,
+      "complete": true,
+      "sanitized_sha256": "541fdfd159bde32b21706ac2573a8feb1bac043ccd1c1a4a4217b0e65930bc53"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/preflight.py",
+      "first": 1,
+      "last": 699,
+      "complete": true,
+      "sanitized_sha256": "aafd2ac38daef0023f0e416751f6437de46dcc0d7f57816fea4ba40b62cefa06"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/recibo-congelamento-r8-v6.md",
+      "first": 1,
+      "last": 30,
+      "complete": true,
+      "sanitized_sha256": "c24698cc1c7e37eb9d38abfb4f406460aa8adf19e527e7f32a9c27b75cfc7843"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/regra-lexical-dev.json",
+      "first": 1,
+      "last": 351,
+      "complete": true,
+      "sanitized_sha256": "63f5433b75a02dd90e57bcc976b7f718a91d807b1eeb7f756ca74dc748d0a4fb"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/selo-congelamento-r8-v6.json",
+      "first": 1,
+      "last": 33,
+      "complete": true,
+      "sanitized_sha256": "52af237ba848ae5df6671c26b09abb002f2ab34c5642b51ad4f13a3074d53c2b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_mutations.py",
+      "first": 1,
+      "last": 172,
+      "complete": true,
+      "sanitized_sha256": "5833062a651e3a17e663887aa5ef342c46385199f384d155f1056fe703cf7f29"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_preflight.py",
+      "first": 1,
+      "last": 269,
+      "complete": true,
+      "sanitized_sha256": "e7140e22f416b048ea8d594c8108fa4706f44cead9f1f6c796d25a56a987705e"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_v6_integrity.py",
+      "first": 1,
+      "last": 131,
+      "complete": true,
+      "sanitized_sha256": "cf13f3515eb2fc8bfe33f933a83ae986bbbfc3d16224c36cb1b83d8261764b70"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/amostra.json",
+      "first": 1,
+      "last": 52,
+      "complete": true,
+      "sanitized_sha256": "db8ff9a874315012a9799c7794a741bc39270e30303df506cc7210c3fdae55ed"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/manifesto.json",
+      "first": 1,
+      "last": 173,
+      "complete": true,
+      "sanitized_sha256": "39868f71f5f4210c0ee3320165e014fc1e0f0ab2ba5a77b00460618556dba23c"
+    }
+  ],
+  "coverage": "parecer anterior + auditoria Manager + correções/consumidores e testes; contextos selecionados declarados",
+  "payload": {
+    "bytes": 176772,
+    "sha256": "1d0fafa354e8338c838e19f84de1b9aa47de91b409d19b5ba7190fb575f102cf",
+    "path": "docs/reviews/T-098-R9-rechecagem-correcoes-2026-10-04/pacote.txt"
+  },
+  "limits": {
+    "max_input_bytes": 196608,
+    "timeout_seconds": 600,
+    "calls": 1,
+    "retry": false
+  },
+  "sanitization": {
+    "local_user_paths": "<HOME>",
+    "owner_identifier": "<OWNER>",
+    "personal_emails": 0,
+    "credential_pattern_matches": 0
+  }
+}

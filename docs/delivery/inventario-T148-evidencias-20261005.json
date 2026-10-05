@@ -1,0 +1,586 @@
+{
+  "schema": "t148-artifact-inventory-v1",
+  "scope": "115 artefatos documentais, recibos e baselines preservados; sem campanha ou adocao",
+  "files": [
+    {
+      "path": "docs/T-098-auditoria-manager-R9-2026-10-04.md",
+      "bytes": 2699,
+      "sha256": "52a0124778ee4f3dc95ca08b89bebbf14cbce27cc3f9f356b808601ca05be1ef"
+    },
+    {
+      "path": "docs/T-098-gates-manager-pos-R8-v6-lote-545205-2026-10-04.json",
+      "bytes": 6107,
+      "sha256": "4f99157a9c7dc6fef201653d26a90ad4be7251239d496fc2ec83aed5cd7626c1"
+    },
+    {
+      "path": "docs/T-098-pos-R8-v6-local-evidencias-2026-10-04.json",
+      "bytes": 5334,
+      "sha256": "a705192ee3fdc584626910c9b5c974fd90fecd64e724866af0bd2bdcd315123a"
+    },
+    {
+      "path": "docs/T-098-pos-R8-v6-local-handoff-2026-10-04.md",
+      "bytes": 3113,
+      "sha256": "13301e691c3c8e7b97aea7e438f10731ff70279bdbed13a0f4ec9dbda5294948"
+    },
+    {
+      "path": "docs/T-131-auditoria-manager-R9-2026-10-04.md",
+      "bytes": 4375,
+      "sha256": "17934d20b6cbf8a7556cdfcb248fa70c042df842bbd714df56f2d32a858c7371"
+    },
+    {
+      "path": "docs/T-143-R7-preflight-2026-10-04.md",
+      "bytes": 3283,
+      "sha256": "62f9e212c7f12b140a75bf93a40e7f97a83bb6f843782368fed89cc4dd4d3c0f"
+    },
+    {
+      "path": "docs/T-143-auditoria-manager-R7-2026-10-04.md",
+      "bytes": 4908,
+      "sha256": "c57122d3e0274d47bbda821d5a1792e885f5c6c8d8e69dfb584e74cd85ca6cf6"
+    },
+    {
+      "path": "docs/T-143-gates-manager-R7-2026-10-04.json",
+      "bytes": 1995,
+      "sha256": "256d27830ebc6bbf837ff50c478b1ba93c324c6317326e6c3acb67488dac8bdc"
+    },
+    {
+      "path": "docs/autorizacao-T-143-R7-2026-10-04.json",
+      "bytes": 5027,
+      "sha256": "7384cacee8cb34fc9e0b271133ffee0cb4616fd1ca8cc8736e5b95e4790d0059"
+    },
+    {
+      "path": "docs/conciliacao-T-089-mapa-e-patch.md",
+      "bytes": 6408,
+      "sha256": "9aae9406ae508d990a9448a13ef1c95026dfc0b937234a8f15a8f09b6834569a"
+    },
+    {
+      "path": "docs/delivery/auditoria-T148-R1-fusao.md",
+      "bytes": 5163,
+      "sha256": "daa52febf7bb441b3712b82f7d0e35d491d55179548c7278d92064a11fb1b10a"
+    },
+    {
+      "path": "docs/delivery/autorizacao-T148-R1-fusao.json",
+      "bytes": 1823,
+      "sha256": "ec6e875be25d06e60b85412d4f0315c0c4d120d0cf2b14795e3f2e8094fff697"
+    },
+    {
+      "path": "docs/delivery/gates-T148-bancada-T098-v6.json",
+      "bytes": 689,
+      "sha256": "c25757e96586e55c9c737d5766287947873dfdbdffe4d2c44bbf40e85f6aa22b"
+    },
+    {
+      "path": "docs/delivery/gates-T148-final-fusao-auditada.json",
+      "bytes": 1902,
+      "sha256": "695c277f253451727dfac1d11de32c5e52e7834a306e3526a0ac0ffd0b91d6f3"
+    },
+    {
+      "path": "docs/delivery/gates-T148-lote1-T131.json",
+      "bytes": 581,
+      "sha256": "7f5b88a06c932f31939c4a1d1237f59d54b1622a17bb1a06cff77f7a531792b9"
+    },
+    {
+      "path": "docs/delivery/gates-T148-lote2-T131-T143.json",
+      "bytes": 573,
+      "sha256": "7bb7ecc28855166e17c51f32455e0fda04517f5ba055bdf4f63e569b72303feb"
+    },
+    {
+      "path": "docs/delivery/gates-T148-lote3-T089.json",
+      "bytes": 1905,
+      "sha256": "6964c4ff5ddba3241af701cf8405cb1fa6d84a2f9c67855fbdf06fd510d9dd71"
+    },
+    {
+      "path": "docs/delivery/gates-T148-lote4-T144-T146.json",
+      "bytes": 1913,
+      "sha256": "d29d765055d7af34b8f69fdb01b1f93718559e3f8a121be1422b22fcff9fd80e"
+    },
+    {
+      "path": "docs/delivery/owner-handoffs/T-089-companion-resume.md",
+      "bytes": 20527,
+      "sha256": "dcbb8c8236106d4421a5f0b6ca022f3a7f2d6403b8a3592769cd9ad827ec422d"
+    },
+    {
+      "path": "docs/delivery/owner-handoffs/T-098-jev-router.md",
+      "bytes": 81882,
+      "sha256": "f9ccd800361b44e7eac0b31c57c47a94bbb4c8d5fa6d9004f0da1797f1eb95af"
+    },
+    {
+      "path": "docs/delivery/owner-handoffs/T-131-opus-55.md",
+      "bytes": 75823,
+      "sha256": "94ae0251d3189898c7ab1abf580d758a30412db3edd3797fb63015ff6b49fa06"
+    },
+    {
+      "path": "docs/delivery/owner-handoffs/T-143-continuidade-aprovada.md",
+      "bytes": 41238,
+      "sha256": "cc7a8404771c0c438157392bed00d303269700956982bf9b21de8b93a66f3809"
+    },
+    {
+      "path": "docs/delivery/prepare-consolidation.py",
+      "bytes": 5651,
+      "sha256": "3167a3ebe96e90c0307c8a5288a63a2b7df1976420bd1a71d2c58e4f8e94978b"
+    },
+    {
+      "path": "docs/delivery/review-T148-R1-pacote-1.log",
+      "bytes": 2487,
+      "sha256": "8a8f70b7ca1ab0ea73bdd5f61afe34487c9db1d3e63b9f56c7d1bd99401c74ea"
+    },
+    {
+      "path": "docs/delivery/review-T148-R1-pacote-1.raw.md",
+      "bytes": 5558,
+      "sha256": "5883d3bcbd09334b175320451db571ca51b8f90cc3a4a7cf014d4ace10bcfd47"
+    },
+    {
+      "path": "docs/delivery/review-T148-R1-pacote-1.txt",
+      "bytes": 14152,
+      "sha256": "4dc5a074b04e228d5c0aee2a1ac4faf8d072aa295e7fb385ee1c7ae157b5c86b"
+    },
+    {
+      "path": "docs/delivery/review-T148-R1-pacote-2.log",
+      "bytes": 2485,
+      "sha256": "8d22db12edeb89026be6cdd0bae18120df411a2f388fc6c16a85d6a182a5f031"
+    },
+    {
+      "path": "docs/delivery/review-T148-R1-pacote-2.raw.md",
+      "bytes": 4207,
+      "sha256": "fa1731558f2fe4e4769dcfd6dfd73b240eb7e8eead4b6f858efff21e9e76dcaa"
+    },
+    {
+      "path": "docs/delivery/review-T148-R1-pacote-2.txt",
+      "bytes": 6521,
+      "sha256": "c07d82178a566c7dc126490dfccf5e30b8fbdaafbe53c322118d2d1f5e536925"
+    },
+    {
+      "path": "docs/delivery/run-local-gates.py",
+      "bytes": 2377,
+      "sha256": "c64e052cb6cbd6fe89d8ca7719a38f9739bf53d583701e30ddea035350044447"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/evidencias-bancada-local.md",
+      "bytes": 3320,
+      "sha256": "4f9fb39bfa47273f8d36e4384a556724fd69e203ca73151a1b37a4c489a41661"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/preflight.py",
+      "bytes": 12734,
+      "sha256": "cf9c5b57def3a7c4a3e1a28566b64be134dfecf5db37c7c18121b5e342b441cc"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/test_mutations.py",
+      "bytes": 5006,
+      "sha256": "5037617818a663e9267f69fbf931455e57f24141f2296d655c20153168c48c7b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r5-local/test_preflight.py",
+      "bytes": 3383,
+      "sha256": "7846e6bf415821736ae7f873b4e6360342e85e3bf9d70acbdc8d42fe9612bd54"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/amostra.json",
+      "bytes": 8967,
+      "sha256": "db8ff9a874315012a9799c7794a741bc39270e30303df506cc7210c3fdae55ed"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/evidencias-bancada-local.md",
+      "bytes": 2243,
+      "sha256": "566bc2c23548d514663c27414a7fe977732b4f434d0ae0724ab74116790fde81"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/manifesto.json",
+      "bytes": 20843,
+      "sha256": "39868f71f5f4210c0ee3320165e014fc1e0f0ab2ba5a77b00460618556dba23c"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/politica-e-limites.md",
+      "bytes": 7749,
+      "sha256": "fca6e77dbfb4466572ef2a86c58c3e9da8035d6df6a96c2c771373ecf2d860fa"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/preflight.py",
+      "bytes": 18459,
+      "sha256": "42581ffebf7a57002b2e15288f57d35894b7145c675dec0d2453e4bb082a9eda"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/recibo-congelamento-r6.md",
+      "bytes": 1324,
+      "sha256": "68b5d1c96c004b8b0553100ce41f594682310b44d272fe7a08b0f45866e188ff"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/regra-lexical-dev.json",
+      "bytes": 2951,
+      "sha256": "4178d93a8f1a7c0cd91a7c13c88df1dff106c97387913c75745c12e5713b6653"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/test_mutations.py",
+      "bytes": 3444,
+      "sha256": "70d9f37c7137b87ab0207d4f67869c18fb754a8ab2246d394c56a7ef29e762e6"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-local/test_preflight.py",
+      "bytes": 6288,
+      "sha256": "f0e94b2bb2b9b7986260877d5df28b9d15e2e91b6e15df37b91a71eb0344e65f"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/amostra.json",
+      "bytes": 4870,
+      "sha256": "df30aa31e7951d859c75bbbb749cecfd7d2eef9461824351aac1affc9042170b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/evidencias-bancada-local.md",
+      "bytes": 1893,
+      "sha256": "75614622519fd8ef3fbe1b2f66358d7cb364432b8a30a5e11a6f169dd172501d"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/manifesto.json",
+      "bytes": 16057,
+      "sha256": "1309847be7ae1d868e9e2c8205f3b919a53841768dabf34211cc0abffbfeb0e2"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/politica-e-limites.md",
+      "bytes": 6262,
+      "sha256": "df3895242beb551d28b040cf0fc4cd8036b6d4854392b0d4fd608e1fc2df5aac"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/preflight.py",
+      "bytes": 17666,
+      "sha256": "250a13f01bd4dc4c64899ea9bb0086ca2cfd070a4da711a3a0d7b335630e2f0b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/recibo-congelamento-r6-v2.md",
+      "bytes": 1497,
+      "sha256": "f4f1de303474704cb7e1f5e6d22c7006b4abf9b1ebbbf28d3a1003a997d44a21"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/regra-lexical-dev.json",
+      "bytes": 4595,
+      "sha256": "af09d3d82f9e190fde8286de6cdab27d76aba85891dc6140590cd8dd8ff852a6"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/test_mutations.py",
+      "bytes": 2849,
+      "sha256": "c993fd0d32480583594b818bfeea4720a220354dbfba7e3d9fd2c748505699ed"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/test_preflight.py",
+      "bytes": 6195,
+      "sha256": "1b6cc57aab0f984beea4518980eb2537d9563862cdacb61bade41e065d0a36d5"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v2-local/test_semantic_red.py",
+      "bytes": 1261,
+      "sha256": "c38b5024d699f8950cc74f85df483e7c9a6d643b72e1471774ace989eb66d0cb"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/amostra.json",
+      "bytes": 9626,
+      "sha256": "c72e66afad83cf36577509c3d62723bd677f42b17f188d46f7520ee0654522b9"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/evidencias-bancada-local.md",
+      "bytes": 1766,
+      "sha256": "db013beb2849870d758547374282a1da6434f438e234a0003bd4ddc5c3c750fb"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/manifesto.json",
+      "bytes": 29590,
+      "sha256": "41a53ca31bac12b6de9b0cbac70ddd5112ced501ea44ded01623ef78ef0ef08c"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/politica-e-limites.md",
+      "bytes": 2626,
+      "sha256": "91df30957f0945ace9d3e5fead4822524996c90529f3984bf91c83ee1e7ad2ad"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/preflight.py",
+      "bytes": 27420,
+      "sha256": "a9f8a7ba238f69a1e305a13c0485b2076eb6c515f8f2b79c19aecacf2273d013"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/recibo-congelamento-r6-v3.md",
+      "bytes": 1420,
+      "sha256": "f02f6edc1fb8cd62d22dc1a7cc0f4cfb930e558c06d5b52e5a785322f685c72b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/regra-lexical-dev.json",
+      "bytes": 4902,
+      "sha256": "35ea7d20548104ba04ac6cf1ed2e982b5f95c6ca3d0507cbbca606c474b5d3c6"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/test_mutations.py",
+      "bytes": 3452,
+      "sha256": "af278373641dff69f68149e17b91c71914af239d92b01b69633249c5e1b347d7"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/test_preflight.py",
+      "bytes": 10166,
+      "sha256": "716b271fad4c4777062305395599eba0b41d6db5aef998068d4e6b07d510c5ad"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v3-local/test_semantic_red.py",
+      "bytes": 800,
+      "sha256": "0ed08eaacb6df17ac95ea7e7c226e3c95a3bb279fa9d77af788ab44586c8a331"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/amostra.json",
+      "bytes": 9465,
+      "sha256": "f1f9e950d16b4ddfea14ae96ac907996045025e726405551c530ab29edc4f9fe"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/evidencias-bancada-local.md",
+      "bytes": 2268,
+      "sha256": "d7f7d6ae3aa1699c1ed4d1d9798c59691e065ce7fa116f49fe04b285ab27ba97"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/manifesto.json",
+      "bytes": 31437,
+      "sha256": "99f2aa2286d73b8641f331b933b2e288e3d24716b01b4ec67986888ae3ebb65a"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/oraculo-red-green.py",
+      "bytes": 2302,
+      "sha256": "703606ae0f46491b65ccae5354a81fbc5047ca907bfea7d6f1f65fcda57712f2"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/politica-e-limites.md",
+      "bytes": 3666,
+      "sha256": "8a789da61fa17806d2c5593accc8a8aa4709d64be221463888e17d8166de23ee"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/preflight.py",
+      "bytes": 34009,
+      "sha256": "5197d1efd892f363a702990524bc720102d0dfac18139133b53a7102fb6b8a8f"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/recibo-congelamento-r6-v4.md",
+      "bytes": 2182,
+      "sha256": "756f4776cf3a0b94c628d143c680a65e190a111344dc193f7cc476f3c9879fa5"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/regra-lexical-dev.json",
+      "bytes": 7658,
+      "sha256": "9cc679299fd3ef02d578977bd922f7b3deac85e550853051eac18016e64ca6c8"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/test_mutations.py",
+      "bytes": 6102,
+      "sha256": "c0007b3b938133cf7ed83e5ba32a26646383f1cdbffd88951d2742c574b8da53"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r6-v4-local/test_preflight.py",
+      "bytes": 10668,
+      "sha256": "444cfedf0de56661f3c94ea851bb3fa538795fb3331afeb8e965f3c405d4b83b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/amostra.json",
+      "bytes": 9549,
+      "sha256": "646b985babd4f14c0545bd21060698315502bff78b8a936e5cba09617608b491"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/evidencias-bancada-local.md",
+      "bytes": 1704,
+      "sha256": "fc908527d138274f44958b9da8038b3a5956262b4bb8eff76516b6ca3657cac5"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/manifesto.json",
+      "bytes": 32890,
+      "sha256": "6dff3fc9ea46dd2c47d68081067560882b633ba83c3c54392f9d9bfbb47454bb"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/oraculo-adjudicacao-red-green.py",
+      "bytes": 2571,
+      "sha256": "1d6402007d32fdbbda149467c10ffeb0cfac6c5b5324e68675ae301923578814"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/oraculo-red-green.py",
+      "bytes": 2302,
+      "sha256": "703606ae0f46491b65ccae5354a81fbc5047ca907bfea7d6f1f65fcda57712f2"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/politica-e-limites.md",
+      "bytes": 3175,
+      "sha256": "6388c83d5ac0e51b1c4207329bae8404f0076cd72f4717128c08404d4fff9805"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/preflight.py",
+      "bytes": 35504,
+      "sha256": "bbb23aaa09b8a93a528c1c117633c05722f6c854cc10b5e46087d6355693f635"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/recibo-congelamento-r7-v5.md",
+      "bytes": 2153,
+      "sha256": "3b4ce869575a03dc9a925021b15cfbba455924c809bef31c0a9f08ce9ad9798b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/regra-lexical-dev.json",
+      "bytes": 7647,
+      "sha256": "63f5433b75a02dd90e57bcc976b7f718a91d807b1eeb7f756ca74dc748d0a4fb"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/test_mutations.py",
+      "bytes": 7739,
+      "sha256": "9699db9afd5e47141d56f109b8425b335fcc025eaa67c4fe6d72230bd0fd78b8"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r7-v5-local/test_preflight.py",
+      "bytes": 11741,
+      "sha256": "88ac047921b1d7b438569f6cd9be640619168a81646e8b64e2fa2df9a54cfcf1"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/amostra.json",
+      "bytes": 9549,
+      "sha256": "646b985babd4f14c0545bd21060698315502bff78b8a936e5cba09617608b491"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/evidencias-bancada-local.md",
+      "bytes": 2314,
+      "sha256": "391971ab2a13291afb2878c5836cde4c135e07fd55bcbf132ea349c2e2427268"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/manifesto.json",
+      "bytes": 35015,
+      "sha256": "b036048c7d9d32af437f540d5c928ab28e733eec373742204dba156bd3de96aa"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/oraculo-adjudicacao-red-green.py",
+      "bytes": 2578,
+      "sha256": "ccf7118563e12a46dc205696f27437e25d9730eeae86f3c068b53789ade85c09"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/oraculo-red-green.py",
+      "bytes": 2317,
+      "sha256": "d20d59745b3514e4a0ba3d72d64294b53ad15d28345220d6ff1b3a1ce6cac646"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/politica-e-limites.md",
+      "bytes": 1682,
+      "sha256": "541fdfd159bde32b21706ac2573a8feb1bac043ccd1c1a4a4217b0e65930bc53"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/preflight.py",
+      "bytes": 39065,
+      "sha256": "aafd2ac38daef0023f0e416751f6437de46dcc0d7f57816fea4ba40b62cefa06"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/recibo-congelamento-r8-v6.md",
+      "bytes": 1358,
+      "sha256": "c24698cc1c7e37eb9d38abfb4f406460aa8adf19e527e7f32a9c27b75cfc7843"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/regra-lexical-dev.json",
+      "bytes": 7647,
+      "sha256": "63f5433b75a02dd90e57bcc976b7f718a91d807b1eeb7f756ca74dc748d0a4fb"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/selo-congelamento-r8-v6.json",
+      "bytes": 1673,
+      "sha256": "52af237ba848ae5df6671c26b09abb002f2ab34c5642b51ad4f13a3074d53c2b"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_mutations.py",
+      "bytes": 8026,
+      "sha256": "5833062a651e3a17e663887aa5ef342c46385199f384d155f1056fe703cf7f29"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_preflight.py",
+      "bytes": 12211,
+      "sha256": "e7140e22f416b048ea8d594c8108fa4706f44cead9f1f6c796d25a56a987705e"
+    },
+    {
+      "path": "docs/experimentos/T-098-A2/candidata-r8-v6-local/test_v6_integrity.py",
+      "bytes": 6599,
+      "sha256": "cf13f3515eb2fc8bfe33f933a83ae986bbbfc3d16224c36cb1b83d8261764b70"
+    },
+    {
+      "path": "docs/patches/T-089-sobre-T-131-T-143.patch",
+      "bytes": 21492,
+      "sha256": "acfff0602b6c5ae0fc911ecef98e5cb6a0d9af470be19421c1d084a8f741057b"
+    },
+    {
+      "path": "docs/reviews/T-098-R9-rechecagem-correcoes-2026-10-04/execucao-r9-opus55.log",
+      "bytes": 2491,
+      "sha256": "da6b159a4d891571bc5b4e38b819254319a2de81c23dd926c34d85c575de8210"
+    },
+    {
+      "path": "docs/reviews/T-098-R9-rechecagem-correcoes-2026-10-04/inventario.json",
+      "bytes": 8872,
+      "sha256": "2befeb43cd4260ae5f2e9538ab087cae791fe25e5a6b022c0a7524fcbb8bbcf0"
+    },
+    {
+      "path": "docs/reviews/T-098-R9-rechecagem-correcoes-2026-10-04/pacote.txt",
+      "bytes": 176772,
+      "sha256": "1d0fafa354e8338c838e19f84de1b9aa47de91b409d19b5ba7190fb575f102cf"
+    },
+    {
+      "path": "docs/reviews/T-098-R9-rechecagem-correcoes-2026-10-04/parecer-r9-opus55.raw.md",
+      "bytes": 5929,
+      "sha256": "d16e3faf10606f2a8c3c34661a983937df0dfa8b978e3a68f3e7a54df5780972"
+    },
+    {
+      "path": "docs/reviews/T-098-R9-rechecagem-correcoes-2026-10-04/recibo-r9-opus55.json",
+      "bytes": 9279,
+      "sha256": "e83816a7163427182be897bd166a37f7c4b51b6247153eac17470e5fcfb4d43a"
+    },
+    {
+      "path": "docs/reviews/T-098-r5-gold-preparacao-local/inventario.json",
+      "bytes": 4262,
+      "sha256": "acd783acf6df30fffbb91a068b7da8530c72626228993c086374d19a1d4a8c50"
+    },
+    {
+      "path": "docs/reviews/T-131-R9-rechecagem-correcoes-2026-10-04/execucao-r9-opus55.log",
+      "bytes": 2491,
+      "sha256": "2b98b4cb9e6b4c04e5b0b8d5f6c96ecd69b81b53c3c2ed5a9f5720762d8bee92"
+    },
+    {
+      "path": "docs/reviews/T-131-R9-rechecagem-correcoes-2026-10-04/inventario.json",
+      "bytes": 4704,
+      "sha256": "92e1d05d3e2f5bca424a840ea7e325aac99634b2fab706aa076dd8dffcbd45fa"
+    },
+    {
+      "path": "docs/reviews/T-131-R9-rechecagem-correcoes-2026-10-04/pacote.txt",
+      "bytes": 152325,
+      "sha256": "0bc69e45283654e4272f7ad3df83eec15ed0f175ad065b5248b14e5cadf6a22e"
+    },
+    {
+      "path": "docs/reviews/T-131-R9-rechecagem-correcoes-2026-10-04/parecer-r9-opus55.raw.md",
+      "bytes": 6778,
+      "sha256": "ba11cc9190ca57c231a1ab0672b5244359697e6b1a1e9eeba11a49efac0a7c55"
+    },
+    {
+      "path": "docs/reviews/T-131-R9-rechecagem-correcoes-2026-10-04/recibo-r9-opus55.json",
+      "bytes": 10148,
+      "sha256": "826a6a223a7641626036e79898deb553842f362b56cefaf1aaeb6527a362e426"
+    },
+    {
+      "path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/execucao-r7-opus55.log",
+      "bytes": 2491,
+      "sha256": "bdb96c155f12391815fcda51243ec09c378a3f84e131c8f2b5ae95559711eeab"
+    },
+    {
+      "path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/inventario.json",
+      "bytes": 4802,
+      "sha256": "eb3b3c20bfb9d5b6a0d0148c7de0c45803f48afcff5b18957db629e217e50be0"
+    },
+    {
+      "path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/pacote.txt",
+      "bytes": 178436,
+      "sha256": "09e8127aeea9d4085df486f43c4eeab0afcf8c11ebb0795f7fb161ae0b5f869f"
+    },
+    {
+      "path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/parecer-r7-opus55.raw.md",
+      "bytes": 6343,
+      "sha256": "e08a61834a8749c2a9dad6f42abe83fc7db89e9740ca5b9e1840066d46a2c3ee"
+    },
+    {
+      "path": "docs/reviews/T-143-R7-rechecagem-correcoes-2026-10-04/recibo-r7-opus55.json",
+      "bytes": 9817,
+      "sha256": "5a819c6c12c6e9b3c238646a9f5ef05bb55291013044d99af68b6d6059a765cb"
+    },
+    {
+      "path": "docs/reviews/preparar-T-143-R7-2026-10-04.py",
+      "bytes": 7192,
+      "sha256": "2c12a31f7fdd9c546fdd75bd05bc666395a7341fd00bfc688c5db9a87ae953a1"
+    }
+  ],
+  "file_count": 115,
+  "bytes": 1543720,
+  "credential_signature_hits": 0,
+  "private_owner_key_candidates_checked": 1,
+  "private_owner_key_leaks": 0
+}

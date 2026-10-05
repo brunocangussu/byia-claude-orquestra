@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "card": "T-148",
+  "round": "R1-fusao",
+  "mode": "envelope-delivery-scope",
+  "human_source": "goal-objective.md fornecido pelo dono neste chat",
+  "human_pointer": "/Users/brunocangucu/.codex/attachments/1b86b41e-3d9a-4ff5-b4fd-dfdc872db970/goal-objective.md",
+  "literal": "quero que prossiga com o gerenciamento e organizacao das branches, implementando todas na main conforme a ordem que julgar mais coerente e assertiva ... faca isso sem interrupcoes ... autorizo tudo",
+  "scope": "uma rodada independente dos trechos materiais da fusao prevista no handoff T-089, sem refazer revisoes/probes anteriores",
+  "destination": "Anthropic via Claude CLI oficial",
+  "model": "claude-opus-5-5",
+  "model_scope": "revisao T-148; escolha Opus 5.5 ja aprovada pelo dono, sem reescrever elenco ativo ou presets",
+  "tools": "--tools '' --setting-sources '' --disable-slash-commands --permission-mode plan",
+  "capability_receipt": "docs/reviews/T-131-R9-rechecagem-correcoes-2026-10-04/execucao-r9-opus55.log; mesma CLI 2.1.289, runner e argumentos",
+  "max_input_bytes_per_packet": 16384,
+  "max_calls": 2,
+  "no_retry": true,
+  "stop_after_first_failure": true,
+  "packets": [
+    {
+      "file": "docs/delivery/review-T148-R1-pacote-1.txt",
+      "bytes": 14152,
+      "sha256": "4dc5a074b04e228d5c0aee2a1ac4faf8d072aa295e7fb385ee1c7ae157b5c86b",
+      "state": "TERMINAL_APROVADO_COM_RESSALVAS"
+    },
+    {
+      "file": "docs/delivery/review-T148-R1-pacote-2.txt",
+      "bytes": 6521,
+      "sha256": "c07d82178a566c7dc126490dfccf5e30b8fbdaafbe53c322118d2d1f5e536925",
+      "state": "TERMINAL_REPROVADO_CONDICIONAL"
+    }
+  ],
+  "calls_reserved": 2,
+  "calls_started": 2,
+  "calls_finished": 2,
+  "remaining_calls": 0,
+  "git_delivery_authorized": true,
+  "installation": false,
+  "restart": false
+}
