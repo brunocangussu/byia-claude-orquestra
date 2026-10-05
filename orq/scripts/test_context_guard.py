@@ -1699,7 +1699,20 @@ class ContextGuardHooksBundleTest(unittest.TestCase):
 
     def test_handlers_are_bounded_commands_to_guard(self) -> None:
         context_events = {"PostToolUse", "UserPromptSubmit", "SessionStart"}
-        for event_name, groups in self.config["hooks"].items():
+        for event_name, all_groups in self.config["hooks"].items():
+            # O medidor de progresso tem grupos próprios (`progress-hook.py`), que não pertencem a esta guarda:
+            # aqui só os do context-guard, e qualquer outro grupo do bundle tem de ser do medidor.
+            groups = [
+                group
+                for group in all_groups
+                if any("context-guard.py" in handler["command"] for handler in group["hooks"])
+            ]
+            for group in all_groups:
+                if group not in groups:
+                    self.assertTrue(
+                        all("progress-hook.py" in handler["command"] for handler in group["hooks"]),
+                        f"grupo desconhecido em {event_name}: {group}",
+                    )
             with self.subTest(event=event_name):
                 self.assertEqual(len(groups), 1)
                 handlers = groups[0]["hooks"]

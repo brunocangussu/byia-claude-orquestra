@@ -3,7 +3,8 @@
 
 O ledger guarda os passos aprovados de UMA execução (um card ou um goal avulso) na frente dona,
 em `<raiz>/.orq/progress/v1/`, diretório ignorado pelo Git. A fase vem do board; o percentual vem
-dos passos concluídos. Só o Manager escreve; `show` e `watch` são leitores estritos.
+dos passos concluídos. Só o Manager escreve o ledger; `show` e `watch` são leitores estritos. `bind`
+liga a sessão nativa do host a um ledger num arquivo próprio (`sessions/`), sem tocar no ledger.
 
 Saída: 0 sucesso ou repetição idempotente · 2 argumento, entrada ou transição inválidos ·
 3 revisão ou dono divergentes · 4 estado, lock, board ou persistência indisponíveis.
@@ -26,7 +27,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from typing import Any, Callable, Iterator, Optional, Tuple
+from typing import Any, Callable, Iterator, Mapping, Optional, Tuple
 import unicodedata
 import uuid
 
@@ -48,13 +49,24 @@ MAX_TASKS = 200
 MAX_TITLE_CHARS = 160
 MAX_REF_CHARS = 200
 MAX_EVIDENCE_REFS = 20
+MAX_BINDING_BYTES = 64 * 1024
+MAX_SESSION_ID_CHARS = 256
+MAX_RECENT_EVENTS = 128
+MAX_EVENT_ID_CHARS = 200
+NUDGE_AFTER_CALLS = 4
 LOCK_WAIT_SECONDS = 5.0
+HOOK_LOCK_WAIT_SECONDS = 1.0
+MAX_FRONT_ANCESTORS = 64
+MAX_STATUSLINE_BYTES = 1024 * 1024
+STATUSLINE_SUBPROCESS_SECONDS = 1.5
 LOCK_POLL_SECONDS = 0.01
 SUBPROCESS_TIMEOUT_SECONDS = 5.0
 NEXT_PREVIEW = 3
 
 KINDS = ("card", "goal")
 HOSTS = ("claude", "codex", "other")
+BINDING_HOSTS = ("claude", "codex")  # os hosts com adaptador de hooks; "other" não tem ID nativo a ligar
+SESSION_START_SOURCES = ("startup", "resume", "clear", "compact", "fork")
 LIFECYCLES = ("active", "paused", "closed")
 CARD_ACTIVITIES = ("planning", "gate", "ready", "implementation", "review", "docs", "validate", "done")
 GOAL_ACTIVITIES = ("planning", "execution", "verification")
@@ -100,6 +112,16 @@ TASK_KEYS = (
 )
 EXECUTOR_KEYS = ("host", "role", "label")
 CLOSURE_KEYS = ("outcome", "evidence_ref", "closed_at")
+BINDING_KEYS = (
+    "schema_version",
+    "session_key",
+    "host",
+    "ledger_path",
+    "run_id",
+    "calls_without_plan",
+    "nudged",
+    "recent_event_ids",
+)
 
 PHASE_LABELS = {
     "backlog": "backlog",
@@ -126,7 +148,9 @@ CODE_RE = re.compile(r"[^a-z0-9-]")
 # Controles bidirecionais reescrevem a ordem visual do texto num terminal.
 BIDI_CONTROLS = frozenset("‎‏‪‫‬‭‮⁦⁧⁨⁩")
 GIT_TIMEOUT_SECONDS = 5.0
-STORAGE_DIRECTORIES = ("cards", "goals", "locks")
+LEDGER_DIRECTORIES = ("cards", "goals")
+BINDING_DIRECTORY = "sessions"
+STORAGE_DIRECTORIES = LEDGER_DIRECTORIES + (BINDING_DIRECTORY, "locks")
 TEMPORARY_SUFFIX = ".tmp"
 TEMPORARY_PROBE_TOKEN = "probe000"  # trecho fictício da pré-checagem barata; a prova é o nome reservado em write_ledger
 
@@ -251,6 +275,15 @@ def _check_session_key(where: str, value: Any) -> None:
         _fail(where, "deve ter 64 hexadecimais minúsculos")
 
 
+def _check_run_id(value: Any) -> None:
+    try:
+        parsed = uuid.UUID(str(value))
+    except ValueError:
+        _fail("run_id", "UUID esperado")
+    if str(parsed) != value:
+        _fail("run_id", "UUID em forma canônica minúscula esperado")
+
+
 def _check_executor(where: str, value: Any) -> None:
     _exact_keys(where, value, EXECUTOR_KEYS)
     _check_enum(f"{where}.host", value["host"], HOSTS)
@@ -334,12 +367,7 @@ def validate_ledger(raw: object) -> dict:
             code="versao-desconhecida",
         )
     _exact_keys("ledger", raw, LEDGER_KEYS)
-    try:
-        parsed = uuid.UUID(str(raw["run_id"]))
-    except ValueError:
-        _fail("run_id", "UUID esperado")
-    if str(parsed) != raw["run_id"]:
-        _fail("run_id", "UUID em forma canônica minúscula esperado")
+    _check_run_id(raw["run_id"])
     if not _is_int(raw["revision"]) or raw["revision"] < 1:
         _fail("revision", "inteiro maior ou igual a 1")
     _check_enum("kind", raw["kind"], KINDS)
@@ -374,6 +402,41 @@ def validate_ledger(raw: object) -> dict:
         _fail("closure", "lifecycle closed e closure devem coexistir")
     _check_timestamp("created_at", raw["created_at"])
     _check_timestamp("updated_at", raw["updated_at"])
+    return raw
+
+
+def _validate_binding_fields(raw: object) -> None:
+    if not isinstance(raw, dict):
+        _fail("binding", "deve ser um objeto JSON")
+    version = raw.get("schema_version")
+    if not _is_int(version) or version != SCHEMA_VERSION:
+        raise LedgerValidationError(
+            f"schema_version desconhecida ({version!r}); este programa só lê a versão {SCHEMA_VERSION}",
+            code="versao-desconhecida",
+        )
+    _exact_keys("binding", raw, BINDING_KEYS)
+    _check_session_key("session_key", raw["session_key"])
+    _check_enum("host", raw["host"], BINDING_HOSTS)
+    _check_absolute_path("ledger_path", raw["ledger_path"])
+    _check_run_id(raw["run_id"])
+    if not _is_int(raw["calls_without_plan"]) or raw["calls_without_plan"] < 0:
+        _fail("calls_without_plan", "inteiro maior ou igual a 0")
+    if not isinstance(raw["nudged"], bool):
+        _fail("nudged", "deve ser booleano")
+    events = raw["recent_event_ids"]
+    if not isinstance(events, list) or len(events) > MAX_RECENT_EVENTS:
+        _fail("recent_event_ids", f"lista de até {MAX_RECENT_EVENTS} identificadores")
+    for index, event_id in enumerate(events):
+        _check_text(f"recent_event_ids[{index}]", event_id, MAX_EVENT_ID_CHARS)
+
+
+def validate_binding(raw: object) -> dict:
+    """Valida o binding de sessão v1; devolve o próprio objeto. Falha com `binding-invalido`."""
+    try:
+        _validate_binding_fields(raw)
+    except LedgerValidationError as error:
+        code = error.code if error.code == "versao-desconhecida" else "binding-invalido"
+        raise LedgerValidationError(str(error), code=code) from error
     return raw
 
 
@@ -895,8 +958,8 @@ def read_ledger(path: Path) -> dict:
 
 
 def lock_path_for(path: Path) -> Path:
-    """Lock do ledger em `v1/locks/`. Só existe para o layout padrão: mutação fora dele é recusada."""
-    if storage_root_of(path) is None:
+    """Lock do ledger (ou do binding) em `v1/locks/`. Só existe para o layout padrão: fora dele é recusado."""
+    if storage_root_of(path, LEDGER_DIRECTORIES + (BINDING_DIRECTORY,)) is None:
         raise UnavailableError(
             f"ledger fora do layout <frente>/.orq/progress/v1/<cards|goals>/<arquivo>.json: {path}",
             code="destino-fora-do-layout",
@@ -957,6 +1020,7 @@ def temporary_prefix(name: str) -> str:
 def write_ledger(path: Path, ledger: dict, git_root: Optional[Path] = None) -> None:
     """Temporário no mesmo diretório, flush, fsync e `os.replace`: o leitor vê o antes ou o depois.
 
+    Também grava o binding de sessão, pelo mesmo caminho atômico e com a mesma sonda do nome reservado.
     Com `git_root` (checkout Git; root e `path` canônicos), o Git é consultado sobre o nome EXATO do
     temporário reservado, antes de o JSON ser escrito nele; não ignorado, o temporário é removido e
     nada é gravado. Qualquer falha ou interrupção remove o temporário e preserva o ledger anterior.
@@ -1020,43 +1084,48 @@ def ensure_inside(root: Path, target: Path, what: str) -> None:
         raise UnavailableError(f"{what} resolve para fora do root: {resolved}", code="destino-fora-do-root")
 
 
-def storage_root_of(path: Path) -> Optional[Path]:
-    """Root da frente quando `path` segue o layout `<root>/.orq/progress/v1/<cards|goals>/<arquivo>.json`."""
+def storage_root_of(path: Path, directories: tuple = LEDGER_DIRECTORIES) -> Optional[Path]:
+    """Root da frente quando `path` segue o layout `<root>/.orq/progress/v1/<directories>/<arquivo>.json`."""
     parent = path.parent
-    layout = (path.suffix == ".json", parent.name in ("cards", "goals"), parent.parent.name == "v1")
+    layout = (path.suffix == ".json", parent.name in directories, parent.parent.name == "v1")
     if all(layout) and parent.parent.parent.name == "progress" and parent.parent.parent.parent.name == ".orq":
         return parent.parent.parent.parent.parent
     return None
 
 
-def resolve_ledger_target(path: Path, root: Optional[Path] = None) -> Tuple[Path, Path]:
+def resolve_ledger_target(
+    path: Path, root: Optional[Path] = None, directories: tuple = LEDGER_DIRECTORIES
+) -> Tuple[Path, Path]:
     """Caminho canônico do ledger e root da frente, provando layout e contenção. Só mutações passam aqui.
 
     O caminho é canonicalizado (realpath) ANTES de inferir layout, root e lock, e todo acesso usa o
     resultado: dois apelidos do mesmo ledger caem no mesmo lock. Fora do layout padrão, recusa.
+    `directories` escolhe o subdiretório de `v1/`: o `bind` resolve assim o arquivo de binding, e um
+    binding nunca passa por aqui como ledger (nem o contrário).
     """
+    noun = "binding" if directories == (BINDING_DIRECTORY,) else "ledger"
     if root is not None:
-        ensure_inside(root, path, "ledger")
+        ensure_inside(root, path, noun)
     canonical = Path(os.path.realpath(path))
-    inferred = storage_root_of(canonical)
+    inferred = storage_root_of(canonical, directories)
     if inferred is None or (root is not None and inferred != Path(os.path.realpath(root))):
         raise UnavailableError(
-            f"ledger fora do layout <frente>/.orq/progress/v1/<cards|goals>/<arquivo>.json: {canonical}",
+            f"{noun} fora do layout <frente>/.orq/progress/v1/<{'|'.join(directories)}>/<arquivo>.json: {canonical}",
             code="destino-fora-do-layout",
         )
     ensure_inside(inferred, lock_path_for(canonical), "lock")
     return canonical, inferred
 
 
-def mutate_ledger(
+def commit_mutation(
     path: Path,
     session_key: str,
     expected_revision: Optional[int],
     operation: dict,
     now: str,
     root: Optional[Path] = None,
-) -> dict:
-    """Leitura, validação, comparação e gravação sob o mesmo lock.
+) -> Tuple[dict, dict]:
+    """Leitura, validação, comparação e gravação sob o mesmo lock. Devolve (recibo, ledger confirmado).
 
     `expected_revision` ausente: a mutação vale sobre o estado atual, ainda sob lock, troca atômica
     e verificação de dono. Presente e divergente: conflito, sem gravar. O caminho é canonicalizado e
@@ -1092,7 +1161,19 @@ def mutate_ledger(
         changed = updated != current
         if changed:
             write_ledger(path, updated, git_root=root if in_repository else None)
-        return _mutation_result(path, updated, session_key, changed)
+        return _mutation_result(path, updated, session_key, changed), updated
+
+
+def mutate_ledger(
+    path: Path,
+    session_key: str,
+    expected_revision: Optional[int],
+    operation: dict,
+    now: str,
+    root: Optional[Path] = None,
+) -> dict:
+    """`commit_mutation` só com o recibo, sem a vista compacta (que o CLI acrescenta fora do lock)."""
+    return commit_mutation(path, session_key, expected_revision, operation, now, root)[0]
 
 
 # ── Armazenamento e begin ───────────────────────────────────────────────────
@@ -1186,9 +1267,10 @@ def ensure_storage(root: Path, ledger: Path) -> bool:
     """Prepara `<root>/.orq/progress/` para gravar `ledger` (canônico), sem escrever antes de provar tudo.
 
     Primeiro só lê: arquivo versionado no destino e a contenção de TODOS os componentes (`.orq`,
-    `progress`, `v1`, `cards`, `goals`, `locks`), existentes ou não. Só então cria `progress` e, se
+    `progress`, `v1`, `cards`, `goals`, `sessions`, `locks`), existentes ou não. Só então cria `progress` e, se
     faltar, o `.gitignore` de `*`. A pré-checagem de cobertura do Git vem antes de criar `v1`. Devolve se
-    `root` é checkout Git, para `write_ledger` provar o temporário real.
+    `root` é checkout Git, para `write_ledger` provar o temporário real. `ledger` pode ser o arquivo de
+    binding de uma sessão: as sondas são as mesmas (`.gitignore`, o arquivo, o lock e um temporário).
     """
     canonical_root = Path(os.path.realpath(root))
     in_repository = _inside_git_repository(root)
@@ -1282,6 +1364,26 @@ def ledger_board_state(ledger: dict) -> Optional[dict]:
     return query_board_state(scope["card_id"], scope["board_path"])
 
 
+def attach_view(receipt: dict, ledger: dict) -> dict:
+    """Acrescenta ao recibo a vista compacta: a linha do `show --format segment`, pela mesma projeção.
+
+    Roda DEPOIS da gravação e fora do lock, sobre o ledger que acabou de ser confirmado (`view_revision`
+    é a revisão projetada). A escrita já aconteceu: se a projeção falhar, o recibo segue `ok` com `view`
+    nulo e `view_error`, e a gravação nunca é repetida nem dada como falha por causa da vista.
+    """
+    try:
+        view = build_view(ledger, ledger_board_state(ledger), receipt["ledger_path"])
+        line = render_segment(view)
+    except Exception as error:  # a escrita já está confirmada; o erro vai no recibo, não é engolido
+        if isinstance(error, ProgressError):
+            detail = {"code": error.code, "message": str(error)}
+        else:
+            detail = {"code": "projecao-falhou", "message": f"{type(error).__name__}: {error}"}
+        detail["message"] = _clean(detail["message"])[:200]
+        return {**receipt, "view": None, "view_revision": None, "view_error": detail}
+    return {**receipt, "view": line, "view_revision": view["revision"]}
+
+
 def new_ledger(kind: str, host: str, session_key: str, scope: dict, now: str, run_id: str) -> dict:
     return {
         "schema_version": SCHEMA_VERSION,
@@ -1300,7 +1402,7 @@ def new_ledger(kind: str, host: str, session_key: str, scope: dict, now: str, ru
     }
 
 
-def begin_ledger(
+def commit_begin(
     kind: str,
     root: Path,
     host: str,
@@ -1310,8 +1412,11 @@ def begin_ledger(
     thread_root: Optional[str] = None,
     card: Optional[str] = None,
     front: Optional[str] = None,
-) -> dict:
-    """Cria o ledger de um card (reutilizável ao retomar) ou de um goal avulso (um UUID por execução)."""
+) -> Tuple[dict, dict]:
+    """Cria o ledger de um card (reutilizável ao retomar) ou de um goal avulso (um UUID por execução).
+
+    Devolve (recibo, ledger): o criado agora ou o existente que a retomada reaproveitou.
+    """
     if not root.is_absolute() or not root.is_dir():
         raise InputError("--root deve ser um diretório absoluto existente", code="entrada-invalida")
     _check_input(_check_enum, "host", host, HOSTS)
@@ -1373,10 +1478,413 @@ def begin_ledger(
                     code="dono-divergente",
                     revision=existing["revision"],
                 )
-            return _mutation_result(path, existing, key, False)
+            return _mutation_result(path, existing, key, False), existing
         ledger = new_ledger(kind, host, key, scope, now, run_id)
         write_ledger(path, ledger, git_root=canonical_root if in_repository else None)
-        return _mutation_result(path, ledger, key, True)
+        return _mutation_result(path, ledger, key, True), ledger
+
+
+def begin_ledger(
+    kind: str,
+    root: Path,
+    host: str,
+    session_key: Optional[str],
+    now: str,
+    board: Optional[str] = None,
+    thread_root: Optional[str] = None,
+    card: Optional[str] = None,
+    front: Optional[str] = None,
+) -> dict:
+    """`commit_begin` só com o recibo, sem a vista compacta (que o CLI acrescenta fora do lock)."""
+    return commit_begin(kind, root, host, session_key, now, board, thread_root, card, front)[0]
+
+
+# ── Vínculo de sessão (bind) ────────────────────────────────────────────────
+
+
+def derive_session_key(host: str, session_id: str) -> str:
+    """Chave opaca da sessão nativa: sha256(host + NUL + session_id). O ID bruto nunca é persistido."""
+    _check_input(_check_enum, "host", host, BINDING_HOSTS)
+    if (
+        not isinstance(session_id, str)
+        or not session_id
+        or len(session_id) > MAX_SESSION_ID_CHARS
+        or has_terminal_controls(session_id)
+    ):
+        raise InputError(
+            f"--session-id deve ser o ID nativo da sessão: texto de 1 a {MAX_SESSION_ID_CHARS} caracteres, "
+            "sem controles de terminal",
+            code="entrada-invalida",
+        )
+    return hashlib.sha256(f"{host}\0{session_id}".encode("utf-8")).hexdigest()
+
+
+def new_binding(host: str, session_key: str, ledger_path: str, run_id: str) -> dict:
+    """Binding recém-criado: contadores zerados, nenhum lembrete dado, nenhum evento visto."""
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "session_key": session_key,
+        "host": host,
+        "ledger_path": ledger_path,
+        "run_id": run_id,
+        "calls_without_plan": 0,
+        "nudged": False,
+        "recent_event_ids": [],
+    }
+
+
+def binding_path_for(root: Path, session_key: str) -> Path:
+    return storage_dir(root) / BINDING_DIRECTORY / f"{session_key}.json"
+
+
+def read_binding(path: Path) -> dict:
+    """Leitor estrito do binding: só abre para leitura. O nome do arquivo tem de ser a `session_key` dele."""
+    try:
+        with open(path, "rb") as handle:
+            data = handle.read(MAX_BINDING_BYTES + 1)
+    except FileNotFoundError as error:
+        raise UnavailableError(f"binding inexistente: {path}", code="binding-ausente") from error
+    except OSError as error:
+        raise UnavailableError(
+            f"binding ilegível: {path} ({error.strerror or error})", code="binding-ilegivel"
+        ) from error
+    if len(data) > MAX_BINDING_BYTES:
+        raise UnavailableError(f"binding acima de {MAX_BINDING_BYTES} bytes: {path}", code="binding-grande")
+    try:
+        raw = validate_binding(parse_json(data))
+    except LedgerValidationError as error:
+        raise UnavailableError(f"binding inválido: {path}: {error}", code=error.code) from error
+    except ValueError as error:
+        raise UnavailableError(f"binding com JSON inválido: {path}: {error}", code="binding-invalido") from error
+    if raw["session_key"] != path.stem:
+        raise UnavailableError(f"binding com session_key diferente do nome do arquivo: {path}", code="binding-invalido")
+    return raw
+
+
+def _binding_receipt(path: Path, binding: dict, changed: bool) -> dict:
+    return {
+        "ok": True,
+        "session_key": binding["session_key"],
+        "host": binding["host"],
+        "run_id": binding["run_id"],
+        "ledger_path": binding["ledger_path"],
+        "binding_path": str(path),
+        "changed": changed,
+    }
+
+
+def _resolve_session_file(front_root: Path, expected: Path) -> Path:
+    """Caminho canônico de um arquivo de `sessions/`, provando contenção, layout e o nome exato esperado."""
+    target, _ = resolve_ledger_target(expected, front_root, (BINDING_DIRECTORY,))
+    if target != expected:  # symlink para outro arquivo de `sessions/`
+        raise UnavailableError(f"binding resolve para outro arquivo: {target}", code="destino-fora-do-layout")
+    return target
+
+
+def _resolve_binding(front_root: Path, session_key: str) -> Path:
+    return _resolve_session_file(front_root, binding_path_for(front_root, session_key))
+
+
+def bind_session(
+    ledger: Path,
+    host: str,
+    session_id: Optional[str],
+    root: Optional[Path] = None,
+    native_key: Optional[str] = None,
+) -> dict:
+    """Liga a sessão nativa do host a um ledger, em `<front_root>/.orq/progress/v1/sessions/<session_key>.json`.
+
+    A sessão vem de `session_id` (o ID nativo, de que só o hash é gravado) OU de `native_key` (a chave
+    nativa já derivada, que o hook informa; o Manager não conhece o ID bruto). Exatamente um dos dois.
+    A chave nativa NÃO é a de dono do ledger (`--session-key` das mutações): o `bind` não a lê nem muda.
+
+    Não transfere ownership e não toca no ledger. As garantias são as do `begin`: realpath e contenção do
+    ledger, do binding e dos locks, Git ignorando o destino REAL (o binding e o temporário dele, pelo mesmo
+    `write_ledger`) e lock do binding. Só lê até provar tudo isso. Mesmo ledger: idempotente, os contadores
+    ficam; outro ledger substitui o binding daquela sessão e os zera. Binding corrompido é refeito; de
+    versão desconhecida, não: outro host pode ter um plugin mais novo na mesma frente.
+    """
+    if (session_id is None) == (native_key is None):
+        raise InputError("informe exatamente um de --session-id e --native-key", code="entrada-invalida")
+    if native_key is None:
+        key = derive_session_key(host, session_id)
+    else:
+        _check_input(_check_enum, "host", host, BINDING_HOSTS)
+        _check_input(_check_session_key, "native_key", native_key)
+        key = native_key
+    ledger, front_root = resolve_ledger_target(ledger, root)
+    run_id = read_ledger(ledger)["run_id"]
+    target = _resolve_binding(front_root, key)
+    in_repository = ensure_storage(front_root, target)
+    binding = new_binding(host, key, str(ledger), run_id)
+    with ledger_lock(target):
+        try:
+            existing = read_binding(target)
+        except UnavailableError as error:
+            if error.code not in ("binding-ausente", "binding-invalido", "binding-grande"):
+                raise
+            existing = None
+        if existing is not None and all(existing[field] == binding[field] for field in ("ledger_path", "run_id")):
+            return _binding_receipt(target, existing, False)
+        write_ledger(target, binding, git_root=front_root if in_repository else None)
+    return _binding_receipt(target, binding, True)
+
+
+# ── Hooks consultivos (SessionStart e PostToolUse) ──────────────────────────
+#
+# Só lembram: nunca bloqueiam, negam, interrompem nem decidem. Não abrem o transcript e não leem
+# `tool_input`, `tool_response` nem o texto do prompt: só session_id, cwd, o nome do evento, a fonte do
+# SessionStart, `agent_id` e os identificadores da chamada. O adaptador `progress-hook.py` só liga o
+# stdin a `handle_hook` e garante o exit 0.
+
+
+def hook_host(env: Mapping[str, str]) -> Optional[str]:
+    """Host que disparou o hook, pelo ambiente nativo (mesmo critério do context-guard).
+
+    `PLUGIN_ROOT` é do Codex; `CLAUDE_PLUGIN_ROOT`, do Claude. Nenhum dos dois: host desconhecido.
+    """
+    if env.get("PLUGIN_ROOT"):
+        return "codex"
+    if env.get("CLAUDE_PLUGIN_ROOT"):
+        return "claude"
+    return None
+
+
+def _session_fronts(cwd: str) -> list:
+    """Raízes com `.orq/progress/v1/sessions/`, da mais próxima do cwd para cima. Só consulta o disco, não abre nada."""
+    current = os.path.realpath(cwd)
+    fronts = []
+    for _ in range(MAX_FRONT_ANCESTORS):
+        if os.path.isdir(os.path.join(current, ".orq", "progress", "v1", BINDING_DIRECTORY)):
+            fronts.append(Path(current))
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    return fronts
+
+
+def _hook_output(event_name: str, text: str) -> dict:
+    return {"hookSpecificOutput": {"hookEventName": event_name, "additionalContext": text}}
+
+
+def _session_start_text(host: str, session_key: str) -> str:
+    return (
+        f"Medidor de progresso — chave da sessão nativa ({host}): {session_key}. Havendo medidor ativo nesta "
+        f"frente, vincule-a com `bind --host {host} --native-key <essa chave>`; as mutações seguem com a "
+        "chave de dono gravada na thread."
+    )
+
+
+def _nudge_text(calls: int) -> str:
+    return (
+        f"Medidor de progresso (aviso consultivo): {calls} chamadas de ferramenta nesta execução e nenhum plano "
+        "registrado. Se o plano já foi aprovado, registre-o com `plan`; em planejamento ou gate do dono, "
+        "ignore este aviso."
+    )
+
+
+def _event_fingerprint(host: str, event: dict) -> Optional[str]:
+    """Hash da identidade da chamada, para não contar duas vezes a mesma entrega. Os IDs brutos não são guardados.
+
+    Claude: (session_id, tool_use_id, evento). Codex: (session_id, turn_id, tool_use_id, evento). Faltando
+    algum identificador, devolve None e a contagem passa a ser por entrega de evento.
+    """
+    names = ("session_id", "tool_use_id") if host == "claude" else ("session_id", "turn_id", "tool_use_id")
+    parts = [event.get(name) for name in names] + [event.get("hook_event_name")]
+    if not all(isinstance(part, str) and part for part in parts):
+        return None
+    try:
+        return hashlib.sha256("\0".join([host, *parts]).encode("utf-8")).hexdigest()
+    except UnicodeEncodeError:
+        return None
+
+
+def _counts_toward_nudge(ledger: dict) -> bool:
+    """Execução ativa, ainda sem plano e que já admite execução: card só em `[~]`; goal, sempre."""
+    if ledger["lifecycle"] != "active" or ledger["plan"] is not None:
+        return False
+    if ledger["kind"] == "goal":
+        return True
+    board_state = ledger_board_state(ledger)
+    return isinstance(board_state, dict) and board_state.get("state") == "ok" and board_state.get("marker") == "~"
+
+
+def _locate_binding(fronts: list, session_key: str, host: str) -> Tuple[Optional[Tuple[Path, Path, dict]], Optional[str]]:
+    """Binding da sessão na frente mais próxima que o tem: (achado, problema).
+
+    `problema` é o `code` do primeiro defeito que não seja a simples ausência do arquivo (ilegível, inválido,
+    versão desconhecida, fora da frente...), ou None. Quem chama distingue "sem vínculo" de "vínculo ruim".
+    """
+    problem = None
+    for front in fronts:
+        try:
+            target = _resolve_binding(front, session_key)
+            binding = read_binding(target)
+        except UnavailableError as error:
+            if error.code != "binding-ausente" and problem is None:
+                problem = error.code
+            continue
+        if binding["host"] == host:
+            return (front, target, binding), None
+        problem = problem or "binding-invalido"
+    return None, problem
+
+
+def _read_bound_ledger(front: Path, binding: dict) -> dict:
+    """Ledger ligado a um binding, lido só depois de provar que o `ledger_path` ainda é um ledger DESTA frente.
+
+    O caminho vem de um arquivo que pode ter sido adulterado, e o alvo pode ter virado symlink depois do
+    `bind`. Por isso, antes de abrir qualquer coisa: realpath, contenção na frente onde o binding foi achado
+    e layout `<frente>/.orq/progress/v1/<cards|goals>/<arquivo>.json` (`resolve_ledger_target`). O que se abre
+    é o caminho canônico, e a conferência de `run_id` continua valendo. Falha: `UnavailableError`, sem abrir
+    o arquivo (o hook cala; a statusline mostra a indisponibilidade com o código).
+    """
+    path, _ = resolve_ledger_target(Path(binding["ledger_path"]), front)
+    ledger = read_ledger(path)
+    if ledger["run_id"] != binding["run_id"]:
+        raise UnavailableError("o binding é de outra execução do ledger", code="vinculo-obsoleto")
+    return ledger
+
+
+def _announce_native_key(front: Path, session_key: str, host: str) -> Optional[dict]:
+    """Primeiro PostToolUse de uma sessão principal sem binding: informa a chave nativa UMA vez.
+
+    A sessão que roda o `begin` já passou do SessionStart (`sessions/` não existia): sem isto ela nunca
+    saberia a chave. O marcador `sessions/.anunciada-<chave>.json` impede a repetição e segue as garantias
+    do binding: contenção, Git ignorando o destino real, lock e escrita atômica. Se a gravação falhar,
+    silêncio (e tenta de novo no próximo evento): sem o marcador, anunciar repetiria.
+    """
+    marker = _resolve_session_file(front, binding_path_for(front, f".anunciada-{session_key}"))
+    if os.path.lexists(marker):
+        return None
+    in_repository = ensure_destinations_ignored(front, marker)
+    with ledger_lock(marker, wait_seconds=HOOK_LOCK_WAIT_SECONDS):
+        if os.path.lexists(marker):
+            return None
+        write_ledger(marker, {"schema_version": SCHEMA_VERSION, "announced": True}, git_root=front if in_repository else None)
+    return _hook_output("PostToolUse", _session_start_text(host, session_key))
+
+
+def _count_tool_event(front: Path, target: Path, binding: dict, fingerprint: Optional[str]) -> Optional[dict]:
+    """Conta um evento elegível sob o lock do binding e, no quarto, emite o lembrete (uma vez só)."""
+    in_repository = ensure_destinations_ignored(front, target)
+    with ledger_lock(target, wait_seconds=HOOK_LOCK_WAIT_SECONDS):
+        current = read_binding(target)
+        if current["nudged"] or (current["run_id"], current["ledger_path"]) != (binding["run_id"], binding["ledger_path"]):
+            return None
+        if fingerprint is not None and fingerprint in current["recent_event_ids"]:
+            return None
+        # A consulta feita antes do lock já pode estar velha: um `plan`, uma pausa ou o board mudaram nesse
+        # intervalo. A elegibilidade é conferida de novo AQUI, com o estado de agora, logo antes de contar e de
+        # emitir. Não toma o lock do ledger: o escritor troca o arquivo por `os.replace`, então a leitura é um
+        # snapshot consistente, e um `plan` que termina depois dela é ordenado depois do lembrete (legítimo).
+        # Assim também não existe ordem de locks (binding -> ledger) a manter: nenhum outro código a usa.
+        if not _counts_toward_nudge(_read_bound_ledger(front, current)):
+            return None
+        recent = current["recent_event_ids"] + ([fingerprint] if fingerprint is not None else [])
+        updated = {**current, "calls_without_plan": current["calls_without_plan"] + 1}
+        updated["recent_event_ids"] = recent[-MAX_RECENT_EVENTS:]
+        nudge = updated["calls_without_plan"] >= NUDGE_AFTER_CALLS
+        if nudge:
+            updated["nudged"] = True
+        write_ledger(target, updated, git_root=front if in_repository else None)
+    return _hook_output("PostToolUse", _nudge_text(updated["calls_without_plan"])) if nudge else None
+
+
+def handle_hook(event: Any, env: Mapping[str, str]) -> Optional[dict]:
+    """Resposta consultiva a um evento de hook, ou None. Falha esperada (disco, lock, Git, JSON) vira None.
+
+    SessionStart informa a chave da sessão nativa, sem gravar nada. PostToolUse conta eventos de uma
+    sessão vinculada cujo ledger está ativo e sem plano; no quarto emite UM lembrete e grava `nudged`. Na
+    sessão principal ainda sem binding (nem arquivo ruim no lugar), o primeiro PostToolUse anuncia a chave
+    nativa uma vez. Chamada de subagente (`agent_id`), host ou evento desconhecidos não fazem nada.
+    """
+    host = hook_host(env)
+    if host is None or not isinstance(event, dict):
+        return None
+    name = event.get("hook_event_name")
+    cwd = event.get("cwd")
+    if name not in ("SessionStart", "PostToolUse") or not isinstance(cwd, str) or "\0" in cwd or not os.path.isabs(cwd):
+        return None
+    try:
+        session_key = derive_session_key(host, event.get("session_id"))
+        fronts = _session_fronts(cwd)
+        if not fronts:
+            return None
+        if name == "SessionStart":
+            if event.get("source") not in SESSION_START_SOURCES:
+                return None
+            return _hook_output(name, _session_start_text(host, session_key))
+        if event.get("agent_id") not in (None, ""):
+            return None
+        found, problem = _locate_binding(fronts, session_key, host)
+        if found is None:
+            return None if problem else _announce_native_key(fronts[0], session_key, host)
+        if found[2]["nudged"]:
+            return None
+        front, target, binding = found
+        if not _counts_toward_nudge(_read_bound_ledger(front, binding)):  # filtro barato: sem lock, sem Git
+            return None
+        fingerprint = _event_fingerprint(host, event)
+        if fingerprint is not None and fingerprint in binding["recent_event_ids"]:
+            return None
+        return _count_tool_event(front, target, binding, fingerprint)
+    except (ProgressError, OSError, ValueError):
+        return None
+
+
+# ── Statusline do Claude ────────────────────────────────────────────────────
+#
+# Vista pura: lê o binding da sessão nativa, carrega o ledger ligado a ele e imprime a MESMA linha do
+# `show --format segment`. Nunca escolhe "o ledger mais recente" nem adivinha por horário ou título: sem
+# `session_id` ou sem binding não há segmento. Não escreve nada e nunca faz a barra falhar.
+
+
+def _payload_directories(payload: dict) -> list:
+    """Diretórios absolutos que o JSON da statusline do Claude informa, na ordem: cwd, current_dir, project_dir."""
+    workspace = payload.get("workspace")
+    workspace = workspace if isinstance(workspace, dict) else {}
+    candidates = [payload.get("cwd"), workspace.get("current_dir"), workspace.get("project_dir")]
+    directories = []
+    for candidate in candidates:
+        if isinstance(candidate, str) and "\0" not in candidate and os.path.isabs(candidate) and candidate not in directories:
+            directories.append(candidate)
+    return directories
+
+
+def _unavailable_segment(code: str) -> str:
+    return f"◎ medidor indisponível ({CODE_RE.sub('', code) or 'erro'})"
+
+
+def statusline_segment(payload: Any) -> Optional[str]:
+    """Segmento do medidor para a statusline do Claude, ou None quando não há o que mostrar.
+
+    Sem `session_id`, sem medidor na frente ou sem binding desta sessão: None. Binding ou ledger que existem
+    mas não servem: uma indisponibilidade curta, nunca um percentual inventado.
+    """
+    if not isinstance(payload, dict):
+        return None
+    try:
+        session_key = derive_session_key("claude", payload.get("session_id"))
+    except InputError:
+        return None
+    fronts = []
+    for directory in _payload_directories(payload):
+        fronts.extend(front for front in _session_fronts(directory) if front not in fronts)
+    if not fronts:
+        return None
+    found, problem = _locate_binding(fronts, session_key, "claude")
+    if found is None:
+        return _unavailable_segment(problem) if problem else None
+    front, _, binding = found
+    try:
+        ledger = _read_bound_ledger(front, binding)
+        return render_segment(build_view(ledger, ledger_board_state(ledger), binding["ledger_path"]))
+    except ProgressError as error:
+        return _unavailable_segment(error.code)
+    except Exception:  # a barra nunca falha: a causa vira indisponibilidade, não silêncio
+        return _unavailable_segment("erro")
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────
@@ -1410,8 +1918,22 @@ def _read_input(args: argparse.Namespace) -> Any:
         raise InputError(f"JSON de entrada inválido: {error}", code="entrada-invalida") from error
 
 
-def _print_json(payload: dict) -> None:
-    print(json.dumps(payload, ensure_ascii=True, separators=(",", ":")))
+def _print_json(payload: dict, readable: bool = False) -> None:
+    """Uma linha JSON. `readable` mantém os acentos (a `view` do recibo é para ler); controles vão escapados.
+
+    Se o stdout não codifica o texto, cai para ASCII escapado: a escrita do recibo já aconteceu, e um
+    traceback agora faria o Manager repetir uma marcação que foi gravada.
+    """
+    text = json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
+    if readable:
+        candidate = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        candidate = "".join(f"\\u{ord(char):04x}" if has_terminal_controls(char) else char for char in candidate)
+        try:
+            candidate.encode(sys.stdout.encoding or "utf-8")
+            text = candidate
+        except (UnicodeEncodeError, LookupError):
+            pass
+    print(text)
 
 
 def _emit_error(error: ProgressError) -> None:
@@ -1449,7 +1971,7 @@ def _needs_board(args: argparse.Namespace) -> bool:
 
 
 def cmd_begin(args: argparse.Namespace) -> int:
-    result = begin_ledger(
+    receipt, ledger = commit_begin(
         args.kind,
         _absolute("--root", args.root),
         args.host,
@@ -1460,7 +1982,33 @@ def cmd_begin(args: argparse.Namespace) -> int:
         card=args.card,
         front=args.front,
     )
-    _print_json(result)
+    _print_json(attach_view(receipt, ledger), readable=True)
+    return 0
+
+
+def cmd_bind(args: argparse.Namespace) -> int:
+    root = _absolute("--root", args.root) if args.root else None
+    receipt = bind_session(_selected_ledger(args), args.host, args.session_id, root, native_key=args.native_key)
+    _print_json(receipt, readable=True)
+    return 0
+
+
+def cmd_statusline(args: argparse.Namespace) -> int:
+    """Consultivo: sempre sai 0 e só imprime o segmento (ou nada). Lê o JSON da statusline do Claude no stdin."""
+    global GIT_TIMEOUT_SECONDS, SUBPROCESS_TIMEOUT_SECONDS
+    previous = (GIT_TIMEOUT_SECONDS, SUBPROCESS_TIMEOUT_SECONDS)
+    GIT_TIMEOUT_SECONDS = SUBPROCESS_TIMEOUT_SECONDS = STATUSLINE_SUBPROCESS_SECONDS  # a barra não espera um Git travado
+    try:
+        if args.input == "-":
+            data = sys.stdin.buffer.read(MAX_STATUSLINE_BYTES + 1)
+            if len(data) <= MAX_STATUSLINE_BYTES:
+                segment = statusline_segment(parse_json(data))
+                if segment:
+                    print(segment)
+    except Exception:  # entrada que não é JSON, stdout fechado, qualquer defeito: a barra segue sem o segmento
+        pass
+    finally:
+        GIT_TIMEOUT_SECONDS, SUBPROCESS_TIMEOUT_SECONDS = previous
     return 0
 
 
@@ -1474,7 +2022,8 @@ def cmd_mutation(args: argparse.Namespace) -> int:
         scope = read_ledger(path)["scope"]
         if scope["card_id"] is not None:
             operation["board_state"] = query_board_state(scope["card_id"], scope["board_path"])
-    _print_json(mutate_ledger(path, args.session_key, args.expect_revision, operation, utc_now(), root=root))
+    receipt, ledger = commit_mutation(path, args.session_key, args.expect_revision, operation, utc_now(), root=root)
+    _print_json(attach_view(receipt, ledger), readable=True)
     return 0
 
 
@@ -1591,6 +2140,25 @@ def build_parser() -> argparse.ArgumentParser:
     begin.add_argument("--card", help="T-NNN (card)")
     begin.add_argument("--front", help="slug da frente dona (card)")
     begin.set_defaults(handler=cmd_begin)
+
+    bind = commands.add_parser("bind", help="liga a sessão nativa do host a um ledger (não transfere ownership)")
+    _add_target(bind)
+    bind.add_argument("--host", required=True, choices=BINDING_HOSTS)
+    native = bind.add_mutually_exclusive_group(required=True)
+    native.add_argument("--session-id", help="ID nativo da sessão no host; só o hash é gravado")
+    native.add_argument(
+        "--native-key",
+        help="chave da sessão NATIVA (64 hexadecimais), a que o hook informa; NÃO é a chave de dono "
+        "do ledger (a `--session-key` das mutações)",
+    )
+    bind.set_defaults(handler=cmd_bind)
+
+    statusline = commands.add_parser(
+        "statusline", help="segmento do medidor para a statusline do Claude (consultivo: sempre sai 0)"
+    )
+    statusline.add_argument("--host", required=True, choices=("claude",))
+    statusline.add_argument("--input", required=True, help="'-' lê o JSON que a statusline recebe, pela entrada padrão")
+    statusline.set_defaults(handler=cmd_statusline)
 
     claim = commands.add_parser("claim", help="transfere o ownership de forma explícita")
     _add_mutation_target(

@@ -121,13 +121,45 @@ if [ -r "$(dirname "$0")/kanban-status.sh" ]; then
 fi
 [ -n "$kanban_str" ] && kanban_str=" | ${kanban_str}"
 
+# Segmento do medidor de progresso (T-144): quem o calcula é o progress.py ao lado, achado por vizinhança
+# como o kanban-status.sh. O JSON do stdin já foi lido uma vez em `input` e é reenviado a ele. O trio
+# statusline.sh + kanban-status.sh + progress.py é indivisível, mas a barra degrada sozinha: sem python3,
+# sem o script ao lado ou fora de um projeto com medidor (sem `.orq/progress/v1/sessions/` no cwd ou acima),
+# nada é chamado e a barra sai exatamente como antes do medidor. O sh só decide se vale chamar o python;
+# quem escolhe a sessão é o progress.py, pelo `session_id` (nunca "o ledger mais recente").
+orq_meter_nearby() {
+  while IFS= read -r start; do
+    case "$start" in /*) ;; *) continue ;; esac
+    # Caminho FÍSICO antes de subir: o diretório do payload pode ser um alias (symlink) cujo pai lexical não é
+    # o da frente; o progress.py resolve o realpath, e o pré-filtro tem de concordar com ele.
+    d=$(cd -P "$start" 2>/dev/null && pwd -P) || continue
+    n=0
+    while [ "$n" -lt 64 ]; do
+      [ -d "$d/.orq/progress/v1/sessions" ] && return 0
+      [ "$d" = "/" ] && break
+      d="${d%/*}"
+      [ -z "$d" ] && d="/"
+      n=$(( n + 1 ))
+    done
+  done
+  return 1
+}
+
+progress_str=""
+progress_script="$(dirname "$0")/progress.py"
+if [ -r "$progress_script" ] && command -v python3 >/dev/null 2>&1 \
+  && echo "$input" | jq -r '[.cwd, .workspace.current_dir, .workspace.project_dir] | map(select(type == "string")) | unique | .[]' 2>/dev/null | orq_meter_nearby; then
+  progress_str=$(printf '%s' "$input" | python3 "$progress_script" statusline --host claude --input - 2>/dev/null)
+fi
+[ -n "$progress_str" ] && progress_str=" | ${progress_str}"
+
 # Sem bloco de rate-limit no stdin, rate_limit_str fica vazio: omite o
 # segmento inteiro (rótulo + separador) em vez de deixar "⏱️ " pendurado.
 rl_segment=""
 [ -n "$rate_limit_str" ] && rl_segment=" | ⏱️ ${rate_limit_str}"
 
 if [ -n "$effort" ]; then
-  printf "🤖 %s | 💪 %s | 🧠 %s | 💰 %s%s\n📁 %s | 🌳 %s | 🌿 %s%s" "$model" "$effort" "$usage_str" "$block_str" "$rl_segment" "$dir_display" "$worktree_str" "$git_str" "$kanban_str"
+  printf "🤖 %s | 💪 %s | 🧠 %s | 💰 %s%s\n📁 %s | 🌳 %s | 🌿 %s%s%s" "$model" "$effort" "$usage_str" "$block_str" "$rl_segment" "$dir_display" "$worktree_str" "$git_str" "$kanban_str" "$progress_str"
 else
-  printf "🤖 %s | 🧠 %s | 💰 %s%s\n📁 %s | 🌳 %s | 🌿 %s%s" "$model" "$usage_str" "$block_str" "$rl_segment" "$dir_display" "$worktree_str" "$git_str" "$kanban_str"
+  printf "🤖 %s | 🧠 %s | 💰 %s%s\n📁 %s | 🌳 %s | 🌿 %s%s%s" "$model" "$usage_str" "$block_str" "$rl_segment" "$dir_display" "$worktree_str" "$git_str" "$kanban_str" "$progress_str"
 fi

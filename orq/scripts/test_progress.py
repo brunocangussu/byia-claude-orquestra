@@ -3,17 +3,20 @@
 
 O medidor é o contrato entre Manager, hosts e vistas: se ele mente, a barra mente. Os testes cobrem
 o cálculo puro, as transições, a persistência transacional (lock, revisão, dono, troca atômica), os
-leitores estritos (`show`/`watch`), o armazenamento ignorado pelo Git e o parser do board. Tudo roda
+leitores estritos (`show`/`watch`), o recibo com a vista compacta, o vínculo de sessão (`bind`), o
+armazenamento ignorado pelo Git e o parser do board. Tudo roda
 em diretórios temporários e repositórios Git temporários, nunca no repositório real.
 """
 
 from __future__ import annotations
 
+import contextlib
 import copy
 from datetime import datetime, timedelta
 import errno
 import hashlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -29,6 +32,7 @@ from unittest import mock
 
 SCRIPT = Path(__file__).resolve().with_name("progress.py")
 SCHEMA = Path(__file__).resolve().parents[1] / "schemas" / "progress-ledger-v1.json"
+BINDING_SCHEMA = Path(__file__).resolve().parents[1] / "schemas" / "progress-binding-v1.json"
 
 _spec = importlib.util.spec_from_file_location("orq_progress", SCRIPT)
 progress = importlib.util.module_from_spec(_spec)
@@ -981,7 +985,9 @@ class ProgressCliFluxoTest(CliTestCase):
         self.assertTrue(begun["changed"])
         self.assertEqual(begun["revision"], 1)
         self.assertRegex(begun["session_key"], r"^[0-9a-f]{64}$")
-        self.assertEqual(set(begun), {"ok", "run_id", "ledger_path", "revision", "session_key", "changed"})
+        self.assertEqual(
+            set(begun), {"ok", "run_id", "ledger_path", "revision", "session_key", "changed", "view", "view_revision"}
+        )
         self.assertEqual(begun["ledger_path"], os.path.realpath(root / ".orq/progress/v1/cards/T-144.json"))  # canônico
 
         planned = self.plan(begun, [task("P01", "L", "Núcleo"), task("P02", "S", "Docs")])
@@ -1587,6 +1593,52 @@ class ProgressCliGitTest(CliTestCase):
         self.assertEqual(view["phase"]["key"], "verification")
         self.assertEqual(view["lifecycle"], "closed")
 
+    def test_bind_grava_o_binding_ignorado_e_o_git_do_consumidor_nao_ganha_alteracao(self):
+        root = self.repo()
+        begun = self.begin_card(root)
+        receipt = self.ok("bind", *self.target(begun), "--host", "claude", "--session-id", "sessao-git-1")
+        self.assertEqual(self.git(root, "check-ignore", "-q", receipt["binding_path"]).returncode, 0)
+        self.assertEqual(self.git(root, "check-ignore", "-q", str(root / f".orq/progress/v1/locks/sessions-{receipt['session_key']}.lock")).returncode, 0)
+        self.assertEqual(self.git(root, "status", "--porcelain", "--untracked-files=all").stdout, "")
+
+    def test_bind_com_destino_nao_ignorado_e_exit_4_sem_criar_sessions_nem_binding(self):
+        root = self.repo()
+        ignore = root / ".orq" / "progress" / ".gitignore"
+        ignore.parent.mkdir(parents=True)
+        conteudo = ".gitignore\nv1/cards/*.json\nv1/goals/*.json\nv1/locks/*.lock\nv1/*/*.tmp\n"  # tudo, menos sessions/*.json
+        ignore.write_text(conteudo, encoding="utf-8")
+        begun = self.begin_goal(root)  # o begin só prova o que ele mesmo grava
+        sessions = root / ".orq/progress/v1/sessions"
+        sessions.rmdir()  # como num ledger anterior à existência de sessions/
+        payload = self.expect_error(4, "bind", *self.target(begun), "--host", "claude", "--session-id", "sessao-git-2")
+        self.assertEqual(payload["code"], "armazenamento-nao-ignorado")
+        self.assertIn("sessions/", payload["message"])
+        self.assertFalse(sessions.exists())
+        self.assertEqual(ignore.read_text(encoding="utf-8"), conteudo)
+        self.assertEqual(self.git(root, "status", "--porcelain", "--untracked-files=all").stdout, "")
+
+    def test_bind_com_temporario_real_exposto_remove_o_temporario_e_nao_grava_o_binding(self):
+        root = self.repo()
+        begun = self.begin_goal(root)
+        ignore = root / ".orq/progress/.gitignore"
+        ignore.write_text("*\n!v1/\n!v1/sessions/\n!v1/sessions/*.tmp\nv1/sessions/*.probe*.tmp\n", encoding="utf-8")
+        payload = self.expect_error(4, "bind", *self.target(begun), "--host", "codex", "--session-id", "sessao-git-3")
+        self.assertEqual(payload["code"], "armazenamento-nao-ignorado")
+        self.assertEqual(list((root / ".orq/progress/v1/sessions").iterdir()), [])  # nem binding nem temporário
+        ignore.write_text("*\n", encoding="utf-8")
+        self.ok("bind", *self.target(begun), "--host", "codex", "--session-id", "sessao-git-3")
+
+    def test_bind_em_checkout_git_sem_git_instalado_nao_aceita_o_destino_sem_prova(self):
+        root = self.repo()
+        begun = self.begin_goal(root)
+        vazio = self.base / "bin-vazio"
+        vazio.mkdir()
+        payload = self.expect_error(
+            4, "bind", *self.target(begun), "--host", "claude", "--session-id", "s", env=self.env(PATH=str(vazio))
+        )
+        self.assertEqual(payload["code"], "git-indisponivel")
+        self.assertEqual(list((root / ".orq/progress/v1/sessions").iterdir()), [])
+
 
 class ProgressCliContencaoTest(CliTestCase):
     """Todo destino de escrita (diretórios, ledger, lock) tem de ficar dentro de realpath(root)."""
@@ -1716,6 +1768,84 @@ class ProgressCliContencaoTest(CliTestCase):
                 self.assertEqual(payload["code"], "destino-fora-do-root")
                 self.assertEqual(tree_snapshot(self.base), antes)  # nem .gitignore, nem diretório, nem lock
                 self.assertFalse((progress_dir / ".gitignore").exists())
+
+    def test_sessions_symlink_para_fora_recusa_o_begin_e_o_bind_sem_gravar_fora(self):
+        root = self.make_front("frente-begin")
+        (root / ".orq/progress/v1").mkdir(parents=True)
+        os.symlink(self.outside(), root / ".orq/progress/v1/sessions")
+        payload = self.expect_error(4, "begin", "--kind", "goal", "--root", str(root), "--host", "claude")
+        self.assertEqual(payload["code"], "destino-fora-do-root")
+        self.assert_nada_fora()
+        for nome, alvo in (("existente", self.outside()), ("pendurado", self.outside() / "ainda-nao-existe")):
+            with self.subTest(nome):
+                front = self.make_front(f"frente-bind-{nome}")
+                begun = self.begin_goal(front)
+                sessions = front / ".orq/progress/v1/sessions"
+                sessions.rmdir()  # o diretório legítimo some e um symlink toma o lugar
+                os.symlink(alvo, sessions)
+                antes = tree_snapshot(front)
+                payload = self.expect_error(4, "bind", *self.target(begun), "--host", "claude", "--session-id", "s1")
+                self.assertEqual(payload["code"], "destino-fora-do-root")
+                self.assert_nada_fora()
+                self.assertFalse((self.outside() / "ainda-nao-existe").exists())
+                self.assertEqual(tree_snapshot(front), antes)
+
+    def test_bind_recusa_binding_ou_lock_que_resolvem_para_fora_ou_para_o_ledger(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        ledger = Path(begun["ledger_path"])
+        ledger_antes = ledger.read_bytes()
+        key = hashlib.sha256(b"claude\0s-leaf").hexdigest()
+        leaf = root / ".orq/progress/v1/sessions" / f"{key}.json"
+        vizinho = Path(self.ok("bind", *self.target(begun), "--host", "codex", "--session-id", "s-vizinho")["binding_path"])
+        vizinho_antes = vizinho.read_bytes()
+        casos = (
+            ("binding aponta para fora", self.outside() / "alvo.json", "destino-fora-do-root"),
+            ("binding aponta para o ledger", ledger, "destino-fora-do-layout"),
+            ("binding aponta para o binding de outra sessão", vizinho, "destino-fora-do-layout"),
+        )
+        for nome, alvo, codigo in casos:
+            with self.subTest(nome):
+                os.symlink(alvo, leaf)
+                payload = self.expect_error(4, "bind", *self.target(begun), "--host", "claude", "--session-id", "s-leaf")
+                self.assertEqual(payload["code"], codigo)
+                leaf.unlink()
+                self.assertEqual(ledger.read_bytes(), ledger_antes)
+                self.assertEqual(vizinho.read_bytes(), vizinho_antes)
+                self.assertFalse((self.outside() / "alvo.json").exists())
+        locks = root / ".orq/progress/v1/locks"
+        locks_antes = sorted(p.name for p in locks.iterdir())
+        fora = self.outside() / "locks"
+        locks.rename(fora)
+        os.symlink(fora, locks)
+        payload = self.expect_error(4, "bind", *self.target(begun), "--host", "claude", "--session-id", "s-lock")
+        self.assertEqual(payload["code"], "destino-fora-do-root")
+        self.assertEqual(sorted(p.name for p in fora.iterdir()), locks_antes)  # nenhum lock novo fora
+
+    def test_sondas_do_binding_sao_os_destinos_reais_e_o_temporario_segue_o_padrao_do_write_ledger(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        usados = []
+        real_replace = os.replace
+
+        def registra(source, destination):
+            usados.append((Path(source).name, Path(destination).name))
+            real_replace(source, destination)
+
+        with mock.patch.object(progress.os, "replace", side_effect=registra):
+            receipt = progress.bind_session(Path(begun["ledger_path"]), "claude", "s-sonda")
+        (temporario, destino), = usados
+        binding = Path(receipt["binding_path"])
+        raiz = Path(os.path.realpath(root))
+        sondas = progress.destination_probes(raiz, binding)
+        base = ".orq/progress/v1"
+        self.assertEqual(sondas[:3], [".orq/progress/.gitignore", f"{base}/sessions/{binding.name}", f"{base}/locks/sessions-{binding.stem}.lock"])
+        sonda_temporaria = Path(sondas[3])
+        self.assertEqual(sonda_temporaria.parent.as_posix(), f"{base}/sessions")
+        self.assertEqual(destino, binding.name)
+        self.assertTrue(temporario.startswith(progress.temporary_prefix(destino)))
+        self.assertTrue(sonda_temporaria.name.startswith(progress.temporary_prefix(destino)))
+        self.assertTrue(temporario.endswith(progress.TEMPORARY_SUFFIX) and sonda_temporaria.name.endswith(progress.TEMPORARY_SUFFIX))
 
     def test_sondas_sao_os_destinos_reais_e_o_temporario_segue_o_padrao_do_write_ledger(self):
         root = self.make_front()
@@ -1942,6 +2072,566 @@ class ProgressCliLeitoresTest(CliTestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("indisponível:", result.stdout)
         self.assertEqual(result.stdout.count("indisponível:"), 1)
+
+
+class ProgressCliReciboTest(CliTestCase):
+    """O recibo de toda mutação (e do begin) traz a vista compacta: a linha do `show --format segment`."""
+
+    def segment(self, begun: dict) -> str:
+        return self.cli("show", *self.target(begun), "--format", "segment").stdout.strip()
+
+    def assert_vista(self, begun: dict, receipt: dict, expected: str = None) -> None:
+        self.assertEqual(receipt["view"], self.segment(begun))  # a mesma projeção do show
+        self.assertEqual(receipt["view_revision"], receipt["revision"])
+        self.assertNotIn("view_error", receipt)
+        if expected is not None:
+            self.assertEqual(receipt["view"], expected)
+
+    def run_main(self, *argv: str) -> tuple:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = progress.main(list(argv))
+        return code, out.getvalue(), err.getvalue()
+
+    def test_toda_mutacao_devolve_a_vista_igual_ao_show_segment_e_a_revisao_projetada(self):
+        root = self.make_front()
+        begun = self.begin_card(root)
+        self.assert_vista(begun, begun, "◎ T-144 · pronto para iniciar · sem plano registrado")
+        self.assert_vista(begun, self.plan(begun, [task("P01", "L"), task("P02", "S")]), "◎ T-144 · pronto para iniciar · 0/2 · 0%")
+        self.assert_vista(begun, self.start_task(begun, "P01"), "◎ T-144 · implementação · 0/2 · 0%")
+        self.assert_vista(begun, self.mutate("phase", begun, "--value", "review"), "◎ T-144 · revisão · 0/2 · 0%")
+        self.assert_vista(begun, self.done_task(begun, "P01"), "◎ T-144 · revisão · 1/2 · 75%")
+        self.assert_vista(begun, self.mutate("reopen", begun, "--task", "P01", "--evidence-ref", "t#r"), "◎ T-144 · revisão · 0/2 · 0%")
+        add = {"reason": "scope_change", "evidence_ref": "t#a", "tasks": [task("P03", "M")]}
+        self.assert_vista(begun, self.mutate("add", begun, "--input", "-", stdin=json.dumps(add)), "◎ T-144 · revisão · 0/3 · 0%")
+        self.assert_vista(begun, self.mutate("drop", begun, "--task", "P03", "--reason", "obsolete", "--evidence-ref", "t#d"), "◎ T-144 · revisão · 0/2 · 0%")
+        self.start_task(begun, "P01")
+        self.assert_vista(begun, self.done_task(begun, "P01", "suite-ok-2"), "◎ T-144 · revisão · 1/2 · 75%")
+        self.assert_vista(begun, self.mutate("pause", begun), "◎ T-144 · revisão · 1/2 · 75% · pausado")
+        self.assert_vista(begun, self.mutate("resume", begun), "◎ T-144 · revisão · 1/2 · 75%")
+        claimed = self.ok("claim", *self.target(begun), "--host", "codex", "--session-key", KEY_B, "--expected-owner", begun["session_key"])
+        self.assert_vista(begun, claimed)
+        closed = self.mutate("close", begun, "--outcome", "cancelled", "--evidence-ref", "t#c", key=KEY_B)
+        self.assert_vista(begun, closed, "◎ T-144 · revisão · 1/2 · 75% · execução cancelada")
+
+    def test_vista_do_goal_e_do_begin_retomado(self):
+        root = self.make_front()
+        goal = self.begin_goal(root)
+        nome = f"goal {goal['run_id'][:8]}"
+        self.assert_vista(goal, goal, f"◎ {nome} · planejamento · sem plano registrado")
+        planned = self.mutate("plan", goal, "--input", "-", stdin=json.dumps({"tasks": [task("P01")]}))
+        self.assert_vista(goal, planned, f"◎ {nome} · planejamento · 0/1 · 0%")
+        card = self.begin_card(root)
+        again = self.begin_card(root, key=card["session_key"])  # retomada: o ledger já existe
+        self.assertFalse(again["changed"])
+        self.assert_vista(card, again, "◎ T-144 · pronto para iniciar · sem plano registrado")
+
+    def test_repeticao_idempotente_tambem_traz_a_vista(self):
+        begun = self.begin_card(self.make_front())
+        self.plan(begun, [task("P01"), task("P02")])
+        self.start_task(begun, "P01")
+        again = self.start_task(begun, "P01")
+        self.assertFalse(again["changed"])
+        self.assert_vista(begun, again, "◎ T-144 · implementação · 0/2 · 0%")
+
+    def test_o_recibo_so_ganha_campos_e_o_erro_nao_carrega_vista(self):
+        begun = self.begin_goal(self.make_front())
+        receipt = self.plan(begun, [task("P01")])
+        self.assertEqual(
+            set(receipt), {"ok", "run_id", "ledger_path", "revision", "session_key", "changed", "view", "view_revision"}
+        )
+        payload = self.expect_error(3, "pause", *self.target(begun), "--session-key", KEY_B)
+        self.assertNotIn("view", payload)
+        self.assertNotIn("view_revision", payload)
+
+    def test_board_ilegivel_nao_derruba_a_vista_e_mostra_fase_indisponivel_como_o_show(self):
+        root = self.make_front()
+        begun = self.begin_card(root)
+        self.plan(begun, [task("P01"), task("P02")])
+        (root / "memory/wiki/KANBAN.md").unlink()
+        receipt = self.start_task(begun, "P01")
+        self.assertTrue(receipt["ok"])
+        self.assert_vista(begun, receipt, "◎ T-144 · fase indisponível · 0/2 · 0%")
+
+    def test_stdout_que_nao_codifica_acentos_recebe_o_recibo_escapado_e_a_gravacao_nao_vira_erro(self):
+        begun = self.begin_card(self.make_front())
+        self.plan(begun, [task("P01"), task("P02")])
+        result = self.cli(
+            "phase", *self.target(begun), "--session-key", begun["session_key"], "--value", "review",
+            env=self.env(PYTHONIOENCODING="ascii"),
+        )
+        self.assertEqual((result.returncode, result.stderr), (0, ""))  # a escrita aconteceu: nada de traceback nem exit 1
+        self.assertTrue(result.stdout.isascii())
+        receipt = json.loads(result.stdout)
+        self.assertEqual((receipt["revision"], receipt["view"]), (3, self.segment(begun)))
+
+    def test_recibo_legivel_mantem_os_acentos_mas_escapa_controles_de_terminal_do_caminho(self):
+        root = self.base / "frente\u202e\u2028\u0085ü"  # bidi, separador de linha e C1 num nome de diretório
+        root.mkdir()
+        result = self.cli("begin", "--kind", "goal", "--root", str(root), "--host", "claude")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for perigoso in ("\u202e", "\u2028", "\u0085"):
+            self.assertNotIn(perigoso, result.stdout)
+        self.assertEqual(len(result.stdout.splitlines()), 1)
+        receipt = json.loads(result.stdout)
+        self.assertIn("frente\u202e\u2028\u0085ü", receipt["ledger_path"])  # o JSON devolve o caminho exato
+        self.assertIn("ü", result.stdout)  # e o que é texto comum continua legível
+        self.assertIn("planejamento", result.stdout)
+
+    def mutacao_phase(self, begun: dict, value: str) -> list:
+        return ["phase", "--ledger", begun["ledger_path"], "--session-key", begun["session_key"], "--value", value]
+
+    def test_falha_da_projecao_depois_da_gravacao_mantem_ok_e_nao_repete_a_escrita(self):
+        root = self.make_front()
+        begun = self.begin_card(root)
+        self.plan(begun, [task("P01"), task("P02")])
+        revisao = self.show_json(begun)["revision"]
+        falhas = (
+            ("a projeção quebra", mock.patch.object(progress, "build_view", side_effect=RuntimeError("quebrou")), "projecao-falhou"),
+            (
+                "a consulta ao board estoura",
+                mock.patch.object(progress, "ledger_board_state", side_effect=progress.UnavailableError("sem board", code="board-timeout")),
+                "board-timeout",
+            ),
+        )
+        for (nome, falha, codigo), valor in zip(falhas, ("review", "docs")):
+            with self.subTest(nome):
+                with falha, mock.patch.object(progress, "write_ledger", wraps=progress.write_ledger) as gravou:
+                    code, out, err = self.run_main(*self.mutacao_phase(begun, valor))
+                self.assertEqual((code, err), (0, ""))
+                receipt = json.loads(out)
+                self.assertTrue(receipt["ok"])
+                self.assertTrue(receipt["changed"])
+                self.assertEqual(receipt["revision"], revisao + 1)
+                self.assertIsNone(receipt["view"])
+                self.assertIsNone(receipt["view_revision"])
+                self.assertEqual(receipt["view_error"]["code"], codigo)
+                self.assertTrue(receipt["view_error"]["message"])
+                self.assertEqual(gravou.call_count, 1)  # a vista que falhou não vira uma segunda escrita
+                revisao += 1
+                self.assertEqual(self.show_json(begun)["revision"], revisao)  # e a escrita ficou de pé
+
+    def test_falha_da_projecao_no_begin_mantem_ok_e_grava_uma_unica_vez(self):
+        root = self.make_front()
+        with mock.patch.object(progress, "build_view", side_effect=RuntimeError("quebrou")), mock.patch.object(
+            progress, "write_ledger", wraps=progress.write_ledger
+        ) as gravou:
+            code, out, err = self.run_main(
+                "begin", "--kind", "card", "--root", str(root), "--board", str(root / "memory/wiki/KANBAN.md"),
+                "--thread-root", str(root / "memory/wiki"), "--card", "T-144", "--front", "frente-mods", "--host", "claude",
+            )
+        self.assertEqual((code, err), (0, ""))
+        receipt = json.loads(out)
+        self.assertTrue(receipt["ok"] and receipt["changed"])
+        self.assertIsNone(receipt["view"])
+        self.assertEqual(receipt["view_error"]["code"], "projecao-falhou")
+        self.assertEqual(gravou.call_count, 1)
+        self.assertEqual(self.show_json(receipt)["revision"], 1)
+
+    def test_mutacao_que_falha_nao_consulta_a_vista(self):
+        begun = self.begin_goal(self.make_front())
+        with mock.patch.object(progress, "build_view", side_effect=AssertionError("não devia projetar")) as projetou:
+            code, out, err = self.run_main(
+                "pause", "--ledger", begun["ledger_path"], "--session-key", KEY_B,
+            )
+        self.assertEqual((code, out), (3, ""))
+        self.assertEqual(json.loads(err)["code"], "dono-divergente")
+        projetou.assert_not_called()
+
+
+class ProgressCliBindTest(CliTestCase):
+    """`bind` liga a sessão nativa do host a um ledger, sem transferir ownership e sem gravar o ID bruto."""
+
+    SESSION_ID = "sessao-nativa-0001"
+
+    @staticmethod
+    def key_of(host: str, session_id: str) -> str:
+        return hashlib.sha256(f"{host}\0{session_id}".encode("utf-8")).hexdigest()
+
+    def bind(self, begun: dict, host: str = "claude", session_id: str = None, *extra: str) -> dict:
+        return self.ok("bind", *self.target(begun), "--host", host, "--session-id", session_id or self.SESSION_ID, *extra)
+
+    def binding_file(self, receipt: dict) -> Path:
+        return Path(receipt["binding_path"])
+
+    def test_bind_grava_o_binding_com_a_chave_derivada_e_devolve_o_recibo(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        receipt = self.bind(begun)
+        key = self.key_of("claude", self.SESSION_ID)
+        path = Path(os.path.realpath(root)) / ".orq/progress/v1/sessions" / f"{key}.json"
+        self.assertEqual(
+            receipt,
+            {
+                "ok": True, "session_key": key, "host": "claude", "run_id": begun["run_id"],
+                "ledger_path": begun["ledger_path"], "binding_path": str(path), "changed": True,
+            },
+        )
+        self.assertEqual(
+            json.loads(path.read_text(encoding="utf-8")),
+            {
+                "schema_version": 1, "session_key": key, "host": "claude", "ledger_path": begun["ledger_path"],
+                "run_id": begun["run_id"], "calls_without_plan": 0, "nudged": False, "recent_event_ids": [],
+            },
+        )
+        self.assertEqual(sorted(p.name for p in path.parent.iterdir()), [f"{key}.json"])  # nenhum temporário sobrou
+        self.assertEqual(self.ok("show", "--root", str(root), "--all", "--format", "json")["errors"], [])
+
+    def test_bind_aceita_os_tres_enderecos_e_a_chave_inclui_o_host_e_o_utf8(self):
+        root = self.make_front()
+        card = self.begin_card(root)
+        goal = self.begin_goal(root)
+        por_ledger = self.bind(card)
+        por_card = self.ok("bind", "--root", str(root), "--card", "T-144", "--host", "claude", "--session-id", self.SESSION_ID)
+        self.assertFalse(por_card["changed"])
+        self.assertEqual(por_card["binding_path"], por_ledger["binding_path"])
+        por_run = self.ok("bind", "--root", str(root), "--run", goal["run_id"], "--host", "codex", "--session-id", "sessão com espaço ✓")
+        self.assertEqual(por_run["session_key"], self.key_of("codex", "sessão com espaço ✓"))
+        self.assertEqual(por_run["run_id"], goal["run_id"])
+        self.assertNotEqual(self.key_of("claude", self.SESSION_ID), self.key_of("codex", self.SESSION_ID))
+        self.assertEqual(self.bind(card, "codex")["session_key"], self.key_of("codex", self.SESSION_ID))  # mesmo ID, outro host
+
+    def test_bind_idempotente_nao_regrava_e_preserva_os_contadores(self):
+        begun = self.begin_goal(self.make_front())
+        first = self.bind(begun)
+        path = self.binding_file(first)
+        document = json.loads(path.read_text(encoding="utf-8"))
+        document.update(calls_without_plan=3, nudged=True, recent_event_ids=["toolu_1", "toolu_2"])
+        path.write_text(json.dumps(document), encoding="utf-8")
+        before = (path.read_bytes(), path.stat().st_mtime_ns)
+        again = self.bind(begun)
+        self.assertFalse(again["changed"])
+        self.assertEqual({**again, "changed": True}, first)
+        self.assertEqual((path.read_bytes(), path.stat().st_mtime_ns), before)
+
+    def test_bind_nao_muda_o_ledger_nem_o_dono(self):
+        begun = self.begin_card(self.make_front())
+        self.plan(begun, [task("P01")])
+        ledger = Path(begun["ledger_path"])
+        before = ledger.read_bytes()
+        self.bind(begun)
+        self.assertEqual(ledger.read_bytes(), before)
+        view = self.show_json(begun)
+        self.assertEqual((view["revision"], view["owner"]["session_key"]), (2, begun["session_key"]))
+        self.start_task(begun, "P01")  # o dono segue escrevendo com a chave dele, não com a da sessão nativa
+
+    def test_rebind_para_outro_ledger_substitui_so_o_binding_daquela_sessao(self):
+        root = self.make_front()
+        one, two = self.begin_goal(root), self.begin_goal(root)
+        mine = self.bind(one, session_id="sessao-A")
+        other = self.bind(one, session_id="sessao-B")  # pode haver um binding por sessão, no mesmo ledger
+        self.assertNotEqual(mine["binding_path"], other["binding_path"])
+        path = self.binding_file(mine)
+        document = json.loads(path.read_text(encoding="utf-8"))
+        document.update(calls_without_plan=4, nudged=True, recent_event_ids=["toolu_1"])
+        path.write_text(json.dumps(document), encoding="utf-8")
+        other_before = self.binding_file(other).read_bytes()
+        moved = self.bind(two, session_id="sessao-A")
+        self.assertTrue(moved["changed"])
+        self.assertEqual(moved["binding_path"], mine["binding_path"])
+        replaced = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual((replaced["run_id"], replaced["ledger_path"]), (two["run_id"], two["ledger_path"]))
+        self.assertEqual((replaced["calls_without_plan"], replaced["nudged"], replaced["recent_event_ids"]), (0, False, []))
+        self.assertEqual(self.binding_file(other).read_bytes(), other_before)
+        self.assertEqual(len(list(path.parent.glob("*.json"))), 2)
+
+    def test_binding_corrompido_e_substituido_pelo_bind_explicito_mas_versao_nova_nao_e_rebaixada(self):
+        begun = self.begin_goal(self.make_front())
+        path = self.binding_file(self.bind(begun))
+        corrompidos = ("{ quebrado", json.dumps({"schema_version": 1}), " " * (progress.MAX_BINDING_BYTES + 1))
+        for conteudo in corrompidos:
+            with self.subTest(conteudo=conteudo[:20]):
+                path.write_text(conteudo, encoding="utf-8")
+                receipt = self.bind(begun)
+                self.assertTrue(receipt["changed"])
+                self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["run_id"], begun["run_id"])
+        futuro = json.dumps({"schema_version": 2, "campo_novo": True})  # outro host, com plugin mais novo, na mesma frente
+        path.write_text(futuro, encoding="utf-8")
+        payload = self.expect_error(4, "bind", *self.target(begun), "--host", "claude", "--session-id", self.SESSION_ID)
+        self.assertEqual(payload["code"], "versao-desconhecida")
+        self.assertEqual(path.read_text(encoding="utf-8"), futuro)
+
+    def test_nenhum_id_bruto_vai_para_o_disco_nem_para_a_saida(self):
+        bruto = "ID-BRUTO-DO-HOST-9f3a"
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        result = self.cli("bind", *self.target(begun), "--host", "claude", "--session-id", bruto)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn(bruto, result.stdout + result.stderr)
+        self.bind(begun, session_id=bruto)  # idempotente
+        self.cli("bind", *self.target(begun), "--host", "claude", "--session-id", bruto, "--nao-existe", "x")  # uso inválido
+        self.expect_error(4, "bind", "--ledger", str(root / ".orq/progress/v1/goals/00000000-0000-4000-8000-000000000000.json"), "--host", "claude", "--session-id", bruto)
+        for current, directories, files in os.walk(self.base):
+            for name in directories + files:
+                path = Path(current) / name
+                self.assertNotIn(bruto, name, str(path))
+                if path.is_file():
+                    self.assertNotIn(bruto.encode("utf-8"), path.read_bytes(), str(path))
+
+    def test_bind_so_aceita_claude_ou_codex_e_valida_os_argumentos(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        antes = tree_snapshot(root)
+        base = ["bind", *self.target(begun)]
+        casos = {
+            "host other": [*base, "--host", "other", "--session-id", "s"],
+            "host desconhecido": [*base, "--host", "gemini", "--session-id", "s"],
+            "sem host": [*base, "--session-id", "s"],
+            "sem session-id": [*base, "--host", "claude"],
+            "session-id vazio": [*base, "--host", "claude", "--session-id", ""],
+            "session-id com controle": [*base, "--host", "claude", "--session-id", "a\x1b[2Jb"],
+            "session-id enorme": [*base, "--host", "claude", "--session-id", "x" * (progress.MAX_SESSION_ID_CHARS + 1)],
+            "ledger relativo": ["bind", "--ledger", "relativo.json", "--host", "claude", "--session-id", "s"],
+            "ledger e root juntos": [*base, "--root", str(root), "--host", "claude", "--session-id", "s"],
+            "root sem card nem run": ["bind", "--root", str(root), "--host", "claude", "--session-id", "s"],
+        }
+        for nome, argumentos in casos.items():
+            with self.subTest(nome):
+                self.expect_error(2, *argumentos)
+        self.assertEqual(tree_snapshot(root), antes)  # nada foi criado
+
+    def test_bind_com_native_key_grava_o_mesmo_binding_que_o_session_id_derivaria(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        key = self.key_of("claude", self.SESSION_ID)
+        by_key = self.ok("bind", *self.target(begun), "--host", "claude", "--native-key", key)  # o hook informa a chave
+        self.assertEqual((by_key["session_key"], by_key["changed"]), (key, True))
+        path = Path(by_key["binding_path"])
+        self.assertEqual(path.name, f"{key}.json")
+        document = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual((document["session_key"], document["host"], document["run_id"]), (key, "claude", begun["run_id"]))
+        before = path.read_bytes()
+        by_id = self.bind(begun)  # o ID bruto que gera essa chave cai no mesmo vínculo: idempotente
+        self.assertFalse(by_id["changed"])
+        self.assertEqual(path.read_bytes(), before)
+        document.update(calls_without_plan=3, nudged=True)
+        path.write_text(json.dumps(document), encoding="utf-8")
+        again = self.ok("bind", *self.target(begun), "--host", "claude", "--native-key", key)
+        self.assertFalse(again["changed"])
+        self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["calls_without_plan"], 3)  # os contadores ficam
+        other = self.begin_goal(root)
+        moved = self.ok("bind", *self.target(other), "--host", "claude", "--native-key", key)
+        self.assertTrue(moved["changed"])  # outro ledger: o vínculo da sessão é substituído e zera
+        self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["calls_without_plan"], 0)
+
+    def test_chave_nativa_nova_cria_outro_binding_com_contadores_zerados_e_o_anterior_fica_parado(self):
+        begun = self.begin_goal(self.make_front())
+        antiga = self.key_of("claude", "sessao-antiga")
+        nova = self.key_of("claude", "sessao-depois-do-clear")
+        first = self.ok("bind", *self.target(begun), "--host", "claude", "--native-key", antiga)
+        path = Path(first["binding_path"])
+        document = json.loads(path.read_text(encoding="utf-8"))
+        document.update(calls_without_plan=3, nudged=True, recent_event_ids=["a" * 64])
+        path.write_text(json.dumps(document), encoding="utf-8")
+        antes = path.read_bytes()
+        second = self.ok("bind", *self.target(begun), "--host", "claude", "--native-key", nova)
+        self.assertTrue(second["changed"])
+        self.assertNotEqual(second["binding_path"], first["binding_path"])
+        zerado = json.loads(Path(second["binding_path"]).read_text(encoding="utf-8"))
+        self.assertEqual((zerado["calls_without_plan"], zerado["nudged"], zerado["recent_event_ids"]), (0, False, []))
+        self.assertEqual(path.read_bytes(), antes)  # o da chave anterior fica como estava, sem uso
+        again = self.ok("bind", *self.target(begun), "--host", "claude", "--native-key", antiga)
+        self.assertFalse(again["changed"])  # a idempotência é da MESMA chave
+        self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["calls_without_plan"], 3)
+
+    def test_bind_native_key_nao_e_a_chave_de_dono_e_nao_muda_o_ledger(self):
+        begun = self.begin_goal(self.make_front())
+        ledger = Path(begun["ledger_path"])
+        before = ledger.read_bytes()
+        native = self.key_of("codex", "sessao-codex-9")
+        receipt = self.ok("bind", *self.target(begun), "--host", "codex", "--native-key", native)
+        self.assertNotEqual(receipt["session_key"], begun["session_key"])
+        self.assertEqual(ledger.read_bytes(), before)
+        self.expect_error(3, "pause", *self.target(begun), "--session-key", native)  # a nativa não autoriza escrita
+        self.ok("pause", *self.target(begun), "--session-key", begun["session_key"])  # a de dono segue valendo
+
+    def test_bind_native_key_e_session_id_sao_exclusivos_e_um_dos_dois_e_obrigatorio(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        antes = tree_snapshot(root)
+        base = ["bind", *self.target(begun), "--host", "claude"]
+        casos = {
+            "os dois": [*base, "--session-id", "s", "--native-key", KEY_A],
+            "nenhum": base,
+            "chave curta": [*base, "--native-key", "a" * 63],
+            "chave longa": [*base, "--native-key", "a" * 65],
+            "chave maiuscula": [*base, "--native-key", "A" * 64],
+            "chave nao hexadecimal": [*base, "--native-key", "g" * 64],
+            "chave vazia": [*base, "--native-key", ""],
+            "host other": ["bind", *self.target(begun), "--host", "other", "--native-key", KEY_A],
+            "sem host": ["bind", *self.target(begun), "--native-key", KEY_A],
+            # `--session-key` é a chave de DONO das mutações: o bind não a aceita, para ninguém confundir as duas
+            "session-key no bind": [*base, "--session-key", KEY_A],
+            "session-key e session-id": [*base, "--session-key", KEY_A, "--session-id", "s"],
+            "session-key e native-key": [*base, "--session-key", KEY_A, "--native-key", KEY_B],
+        }
+        for nome, argumentos in casos.items():
+            with self.subTest(nome):
+                self.expect_error(2, *argumentos)
+        self.assertEqual(tree_snapshot(root), antes)  # nada foi criado
+        with self.assertRaises(progress.InputError):  # o mesmo vale chamando a função
+            progress.bind_session(Path(begun["ledger_path"]), "claude", "s", None, native_key=KEY_A)
+        with self.assertRaises(progress.InputError):
+            progress.bind_session(Path(begun["ledger_path"]), "claude", None)
+
+    def test_bind_de_ledger_inexistente_ou_invalido_e_exit_4_e_nao_cria_nada(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        sessions = root / ".orq/progress/v1/sessions"
+        sessions.rmdir()
+        ghost = root / ".orq/progress/v1/goals/00000000-0000-4000-8000-000000000000.json"
+        antes = tree_snapshot(root)
+        self.assertEqual(self.expect_error(4, "bind", "--ledger", str(ghost), "--host", "claude", "--session-id", "s")["code"], "ledger-ausente")
+        Path(begun["ledger_path"]).write_text("{ quebrado", encoding="utf-8")
+        self.assertEqual(self.expect_error(4, "bind", *self.target(begun), "--host", "claude", "--session-id", "s")["code"], "ledger-invalido")
+        self.assertFalse(sessions.exists())
+        self.assertEqual(sorted(p.name for p in (root / ".orq/progress/v1/locks").iterdir()), [f"goals-{begun['run_id']}.lock"])
+
+    def test_bind_fora_do_layout_e_recusado_e_o_binding_nao_e_ledger(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        receipt = self.bind(begun)
+        binding = receipt["binding_path"]
+        antes = Path(binding).read_bytes()
+        # o arquivo de binding não é aceito como ledger por nenhuma mutação, e o ledger não é aceito como binding
+        payload = self.expect_error(4, "pause", "--ledger", binding, "--session-key", receipt["session_key"])
+        self.assertEqual(payload["code"], "destino-fora-do-layout")
+        self.assertEqual(self.expect_error(4, "claim", "--ledger", binding, "--host", "codex", "--session-key", KEY_B, "--expected-owner", KEY_A)["code"], "destino-fora-do-layout")
+        self.assertEqual(Path(binding).read_bytes(), antes)
+        outside = self.base / "fora.json"
+        outside.write_bytes(Path(begun["ledger_path"]).read_bytes())
+        self.assertEqual(self.expect_error(4, "bind", "--ledger", str(outside), "--host", "claude", "--session-id", "s")["code"], "destino-fora-do-layout")
+
+    def test_begin_cria_sessions_como_parte_do_layout(self):
+        root = self.make_front()
+        self.begin_goal(root)
+        self.assertTrue((root / ".orq/progress/v1/sessions").is_dir())
+        self.assertEqual(sorted(p.name for p in (root / ".orq/progress/v1").iterdir()), ["cards", "goals", "locks", "sessions"])
+
+    def test_bind_em_ledger_anterior_ao_sessions_cria_o_diretorio(self):
+        root = self.make_front()
+        begun = self.begin_goal(root)
+        (root / ".orq/progress/v1/sessions").rmdir()
+        receipt = self.bind(begun)
+        self.assertTrue(Path(receipt["binding_path"]).is_file())
+
+    def test_bind_usa_o_lock_do_binding_e_serializa_concorrentes(self):
+        root = self.make_front()
+        one, two = self.begin_goal(root), self.begin_goal(root)
+        first = self.bind(one)
+        holder = self.hold_lock(Path(first["binding_path"]), 1.0)
+        started = time.monotonic()
+        self.bind(two)  # mesma sessão: espera o lock do binding
+        self.assertGreater(time.monotonic() - started, 0.4)
+        holder.communicate(timeout=10)
+        self.assertEqual(json.loads(Path(first["binding_path"]).read_text(encoding="utf-8"))["run_id"], two["run_id"])
+        self.assertEqual(sorted(p.name for p in (root / ".orq/progress/v1/locks").iterdir()).count(f"sessions-{first['session_key']}.lock"), 1)
+        procs = [
+            subprocess.Popen(
+                [sys.executable, str(SCRIPT), "bind", *self.target(begun), "--host", "claude", "--session-id", self.SESSION_ID],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=self.env(),
+            )
+            for begun in (one, two) * 3
+        ]
+        for proc in procs:
+            out, err = proc.communicate(timeout=60)
+            self.assertEqual(proc.returncode, 0, err)
+        document = json.loads(Path(first["binding_path"]).read_text(encoding="utf-8"))
+        self.assertIn(document["run_id"], (one["run_id"], two["run_id"]))
+        self.assertEqual(sorted(p.name for p in Path(first["binding_path"]).parent.iterdir()), [Path(first["binding_path"]).name])
+
+
+class ProgressBindingValidacaoTest(unittest.TestCase):
+    def document(self, **changes) -> dict:
+        document = progress.new_binding("claude", KEY_A, "/tmp/frente/.orq/progress/v1/goals/x.json", RUN)
+        document.update(changes)
+        return document
+
+    def assertInvalid(self, document: dict, fragment: str, code: str = "binding-invalido") -> None:
+        with self.assertRaises(progress.LedgerValidationError) as caught:
+            progress.validate_binding(document)
+        self.assertIn(fragment, str(caught.exception))
+        self.assertEqual(caught.exception.code, code)
+
+    def test_a_chave_vem_do_host_e_do_id_separados_por_nul(self):
+        self.assertEqual(progress.derive_session_key("claude", "abc"), hashlib.sha256(b"claude\0abc").hexdigest())
+        self.assertNotEqual(progress.derive_session_key("claude", "abc"), progress.derive_session_key("codex", "abc"))
+        with self.assertRaises(progress.InputError):
+            progress.derive_session_key("claude", "")
+        with self.assertRaises(progress.InputError):
+            progress.derive_session_key("claude", "\ud800")  # surrogate de argv não é UTF-8 válido
+
+    def test_documento_valido_passa_e_so_tem_os_campos_do_contrato(self):
+        document = self.document()
+        self.assertIs(progress.validate_binding(document), document)
+        self.assertEqual(set(document), set(progress.BINDING_KEYS))
+        self.assertEqual(document["recent_event_ids"], [])
+
+    def test_campos_fora_do_contrato_ausentes_ou_de_tipo_errado_sao_invalidos(self):
+        casos = {
+            "campo extra": (self.document(session_id="bruto"), "não permitidos"),
+            "host other": (self.document(host="other"), "host"),
+            "chave curta": (self.document(session_key="curta"), "session_key"),
+            "ledger relativo": (self.document(ledger_path="x.json"), "ledger_path"),
+            "run_id": (self.document(run_id="nao-e-uuid"), "run_id"),
+            "contador negativo": (self.document(calls_without_plan=-1), "calls_without_plan"),
+            "contador booleano": (self.document(calls_without_plan=True), "calls_without_plan"),
+            "contador texto": (self.document(calls_without_plan="1"), "calls_without_plan"),
+            "nudged inteiro": (self.document(nudged=1), "nudged"),
+            "ids nao lista": (self.document(recent_event_ids="a"), "recent_event_ids"),
+            "id vazio": (self.document(recent_event_ids=[""]), "recent_event_ids"),
+            "id nao texto": (self.document(recent_event_ids=[1]), "recent_event_ids"),
+            "id com controle": (self.document(recent_event_ids=["a\x1bb"]), "recent_event_ids"),
+            "id enorme": (self.document(recent_event_ids=["x" * (progress.MAX_EVENT_ID_CHARS + 1)]), "recent_event_ids"),
+            "mais de 128 ids": (self.document(recent_event_ids=[f"e{i}" for i in range(progress.MAX_RECENT_EVENTS + 1)]), "recent_event_ids"),
+        }
+        for nome, (document, fragment) in casos.items():
+            with self.subTest(nome):
+                self.assertInvalid(document, fragment)
+        faltando = self.document()
+        del faltando["nudged"]
+        self.assertInvalid(faltando, "ausentes")
+        self.assertEqual(progress.MAX_RECENT_EVENTS, 128)
+        progress.validate_binding(self.document(recent_event_ids=[f"e{i}" for i in range(128)]))  # 128 cabe
+        self.assertInvalid([], "objeto")
+        self.assertInvalid(self.document(schema_version=2), "schema_version", code="versao-desconhecida")
+
+    def test_leitor_estrito_recusa_arquivo_com_nome_diferente_da_chave_ausente_e_grande(self):
+        with tempfile.TemporaryDirectory(prefix="orq-binding-") as tmp:
+            path = Path(tmp) / f"{KEY_A}.json"
+            with self.assertRaises(progress.UnavailableError) as caught:
+                progress.read_binding(path)
+            self.assertEqual(caught.exception.code, "binding-ausente")
+            path.write_text(json.dumps(self.document()), encoding="utf-8")
+            self.assertEqual(progress.read_binding(path)["run_id"], RUN)
+            copia = Path(tmp) / f"{KEY_B}.json"
+            copia.write_bytes(path.read_bytes())  # binding copiado para outro nome: a chave não confere
+            with self.assertRaises(progress.UnavailableError) as caught:
+                progress.read_binding(copia)
+            self.assertEqual(caught.exception.code, "binding-invalido")
+            path.write_bytes(b" " * (progress.MAX_BINDING_BYTES + 1))
+            with self.assertRaises(progress.UnavailableError) as caught:
+                progress.read_binding(path)
+            self.assertEqual(caught.exception.code, "binding-grande")
+            path.write_text('{"schema_version": 1, "schema_version": 1}', encoding="utf-8")  # chave repetida
+            with self.assertRaises(progress.UnavailableError) as caught:
+                progress.read_binding(path)
+            self.assertEqual(caught.exception.code, "binding-invalido")
+            path.write_text(json.dumps({"schema_version": 9}), encoding="utf-8")
+            with self.assertRaises(progress.UnavailableError) as caught:
+                progress.read_binding(path)
+            self.assertEqual(caught.exception.code, "versao-desconhecida")
+
+    def test_schema_documental_do_binding_concorda_com_o_validador(self):
+        schema = json.loads(BINDING_SCHEMA.read_text(encoding="utf-8"))
+        self.assertEqual(set(schema["required"]), set(progress.BINDING_KEYS))
+        self.assertEqual(set(schema["properties"]), set(progress.BINDING_KEYS))
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(schema["properties"]["schema_version"], {"const": progress.SCHEMA_VERSION})
+        self.assertEqual(set(schema["properties"]["host"]["enum"]), set(progress.BINDING_HOSTS))
+        self.assertEqual(schema["properties"]["recent_event_ids"]["maxItems"], progress.MAX_RECENT_EVENTS)
+        self.assertEqual(schema["properties"]["recent_event_ids"]["items"]["maxLength"], progress.MAX_EVENT_ID_CHARS)
+        self.assertNotIn("session_id", schema["properties"])  # o ID bruto nunca é campo
 
 
 if __name__ == "__main__":

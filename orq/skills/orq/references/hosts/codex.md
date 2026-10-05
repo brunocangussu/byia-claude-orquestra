@@ -38,6 +38,21 @@ Um parse por `tomllib` prova somente sintaxe. `codex doctor --json` pode relatar
 mas não prova que um identificador será aceito ou renderizado pela barra. A prova comportamental de
 uma alteração futura exige uma **nova TUI** aberta pelo dono e está fora deste contrato.
 
+## Medidor de progresso
+
+O medidor de progresso (`references/progress.md`) convive com este contrato sem alterá-lo: não grava
+`tui.status_line` e não espelha o ledger em `task-progress`. No Codex ele registra dois hooks
+consultivos próprios (`SessionStart` e `PostToolUse`), ao lado do guardião de contexto. Eles só
+acrescentam contexto, saem `0` mesmo quando falham e nunca bloqueiam, negam nem interrompem o Goal; o
+Codex se identifica a eles por `PLUGIN_ROOT`.
+
+O plano nativo (`update_plan`, que alimenta o item `task-progress`) **não é espelhado**: o ledger do
+medidor não escreve nele e não o lê, são duas fontes sem sincronização, e o percentual do plano do
+Orquestra não aparece na statusline nativa. A decisão de um espelho opt-in (vista unidirecional e
+descartável do ledger no plano nativo) é do dono e fica para a fase 3 do medidor, no card T-147. A
+consulta `get_goal`, quando existe, só informa se há um Goal nativo ativo (ver `progress.md`, "Goal
+avulso"); não cria nem encerra nada.
+
 ## Mudanças futuras
 
 Instalar ou inicializar o Orquestra não autoriza alterar a statusline. Este contrato não fornece

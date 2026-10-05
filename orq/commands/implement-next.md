@@ -39,6 +39,10 @@ de saída.
    volta ao gate do dono, não vira ajuste silencioso.
 3. Grave na thread do card o caminho do ledger e a `session_key` devolvida (constante durante a
    execução).
+4. Vincule a sessão ao ledger com `bind`, usando a **chave da sessão nativa** que o hook entregou no
+   contexto — outra chave, que não é a `session_key` de dono do passo 3. Nos marcos, leia o `view` do
+   recibo da marcação em vez de rodar `show`. O procedimento mora em
+   `ORQ_PACKAGE_ROOT/skills/orq/references/progress.md` ("Vínculo de sessão" e "Recibo"); não o repita.
 
 Só o Manager escreve o ledger. Ao despachar um worker, marque `start` nos passos que cabem a ele,
 **antes** do despacho, com o papel e o rótulo genéricos dele (`--executor-role implementer`,

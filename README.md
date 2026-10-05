@@ -301,7 +301,11 @@ travá-la**. É o que permite o modo noturno funcionar sem você.
 ledger local (`.orq/progress/`, ignorado pelo Git) e a vista mostra a **fase** — que vem do board — e
 o **percentual do plano**, por exemplo `T-123 · revisão · 5/8 passos concluídos · 69% do plano`.
 100% do plano não é feito, só você fecha o card; para acompanhar num terminal ao lado, em qualquer
-host, rode `progress.py watch` (procedimento em `orq/skills/orq/references/progress.md`).
+host, rode `progress.py watch` (procedimento em `orq/skills/orq/references/progress.md`). Na barra
+completa do Claude (instalação opt-in do `/orq:init`), a sessão vinculada ao ledger mostra o andamento
+no fim da segunda linha, como `◎ T-123 · revisão · 5/8 · 69%`; sem medidor a barra não muda. No Claude
+e no Codex, um lembrete consultivo avisa o Manager, uma única vez, quando a execução segue sem plano
+registrado depois de algumas chamadas de ferramenta — ele nunca bloqueia nada.
 
 ---
 
@@ -418,8 +422,8 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.28.0` (candidata local T-144, fase 1, na branch `claude/t144-medidor-progresso`; ainda não publicada) — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
-· **medidor de progresso portátil** (fase do board + percentual dos passos do plano, `show`/`watch` em qualquer host)
+`0.29.0` (candidata local T-144 + T-146, fases 1 e 2, na branch `claude/t144-medidor-progresso`; ainda não publicada) — board · time · dois loops · memória-wiki · interface natural · modo noturno (planejamento)
+· **medidor de progresso portátil** (fase do board + percentual dos passos do plano, `show`/`watch` em qualquer host, segmento na statusline do Claude e lembrete consultivo por hook nos dois hosts)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar
 auto-detectada · **auditores offline de remoção e adoção graph-first** · contrato de formato (`_schema.md`) + smoke test na instalação · **protocolo de várias janelas**

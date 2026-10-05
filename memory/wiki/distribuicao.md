@@ -11,8 +11,8 @@ orq/
 ├── commands/                     os /orq:* — um arquivo por passo do fluxo
 ├── agents/                       o time — frontmatter define tools e o model padrão
 ├── skills/orq/SKILL.md           a disciplina: gatilhos naturais + regras invioláveis
-├── schemas/                      contratos JSON dos ledgers (`audit-ledger-v1.json`, `progress-ledger-v1.json`)
-└── scripts/                      kanban-status.sh · lint-coerencia.py · progress.py · guardiões e runners testados
+├── schemas/                      contratos JSON dos ledgers e do vínculo de sessão (`audit-ledger-v1.json`, `progress-ledger-v1.json`, `progress-binding-v1.json`)
+└── scripts/                      kanban-status.sh · lint-coerencia.py · progress.py · progress-hook.py · guardiões e runners testados
 ```
 
 **Onde mexer em quê:** comportamento geral e gatilhos → a **skill**. Um passo do fluxo → o **command**.
@@ -209,6 +209,13 @@ Desde `0.22.0`, `hooks/hooks.json` faz parte do cache e por isso entra na cobert
 `verify_installed_cache.py` como qualquer outro arquivo do pacote — **não** o compare com `diff -rq`:
 a comparação bruta reprova cache válido por artefato instalado-only legítimo (`.in_use`,
 `.orphaned_at`, `migrated-command-skills/`), que é exatamente o falso positivo do `T-049`.
+
+O mesmo `hooks.json` carrega os dois hooks consultivos do medidor de progresso (`SessionStart` e
+`PostToolUse`, por `scripts/progress-hook.py`), em grupos próprios ao lado dos do guardião, e entra
+na mesma cobertura do verificador. Esses hooks vêm do bundle do plugin: a cópia da statusline que o
+`/orq:init` instala fora dele leva só o trio `statusline.sh` + `kanban-status.sh` + `progress.py`.
+Atualizar o plugin com sessão Codex viva quebra o comando de **qualquer** hook do bundle antes do
+adaptador (`T-093`, em `memory/gotchas.md`) — os do medidor inclusive.
 
 O smoke exige `checkpoint_verified`, compactação não bloqueada e reidratação em
 `SessionStart(source=compact)`, além de um processo filho que morre depois de adquirir o lock e
