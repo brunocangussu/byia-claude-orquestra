@@ -18,13 +18,16 @@ card; a implementação segue o gate do ciclo.
 
 ## Estado e limites
 
-- `[!]` / `AWAITING_OWNER`; frente `elenco-padrao`, host Codex. Plano aprovado
-  em 2026-10-05; implementação local verificada. Falta cobrir R1/bump/integração.
+- `[?]` / `VALIDATE`; frente `elenco-padrao`, Manager Codex. Plano aprovado
+  em 2026-10-05; fonte 0.31.0 entregue na main/GitHub em `a81026f`.
+  R1/R2 e auditoria encerradas; faltam ativação autorizada e validação prática.
 - A main começou limpa em `fbc9b2f`, fonte 0.30.0.
-- Na etapa inicial de planejamento, produto e elencos estavam intactos. Agora
-  o diff T-149 está apenas no worktree, com elencos ativos preservados. Sem bump,
-  stage, commit, push, integração, publicação, instalação ou restart executados.
-- Sem chamada de inferência externa, sonda de capacidade ou reautenticação.
+- Histórico inicial abaixo registra a preparação; o estado atual é a entrega
+  Git allowlistada da fonte 0.31.0. Elencos ativos e Manager preservados.
+  Sem publicação, instalação, restart ou migração em massa executados.
+- R1 e R2 Opus 5.5/Anthropic via Claude CLI consumiram uma chamada autorizada
+  por rodada, sem retry. Nenhuma chamada externa após a R2, sonda adicional
+  de capacidade ou nova reautenticação.
 - Consultas públicas à documentação e leitura local de instruções/configuração
   não são execução de modelos nem prova de disponibilidade na conta.
 - O T-131 entregou candidatos de fábrica, não uma migração automática do elenco
@@ -411,3 +414,37 @@ excluindo só essas três evidências imutáveis, sem mudar seus bytes/hashes
 nem configurar exclusões globais. Detalhes na auditoria R2.
 Pull --rebase na frente T-149: já atualizado em `fbc9b2f`, digests
 de todos os 45 arquivos preservados.
+
+## Checkpoint de entrega efetiva — 2026-10-06
+
+Commit de fonte `a81026fa34cd0e7af7e11bedd56e63540b152917`:
+`feat(0.31.0): elenco padrao versionado por host`, 45 arquivos próprios.
+Branch `codex/t149-elenco-padrao` pushada; main integrada por fast-forward,
+sem reescrever commits. Push da main concluído; `git ls-remote --heads
+origin main` confirmou esse SHA. Sem PR, tag ou release publicado.
+
+Gates repetidos na main integrada: 870/870 testes em 207,456 s,
+manifesto estrito e lint exit 0. Recibo:
+`docs/reviews/T-149-gates-main-0.31.0.json`. Os mesmos dois avisos de
+recurso não fechado ficaram registrados, sem atribuição de causa.
+
+Os quatro registros próprios da main foram preservados antes da integração
+em snapshot local recuperável `f9d74458492bf056241dea8abe23e5402d04d8a8`.
+Plano/thread eram idênticos à fonte; índice diferia somente na âncora de
+versão autorizada, board somente em linhas vazias. Nada do Claude foi
+descartado, sobrescrito ou restaurado. Sua frente T-144 continua em
+`claude/t144-medidor-progresso`, tip `064e726`, sem writes desta frente.
+
+O Manager moveu apenas T-149 para `[?]` e removeu a marca de host do card.
+Medidor em revisão 22: P6 encerrado com referência Git, 6/6 passos concluídos,
+atividade VALIDATE e pausa para validação prática. 100% do plano não equivale
+a DONE. Ledger/chave ficam locais e ignorados.
+Handoff público:
+`docs/handoff-T149-elenco-padrao-2026-10-06.md`.
+
+⏭️ RETOMAR AQUI: validar a adoção do elenco padrão depois de autorização
+específica para publicação/instalação/ativação e prova do host. A frase do
+dono é “Siga o elenco padrão desta versão do Orquestra.” Mostrar o diff
+dos oito papéis, preservar Manager/papéis adicionais/overrides e conferir
+prova contextual antes de despachar. Não reabrir R1/R2 nem repetir chamadas
+por conta da entrega Git. Não declarar todos os chats/projetos atualizados.

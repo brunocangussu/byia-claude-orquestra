@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "type": "gates_terminal",
+  "card": "T-149",
+  "stage": "main_integrated_post_R2",
+  "started_at": "2026-10-06T18:07:50.517Z",
+  "ended_at": "2026-10-06T18:11:19.345Z",
+  "source_head": "a81026fa34cd0e7af7e11bedd56e63540b152917",
+  "source_version": "0.31.0",
+  "results": [
+    {
+      "label": "suite",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "orq/scripts",
+        "-p",
+        "test_*.py"
+      ],
+      "started_at": "2026-10-06T18:07:50.531Z",
+      "ended_at": "2026-10-06T18:11:18.327Z",
+      "elapsed_seconds": 207.796,
+      "exit": 0,
+      "signal": null,
+      "stdout_bytes": 0,
+      "stderr_bytes": 1606,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "ca698dafd979dae42299bcc5355ab78e4510bcf914c9cac2d0eb70138171831f",
+      "stdout_tail": "",
+      "stderr_tail": "..................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................../opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/case.py:704: ResourceWarning: unclosed file <_io.TextIOWrapper name=3 encoding='UTF-8'>\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n................................../opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/case.py:704: ResourceWarning: unclosed file <_io.TextIOWrapper name=3 encoding='UTF-8'>\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n................................................................................................................................\n----------------------------------------------------------------------\nRan 870 tests in 207.456s\n\nOK\n"
+    },
+    {
+      "label": "manifesto",
+      "command": [
+        "claude",
+        "plugin",
+        "validate",
+        "./orq",
+        "--strict"
+      ],
+      "started_at": "2026-10-06T18:11:18.328Z",
+      "ended_at": "2026-10-06T18:11:19.124Z",
+      "elapsed_seconds": 0.796,
+      "exit": 0,
+      "signal": null,
+      "stdout_bytes": 146,
+      "stderr_bytes": 0,
+      "stdout_sha256": "a1f5f27dd736b914b139033d439795ea43c71e6cd76bdb10527103fcb9ab13b4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_tail": "Validating plugin manifest: <main>/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n",
+      "stderr_tail": ""
+    },
+    {
+      "label": "lint",
+      "command": [
+        "python3",
+        "orq/scripts/lint-coerencia.py",
+        "."
+      ],
+      "started_at": "2026-10-06T18:11:19.124Z",
+      "ended_at": "2026-10-06T18:11:19.345Z",
+      "elapsed_seconds": 0.221,
+      "exit": 0,
+      "signal": null,
+      "stdout_bytes": 103,
+      "stderr_bytes": 0,
+      "stdout_sha256": "2aea349869ffa0286e9120ffcf6e59865eb83ce89edd4af6326655f10f8b8ece",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_tail": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n",
+      "stderr_tail": ""
+    }
+  ],
+  "all_zero": true,
+  "suite_test_count": 870,
+  "warning_audit": {
+    "resource_warnings": 2,
+    "blocking": false,
+    "origin": "não auditada"
+  },
+  "output_sanitization": [
+    "raiz absoluta pessoal do checkout substituída por <main> nas caudas exibidas; digests são dos bytes originais"
+  ]
+}

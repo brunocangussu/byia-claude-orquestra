@@ -28,8 +28,6 @@
 
 ## 🟡 Fazendo
 
-- [~] `T-149` Elenco padrão versionado — R2 congelada de 126.107 bytes autorizada pelo dono: uma chamada Opus 5.5/high, sem retry; se aprovada, entrega Git allowlistada 0.31.0/main/GitHub. R1 auditada e corrigida, gates locais anteriores 870 verdes. Sem publicação, instalação, restart ou elenco ativo alterado · sistema/normal · → threads/T-149-elenco-padrao-versionado.md @frente-elenco-padrao @codex
-
 
 
 
@@ -50,6 +48,8 @@
 ---
 
 ## 🟣 Validar
+
+- [?] `T-149` Elenco padrão versionado — fonte 0.31.0 em `a81026f`, integrada na main e confirmada no GitHub; R2 Opus 5.5 aprovada com ressalvas encerradas, gates frescos 870/manifesto/lint verdes no worktree e na main. Validar adoção por intenção natural após ativação autorizada do host. Sem publicação, instalação, restart ou elenco ativo alterado · sistema/normal · → threads/T-149-elenco-padrao-versionado.md @frente-elenco-padrao
 
 - [?] `T-148` Conciliação concluída na main/GitHub em 0.30.0; recibos/baselines entregues, ancestralidade Claude preservada e checkouts reduzidos de 8 para 2. Só main + T-144 com processos vivos; validar organização, sem confundir entrega de fonte com ativação de todos os chats · sistema/pesada · → threads/T-148-consolidacao-main.md @frente-consolidacao
 

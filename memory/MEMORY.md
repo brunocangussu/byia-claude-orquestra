@@ -4,7 +4,18 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.31.0 — fonte do T-149 com elenco padrão versionado, R2 aprovada com ressalvas documentais encerradas e gates frescos verdes (870 testes, manifesto e lint). Entrega Git autorizada; instalação e validação prática permanecem separadas. Sem publicação, instalação ou restart nesta frente. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-06 (T-149) · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.31.0 — fonte do T-149 entregue na main/local e em origin/main (`a81026f`), com elenco padrão versionado, R2 aprovada com ressalvas documentais encerradas e gates frescos verdes (870 testes, manifesto e lint). Instalação e validação prática permanecem separadas. Sem publicação, instalação ou restart nesta frente. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-06 (T-149) · **host padrão a partir de 2026-08-09: Codex**.
+
+**T-149, 2026-10-06 — elenco padrão versionado entregue:**
+- Fonte 0.31.0 em `a81026f`, integrada por fast-forward e confirmada no GitHub.
+  Gates frescos no worktree e na main: 870 testes, manifesto estrito e lint exit 0.
+  R2 Opus 5.5: aprovada com duas ressalvas documentais encerradas; sem retry.
+- Catálogo único por host, com modelo/effort/via; adoção explícita por projeto:
+  “Siga o elenco padrão desta versão do Orquestra.” Preserva Manager, papéis
+  adicionais, overrides e projetos que continuem no perfil anterior.
+- Card em VALIDATE: faltam ativação autorizada e teste prático dos hosts.
+  Nenhuma publicação, instalação, restart ou migração de elenco ativo.
+  Handoff: `../docs/handoff-T149-elenco-padrao-2026-10-06.md`.
 
 **T-148, 2026-10-05 — conciliação entregue e ambiente organizado:**
 - Fonte 0.30.0 em `d760069`; evidências/baselines em `d67cd99`. Main/GitHub incluem os
@@ -637,7 +648,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-054-economia-tokens.md`](wiki/threads/T-054-economia-tokens.md) | **Thread ativa** — a frente de economia de tokens: o diagnóstico, o baseline medido, o que o parecer mudou e o **⏭️ RETOMAR AQUI** |
 | [`wiki/threads/T-054-pareceres.md`](wiki/threads/T-054-pareceres.md) | **Evidência durável** — o parecer cross-vendor íntegro e a auditoria do Manager, que corrigiu um achado e confirmou outro |
 | [`wiki/threads/T-148-consolidacao-main.md`](wiki/threads/T-148-consolidacao-main.md) | **Entregue, validar organização** — conciliação 0.30.0, evidências, ancestralidade Claude e limpeza recuperável; main pronta, T-144 vivo preservado |
-| [`wiki/threads/T-149-elenco-padrao-versionado.md`](wiki/threads/T-149-elenco-padrao-versionado.md) | **R2 aprovada e auditada** — uma chamada Opus 5.5/high, sem bloqueadores; duas ressalvas documentais encerradas. Entrega Git 0.31.0 autorizada, gates finais em curso. Sem publicação, instalação, restart ou migração do elenco ativo |
+| [`wiki/threads/T-149-elenco-padrao-versionado.md`](wiki/threads/T-149-elenco-padrao-versionado.md) | **Fonte 0.31.0 entregue na main/GitHub** — `a81026f`, R2 aprovada/auditada, gates frescos 870 verdes nas duas árvores. Em VALIDATE: ativação e uso prático separados. Sem publicação, instalação, restart ou migração do elenco ativo |
 | [`wiki/threads/T-144-mods-claude-code.md`](wiki/threads/T-144-mods-claude-code.md) | **Fonte 0.30.0 entregue, validação prática pendente (`@frente-mods`)** — medidor portátil, fases 1–2 conciliadas; branch/ledger T-146 e sessão viva preservados |
 | [`wiki/threads/T-072-claude-mem.md`](wiki/threads/T-072-claude-mem.md) | **No gate** — o papel do claude-mem, a fiação de busca que nunca existiu, e a correção de uma medição minha que estava 4,4× errada |
 | [`wiki/threads/T-078-ai-memory.md`](wiki/threads/T-078-ai-memory.md) | **Ativa** — o AI-Memory 2.0: parecer do planner, revisão que derrubou o piloto, os 3 estágios, a decisão do dono contra a recomendação, e o root cause do Codex não capturar |

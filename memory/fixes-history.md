@@ -2445,3 +2445,10 @@ Snippet Bash executado em cinco casos; duas mutações locais reprovadas por
 asserção correta. Fonte, evidências e quatro âncoras entram em commit
 allowlistado sob autorização do dono. Publicação, instalação, restart e
 teste prático dos hosts continuam separados; commit não fecha o card.
+
+Entrega confirmada: `a81026f` em main/local e origin/main, fast-forward
+sem reescrever commits; staged de 45 arquivos próprios, sem elenco ativo,
+front Claude ou ledger privado. Gates repetidos na main: 870/870,
+manifesto/lint exit 0; dois avisos de recurso não fechado registrados.
+T-149 movido pelo Manager para VALIDATE, com handoff e snapshot próprio
+recuperável. Nenhuma publicação, instalação ou reinicialização executada.
