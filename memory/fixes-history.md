@@ -2424,3 +2424,24 @@ Board/MEMORY alinhados ao estado VALIDATE dos cards entregues. Handoff em
 `docs/handoff-T148-main-organizada-2026-10-05.md`. Sem instalação, release
 ou restart por esta frente; não declarar todos os chats atualizados,
 T-047 resolvido ou JEV/papéis adotados por causa da entrega Git.
+
+## 2026-10-06 — T-149: elenco padrão versionado 0.31.0
+
+Catálogo distribuído único para os oito papéis por host; resolução deriva
+versão/digest do pacote, preservando o Manager da sessão. Adoção explícita
+por intenção natural, diff prévio e prova contextual vinculada à combinação
+papel/modelo/effort/via; instalar uma versão não migra projetos existentes.
+Elenco ativo, presets locais e papéis adicionais não foram reescritos.
+
+R1 e R2 Opus 5.5 via Claude CLI, chamadas delimitadas sem retry. R2:
+APROVADO_COM_RESSALVAS, sem bloqueadores; duas condições documentais
+encerradas, demais riscos auditados. Legado só com modelo segue seu recibo
+compatível, enquanto combinação nova exige effort explícito e novo gate.
+Recusa de effort não autoriza fallback, downgrade nem omissão.
+
+Verificação pós-R2/bump: 870 testes, manifesto estrito e lint exit 0;
+dois ResourceWarnings registrados sem atribuir causa não auditada.
+Snippet Bash executado em cinco casos; duas mutações locais reprovadas por
+asserção correta. Fonte, evidências e quatro âncoras entram em commit
+allowlistado sob autorização do dono. Publicação, instalação, restart e
+teste prático dos hosts continuam separados; commit não fecha o card.

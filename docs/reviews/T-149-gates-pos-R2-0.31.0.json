@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "type": "gates_terminal",
+  "card": "T-149",
+  "stage": "worktree_post_R2_bump",
+  "started_at": "2026-10-06T17:56:00.781Z",
+  "ended_at": "2026-10-06T18:00:35.127Z",
+  "source_head": "fbc9b2ff6485b4d14a849587bd6a8d6e6f02607b",
+  "source_version": "0.31.0",
+  "results": [
+    {
+      "label": "suite",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "orq/scripts",
+        "-p",
+        "test_*.py"
+      ],
+      "started_at": "2026-10-06T17:56:00.802Z",
+      "ended_at": "2026-10-06T18:00:34.135Z",
+      "elapsed_seconds": 273.333,
+      "exit": 0,
+      "signal": null,
+      "stdout_bytes": 0,
+      "stderr_bytes": 1612,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "beea7e658b677559715cf5f0b22795731edcec4abbfc136920b0711ac0591592",
+      "stdout_tail": "",
+      "stderr_tail": "..................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................../Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/case.py:632: ResourceWarning: unclosed file <_io.TextIOWrapper name=4 encoding='UTF-8'>\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n................................../Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/case.py:632: ResourceWarning: unclosed file <_io.TextIOWrapper name=4 encoding='UTF-8'>\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n................................................................................................................................\n----------------------------------------------------------------------\nRan 870 tests in 273.057s\n\nOK\n"
+    },
+    {
+      "label": "manifesto",
+      "command": [
+        "claude",
+        "plugin",
+        "validate",
+        "./orq",
+        "--strict"
+      ],
+      "started_at": "2026-10-06T18:00:34.135Z",
+      "ended_at": "2026-10-06T18:00:34.944Z",
+      "elapsed_seconds": 0.809,
+      "exit": 0,
+      "signal": null,
+      "stdout_bytes": 160,
+      "stderr_bytes": 0,
+      "stdout_sha256": "a8e37836efbf6290bb7c37b3b572d82c283a4c4c2d7510ecec3b45be11183e18",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_tail": "Validating plugin manifest: <worktree_T149>/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n",
+      "stderr_tail": ""
+    },
+    {
+      "label": "lint",
+      "command": [
+        "python3",
+        "orq/scripts/lint-coerencia.py",
+        "."
+      ],
+      "started_at": "2026-10-06T18:00:34.944Z",
+      "ended_at": "2026-10-06T18:00:35.127Z",
+      "elapsed_seconds": 0.183,
+      "exit": 0,
+      "signal": null,
+      "stdout_bytes": 103,
+      "stderr_bytes": 0,
+      "stdout_sha256": "2aea349869ffa0286e9120ffcf6e59865eb83ce89edd4af6326655f10f8b8ece",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_tail": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n",
+      "stderr_tail": ""
+    }
+  ],
+  "all_zero": true,
+  "suite_test_count": 870,
+  "warning_audit": {
+    "resource_warnings": 2,
+    "blocking": false,
+    "origin": "não auditada",
+    "statement": "Não tratados como preexistentes nem ocultados; suíte exit 0."
+  },
+  "output_sanitization": [
+    "raiz absoluta pessoal do worktree substituída por <worktree_T149> nas caudas exibidas; digests são dos bytes originais"
+  ]
+}

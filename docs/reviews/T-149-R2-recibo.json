@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "card": "T-149",
+  "round": "R2",
+  "status": "TERMINAL_APPROVED_WITH_RESERVATIONS_AUDITED",
+  "authorized_calls": 1,
+  "consumed_calls": 1,
+  "retry": false,
+  "authority_ref": "conversa-atual:autorizo-apos-gate-R2-126107-bytes-entrega-condicional",
+  "packet": {
+    "path": "docs/reviews/T-149-R2-pacote-sanitizado.md",
+    "bytes": 126107,
+    "sha256": "ee6a468b00bc93a090ed5087b454d607c60ca2bb5a710ee62ca9ae8ba39675bf",
+    "cap_bytes": 131072
+  },
+  "reviewer_model": "claude-opus-5-5",
+  "effort_requested": "high",
+  "effort_observed": null,
+  "model_evidence": "runner_identity_checked_modelUsage:OPUS_MODEL_USAGE=claude-opus-5-5",
+  "server_effort_verified": false,
+  "local_reservations_closed": true,
+  "external_calls_after_R2": 0,
+  "runner_sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4",
+  "wrapper_sha256": "52b8ef30dea6e8b7dc4546aa0b787f29d51818232f45844e503c24b801925654",
+  "product_sha256": "1c2df8ba0644cd3df07594395ce3794ad6ea83ca4568904f3b61d8b293ee029d",
+  "prompt_extra_bytes": 0,
+  "timeout_seconds": 600,
+  "delivery": {
+    "condition": "parecer_independente_aprovado_e_gates_locais_verdes",
+    "version": "0.31.0",
+    "commit": true,
+    "push": true,
+    "integrate_main": true,
+    "publish": false,
+    "install": false,
+    "restart": false
+  },
+  "started_at": "2026-10-06T17:36:02.741Z",
+  "local_exec_session": 6484,
+  "ended_at": "2026-10-06T17:40:34.744Z",
+  "elapsed_seconds": 272.003,
+  "runner_exit": 0,
+  "signal": null,
+  "error_code": null,
+  "model_observed": "claude-opus-5-5",
+  "cli_exit": 0,
+  "cost_usd": null,
+  "format_valid": true,
+  "verdict_received": "APROVADO_COM_RESSALVAS",
+  "cwd_after": [],
+  "process_receipt": {
+    "attempt_id": "978caf570d424e63a6aa35c4563341ba",
+    "briefing": {
+      "bytes": 126107,
+      "sha256": "ee6a468b00bc93a090ed5087b454d607c60ca2bb5a710ee62ca9ae8ba39675bf"
+    },
+    "cli_exit": 0,
+    "cost_usd": null,
+    "diagnostic": {
+      "error_code": null,
+      "format": "json_object",
+      "free_text_suppressed": true,
+      "is_error": false,
+      "subtype": "success"
+    },
+    "effort": {
+      "observed": null,
+      "requested": "high",
+      "sent": "high"
+    },
+    "elapsed_seconds": 271.905,
+    "execution": {
+      "args": [
+        "-p",
+        "--model",
+        "claude-opus-5-5",
+        "--effort",
+        "high",
+        "--permission-mode",
+        "plan",
+        "--tools",
+        "",
+        "--setting-sources",
+        "",
+        "--disable-slash-commands",
+        "--no-session-persistence",
+        "--output-format",
+        "json"
+      ],
+      "claudecode_present": false,
+      "cwd_empty": true,
+      "cwd_path_sha256": "8ed2f29292a119b041e399123288c47ad8eaa97dfe2026691414cc3659bb7f39",
+      "entry_path_sha256": "8bc3eeef6ece28777c8c86f71a03910c732a7e058a41f06c00d0cb0868aa621c",
+      "entry_sha256": "52b8ef30dea6e8b7dc4546aa0b787f29d51818232f45844e503c24b801925654",
+      "entry_version_from_path": null
+    },
+    "observed_model": null,
+    "provider_request_sent": null,
+    "schema": 1,
+    "source_sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4",
+    "started_unix": 1791308162.825105,
+    "stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout": {
+      "bytes": 8855,
+      "sha256": "52906a13a850af4459debcad1ca4cfbe2231f116ae4161c62b4a97e0e6dad1b5"
+    },
+    "timed_out": false
+  },
+  "outcome": {
+    "attempt_id": "978caf570d424e63a6aa35c4563341ba",
+    "runner_exit": 0,
+    "has_verdict": true
+  }
+}

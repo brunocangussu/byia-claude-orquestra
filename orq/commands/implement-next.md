@@ -5,6 +5,15 @@ argument-hint: "[T-NNN para escolher um card específico]"
 
 Você é o **Manager** (leia a skill `orq`). Rode o **Loop B — Implementação**.
 
+**Resolução do perfil:** leia o host ativo em `_elenco.md` e resolva **modelo e effort** juntos
+pela Matriz de invocação. A fábrica só é consultada por `scripts/elenco_padrao.py` da raiz
+`ORQ_PACKAGE_ROOT` comprovada; veja `/orq:elenco`, “Padrão da versão”. Catálogo ou
+`model: inherit` não autoriza despacho, adoção, herança do Manager ou fallback.
+Passe os parâmetros declarados pela via comprovada: dois em `@effort`; **legado sem effort**
+segue o contrato de `/orq:elenco`, só modelo comprovado e effort não solicitado.
+Recusa de effort declarado não permite downgrade nem omissão.
+Preserve os gates de capacidade, autoridade, independência e continuidade já definidos.
+
 Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
 **BOARD_CANONICO:** antes de validar ou mover o card, resolva
 `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, e use exclusivamente o caminho `board` do JSON

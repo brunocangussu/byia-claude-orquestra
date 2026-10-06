@@ -1,6 +1,6 @@
 # Arquitetura do Orquestra
 
-> Como o plugin funciona **hoje** (`0.30.0`). Página de consulta — organizada por pergunta, não por
+> Como o plugin funciona **hoje** (`0.31.0`). Página de consulta — organizada por pergunta, não por
 > ordem de leitura. Reescrever quando o desenho mudar; histórico é `fixes-history.md`, não aqui.
 
 ## O princípio
@@ -132,6 +132,42 @@ A continuação só vale se a chamada terminar com `status: 0`, `jobId` e `threa
 continuação: o vínculo anterior é preservado e nada é repetido, substituído por outra task ou
 recolhido pela "última" automaticamente. O `--wait` é do envelope enviado ao `codex-rescue`, que o
 remove antes de invocar o `task`; o runtime não o recebe.
+
+### Padrão distribuído e adoção explícita — T-149
+
+O pacote traz
+`orq/references/elenco-padrao.json`, única fábrica de modelo e effort para os
+dois hosts. A versão vem de `orq/.claude-plugin/plugin.json`; o catálogo não
+duplica uma âncora de release. `orq/scripts/elenco_padrao.py` valida o schema e
+produz a proposta e o digest canônico, sem escrever elenco nem chamar modelos.
+
+“Siga o elenco padrão desta versão do Orquestra” escolhe essa fábrica do pacote
+carregado, não o preset local chamado `padrao`. O Manager comprova a raiz do
+pacote, resolve o projeto/host e mostra o diff. O comando `elenco` é a fonte
+canônica do procedimento; instalar N+1 não migra automaticamente um projeto
+que adotou N nem muda workers já em execução.
+
+A proposta é atômica por host e grava somente o mecanismo efetivamente comprovado,
+não todas as vias candidatas. A proveniência guarda essa seleção e os campos
+mínimos da prova; reutilização revalida conta, cliente, sandbox, modelo e effort.
+Os nomes de vias do Markdown são normalizados por host, sem reativação.
+Papéis novos ou alterados precisam de recibos
+válidos de modelo e effort no contexto real da conta, versão do cliente, via
+e sandbox; uma sonda read-only não prova capacidade de escrita. Provas válidas
+existentes são reaproveitadas, nunca repetidas automaticamente. Se falta prova,
+nenhuma célula é adotada: só a dependência fica pendente. Catálogo, alias e
+frontmatter `inherit` não certificam capacidade nem autorizam probe, retry,
+fallback ou reativação de via. Linha legada sem effort, ainda autorizada/comprovada,
+despacha só o modelo, com effort não solicitado; o Manager verifica capacidade
+antes do despacho, sem impor essa prova ao próprio subagente já criado.
+
+Após o gate correspondente, o Manager registra origem, versão, digest, data e
+overrides no host adotado. O outro host, Manager, presets locais e vias
+desligadas são preservados. Elenco legado sem origem não é transformado em
+override por suposição. Modelo e effort são resolvidos e enviados juntos;
+solicitado, enviado e observado ficam separados, sem prometer um effort de
+servidor que o recibo não revelou. Agents neutros não dispensam override
+efetivo comprovado no mecanismo de execução.
 
 ## A revisão independente
 

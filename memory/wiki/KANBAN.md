@@ -10,6 +10,8 @@
 
 
 
+
+
 - [~] `T-138` Agency Agents — piloto seletivo aprovado; suplemento API Tester v1 e quatro contratos B2 preparados localmente. Aguardar A2, tokenização/capacidade da via e orçamento antes das 16 execuções; sem instalação, elenco alterado ou resultado medido · sistema/pesada · → threads/T-138-agency-agents.md @frente-jev-router @codex
 
 - [~] `T-139` Papéis especializados — A/B/C local com 3 casos sintéticos; geração e nota cega cruzada com recibos e custo até teto testados só com CLIs falsas, sem egress. P-008 deu sinal isolado 5/6→6/6; R-008 empatou 5/6, com B 18,7% mais caro. Faltam execução real aprovada, réplicas, custo até aceite humano e prova do modelo efetivo Codex; Manager M-004 inválido, sem retry. Sem adoção · sistema/pesada · → threads/T-139-especializacao-papeis.md @frente-jev-router @codex
@@ -25,6 +27,9 @@
 ---
 
 ## 🟡 Fazendo
+
+- [~] `T-149` Elenco padrão versionado — R2 congelada de 126.107 bytes autorizada pelo dono: uma chamada Opus 5.5/high, sem retry; se aprovada, entrega Git allowlistada 0.31.0/main/GitHub. R1 auditada e corrigida, gates locais anteriores 870 verdes. Sem publicação, instalação, restart ou elenco ativo alterado · sistema/normal · → threads/T-149-elenco-padrao-versionado.md @frente-elenco-padrao @codex
+
 
 
 

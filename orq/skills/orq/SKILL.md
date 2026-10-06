@@ -229,13 +229,30 @@ por isso todo passo termina gravando no board e no arquivo de handoff.
 
 ## Quem é quem
 
+### Elenco padrão do pacote carregado
+
+“Siga o elenco padrão desta versão” / “padrão Orquestra” roteia para `/orq:elenco`, seção
+“Padrão da versão”: consulta pura de `ORQ_PACKAGE_ROOT/scripts/elenco_padrao.py` depois de comprovar
+a raiz. A fábrica única é `references/elenco-padrao.json`; versão vem do manifesto, sem quinta
+âncora. Resolva **modelo e effort** juntos. Sem adoção, continuam ativos apenas os valores do
+host em `_elenco.md`, nunca a sugestão de fábrica ou o frontmatter neutro `model: inherit`.
+
+`perfil padrao` é preset local congelado, não a fábrica da versão. Adoção preserva outro host,
+Manager, overrides, presets e vias desligadas; novos pares exigem prova contextual válida e
+autoridade correspondente. Sem prova, não há gravação parcial, probe, retry ou fallback.
+Instalar/atualizar não ativa o perfil em chats vivos; preserve seus despachos e anuncie a versão
+carregada. Skills globais concorrentes são diagnóstico, não autorização para removê-las.
+
 | Papel | Quem executa | Contexto |
 |---|---|---|
 | **Manager** | **a sessão principal (você)** | persistente — retém o fio da meada |
 | Planner / Implementer / Reviewer / Docs | **subagentes spawnados** | **fresco a cada card** |
 
 **Qual LLM toca cada papel** está em `memory/wiki/_elenco.md` (o "elenco"). **Leia-o antes de
-spawnar** e passe o modelo como override — o `model:` do arquivo do agente é só o padrão de fábrica.
+spawnar** e passe modelo e effort como overrides explícitos em linhas `@effort`. O **legado sem effort**
+comprovado passa só o modelo e registra esforço não solicitado, conforme o contrato de `/orq:elenco`.
+O `model: inherit` do agente é neutro,
+nunca um fallback executável nem autorização para herdar o modelo/effort do Manager.
 Sem elenco, leia o padrão só como candidato: não o use como fallback executável. Aplique o gate
 canônico de capacidade em `/orq:elenco`. **Padrão legado comprovado** é uma combinação já usada e autorizada
 neste projeto, com recibo real consultável na thread. O Manager verifica a origem e a compatibilidade antes do

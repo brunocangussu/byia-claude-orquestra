@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "manager": "sessao_do_dono",
+  "hosts": {
+    "codex": {
+      "planner·interface": {"model_id": "claude-opus-5-5", "effort": "high", "mechanisms": ["claude-cli"]},
+      "planner·sistema": {"model_id": "gpt-6.1-sol", "effort": "xhigh", "mechanisms": ["codex-native", "codex-cli"]},
+      "implementer·leve": {"model_id": "gpt-6-luna", "effort": "medium", "mechanisms": ["codex-native", "codex-cli"]},
+      "implementer·normal": {"model_id": "gpt-6.1-sol", "effort": "high", "mechanisms": ["codex-native", "codex-cli"]},
+      "implementer·pesada": {"model_id": "gpt-6.1-sol", "effort": "xhigh", "mechanisms": ["codex-native", "codex-cli"]},
+      "reviewer": {"model_id": "claude-opus-5-5", "effort": "high", "mechanisms": ["claude-cli"]},
+      "docs": {"model_id": "gpt-6-luna", "effort": "low", "mechanisms": ["codex-native", "codex-cli"]},
+      "scout": {"model_id": "gpt-6-luna", "effort": "medium", "mechanisms": ["codex-native", "codex-cli"]}
+    },
+    "claude": {
+      "planner·interface": {"model_id": "claude-opus-5-5", "effort": "high", "mechanisms": ["claude-subagent"]},
+      "planner·sistema": {"model_id": "gpt-6.1-sol", "effort": "xhigh", "mechanisms": ["codex-companion"]},
+      "implementer·leve": {"model_id": "claude-sonnet-5-5", "effort": "low", "mechanisms": ["claude-subagent"]},
+      "implementer·normal": {"model_id": "claude-sonnet-5-5", "effort": "medium", "mechanisms": ["claude-subagent"]},
+      "implementer·pesada": {"model_id": "claude-sonnet-5-5", "effort": "high", "mechanisms": ["claude-subagent"]},
+      "reviewer": {"model_id": "gpt-6.1-sol", "effort": "xhigh", "mechanisms": ["codex-companion"]},
+      "docs": {"model_id": "claude-sonnet-5-5", "effort": "low", "mechanisms": ["claude-subagent"]},
+      "scout": {"model_id": "claude-sonnet-5-5", "effort": "low", "mechanisms": ["claude-subagent"]}
+    }
+  }
+}

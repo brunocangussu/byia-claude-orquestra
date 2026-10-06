@@ -1,0 +1,228 @@
+{
+  "schema": 1,
+  "card": "T-149",
+  "recorded_at": "2026-10-06T01:42:56.583Z",
+  "base_commit": "fbc9b2ff6485b4d14a849587bd6a8d6e6f02607b",
+  "branch": "codex/t149-elenco-padrao",
+  "source_version": "0.30.0",
+  "product_sha256": "0cc91758b9d1899f4d38fd926d069dff6c6bbdccd9743ed3630c1f17879365b1",
+  "product_files": [
+    {
+      "path": "memory/wiki/arquitetura.md",
+      "bytes": 51700,
+      "sha256": "af0bfeb4febc80a158f2b7b765db48415a1c2a984e9fa83a04b9c77ef5c12f3b"
+    },
+    {
+      "path": "memory/wiki/distribuicao.md",
+      "bytes": 17424,
+      "sha256": "bf19b293f92f2811efa082387dd50efe49c8cc084a58bcb45e259e67a58e8e1d"
+    },
+    {
+      "path": "orq/agents/orq-docs.md",
+      "bytes": 2857,
+      "sha256": "d695d340c267edea7e935e6496cb8823495fe7584a6efcfc7f384052532cc5ad"
+    },
+    {
+      "path": "orq/agents/orq-implementer.md",
+      "bytes": 2687,
+      "sha256": "86fb444e928a405acee3ad07ddec594304ac9b2977655f5071e88c57666cb1b0"
+    },
+    {
+      "path": "orq/agents/orq-planner.md",
+      "bytes": 2909,
+      "sha256": "54f533f3b18fc4acfaaecc1f4aab20c537f7cca6998d93c6caffc1ef91c1ca9e"
+    },
+    {
+      "path": "orq/agents/orq-reviewer.md",
+      "bytes": 2741,
+      "sha256": "a16f1f6c617128639658d72b47e16097c2a3cfc07c3c5463ebc7c21331e9a5e4"
+    },
+    {
+      "path": "orq/agents/orq-scout.md",
+      "bytes": 2274,
+      "sha256": "649d672ea456b4056a0765a8fe5cd9a1eb89022d5c0b153452cb28d7edb68a1d"
+    },
+    {
+      "path": "orq/commands/elenco.md",
+      "bytes": 45622,
+      "sha256": "8ec1dc834686d71d2505696dae857dd5872e58e25bdf5b8c53ccdb774a6b5317"
+    },
+    {
+      "path": "orq/commands/implement-next.md",
+      "bytes": 15597,
+      "sha256": "dee7f0475b30880532634a993869ca776028147c3533b44f4e905b8528f91cf8"
+    },
+    {
+      "path": "orq/commands/init.md",
+      "bytes": 73940,
+      "sha256": "edcfa1c36a7cebd246c914ea7c9c3db5d0f51a0ee804eed7ad08b6e303419689"
+    },
+    {
+      "path": "orq/commands/plan-next.md",
+      "bytes": 15064,
+      "sha256": "c8415682c4c431f7c5723d7b60385135b6a4f671e0373068ea41814321c35a2b"
+    },
+    {
+      "path": "orq/commands/revisar.md",
+      "bytes": 20689,
+      "sha256": "a6e60ebeef84ece4be476f256a95d67bbb9f175a3d14a7ba24fcf99fbbae2fc1"
+    },
+    {
+      "path": "orq/references/elenco-padrao.json",
+      "bytes": 1888,
+      "sha256": "f75b3d4310ffb6e4f232bc3bc827d13ec02dee489648bf49445cbc2553ab80e9"
+    },
+    {
+      "path": "orq/scripts/elenco_padrao.py",
+      "bytes": 11793,
+      "sha256": "4e016d8a00962a0df45ffeb789ff73c303a554980b1be5239cb91d65bda9326b"
+    },
+    {
+      "path": "orq/scripts/fixtures/elenco-t131-historico.txt",
+      "bytes": 3616,
+      "sha256": "c62ae19c4f762d52429068606902d2fa6baebdfdd08e8afa0dacb2f74af31965"
+    },
+    {
+      "path": "orq/scripts/lint-coerencia.py",
+      "bytes": 146977,
+      "sha256": "b8952b13eb0ed03800af5942f261becd78cc56ed27d9bc7371ff3a2b2e13b35c"
+    },
+    {
+      "path": "orq/scripts/run-opus-reviewer.py",
+      "bytes": 17107,
+      "sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4"
+    },
+    {
+      "path": "orq/scripts/test_elenco_consumidores.py",
+      "bytes": 2712,
+      "sha256": "2a5fcbefb582b3daaa8dcc224497b9a9d8cc62d088cd7e015084bea67b6a0d56"
+    },
+    {
+      "path": "orq/scripts/test_elenco_padrao.py",
+      "bytes": 13020,
+      "sha256": "17c98cdafe23ca769806d01487d55ee00f2a7b97fad422e691794802928c700e"
+    },
+    {
+      "path": "orq/scripts/test_elenco_perfis.py",
+      "bytes": 85985,
+      "sha256": "4d13088fb930204b5b3a31d970eeccfaa960d2c31320dde7e4cb9e5c44e6be06"
+    },
+    {
+      "path": "orq/scripts/test_run_opus_reviewer.py",
+      "bytes": 39752,
+      "sha256": "8329f762c86d10c5ef9b2d05bd2895a36f1ff3eb2e80a238a6028fada7246b8f"
+    },
+    {
+      "path": "orq/scripts/test_verify_installed_cache.py",
+      "bytes": 24676,
+      "sha256": "124f92e3359a3748ffc8d875345a37871877ad80ddc588cc6f11b01f29aa0221"
+    },
+    {
+      "path": "orq/skills/orq/SKILL.md",
+      "bytes": 46232,
+      "sha256": "ab67c804ac01a93f5b8ca15309aba4d2d730c5dd12a9d7495b19012825fb4a46"
+    }
+  ],
+  "verification": {
+    "baseline": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'",
+      "tests": 838,
+      "exit": 0,
+      "elapsed_seconds": 217.657,
+      "manifest_exit": 0,
+      "lint_exit": 0
+    },
+    "first_full_changed": {
+      "tests": 864,
+      "exit": 1,
+      "elapsed_seconds": 217.795,
+      "failures": [
+        "test_api_error_message_is_bounded",
+        "test_direct_lint_execution_does_not_create_verifier_pycache"
+      ],
+      "resolution": "Recibo compacto com effort somente se fornecido; fixture mínima inclui elenco_padrao.py. Ambos GREEN individualmente."
+    },
+    "second_full_changed": {
+      "tests": 864,
+      "exit": 0,
+      "tests_elapsed_seconds": 217.329,
+      "manifest_exit": 0,
+      "lint_exit": 0
+    },
+    "final_with_documentation": [
+      {
+        "label": "suite",
+        "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'",
+        "exit": 0,
+        "tests": 864,
+        "tests_elapsed_seconds": 215.716,
+        "process_elapsed_seconds": 216.109
+      },
+      {
+        "label": "manifesto",
+        "command": "claude plugin validate ./orq --strict",
+        "exit": 0,
+        "process_elapsed_seconds": 0.823
+      },
+      {
+        "label": "lint",
+        "command": "PYTHONDONTWRITEBYTECODE=1 python3 orq/scripts/lint-coerencia.py .",
+        "exit": 0,
+        "process_elapsed_seconds": 0.219
+      },
+      {
+        "label": "diff-check",
+        "command": "git diff --check",
+        "exit": 0,
+        "process_elapsed_seconds": 0.019
+      }
+    ],
+    "focused": {
+      "catalog_tests": 19,
+      "consumer_tests": 4,
+      "runner_added_tests": 3,
+      "elenco_perfis_tests": 97,
+      "mutation_scenarios": [
+        "omissão/downgrade de effort detectados na argv da CLI falsa",
+        "alias/modelo, tabela e instrução divergentes reprovam guardas",
+        "frontmatter fixo e resolução de perfil ausente reprovam guardas",
+        "prova read-only não libera escritor; contexto/override/digest inválidos recusados"
+      ]
+    },
+    "limitations": [
+      "Testes de argv usam CLI falsa sem rede; não provam esforço observado no servidor ou acesso da conta.",
+      "Validação estrita chama só a validação do manifesto, não inferência.",
+      "Revisão independente ainda não ocorreu.",
+      "Instalação, restart e adoção em outros projetos não ocorreram."
+    ]
+  },
+  "r1": {
+    "path": "docs/reviews/T-149-R1-pacote-sanitizado.md",
+    "bytes": 99693,
+    "sha256": "24ccdd9bb4343cb4027f192e85a4489abb7a7a1ba983d6a8d7f719e36b06c4ea",
+    "cap_bytes": 131072,
+    "reviewer_model": "claude-opus-5-5",
+    "effort": "high",
+    "runner_sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4",
+    "status": "prepared_not_sent",
+    "authorized_calls": 0,
+    "consumed_calls": 0,
+    "retry": false
+  },
+  "preserved": {
+    "active_rosters_unchanged": true,
+    "claude_t144_worktree_untouched": true,
+    "caches_untouched": true,
+    "global_skills_untouched": true
+  },
+  "delivery": {
+    "commit_push_authorized": true,
+    "bump_authorized": false,
+    "integration_authorized": false,
+    "commit_performed": false,
+    "push_performed": false,
+    "release_publication_performed": false,
+    "installation_performed": false,
+    "restart_performed": false
+  }
+}

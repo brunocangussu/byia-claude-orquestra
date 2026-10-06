@@ -6,6 +6,15 @@ argument-hint: "[T-NNN | caminho | 'o que revisar'] [--rapido para briefing enxu
 Rode uma **revisão independente**: um revisor lê a mudança sem ter escrito nada dela, devolve o
 parecer, e você **audita cada achado contra o código** antes de repassar.
 
+**Resolução do perfil:** leia o host ativo em `_elenco.md` e resolva **modelo e effort** juntos
+pela Matriz de invocação. A fábrica só é consultada por `scripts/elenco_padrao.py` da raiz
+`ORQ_PACKAGE_ROOT` comprovada; veja `/orq:elenco`, “Padrão da versão”. Catálogo ou
+`model: inherit` não autoriza despacho, adoção, herança do Manager ou fallback.
+Passe os parâmetros declarados pela via comprovada: dois em `@effort`; **legado sem effort**
+segue o contrato de `/orq:elenco`, só modelo comprovado e effort não solicitado.
+Recusa de effort declarado não permite downgrade nem omissão.
+Preserve os gates de capacidade, autoridade, independência e continuidade já definidos.
+
 O revisor é **um só, e sempre do vendor oposto ao host** — host Claude é revisado por OpenAI, host
 Codex é revisado por Anthropic. A razão de existir do revisor é ser independente de quem escreveu;
 um revisor do mesmo vendor do host não entrega isso, por mais forte que seja o modelo.
@@ -166,17 +175,30 @@ contradição que motivou este card — elenco declarando um modelo, execução 
 
 ```bash
 # ORQ_PACKAGE_ROOT já foi resolvido pela skill para um caminho absoluto.
-REVIEWER_MODEL_ALIAS="<alias ou ID resolvido da linha reviewer>"
+REVIEWER_PROFILE="<token modelo[@effort] da célula reviewer; primeiro par de crases se houver, nunca notas>"
+REVIEWER_MODEL_ALIAS="${REVIEWER_PROFILE%%@*}"
+REVIEWER_EFFORT=""
 OPUS_RUNNER="<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py"
+OPUS_ARGS=(--model "$REVIEWER_MODEL_ALIAS")
+case "$REVIEWER_PROFILE" in
+  *@*)
+    REVIEWER_EFFORT="${REVIEWER_PROFILE#*@}"
+    OPUS_ARGS+=(--effort "$REVIEWER_EFFORT")
+    ;;
+esac
 OPUS_OUT=$(
   printf '%s' "$OPUS_BRIEFING_SANITIZADO" |
-    python3 "$OPUS_RUNNER" --model "$REVIEWER_MODEL_ALIAS"
+    python3 "$OPUS_RUNNER" "${OPUS_ARGS[@]}"
 )
 OPUS_EXIT=$?
 if [ "$OPUS_EXIT" -ne 0 ] || [ -z "$OPUS_OUT" ]; then
   echo "REVISÃO DEGRADADA: titular ausente; preserve o diagnóstico do stderr"
 fi
 ```
+
+No **legado sem effort** autorizado/comprovado, a flag é omitida; solicitado/enviado
+ficam **não solicitado**, e o effort do servidor **não verificado**. Num perfil `@effort`,
+valor ausente ou recusado degrada a revisão: nunca omita para contornar a recusa.
 
 O runner anuncia `OPUS_STARTED` **no stderr**, logo após validar o tamanho, e aplica timeout de 600s. Esse teto
 acomoda a latência real observada de 267,1s em revisão arquitetural, sem remover a proteção contra

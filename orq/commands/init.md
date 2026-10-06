@@ -28,7 +28,13 @@ sessão, você já tem o mapa — **não gaste subagente pra confirmar o que já
 identifique só as **lacunas**, e dispare scout apenas para elas. Num projeto pequeno que você acabou
 de ler inteiro, o número certo de scouts é **zero**.
 
-Para o que faltar, dispare `orq-scout` **em paralelo** (um por frente) e, enquanto isso, olhe você
+Sem `_elenco.md`, o Manager inicia pela investigação read-only na própria sessão, sem fingir
+um scout separado nem herdar o default num spawn. Só delegue lacuna quando já houver perfil
+explícito candidato e capacidade contextual/autoridade comprovadas para modelo e effort;
+consultar a fábrica não adota o time. Havendo elenco ativo **legado sem effort** comprovado,
+aplique o contrato de `/orq:elenco`, sem exigir um effort inventado.
+
+Para o que faltar e tiver despacho comprovado, dispare `orq-scout` **em paralelo** (um por frente) e, enquanto isso, olhe você
 mesmo a raiz. Não leia arquivos inteiros: use busca semântica e amostragem.
 
 Levante:
@@ -118,9 +124,16 @@ Para cada papel adicional decida:
 - `tools` — **mínimo necessário**. Quem revisa é **read-only** (sem Edit/Write). Só quem implementa escreve.
 - quando é chamado e o que entrega.
 
-**Proponha o ELENCO** (`memory/wiki/_elenco.md`) — qual LLM toca cada papel. Sugira uma escalação e
+**Proponha o ELENCO** (`memory/wiki/_elenco.md`) — consulte `scripts/elenco_padrao.py` da raiz
+`ORQ_PACKAGE_ROOT` já comprovada, com `--package-root` e `--host` explícitos. Resolva **modelo e effort**
+juntos pelo catálogo `references/elenco-padrao.json` do pacote carregado, conforme `/orq:elenco`,
+“Padrão da versão”. Não use frontmatter, alias ou tabela antiga como fallback. Reinstalação não
+migra o elenco existente; preserve outro host, presets, overrides e vias desligadas. Inicialização
+só materializa o host aprovado depois do gate contextual completo; consulta não chama modelo.
+
+Sugira uma escalação e
 deixe claro que ele pode mudar depois com `/orq:elenco planner <modelo>`, ou trocar o **time inteiro**
-por contexto de crédito com `/orq:elenco perfil economia` — o arquivo já nasce com esse conceito
+por contexto de crédito com `/orq:elenco perfil economia` — esse preset é opcional e só nasce se pedido
 (seção "Perfis", ver FASE 4). Identifique também o host atual e proponha a linha correspondente em
 `## Times por host` — **é a única tabela ativa**, e cada host lê e grava só a seção dele.
 
@@ -298,10 +311,11 @@ máquina dele não é. Se ele não se pronunciou sobre a stack, siga a FASE 4 **
     elegíveis. Quando o recibo válido ainda é compatível, o reuso não exige nova sonda a cada uso.
     A escalação aprovada (papel → modelo, nos dois eixos) +
     a via cross-vendor ativa, **gerado a partir do template "Modelo do arquivo" de
-   `${CLAUDE_PLUGIN_ROOT}/commands/elenco.md`**
+   `${ORQ_PACKAGE_ROOT}/commands/elenco.md` da mesma raiz comprovada do catálogo/manifesto**
    (traz de fábrica `## Matriz de invocação`, `## Times por host`, a linha "Perfil ativo" e a seção
-   "Perfis" com `padrao`/`economia` prontos — ajuste só os modelos e a nota de "o que se perde" à
-   realidade deste projeto). Não crie um `_elenco.md` só com a tabela de um host: o projeto nasce
+   "Perfis" com `padrao` congelado a partir da fábrica consultada. `economia` só se pedido: omita
+   o exemplo legado do template por padrão. Registre versão/digest/origem e materialize apenas
+   o host aprovado e comprovado; o outro fica como proposta não ativa. Não crie um `_elenco.md` só com a tabela de um host: o projeto nasce
    **já** com o conceito de perfil e resolução por host, não como um recurso que só aparece se
    alguém pedir depois. É esse arquivo que os comandos leem na hora de spawnar.
 

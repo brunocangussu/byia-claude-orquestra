@@ -32,6 +32,11 @@ try:
 except ModuleNotFoundError:  # execução direta a partir do cache instalado
     from verify_installed_cache import find_installation_divergences
 
+try:
+    from orq.scripts.elenco_padrao import load_catalog, factory_block, ROLES
+except ModuleNotFoundError:
+    from elenco_padrao import load_catalog, factory_block, ROLES
+
 # `memory/` é deliberadamente excluído: o log é append-only e o gotchas.md citam
 # nomes de comandos QUE DEIXARAM DE EXISTIR, de propósito, ao descrever bugs
 # passados. Varrer memory/ produz falso positivo em todo checkpoint — e lint que
@@ -935,6 +940,67 @@ def _validar_perfil_ativo_documento(
             )
         )
 
+    return problemas
+
+
+def reviewer_factory_rows(plugin: Path) -> dict:
+    """Guarda de vendor deriva do catálogo validado, não de modelos congelados."""
+    try:
+        catalog = load_catalog(plugin.resolve())
+    except ValueError:
+        return {host: "<catálogo inválido>" for host in ("claude", "codex")}
+    return {host: f"| reviewer | `{p['model_id']}@{p['effort']}` |"
+            for host, profiles in catalog["hosts"].items() for p in [profiles["reviewer"]]}
+
+
+def validate_versioned_roster(raiz: Path, plugin: Path) -> list:
+    """T-149: catálogo fechado, demonstrações derivadas e consumidores explícitos."""
+    problemas = []
+    catalog_path = plugin / "references/elenco-padrao.json"
+    try:
+        catalog = load_catalog(plugin.resolve())
+    except ValueError as exc:
+        return [(catalog_path.relative_to(raiz), 0, str(exc))]
+    command = plugin / "commands/elenco.md"
+    try:
+        text = command.read_text(encoding="utf-8")
+        marker = r"<!-- orq:elenco-padrao:start -->.*?<!-- orq:elenco-padrao:end -->"
+        blocks = re.findall(marker, text, re.S)
+        if blocks != [factory_block(catalog)]:
+            problemas.append((command.relative_to(raiz), 0, "T-149: demonstração da fábrica diverge do catálogo"))
+        template, _, error = _bloco_canonico_elenco(text)
+        if error:
+            problemas.append((command.relative_to(raiz), 0, f"T-149: {error}"))
+        else:
+            for host, profiles in catalog["hosts"].items():
+                section, state = secao_unica(template, f"### Host {host.capitalize()}")
+                for role in ROLES:
+                    p = profiles[role]
+                    row = f"| {role} | `{p['model_id']}@{p['effort']}` |"
+                    if state != "ok" or section.count(row) != 1:
+                        problemas.append((command.relative_to(raiz), 0,
+                            f"T-149: template {host}/{role} diverge do catálogo ou tem duplicata"))
+            preset, state = secao_unica(template, "### `padrao` — o time titular")
+            for role, p in catalog["hosts"]["claude"].items():
+                row = f"| {role} | {p['model_id']}@{p['effort']} |"
+                if state != "ok" or preset.count(row) != 1:
+                    problemas.append((command.relative_to(raiz), 0, f"T-149: preset inicial {role} diverge da fábrica"))
+    except (OSError, UnicodeDecodeError) as exc:
+        problemas.append((command.relative_to(raiz), 0, f"T-149: não foi possível ler: {exc}"))
+    consumers = [plugin / "commands" / (name + ".md") for name in
+                 ("elenco", "init", "plan-next", "implement-next", "revisar")]
+    consumers.append(plugin / "skills/orq/SKILL.md")
+    consumers.extend(plugin / "agents" / ("orq-" + name + ".md") for name in
+                     ("planner", "implementer", "reviewer", "docs", "scout"))
+    for file in consumers:
+        try:
+            text = file.read_text(encoding="utf-8")
+            if "elenco_padrao.py" not in text or "modelo e effort" not in text:
+                problemas.append((file.relative_to(raiz), 0, "T-149: consumidor sem resolução conjunta de modelo e effort"))
+            if file.parent.name == "agents" and not re.search(r"(?m)^model: inherit$", text.split("---")[1]):
+                problemas.append((file.relative_to(raiz), 0, "T-149: frontmatter fixo contorna o perfil resolvido"))
+        except (OSError, UnicodeDecodeError, IndexError) as exc:
+            problemas.append((file.relative_to(raiz), 0, f"T-149: consumidor inválido: {exc}"))
     return problemas
 
 
@@ -2336,6 +2402,7 @@ def main() -> int:
         "`workspace-write` e o papel deixa de ser read-only."
     )
 
+    reviewer_rows = reviewer_factory_rows(plugin)
     CONTRATOS_CODEX = {
         plugin / "skills" / "orq" / "SKILL.md": (
             ANCORA_PROIBICAO_WRITE,
@@ -2369,6 +2436,7 @@ def main() -> int:
             "`--rapido` **não troca de revisor**",
             "run-opus-reviewer.py",
             '--model "$REVIEWER_MODEL_ALIAS"',
+            '--effort "$REVIEWER_EFFORT"',
             "16 KiB",
             "Nunca corte bytes nem",
             "OPUS_EXIT",
@@ -2383,8 +2451,8 @@ def main() -> int:
             "Host Codex: `codex exec` é obrigatório",
             "política habilitada, não capacidade comprovada",
             "a independência ganha do domínio, sempre",
-            "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)",
-            "| reviewer | `gpt-6-astra@xhigh` |",
+            reviewer_rows["codex"],
+            reviewer_rows["claude"],
             "run-opus-reviewer.py",
             ANCORA_PROIBICAO_WRITE,
         ),
@@ -2508,8 +2576,8 @@ def main() -> int:
     # (a) a linha do vendor oposto presente 1× e (b) a linha do OUTRO host
     # ausente. A linha do host Codex carrega junto a comprovação do alias
     # correspondente (ID explícito `claude-opus-5-5`), que continua obrigatória.
-    REVIEWER_CLAUDE = "| reviewer | `gpt-6-astra@xhigh` |"
-    REVIEWER_CODEX = "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)"
+    REVIEWER_CLAUDE = reviewer_rows["claude"]
+    REVIEWER_CODEX = reviewer_rows["codex"]
     REVIEWER_POR_HOST = {
         "### Host Claude": (REVIEWER_CLAUDE, REVIEWER_CODEX, "titular OpenAI"),
         "### Host Codex": (REVIEWER_CODEX, REVIEWER_CLAUDE, "titular Anthropic, ID comprovado"),
@@ -2605,6 +2673,7 @@ def main() -> int:
     # Cada documento (`_elenco.md` do projeto e o template de fábrica) é
     # validado CONTRA SI MESMO — divergem legitimamente entre si (pergunta 5).
     problemas.extend(validate_elenco_perfis(raiz, plugin))
+    problemas.extend(validate_versioned_roster(raiz, plugin))
 
     # ── Host aposentado (T-051) ────────────────────────────────────────────
     # O suporte ao terceiro host saiu do produto na 0.24.0. O modo de falha nº

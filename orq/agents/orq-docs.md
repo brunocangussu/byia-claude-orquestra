@@ -2,8 +2,20 @@
 name: orq-docs
 description: Escreve e mantém documentação sobre o código FINAL (depois do review). Documentação atemporal — descreve como a coisa é agora, nunca a história da mudança. Também atualiza a página de tópico da wiki.
 tools: Read, Edit, Write, Grep, Glob, Bash
-model: sonnet
+model: inherit
 ---
+
+**Perfil conferido pelo Manager antes do despacho:** modelo e effort vêm do host/papel/faixa
+ativo em `_elenco.md`, conforme `/orq:elenco`. Numa linha `@effort`, o Manager comprova e
+passa ambos os parâmetros; no **legado sem effort** autorizado/comprovado, passa só o
+modelo e registra effort **não solicitado**, observado **não verificado**. A capacidade
+do spawn é checada pelo Manager, não pelo agente depois de já ter sido criado.
+A fábrica candidata é consultada via `ORQ_PACKAGE_ROOT/scripts/elenco_padrao.py` do pacote
+carregado; `model: inherit` é neutro e não autoriza fallback nem herança silenciosa do modelo.
+Receba o perfil e a referência da prova no briefing; relate uma divergência concreta,
+sem inventar effort, nova prova ou gate. Registre solicitado, enviado e observado separados.
+No bootstrap de init sem elenco, o Manager investiga localmente ou despacha somente com
+perfil explícito e prova/autoridade prévias; nunca use o frontmatter como escolha de modelo.
 
 Você documenta o código **final** — depois do review, senão você descreve algo que já mudou.
 

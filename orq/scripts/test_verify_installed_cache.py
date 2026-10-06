@@ -467,7 +467,7 @@ class VerifierImportSideEffectTests(unittest.TestCase):
             scripts = root / "orq" / "scripts"
             scripts.mkdir(parents=True)
             source_scripts = Path(__file__).resolve().parent
-            for name in ("lint-coerencia.py", "verify_installed_cache.py"):
+            for name in ("lint-coerencia.py", "verify_installed_cache.py", "elenco_padrao.py"):
                 shutil.copy2(source_scripts / name, scripts / name)
 
             import_marker = root / "verifier-imported"

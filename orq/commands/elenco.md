@@ -4,8 +4,8 @@ argument-hint: "[papel modelo | perfil nome — ex: 'planner interface <modelo>'
 ---
 
 O **elenco** define qual modelo interpreta cada papel **neste projeto**. Fica em
-`memory/wiki/_elenco.md` e vale como override no momento do spawn — o `model:` do arquivo do agente
-é só o padrão de fábrica.
+`memory/wiki/_elenco.md` e vale como override no momento do spawn. O `model: inherit` dos agentes
+é neutro: nunca autoriza executar no modelo ou effort do Manager por ausência de override.
 
 **A regra que organiza tudo:** *domínio decide quem pensa; host decide quem escreve.* Dois eixos
 independentes, definidos canonicamente aqui e apenas referenciados nos outros comandos.
@@ -14,6 +14,13 @@ independentes, definidos canonicamente aqui e apenas referenciados nos outros co
 
 **Identifique o host, leia a tabela DELE em `## Times por host`, e aplique a célula da
 `## Matriz de invocação`. Não existe outra tabela ativa.**
+
+Tabela marcada como **proposta, não adotada** não é ativa. Arquivo sem marca de origem é legado:
+verifique a escolha e os recibos existentes, sem inventar adoção da fábrica ou bloquear capacidade
+legada já comprovada. O gate confere os parâmetros efetivamente declarados na linha, não os
+parâmetros sugeridos pela fábrica: **legado sem effort** mantém override só do modelo e registra
+effort **não solicitado** (observado: não verificado). Não invente `@effort` nem exija nova sonda
+quando a prova existente da combinação legada continua válida no contexto real.
 
 Isto vale para ler e para escrever: `/orq:elenco` (ajuste papel a papel e `perfil <nome>`) grava na
 tabela do **host resolvido**, nunca numa tabela compartilhada. É o que impede uma janela Codex de
@@ -24,6 +31,92 @@ sua seção.
 > prática, o time do host Claude, mas nada dizia isso, e consumidor nenhum a lê mais. Trate-a como
 > **legada: não leia, não grave**. Proponha a migração (regra em "Migração de arquivo legado"), com
 > gate. Enquanto a migração não acontecer, o time vem de `## Times por host`.
+
+## Padrão da versão — proposta e adoção explícita
+
+“Siga o elenco padrão desta versão”, “padrão da versão” e “padrão Orquestra” consultam a fábrica
+do **pacote carregado**, não um preset local. Depois de comprovar `ORQ_PACKAGE_ROOT` absoluto,
+existente e com `scripts/kanban-status.sh`, consulte:
+
+```bash
+python3 "${ORQ_PACKAGE_ROOT}/scripts/elenco_padrao.py" --package-root "${ORQ_PACKAGE_ROOT}" --host <host-resolvido>
+```
+
+O único dado de fábrica é `references/elenco-padrao.json`. O resolvedor retorna **modelo e effort**
+juntos, as vias candidatas, a versão derivada do manifesto e o digest do catálogo. Não há quinta
+âncora de versão. Tabelas deste comando são demonstrações derivadas e conferidas pelo lint, nunca
+outra fonte. **Consulta é pura:** não escreve elenco, autentica, faz probe, chama modelo ou adota.
+Se instalada e carregada diferirem, diga as duas; não procure `latest`, não troque a raiz em silêncio.
+
+Para adotar em projeto existente:
+
+1. Identifique o host e mostre a proposta/diff só da seção dele. Preserve o outro host, o Manager,
+   os presets locais, overrides explícitos e todas as vias desligadas. Escolha sem origem registrada
+   é **legada**, não prova nem override inventado: mostre a diferença antes de migrar.
+   A proposta pura cobre somente os oito papéis de fábrica: normalize essa projeção antes de
+   chamar o helper, mantenha Manager/papéis adicionais e seus overrides fora dela e aplique
+   só as linhas dos oito papéis. Nunca substitua a seção inteira pela proposta JSON; papéis
+   locais, presets e dados fora da projeção ficam byte a byte preservados no diff auditado.
+2. Para cada par/via/sandbox/contexto **novo ou alterado**, aplique o gate de capacidade abaixo.
+   Reuse recibo real ainda compatível (conta, versão do cliente, mecanismo e sandbox); não repita
+   prova válida. Catalogado não é disponível, e texto autodeclarado não é recibo auditado.
+3. Faltou comprovação? Liste só os papéis pendentes e **não grave nenhuma parte** da adoção.
+   Não faça probe, retry, fallback, reativação de via nem rebaixamento de effort automaticamente.
+   O restante do desenvolvimento local já aprovado segue seu contrato de continuidade.
+4. A intenção explícita de adotar autoriza o ajuste local delimitado; chamadas externas e provas
+   não são implícitas. Depois dos gates, grave todas as mudanças do host juntas, preservando um
+   snapshot anterior para rollback. Registre origem `orquestra-version`, versão, `catalog_sha256`,
+   data e overrides preservados. `preview_adoption()` apenas monta essa proposta em memória: não
+   certifica recibos, concede autoridade ou escreve Markdown. O Manager audita e aplica o diff.
+5. Não reescreva presets para fazê-los coincidir. Se o preset ativo divergir, registre os desvios
+   dos papéis alterados no formato de `Perfil ativo`; mantenha também a proveniência da adoção.
+   Atualizar/instalar N+1 **não migra** a adoção de N. Workers vivos terminam no perfil original;
+   a adoção vale para os próximos despachos. Rollback também exige intenção e prova compatível.
+
+`perfil padrao` e `perfil economia` continuam **snapshots locais congelados**, não aliases da fábrica
+mais recente. Ao recomendar um deles, mostre origem e diferenças; economia é opcional, não outro
+elenco de fábrica mantido à mão. Não crie esse preset nem descarte desvios sem pedido correspondente.
+
+### Modelo, effort e via no despacho
+
+Resolva host → papel/faixa → **perfil ativo** → via habilitada/comprovada. Numa linha `modelo@effort`,
+passe modelo e effort explicitamente juntos; registre solicitado, enviado e observado como
+campos distintos. Effort ausente na resposta não comprova o effort efetivo no servidor.
+Recusa de effort declarado é recusa, sem downgrade nem omissão da flag.
+
+**Legado sem effort:** linha ativa só com modelo, autorizada e já comprovada no contexto real,
+continua com override só do modelo. Não envie `--effort ""` nem acrescente um effort de fábrica:
+omita a flag e registre **não solicitado** / observado **não verificado**. Isso não transforma
+o default do cliente em effort adotado. O critério de legado é a **combinação autorizada e
+comprovada do papel/contexto**, não a data de escrita da linha. Voltar a um preset local já
+autorizado pode reutilizar seu recibo compatível sem nova chamada; existir no preset, sozinho,
+não comprova uso. Combinação nova/candidata só com modelo não ganha essa exceção: **não grave
+nem despache**, apresente um `@effort` explícito pela via candidata e peça a decisão/gate do
+dono antes de qualquer prova nova. Não invente effort de fábrica nem transfira prova de
+outro papel/conta/cliente/sandbox; as demais ações locais autorizadas continuam elegíveis.
+
+O **Manager** confere capacidade antes do despacho. Native spawn exige override efetivo dos
+parâmetros declarados: ambos numa linha `@effort`, só modelo no legado sem effort comprovado.
+Frontmatter neutro e catálogo não comprovam capacidade. Sem esse override, não herde o modelo
+da sessão: use apenas via alternativa já autorizada/comprovada, ou preserve o perfil anterior
+e estacione a dependência. O subagente recebe o perfil/recibo já conferidos; não precisa provar
+o próprio spawn nem criar um gate de capacidade com base em parâmetros que não foram pedidos.
+
+Na proposta pura, `runner-opus` desligado no host Codex significa `claude-cli` desligado;
+`codex` desligado no host Claude significa `codex-companion` desligado. Esses nomes não
+desligam o vendor nativo do outro host. O snapshot preserva a lista original de vias; a
+normalização é host-aware. Adote somente o mecanismo do recibo validado, nunca a lista
+de candidatos do catálogo. Proveniência registra essa via e os campos mínimos da prova,
+que são revalidados no contexto exato antes de reutilização, sem nova chamada automática.
+Essa conferência vale ao adotar/reusar o recibo para um despacho, não para cada ação local.
+Auto-update que altera a versão do cliente invalida o recibo daquela via: preserve a
+combinação registrada e estacione só os despachos dependentes, sem interromper workers
+já vivos ou tarefas locais elegíveis. Não presuma compatibilidade entre versões.
+
+Instrução global antiga não redefine a fábrica deste pacote. Havendo skills `orq` concorrentes,
+registre caminhos/versões e use este contrato versionado para o Orquestra, respeitando as regras
+do dono/projeto. Não edite ou apague skills/configs globais por conta própria, nem afirme que todos
+os chats carregaram o pacote. Configuração de fábrica não é prova de ativação em outro harness.
 
 ## As duas réguas (definição canônica — os outros comandos apontam para cá)
 
@@ -341,6 +434,35 @@ trocar por aqui. Se ele pedir, explique e sugira o `/model`.
 
 ## Modelo do arquivo
 
+<!-- orq:elenco-padrao:start -->
+### Fábrica — Host Codex
+
+| Papel | LLM · effort |
+|---|---|
+| planner·interface | `claude-opus-5-5@high` |
+| planner·sistema | `gpt-6.1-sol@xhigh` |
+| implementer·leve | `gpt-6-luna@medium` |
+| implementer·normal | `gpt-6.1-sol@high` |
+| implementer·pesada | `gpt-6.1-sol@xhigh` |
+| reviewer | `claude-opus-5-5@high` |
+| docs | `gpt-6-luna@low` |
+| scout | `gpt-6-luna@medium` |
+
+### Fábrica — Host Claude
+
+| Papel | LLM · effort |
+|---|---|
+| planner·interface | `claude-opus-5-5@high` |
+| planner·sistema | `gpt-6.1-sol@xhigh` |
+| implementer·leve | `claude-sonnet-5-5@low` |
+| implementer·normal | `claude-sonnet-5-5@medium` |
+| implementer·pesada | `claude-sonnet-5-5@high` |
+| reviewer | `gpt-6.1-sol@xhigh` |
+| docs | `claude-sonnet-5-5@low` |
+| scout | `claude-sonnet-5-5@low` |
+
+<!-- orq:elenco-padrao:end -->
+
 Todos os valores de fábrica são candidatos à inicialização; somente o gate de capacidade acima
 autoriza gravá-los. O template não declara que já foram exercitados na conta deste projeto.
 
@@ -359,17 +481,20 @@ significa “rodando agora”: o Manager verifica a sessão/CLI real antes de an
 
 ### Host Claude
 
+**Origem:** proposta do catálogo — não adotada. O init só substitui esta linha por
+origem, versão, digest e data de adoção no host aprovado e comprovado.
+
 | Papel | Modelo | Sandbox / mecanismo |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal |
-| planner·interface | `claude-opus-5-5` | spawn nativo read-only; confira sessão, modelo e mecanismo antes do uso |
-| planner·sistema | `gpt-6-astra@xhigh` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
-| implementer·pesada | `opus` | worktree dedicado, writer único |
-| implementer·normal | `sonnet` | worktree dedicado, writer único |
-| implementer·leve | `haiku` | worktree se houver trabalho paralelo |
-| reviewer | `gpt-6-astra@xhigh` | Codex Companion read-only; vendor oposto ao host, retomada pelo `threadId` exato |
-| docs | `sonnet` | arquivos de documentação autorizados |
-| scout | `sonnet` | read-only |
+| planner·interface | `claude-opus-5-5@high` | spawn nativo read-only; confira sessão, modelo e mecanismo antes do uso |
+| planner·sistema | `gpt-6.1-sol@xhigh` | Codex Companion read-only; task fresca por card+papel e retomada pelo `threadId` exato |
+| implementer·pesada | `claude-sonnet-5-5@high` | worktree dedicado, writer único |
+| implementer·normal | `claude-sonnet-5-5@medium` | worktree dedicado, writer único |
+| implementer·leve | `claude-sonnet-5-5@low` | worktree se houver trabalho paralelo |
+| reviewer | `gpt-6.1-sol@xhigh` | Codex Companion read-only; vendor oposto ao host, retomada pelo `threadId` exato |
+| docs | `claude-sonnet-5-5@low` | arquivos de documentação autorizados |
+| scout | `claude-sonnet-5-5@low` | read-only |
 
 **Perfil ativo:** `padrao` — desde <data de hoje>, sem desvio.
 *(É o formato canônico da linha — a única vez que ele é definido, e vale por host. Duas formas
@@ -383,17 +508,19 @@ continuar na lista. Ver passo 3 de "Com argumento — ajustar".)*
 
 ### Host Codex
 
+**Origem:** proposta do catálogo — não adotada. O outro host continua proposta até sua própria adoção.
+
 | Papel | Modelo | Sandbox / mecanismo |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; verificar, não trocar silenciosamente |
-| planner·interface | `gpt-6-astra@max` | `codex exec … -s read-only` — vendor nativo do host |
-| planner·sistema | `gpt-6-astra@max` | `read-only` |
+| planner·interface | `claude-opus-5-5@high` | runner Anthropic read-only, sem ferramentas; modelo e effort explícitos, identidade exata |
+| planner·sistema | `gpt-6.1-sol@xhigh` | `read-only` |
 | implementer·pesada | `gpt-6.1-sol@xhigh` | `workspace-write`, em worktree dedicado |
 | implementer·normal | `gpt-6.1-sol@high` | `workspace-write`, em worktree dedicado |
 | implementer·leve | `gpt-6-luna@medium` | `workspace-write`, em worktree dedicado |
-| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`) | runner Anthropic, read-only, sem ferramentas — invocar com `--model claude-opus-5-5` |
-| docs | `gpt-5.6-sol@low` | arquivos de documentação autorizados |
-| scout | `gpt-5.6-sol@low` | read-only |
+| reviewer | `claude-opus-5-5@high` | runner Anthropic read-only, sem ferramentas; modelo e effort explícitos, identidade exata |
+| docs | `gpt-6-luna@low` | arquivos de documentação autorizados |
+| scout | `gpt-6-luna@medium` | read-only |
 
 **Effort é parâmetro solicitado, não identidade observada nem garantia de qualidade.** Leve usa
 `medium`, normal `high`, pesada `xhigh`; a prova deve exercitar cada par no mecanismo e sandbox
@@ -420,7 +547,7 @@ vendor oposto, com o que já foi comprovado e quando. O nome na coluna **Via** �
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
 | codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex **não é via** — é o vendor nativo | ativo | subagente `codex:codex-rescue` → `codex-companion.mjs task`; modelo e effort vêm da tabela, e `jobId` + `threadId` sustentam o reúso exato, aceito só com `threadId` devolvido igual ao solicitado |
-| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias-ou-id>` · identidade exata para ID, prefixo para alias legado · 16 KiB por lote · timeout 600s |
+| runner-opus | Anthropic | **host Codex**: `planner·interface` e `reviewer`. No host Claude **não é via** — é o vendor nativo | ativo | runner Anthropic `scripts/run-opus-reviewer.py --model <alias-ou-id> --effort <effort-resolvido>` · identidade exata para ID, prefixo para alias legado · 16 KiB por lote · timeout 600s |
 
 A coluna **Consumida por** é o que torna o efeito de ligar/desligar anunciável sem chute: uma via só
 afeta os papéis listados, nos hosts listados. Via cujo vendor é o do próprio host não é via nenhuma
@@ -446,7 +573,7 @@ nunca leva dado de paciente, PII, prontuário ou credencial.
 
 | Vendor do modelo | Host Claude | Host Codex |
 |---|---|---|
-| Anthropic | spawn nativo com override comprovado nessa célula | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias-ou-id>` — limite 16 KiB/lote, timeout e identidade exata para `claude-opus-5-5` ou prefixo legado no `modelUsage`; valor fora do mapa de prova (`claude-opus-5-5`·`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
+| Anthropic | spawn nativo com overrides de modelo e effort comprovados nessa célula | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias-ou-id> --effort <effort-resolvido>` — limite 16 KiB/lote, timeout e identidade exata para `claude-opus-5-5` ou prefixo legado no `modelUsage`; valor fora do mapa de prova (`claude-opus-5-5`·`opus`·`fable`·`sonnet`·`haiku`) é recusado antes da chamada |
 | OpenAI | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; briefing declara read-only, e o handoff persiste `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado | **Host Codex: `codex exec` é obrigatório**; primitiva nativa só quando `_elenco.md` registrar override comprovado por chamada real |
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
@@ -469,19 +596,21 @@ perfil os toca, e aplicar um preset **preserva a linha `manager` e a seção "Re
 
 | Papel | Modelo | Por quê |
 |---|---|---|
-| planner·interface | claude-opus-5-5 | trilha perceptual por spawn nativo read-only |
-| planner·sistema | gpt-6-astra@xhigh | trilha comportamental pensa com OpenAI |
-| implementer·pesada | opus | alto risco ou decisão de desenho ainda aberta |
-| implementer·normal | sonnet | plano fechado, execução dirigida |
-| implementer·leve | haiku | resultado determinado, verificação mecânica |
-| reviewer | gpt-6-astra@xhigh | vendor oposto ao host — a independência não se rebaixa |
-| docs | sonnet | escrita objetiva sobre código já pronto |
-| scout | sonnet | leitura ampla e barata |
+| planner·interface | claude-opus-5-5@high | trilha perceptual por spawn nativo read-only |
+| planner·sistema | gpt-6.1-sol@xhigh | trilha comportamental pensa com OpenAI |
+| implementer·pesada | claude-sonnet-5-5@high | alto risco ou decisão de desenho ainda aberta |
+| implementer·normal | claude-sonnet-5-5@medium | plano fechado, execução dirigida |
+| implementer·leve | claude-sonnet-5-5@low | resultado determinado, verificação mecânica |
+| reviewer | gpt-6.1-sol@xhigh | vendor oposto ao host — a independência não se rebaixa |
+| docs | claude-sonnet-5-5@low | escrita objetiva sobre código já pronto |
+| scout | claude-sonnet-5-5@low | leitura ampla e barata |
 
 Revisores externos: via `codex` ativa · via `runner-opus` ativa — estado de fábrica, informativo: o
 perfil não aplica isto (ver passo 2 de "Com argumento `perfil <nome>`"), vale o que está registrado.
 
 ### `economia` — crédito curto
+
+Exemplo legado opcional, não fábrica da versão. O init omite este preset se não houver pedido.
 
 | Papel | Modelo | Por quê |
 |---|---|---|
@@ -503,8 +632,9 @@ enxuto do `--rapido` é o `/orq:revisar` — regra lá.
 para compensar — a auditoria do Manager contra o código passa a carregar mais peso; a escrita
 rebaixada erra mais em card `pesada`, que é justamente onde ou o desenho ainda está aberto ou a
 consequência do erro é a maior do board.
-Ajuste os modelos e a nota à realidade do projeto — os valores acima são ponto de partida, não
-contrato fixo.
+Ajuste os modelos e a nota à realidade do projeto somente se esse preset for pedido.
+Não semeie esse exemplo legado em projeto novo; um preset econômico aprovado deriva da fábrica
+carregada e da decisão do dono, sem transformar estes aliases históricos em recomendação de rotina.
 ```
 
 **Proposta de fábrica (fora do bloco copiável).** Os valores do template são candidatos e só podem
@@ -515,8 +645,8 @@ escolha do dono na sessão.
 ## Como isso é aplicado
 
 Ao spawnar um papel, os comandos (`plan-next`, `implement-next`, `revisar`, `init`) **leem o elenco**
-pela frase normativa do topo: host → tabela do host → Matriz. Sem elenco, os padrões de
-fábrica deste template são candidatos, sujeitos ao gate antes de inicializar ou executar;
+pela frase normativa do topo: host → tabela do host → Matriz. Sem elenco, consulte `elenco_padrao.py`:
+os padrões do catálogo carregado são candidatos, sujeitos ao gate antes de inicializar ou executar;
 o `model:` dos arquivos em `agents/` não contorna esse gate nem autoriza fallback.
 
 ## Orientação (quando ele pedir recomendação)
@@ -532,4 +662,5 @@ o `model:` dos arquivos em `agents/` não contorna esse gate nem autoriza fallba
   cair num revisor do mesmo vendor do host para tapar o buraco.
 - Trocar modelo **não** troca a disciplina: as regras dos agentes valem igual.
 - **Fim do ciclo de crédito?** `perfil economia` troca o time inteiro do host Claude — e o preset
-  diz, com todas as letras, o que se perde. `perfil padrao` desfaz.
+  existente diz o que se perde. É opcional: sem ele, ofereça um diff específico; não o crie
+  automaticamente. `perfil padrao` restaura o snapshot local, não a fábrica mais recente.

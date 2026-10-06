@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "card": "T-149",
+  "recorded_on": "2026-10-06",
+  "source_version": "0.30.0",
+  "base_commit": "fbc9b2ff6485b4d14a849587bd6a8d6e6f02607b",
+  "independent_review": {
+    "round": "R1",
+    "calls_authorized": 1,
+    "calls_consumed": 1,
+    "runner_exit": 0,
+    "verdict": "REPROVADO",
+    "retry": false,
+    "auth_failure": false
+  },
+  "local_corrections": "T-149-R1-auditoria.md",
+  "verification": [
+    {
+      "name": "suite",
+      "exit": 0,
+      "elapsed_seconds": 265.314,
+      "stdout": "",
+      "stderr": "..................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................../Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/case.py:632: ResourceWarning: unclosed file <_io.TextIOWrapper name=4 encoding='UTF-8'>\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n................................../Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/case.py:632: ResourceWarning: unclosed file <_io.TextIOWrapper name=4 encoding='UTF-8'>\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n................................................................................................................................\n----------------------------------------------------------------------\nRan 870 tests in 265.088s\n\nOK\n"
+    },
+    {
+      "name": "manifesto",
+      "exit": 0,
+      "elapsed_seconds": 0.9,
+      "stdout": "Validating plugin manifest: <WORKTREE>/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n",
+      "stderr": ""
+    },
+    {
+      "name": "lint",
+      "exit": 0,
+      "elapsed_seconds": 0.193,
+      "stdout": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n",
+      "stderr": ""
+    },
+    {
+      "name": "diff-check",
+      "exit": 0,
+      "elapsed_seconds": 0.029,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "suite": {
+    "tests": 870,
+    "result": "OK",
+    "resource_warnings": 2,
+    "warning_origin": "não auditada; não suprimida"
+  },
+  "focused": {
+    "tests": 29,
+    "result": "OK"
+  },
+  "mutations": {
+    "valid": 6,
+    "caught": 6,
+    "execution_errors": 0
+  },
+  "delivery": {
+    "bump": false,
+    "staging": false,
+    "commit": false,
+    "push": false,
+    "integration": false,
+    "publication": false,
+    "installation": false,
+    "restart": false
+  },
+  "next_review": {
+    "round": "R2",
+    "authorized_calls": 0,
+    "consumed_calls": 0,
+    "status": "PREPARED_ONLY"
+  }
+}

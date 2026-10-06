@@ -9,9 +9,10 @@
 orq/
 ├── .claude-plugin/plugin.json    manifesto (nome, versão, autor)
 ├── commands/                     os /orq:* — um arquivo por passo do fluxo
-├── agents/                       o time — frontmatter define tools e o model padrão
+├── agents/                       o time — tools e frontmatter neutro; perfil resolvido por host/papel
 ├── skills/orq/SKILL.md           a disciplina: gatilhos naturais + regras invioláveis
 ├── schemas/                      contratos JSON dos ledgers e do vínculo de sessão (`audit-ledger-v1.json`, `progress-ledger-v1.json`, `progress-binding-v1.json`)
+├── references/elenco-padrao.json  fábrica única de modelo e effort, versionada pelo manifesto
 └── scripts/                      kanban-status.sh · lint-coerencia.py · progress.py · progress-hook.py · guardiões e runners testados
 ```
 
@@ -99,12 +100,44 @@ Claude Code; no Codex a interface oficial é linguagem natural ou `/skills`.
 
 Para validar o reviewer externo de verdade, use um projeto de teste sem instruções locais e peça
 revisão em linguagem natural. A evidência mínima do Opus é: runner exit 0, stderr com
-`OPUS_MODEL=claude-opus-5` e parecer não vazio. Testar só `claude --version` ou o alias no help não
+`OPUS_MODEL=<ID-completo-resolvido>` e parecer não vazio; o ID deve ser o solicitado
+no perfil atual (não um alias fixo). Testar só `claude --version` ou o alias no help não
 prova modelo nem integração do plugin. Briefing acima de 16 KiB deve aparecer como lotes completos;
 timeout, modelo errado ou saída vazia precisam resultar em **`REVISÃO DEGRADADA — sem parecer`**,
 com a causa real nomeada — nunca silêncio e **nunca `PAINEL PARCIAL`**, que é vocabulário da época do
 painel. Nessa situação **o card não avança sozinho**: seguir sem revisão independente é decisão do
 dono, pedida na hora. O contrato completo é o do `/orq:revisar`; esta página não o reescreve.
+
+## Distribuir não é adotar o elenco — T-149
+
+A fábrica do release vive em `orq/references/elenco-padrao.json`. Sua versão é a
+do manifesto, não uma quinta âncora; `orq/scripts/elenco_padrao.py` fornece
+proposta/digest puros. Template, agentes, consumidores e guardas devem seguir
+essa mesma fonte. Fixtures históricas verificam preservação do legado, não
+congelam a fábrica atual ou o elenco ativo de cada projeto.
+
+Depois da entrega e do carregamento autorizados, o dono pede no projeto:
+“Siga o elenco padrão desta versão do Orquestra”. O Manager comprova a raiz
+absoluta do pacote carregado e consulta o resolvedor com `--package-root` e
+`--host`. Versão instalada e carregada divergentes são um diagnóstico, não
+motivo para escolher `latest` nem editar o cache de uma sessão viva.
+
+Antes de adotar, compare o host atual, preserve seus overrides explícitos e
+reaproveite recibos válidos no contexto exato. Falta de capacidade para qualquer
+papel novo/alterado impede toda a adoção desse host; candidato não autoriza
+inferência de prova nem reativação de via. Adoção aprovada registra origem,
+versão, digest, data, mecanismo selecionado e prova contextual mínima, preservando
+o outro host, Manager e presets locais. A lista de mecanismos candidatos nunca
+vira autorização para despachar por uma via não comprovada ou desligada.
+“Perfil padrão” continua significando um preset local, não atualização implícita.
+
+Validação prática: num projeto de teste, a intenção natural deve propor o
+perfil do pacote realmente carregado; instalar N+1 deve preservar o perfil N
+até nova adoção. Compare o outro host e as exceções antes/depois; sem prova,
+nenhuma célula pode mudar. Um recibo do runner registra modelo e effort
+solicitados/enviados, mas só declara observados os valores que a resposta
+comprovou. Testes com CLI falsa não fecham esse smoke nem atualizam todos os
+chats. Instalação, restart e adoção em outros projetos continuam gates próprios.
 
 ## As três verificações
 

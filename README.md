@@ -470,7 +470,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.30.0` — fonte consolidada T-148: continuidade aprovada · identidade Companion · elenco/runner · medidor de progresso. Instalação e validação prática dos hosts permanecem separadas.
+`0.31.0` — elenco padrão versionado T-149: catálogo de fábrica por host, modelo e effort explícitos, adoção por intenção natural e prova contextual antes do despacho. Elencos ativos e modelo do Manager são preservados. Instalação e validação prática dos hosts permanecem separadas.
 · **medidor de progresso portátil** (fase do board + percentual dos passos do plano, `show`/`watch` em qualquer host, segmento na statusline do Claude e lembrete consultivo por hook nos dois hosts)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar

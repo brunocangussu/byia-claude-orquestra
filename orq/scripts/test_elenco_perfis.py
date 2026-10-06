@@ -178,9 +178,12 @@ class ElencoPerfisRedIntegrationTest(unittest.TestCase):
     def test_reviewer_do_vendor_do_host_reprova_no_template(self) -> None:
         caminho = self.root / "orq/commands/elenco.md"
         texto = caminho.read_text()
-        alvo = "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)"
-        self.assertIn(alvo, texto)
-        caminho.write_text(texto.replace(alvo, "| reviewer | `gpt-6-astra@xhigh`", 1))
+        template, offset, erro = lint_module._bloco_canonico_elenco(texto)
+        self.assertIsNone(erro)
+        alvo = "| reviewer | `claude-opus-5-5@high` |"
+        self.assertIn(alvo, template)
+        mutante = template.replace(alvo, "| reviewer | `gpt-6.1-sol@xhigh` |", 1)
+        caminho.write_text(texto[:offset] + mutante + texto[offset + len(template):])
         result, output = run_lint_main(self.root, self.home)
         self.assertEqual(result, 1, output)
         self.assertIn("Host Codex", output)
@@ -189,13 +192,15 @@ class ElencoPerfisRedIntegrationTest(unittest.TestCase):
     def test_reviewers_trocados_entre_hosts_reprovam_mesmo_com_contagem_igual(self) -> None:
         caminho = self.root / "orq/commands/elenco.md"
         texto = caminho.read_text()
-        claude = "| reviewer | `gpt-6-astra@xhigh` |"
-        codex = "| reviewer | `claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`) |"
-        self.assertEqual(texto.count(claude), 1)
-        self.assertEqual(texto.count(codex), 1)
-        texto = texto.replace(claude, "T131_REVIEWER_PLACEHOLDER", 1).replace(codex, claude, 1)
-        texto = texto.replace("T131_REVIEWER_PLACEHOLDER", codex, 1)
-        caminho.write_text(texto)
+        template, offset, erro = lint_module._bloco_canonico_elenco(texto)
+        self.assertIsNone(erro)
+        claude = "| reviewer | `gpt-6.1-sol@xhigh` |"
+        codex = "| reviewer | `claude-opus-5-5@high` |"
+        self.assertEqual(template.count(claude), 1)
+        self.assertEqual(template.count(codex), 1)
+        mutante = template.replace(claude, "T131_REVIEWER_PLACEHOLDER", 1).replace(codex, claude, 1)
+        mutante = mutante.replace("T131_REVIEWER_PLACEHOLDER", codex, 1)
+        caminho.write_text(texto[:offset] + mutante + texto[offset + len(template):])
         result, output = run_lint_main(self.root, self.home)
         self.assertEqual(result, 1, output)
         self.assertIn("Host Claude", output)
@@ -266,10 +271,10 @@ def conferir_snapshot_projeto(texto: str, esperado: dict = PROJETO_T131) -> None
 
 class T131ContratoTest(unittest.TestCase):
     def test_elenco_ativo_preservado_por_secao_e_papel(self) -> None:
-        conferir_snapshot_projeto((REPO_ROOT / "memory/wiki/_elenco.md").read_text())
+        conferir_snapshot_projeto((PLUGIN_ROOT / "scripts/fixtures/elenco-t131-historico.txt").read_text())
 
     def test_mutantes_de_todos_os_papeis_ativos_sao_mortos(self) -> None:
-        texto = (REPO_ROOT / "memory/wiki/_elenco.md").read_text()
+        texto = (PLUGIN_ROOT / "scripts/fixtures/elenco-t131-historico.txt").read_text()
         conferir_snapshot_projeto(texto)
         for heading, modelos in PROJETO_T131.items():
             for papel, valor in modelos.items():
@@ -283,7 +288,7 @@ class T131ContratoTest(unittest.TestCase):
                         conferir_snapshot_projeto(mutante)
 
     def test_snapshot_admite_mudanca_deliberada(self) -> None:
-        texto = (REPO_ROOT / "memory/wiki/_elenco.md").read_text()
+        texto = (PLUGIN_ROOT / "scripts/fixtures/elenco-t131-historico.txt").read_text()
         esperado = {h: dict(m) for h, m in PROJETO_T131.items()}
         esperado["### Host Codex"]["scout"] = "`gpt-6-luna@medium`"
         inicio = texto.index("### Host Codex")
@@ -292,7 +297,7 @@ class T131ContratoTest(unittest.TestCase):
         conferir_snapshot_projeto(texto, esperado)
 
     def test_scout_candidatos_e_modelos_novos_nao_ativam_o_elenco(self) -> None:
-        texto = (REPO_ROOT / "memory/wiki/_elenco.md").read_text()
+        texto = (PLUGIN_ROOT / "scripts/fixtures/elenco-t131-historico.txt").read_text()
         for heading, antigo in (("### Host Claude", "`sonnet`"),
                                 ("### Host Codex", "`gpt-5.6-terra@xhigh`")):
             for novo in ("`gpt-5.6-sol@low`", "`gpt-6.1-sol@low`", "`gpt-6-sol@low`", "`gpt-6-luna@medium`"):
@@ -311,29 +316,29 @@ class T131ContratoTest(unittest.TestCase):
         codex = modelos_por_secao(template, "### Host Codex")
         self.assertEqual(codex, {
             "manager": "modelo da sessão (`/model`)",
-            "planner·interface": "`gpt-6-astra@max`", "planner·sistema": "`gpt-6-astra@max`",
+            "planner·interface": "`claude-opus-5-5@high`", "planner·sistema": "`gpt-6.1-sol@xhigh`",
             "implementer·pesada": "`gpt-6.1-sol@xhigh`",
             "implementer·normal": "`gpt-6.1-sol@high`",
             "implementer·leve": "`gpt-6-luna@medium`",
-            "reviewer": "`claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)",
-            "docs": "`gpt-5.6-sol@low`", "scout": "`gpt-5.6-sol@low`",
+            "reviewer": "`claude-opus-5-5@high`",
+            "docs": "`gpt-6-luna@low`", "scout": "`gpt-6-luna@medium`",
         })
         claude = modelos_por_secao(template, "### Host Claude")
         # Literais independentes: validar coerência com o preset não é suficiente.
         self.assertEqual(claude, {
             "manager": "modelo da sessão (`/model`)",
-            "planner·interface": "`claude-opus-5-5`", "planner·sistema": "`gpt-6-astra@xhigh`",
-            "implementer·pesada": "`opus`", "implementer·normal": "`sonnet`",
-            "implementer·leve": "`haiku`", "reviewer": "`gpt-6-astra@xhigh`",
-            "docs": "`sonnet`", "scout": "`sonnet`",
+            "planner·interface": "`claude-opus-5-5@high`", "planner·sistema": "`gpt-6.1-sol@xhigh`",
+            "implementer·pesada": "`claude-sonnet-5-5@high`", "implementer·normal": "`claude-sonnet-5-5@medium`",
+            "implementer·leve": "`claude-sonnet-5-5@low`", "reviewer": "`gpt-6.1-sol@xhigh`",
+            "docs": "`claude-sonnet-5-5@low`", "scout": "`claude-sonnet-5-5@low`",
         })
         padrao = modelos_por_secao(template, "### `padrao`")
         economia = modelos_por_secao(template, "### `economia`")
         self.assertEqual(padrao, {
-            "planner·interface": "claude-opus-5-5", "planner·sistema": "gpt-6-astra@xhigh",
-            "implementer·pesada": "opus", "implementer·normal": "sonnet",
-            "implementer·leve": "haiku", "reviewer": "gpt-6-astra@xhigh",
-            "docs": "sonnet", "scout": "sonnet",
+            "planner·interface": "claude-opus-5-5@high", "planner·sistema": "gpt-6.1-sol@xhigh",
+            "implementer·pesada": "claude-sonnet-5-5@high", "implementer·normal": "claude-sonnet-5-5@medium",
+            "implementer·leve": "claude-sonnet-5-5@low", "reviewer": "gpt-6.1-sol@xhigh",
+            "docs": "claude-sonnet-5-5@low", "scout": "claude-sonnet-5-5@low",
         })
         self.assertEqual(economia, PRESET_ECONOMIA_BASE)
         self.assertNotIn("## Perfis — times nomeados do host Codex", template)
@@ -409,9 +414,9 @@ class T131CorrecaoR2Test(unittest.TestCase):
             fim = re.search(r"(?m)^#{1,3} ", texto[inicio.end():])
             limite = inicio.end() + fim.start() if fim else len(texto)
             secao = texto[inicio.end():limite]
-            antigo = "| docs | `sonnet` |" if heading == "### Host Claude" else "| docs | sonnet |"
+            antigo = "| docs | `claude-sonnet-5-5@low` |" if heading == "### Host Claude" else "| docs | claude-sonnet-5-5@low |"
             self.assertEqual(secao.count(antigo), 1)
-            secao = secao.replace(antigo, antigo.replace("sonnet", "haiku"))
+            secao = secao.replace(antigo, antigo.replace("@low", "@medium"))
             texto = texto[:inicio.end()] + secao + texto[limite:]
         self.exigir_rejeicao(caminho, texto, "test_fabrica_candidata_sem_redistribuir_outros_papeis")
 
@@ -506,7 +511,7 @@ class T131PosR4Test(unittest.TestCase):
         self.assertEqual(codex["implementer·normal"], "`gpt-6.1-sol@high`")
         self.assertEqual(codex["implementer·leve"], "`gpt-6-luna@medium`")
         self.assertEqual(codex["reviewer"],
-                         "`claude-opus-5-5` (exigir comprovação da identidade exata no `modelUsage`)")
+                         "`claude-opus-5-5@high`")
 
     def test_bloco_canonico_do_elenco_nao_copia_status_transitorio(self) -> None:
         self.testar_bloco_canonico_neutro()

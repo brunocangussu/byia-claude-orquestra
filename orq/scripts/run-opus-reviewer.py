@@ -174,6 +174,8 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_MODEL_ALIAS,
         help=f"alias ou ID Anthropic a executar; um de {', '.join(sorted(MODEL_ALIASES))}",
     )
+    parser.add_argument("--effort", choices=("low", "medium", "high"),
+                        help="effort explícito do perfil; ausência conserva a chamada legada, sem prova de effort")
     return parser.parse_args()
 
 
@@ -270,6 +272,9 @@ def collect_timed_out_process(
 
 def main() -> int:
     args = parse_args()
+    effort = getattr(args, "effort", None)
+    if effort is not None and effort not in ("low", "medium", "high"):
+        return fail(2, "OPUS_INVALID_EFFORT: effort recusado antes da chamada")
     if args.timeout <= 0 or args.max_input_bytes <= 0:
         return fail(2, "OPUS_INVALID_LIMITS: timeout e max-input-bytes devem ser positivos")
 
@@ -322,14 +327,19 @@ def main() -> int:
         "json",
     ]
 
+    if effort is not None:
+        command[4:4] = ["--effort", effort]
+
     attempt = {"schema": 1, "attempt_id": uuid.uuid4().hex,
                "started_unix": time.time(), "briefing": fingerprint(raw),
                "execution": execution_metadata(command)}
+    if effort is not None:
+        attempt["effort"] = {"requested": effort, "sent": effort, "observed": None}
     try:
         attempt["source_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     except (OSError, NameError):
         attempt["source_sha256"] = None
-    print("OPUS_ATTEMPT " + json.dumps(attempt, sort_keys=True), file=sys.stderr, flush=True)
+    print("OPUS_ATTEMPT " + json.dumps(attempt, sort_keys=True, separators=(",", ":")), file=sys.stderr, flush=True)
     started = time.monotonic()
     print(
         f"OPUS_STARTED MODEL_ALIAS={args.model} TIMEOUT={args.timeout:g}s BRIEFING_BYTES={len(raw)}",

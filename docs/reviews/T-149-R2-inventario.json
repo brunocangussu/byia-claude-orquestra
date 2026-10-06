@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "card": "T-149",
+  "round": "R2",
+  "status": "PREPARED_ONLY",
+  "authorized_calls": 0,
+  "consumed_calls": 0,
+  "retry": false,
+  "packet": {
+    "path": "docs/reviews/T-149-R2-pacote-sanitizado.md",
+    "bytes": 126107,
+    "sha256": "ee6a468b00bc93a090ed5087b454d607c60ca2bb5a710ee62ca9ae8ba39675bf",
+    "cap_bytes": 131072
+  },
+  "reviewer_model": "claude-opus-5-5",
+  "effort": "high",
+  "runner_sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4",
+  "product_sha256": "1c2df8ba0644cd3df07594395ce3794ad6ea83ca4568904f3b61d8b293ee029d",
+  "product_sha256_recipe": "SHA-256 UTF-8 JSON.stringify(product_files), records ordered by path, keys path/bytes/sha256",
+  "product_files": [
+    {
+      "path": "memory/wiki/arquitetura.md",
+      "bytes": 52134,
+      "sha256": "7f615178bedeac548b17d05d7512bcc6c259ac3f21cf7f14b6958c0978106e95"
+    },
+    {
+      "path": "memory/wiki/distribuicao.md",
+      "bytes": 17509,
+      "sha256": "9094355ead705ceaf0a559d7280c42df78325e31be5e701bd8160bb448e62f75"
+    },
+    {
+      "path": "orq/agents/orq-docs.md",
+      "bytes": 3309,
+      "sha256": "aaee94809b7c4ccc10e25895b0670af0062ee5f0703d56232a2381146e0e30fd"
+    },
+    {
+      "path": "orq/agents/orq-implementer.md",
+      "bytes": 3139,
+      "sha256": "4933e6689139906f0cf1860c12925c0ec38a2c0ea83ba6acde2a89a6d53baa4e"
+    },
+    {
+      "path": "orq/agents/orq-planner.md",
+      "bytes": 3361,
+      "sha256": "1ce5be2510d69b08684ff39017fae8de092ef27468fad5805b45ffeb26fbee70"
+    },
+    {
+      "path": "orq/agents/orq-reviewer.md",
+      "bytes": 3193,
+      "sha256": "6fcee1dbe642133649c4759b1dbe36d30b19dfe4aac82424d12346a3941dbe58"
+    },
+    {
+      "path": "orq/agents/orq-scout.md",
+      "bytes": 2726,
+      "sha256": "83da2affd7e4d4da064c11d8a6ef397026947dd80f421c0ac169087a5947d6b9"
+    },
+    {
+      "path": "orq/commands/elenco.md",
+      "bytes": 47199,
+      "sha256": "af06649fbf02ad2d45b10a0b60b51535f726dc58725591cd273998fec4c91480"
+    },
+    {
+      "path": "orq/commands/implement-next.md",
+      "bytes": 15752,
+      "sha256": "6ddd57c6ff9478092eb496a4185d585c15f8e3b2d176aab34a13e7227e874500"
+    },
+    {
+      "path": "orq/commands/init.md",
+      "bytes": 74460,
+      "sha256": "abf9c37b439eee56e8609170fc65021bbb7343afe3cd4b27720706093cf05f5d"
+    },
+    {
+      "path": "orq/commands/plan-next.md",
+      "bytes": 16160,
+      "sha256": "2ab1b9b955c4a68ff90625351794e6e18c1c27a0daed11a97a23b47328f445d4"
+    },
+    {
+      "path": "orq/commands/revisar.md",
+      "bytes": 21111,
+      "sha256": "730ddad7f70e1c91d078b5d6ddb986a065eeb4f7c03f1d41304a778e24b10ab4"
+    },
+    {
+      "path": "orq/references/elenco-padrao.json",
+      "bytes": 1888,
+      "sha256": "f75b3d4310ffb6e4f232bc3bc827d13ec02dee489648bf49445cbc2553ab80e9"
+    },
+    {
+      "path": "orq/scripts/elenco_padrao.py",
+      "bytes": 13416,
+      "sha256": "686b562c61053bd7c73ef4a7d526320dc7610ba3d3c1d34d85baff76d6200de0"
+    },
+    {
+      "path": "orq/scripts/fixtures/elenco-t131-historico.txt",
+      "bytes": 3616,
+      "sha256": "c62ae19c4f762d52429068606902d2fa6baebdfdd08e8afa0dacb2f74af31965"
+    },
+    {
+      "path": "orq/scripts/lint-coerencia.py",
+      "bytes": 146977,
+      "sha256": "b8952b13eb0ed03800af5942f261becd78cc56ed27d9bc7371ff3a2b2e13b35c"
+    },
+    {
+      "path": "orq/scripts/run-opus-reviewer.py",
+      "bytes": 17107,
+      "sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4"
+    },
+    {
+      "path": "orq/scripts/test_elenco_consumidores.py",
+      "bytes": 2712,
+      "sha256": "2a5fcbefb582b3daaa8dcc224497b9a9d8cc62d088cd7e015084bea67b6a0d56"
+    },
+    {
+      "path": "orq/scripts/test_elenco_padrao.py",
+      "bytes": 16341,
+      "sha256": "6acf535b444392ff139846ff090579c1120c8b0f75b7239d4380e0107bce1538"
+    },
+    {
+      "path": "orq/scripts/test_elenco_perfis.py",
+      "bytes": 85985,
+      "sha256": "4d13088fb930204b5b3a31d970eeccfaa960d2c31320dde7e4cb9e5c44e6be06"
+    },
+    {
+      "path": "orq/scripts/test_run_opus_reviewer.py",
+      "bytes": 41571,
+      "sha256": "c6b55f5c72d5959cd2234aa7e3d372bfc8bce23b413b1400d22db857daf58771"
+    },
+    {
+      "path": "orq/scripts/test_verify_installed_cache.py",
+      "bytes": 24676,
+      "sha256": "124f92e3359a3748ffc8d875345a37871877ad80ddc588cc6f11b01f29aa0221"
+    },
+    {
+      "path": "orq/skills/orq/SKILL.md",
+      "bytes": 46381,
+      "sha256": "48b95b4c1431a44903dd8e1017d36fe7e36c9874f336d48c2d455b937673f5b5"
+    }
+  ]
+}

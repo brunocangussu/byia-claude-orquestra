@@ -9,6 +9,8 @@ import io
 import json
 import os
 from pathlib import Path
+import re
+import shlex
 import signal
 import subprocess
 import sys
@@ -90,6 +92,9 @@ class OpusReviewerRunnerTest(unittest.TestCase):
                     "--setting-sources", "", "--disable-slash-commands",
                     "--no-session-persistence", "--output-format", "json",
                 ]
+                expect_effort = os.environ.get("FAKE_EXPECT_EFFORT")
+                if expect_effort:
+                    expected[3:3] = ["--effort", expect_effort]
                 if sys.argv[1:] != expected:
                     print("unexpected argv: " + repr(sys.argv[1:]), file=sys.stderr)
                     raise SystemExit(19)
@@ -143,6 +148,63 @@ class OpusReviewerRunnerTest(unittest.TestCase):
             env=env,
             timeout=outer_timeout,
         )
+
+    def test_t149_snippet_revisar_executa_legado_sem_effort_e_perfil_explicito(self) -> None:
+        document = (RUNNER.parents[1] / "commands/revisar.md").read_text(encoding="utf-8")
+        block = next(b for b in re.findall(r"```bash\n(.*?)```", document, re.S)
+                     if "REVIEWER_MODEL_ALIAS=" in b)
+        for profile, model, effort, observed_model, expected_exit in (
+            ("opus", "opus", "", "claude-opus-5", 0),
+            ("opus@high", "opus", "high", "claude-opus-5", 0),
+            ("opus@", "opus", "", "claude-opus-5", 2),
+            ("claude-opus-5-5", "claude-opus-5-5", "", "claude-opus-5-5", 0),
+            ("claude-opus-5-5@high", "claude-opus-5-5", "high", "claude-opus-5-5", 0),
+        ):
+            script = block
+            script = re.sub(r"(?m)^REVIEWER_PROFILE=.*$", "REVIEWER_PROFILE=" + shlex.quote(profile), script)
+            script = re.sub(r"(?m)^OPUS_RUNNER=.*$", "OPUS_RUNNER=" + shlex.quote(str(RUNNER)), script)
+            script = "OPUS_BRIEFING_SANITIZADO='fixture sem dados pessoais'\n" + script
+            script += '\nprintf "%s" "$OPUS_OUT"\nexit "$OPUS_EXIT"\n'
+            env = {**os.environ, "CLAUDE_BIN": str(self.fake),
+                   "FAKE_EXPECT_MODEL": model, "FAKE_MODEL": observed_model}
+            if effort:
+                env["FAKE_EXPECT_EFFORT"] = effort
+            else:
+                env.pop("FAKE_EXPECT_EFFORT", None)
+            with self.subTest(profile=profile):
+                result = subprocess.run(["/bin/bash", "-c", script], cwd=self.tmp.name,
+                    env=env, text=True, capture_output=True, timeout=5)
+                self.assertEqual(result.returncode, expected_exit, result.stderr)
+                if expected_exit == 0:
+                    self.assertEqual(result.stdout, "PARECER_OK")
+                else:
+                    self.assertIn("invalid choice", result.stderr)
+                    self.assertNotIn("OPUS_STARTED", result.stderr)
+
+    def test_t149_effort_enviado_e_recibo_sem_observacao_inventada(self) -> None:
+        for effort in ("low", "medium", "high"):
+            with self.subTest(effort=effort):
+                result = self.run_runner("briefing", "--effort", effort, FAKE_EXPECT_EFFORT=effort)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                attempt_line = next(l for l in result.stderr.splitlines() if l.startswith("OPUS_ATTEMPT "))
+                attempt = json.loads(attempt_line.removeprefix("OPUS_ATTEMPT "))
+                self.assertEqual(attempt["effort"], {"requested": effort, "sent": effort, "observed": None})
+
+    def test_t149_mutacoes_do_effort_sao_detectadas_na_fronteira(self) -> None:
+        original = 'command[4:4] = ["--effort", effort]'
+        for replacement in ('pass', 'command[4:4] = ["--effort", "low"]'):
+            with self.subTest(mutation=replacement):
+                runner = self.write_mutated_runner(original, replacement)
+                result = self.run_runner("briefing", "--effort", "high", runner_path=runner,
+                                         FAKE_EXPECT_EFFORT="high")
+                self.assertEqual(result.returncode, 5)
+                self.assertNotIn("OPUS_MODEL=", result.stderr)
+
+    def test_t149_effort_invalido_recusado_sem_cli(self) -> None:
+        marker = Path(self.tmp.name) / "invalid-effort-called"
+        result = self.run_runner("briefing", "--effort", "max", FAKE_MARKER=str(marker))
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(marker.exists())
 
     def wait_for_marker(self, marker: Path, timeout: float) -> bool:
         deadline = time.monotonic() + timeout

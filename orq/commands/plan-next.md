@@ -5,6 +5,26 @@ argument-hint: "[T-NNN para escolher um card específico, ou descrição de uma 
 
 Você é o **Manager** (leia a skill `orq`). Rode o **Loop A — Planejamento**.
 
+**Resolução do perfil:** leia o host ativo em `_elenco.md` e resolva **modelo e effort** juntos
+pela Matriz de invocação. A fábrica só é consultada por `scripts/elenco_padrao.py` da raiz
+`ORQ_PACKAGE_ROOT` comprovada; veja `/orq:elenco`, “Padrão da versão”. Catálogo ou
+`model: inherit` não autoriza despacho, adoção, herança do Manager ou fallback.
+Passe os parâmetros declarados pela via comprovada: dois em `@effort`; **legado sem effort**
+segue o contrato de `/orq:elenco`, só modelo comprovado e effort não solicitado.
+Recusa de effort declarado não permite downgrade nem omissão.
+Preserve os gates de capacidade, autoridade, independência e continuidade já definidos.
+
+**Planner·interface via Claude CLI no host Codex:** o runner é transporte read-only genérico,
+não persona de reviewer. Antes da chamada, o Manager reúne a investigação local necessária
+e prepara briefing sanitizado/autorizado com objetivo, evidências por arquivo/linha, escopo,
+restrições, perguntas e critérios. Declare o papel `planner·interface` e peça diagnóstico,
+passos verificáveis com arquivos/porte, testes, riscos e decisões do dono — não um parecer.
+O subprocesso não lê arquivos nem grava o plano: o **Manager** audita a resposta e grava o
+arquivo da fase de planejamento. Respeite o gate de envio/bytes da Matriz; pacote acima do
+teto não é truncado nem dividido/repetido em silêncio. Sem capacidade, estacione somente
+a chamada externa e prossiga com a investigação local elegível. Desligar `runner-opus`
+no host Codex afeta planner·interface e reviewer, como a Matriz anuncia; não há fallback.
+
 Antes de qualquer uso, comprove `ORQ_PACKAGE_ROOT` absoluto, existente e com `scripts/kanban-status.sh` disponível.
 **BOARD_CANONICO:** antes de escolher, criar ou marcar card, use
 `sh "${ORQ_PACKAGE_ROOT}/scripts/kanban-status.sh" --resolver .` na frente atual, sem `cd` para o principal, e decodifique o JSON sem separá-lo por linhas.
