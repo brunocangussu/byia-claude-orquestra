@@ -282,3 +282,34 @@ restritos aos artefatos históricos identificados no inventário. Nenhum
 arquivo novo de contrato/produto foi dispensado de gate. A bancada T-098
 v6 foi reconferida: 31 testes OK e preflight exit 0, ainda
 `scores=not_evaluated`, sem chamadas A2/B2 ou adoção em produção.
+
+## Fechamento da conciliação e limpeza recuperável
+
+Evidências/baselines entregues em `d67cd99`, main e GitHub. Dois merges
+somente de ancestralidade: `0fc58ca` (T-089) e `e4a85eb` (T-144/T-146).
+Nos dois, o tree Git permaneceu exatamente
+`2c14495ff3fd5b87d3d3754afc6065f034bc3e64`; tips `53dabd6` e `064e726`
+agora são ancestrais da main. Commits estrangeiros não foram reescritos.
+
+`git worktree list` confirmou só main e T-144: seis checkouts retirados
+de oito. T-131/T-143/T-098/T-139/conciliação têm snapshots nativos
+recuperáveis; a conciliação foi arquivada depois de limpa e publicada,
+sem arquivos ignorados únicos. T-089 foi removido sem --force, com branch
+preservada, handoff público idêntico e backup local ignorado em
+`.orq/progress/worktree-archives/untracked/T-089-companion-resume.md`.
+14 processos com cwd em T-144 foram observados antes da limpeza; essa
+worktree e os processos ficaram intactos. Nenhuma branch Claude apagada.
+
+Board alinhado: cards entregues em VALIDATE, sem marcar DONE por Git;
+T-098 valida a bancada, não a adoção JEV. T-139 experimental foi preservado,
+não adotado. Handoff: `docs/handoff-T148-main-organizada-2026-10-05.md`.
+
+Gates repetidos diretamente na main organizada: 838 testes em 206,699 s,
+manifesto estrito, lint e diff-check exit 0; `orq/` estável antes/depois.
+Recibo `docs/delivery/gates-T148-main-organizada-20261005.json`. O último
+commit desta frente leva só as oito páginas/recibos do fechamento; fonte
+e quatro âncoras permanecem na versão 0.30.0 já entregue.
+
+⏭️ RETOMAR AQUI: usar a main organizada; validar os cards `[?]` no host
+efetivamente carregado. A correção de retenção de caches T-047 e os gates
+de campanha/adoção não são declarados resolvidos por esta conciliação.

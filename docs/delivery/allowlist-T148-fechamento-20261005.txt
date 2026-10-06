@@ -1,0 +1,8 @@
+docs/delivery/allowlist-T148-fechamento-20261005.txt
+docs/delivery/gates-T148-main-organizada-20261005.json
+docs/delivery/limpeza-T148-20261005.json
+docs/handoff-T148-main-organizada-2026-10-05.md
+memory/MEMORY.md
+memory/fixes-history.md
+memory/wiki/KANBAN.md
+memory/wiki/threads/T-148-consolidacao-main.md

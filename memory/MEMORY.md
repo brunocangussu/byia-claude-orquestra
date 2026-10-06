@@ -4,7 +4,18 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.30.0 — fonte entregue na main/local e em origin/main pelo T-148 (`d760069`), sem instalação ou restart. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-09-26 (recuperação T-139) · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.30.0 — fonte entregue na main/local e em origin/main pelo T-148 (`d760069`), sem instalação ou restart. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-05 (consolidação T-148) · **host padrão a partir de 2026-08-09: Codex**.
+
+**T-148, 2026-10-05 — conciliação entregue e ambiente organizado:**
+- Fonte 0.30.0 em `d760069`; evidências/baselines em `d67cd99`. Main/GitHub incluem os
+  commits originais do Claude por merges de ancestralidade `0fc58ca` e `e4a85eb`, sem
+  alteração da árvore conciliada. Gates frescos: 838 testes, manifesto e lint verdes;
+  bancada JEV: 31 testes e preflight verdes, sem campanha ou adoção.
+- Checkouts de 8 para 2: main e T-144 com processos vivos. Cinco snapshots nativos
+  recuperáveis; T-089 preservado na branch e em handoff público/backup local. Ledger
+  e chave do medidor continuam privados. Nenhuma instalação ou restart por esta frente.
+- Próximo ponto: validação prática dos cards em `[?]`; resumo e recuperação em
+  `../docs/handoff-T148-main-organizada-2026-10-05.md`.
 
 **T-144 / T-146, 2026-10-04 — medidor de progresso portátil (`@frente-mods`):**
 - Feito a pedido do dono, que se perdia no `/goal` e no Loop B. A referência foi o Goal Meter, um
@@ -625,7 +636,8 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-052-reconciliacao.md`](wiki/threads/T-052-reconciliacao.md) | **Thread ativa** — o plano e as 5 decisões da reconciliação `0.24.0` local × `0.22.7` publicada |
 | [`wiki/threads/T-054-economia-tokens.md`](wiki/threads/T-054-economia-tokens.md) | **Thread ativa** — a frente de economia de tokens: o diagnóstico, o baseline medido, o que o parecer mudou e o **⏭️ RETOMAR AQUI** |
 | [`wiki/threads/T-054-pareceres.md`](wiki/threads/T-054-pareceres.md) | **Evidência durável** — o parecer cross-vendor íntegro e a auditoria do Manager, que corrigiu um achado e confirmou outro |
-| [`wiki/threads/T-144-mods-claude-code.md`](wiki/threads/T-144-mods-claude-code.md) | **Em espera (`@frente-mods`)** — medidor de progresso portátil: análise dos mods, plano, rodadas de revisão, fases 1–2 na branch `claude/t144-medidor-progresso`, ledger T-146 e **⏭️ RETOMAR AQUI** |
+| [`wiki/threads/T-148-consolidacao-main.md`](wiki/threads/T-148-consolidacao-main.md) | **Entregue, validar organização** — conciliação 0.30.0, evidências, ancestralidade Claude e limpeza recuperável; main pronta, T-144 vivo preservado |
+| [`wiki/threads/T-144-mods-claude-code.md`](wiki/threads/T-144-mods-claude-code.md) | **Fonte 0.30.0 entregue, validação prática pendente (`@frente-mods`)** — medidor portátil, fases 1–2 conciliadas; branch/ledger T-146 e sessão viva preservados |
 | [`wiki/threads/T-072-claude-mem.md`](wiki/threads/T-072-claude-mem.md) | **No gate** — o papel do claude-mem, a fiação de busca que nunca existiu, e a correção de uma medição minha que estava 4,4× errada |
 | [`wiki/threads/T-078-ai-memory.md`](wiki/threads/T-078-ai-memory.md) | **Ativa** — o AI-Memory 2.0: parecer do planner, revisão que derrubou o piloto, os 3 estágios, a decisão do dono contra a recomendação, e o root cause do Codex não capturar |
 | [`wiki/threads/_notas-de-cards.md`](wiki/threads/_notas-de-cards.md) | As notas longas que saíram do board na migração do `T-056`, íntegras, por ID de card. **Não é thread** — não tem RETOMAR AQUI |

@@ -8,7 +8,6 @@
 
 ## ⏸️ Esperando você
 
-- [?] `T-143` 🔴 P0 — fonte conciliada e entregue na main/GitHub em 0.30.0 (T-148); continuidade local aprovada não para por entrega Git pendente, sem ampliar gates externos. Teste prático depois da ativação do host: pedir para continuar um card autorizado até o próximo gate específico · sistema/normal · → threads/T-143-continuidade-aprovada.md @frente-continuidade
 
 
 - [~] `T-138` Agency Agents — piloto seletivo aprovado; suplemento API Tester v1 e quatro contratos B2 preparados localmente. Aguardar A2, tokenização/capacidade da via e orçamento antes das 16 execuções; sem instalação, elenco alterado ou resultado medido · sistema/pesada · → threads/T-138-agency-agents.md @frente-jev-router @codex
@@ -18,7 +17,6 @@
 
 - [!] `T-094` B1 Luna — G/H 2/2; achado H válido, gate formal falhou; guarda isolada/desligada. Autoriza corrigir bloqueador T-062 e fazer só R7? · → threads/T-094-mini-revisor-luna.md @frente-gauntlet @codex
 
-- [?] `T-089` Identidade Companion conciliada com T-131/T-143 e entregue em 0.30.0; validar após ativação: continuação mantém a mesma conversa e IDs divergentes não viram continuação. Commits Claude preservados, sem repetir probes · sistema/normal · → threads/T-089-companion-resume.md @frente-companion-runtime
 
 - [?] `T-081` `OBSERVATION_TYPES` é chave morta — 0.27.6 publicada e instalada nos 2 hosts pela janela Claude, `exit 0`; falta restart e sua validação · → threads/T-072-claude-mem.md @frente-economia
 - [x] `T-020` Perfis de elenco — validado em 2026-09-07: agente sem contexto de teste ouviu a frase e trocou o time inteiro, com o que muda, o que se perde e como reverter · → threads/T-020-perfis-elenco.md
@@ -28,12 +26,9 @@
 
 ## 🟡 Fazendo
 
-- [~] `T-148` Conciliação das branches — entrega à main/local e GitHub delegada pelo dono; preservar snapshots GO, contratos T-089/T-144/T-146 e documentação alheia, gates completos por lote, sem restart de sessões vivas · sistema/pesada · → threads/T-148-consolidacao-main.md @frente-consolidacao @codex
 
 
-- [?] `T-131` Fábrica de modelos e runner entregues em 0.30.0; Luna 6/Sol 6.1 por faixa e Opus 5.5 explícito. Elencos vivos/presets preservados: candidatos não viram fallback automático. Validar escolha explícita depois da ativação do host · sistema/normal · → threads/T-131-opus-55.md @frente-elenco-opus55
 
-- [!] `T-098` JEV — R9 Opus 5.5 GO para bancada v6, auditoria fechada; 447 + 31 testes locais verdes, v5/adjudicações preservadas. Review desta correção encerrado; campanha/adoção exigem gate próprio, A2/B2 zero; sem Git/release · sistema/pesada · → threads/T-098-jev-router.md @frente-jev-router @codex
 
 - [>] `T-141` Orca como IDE principal — desenho portátil preparado: Manager único, agentes via CLIs, despacho/recibos e hooks AI-Memory; sem migração nem execução de agentes. Revisar o desenho antes do piloto · sistema/pesada · → threads/T-141-orca-ide.md @frente-orca-portabilidade @codex
 
@@ -50,6 +45,18 @@
 ---
 
 ## 🟣 Validar
+
+- [?] `T-148` Conciliação concluída na main/GitHub em 0.30.0; recibos/baselines entregues, ancestralidade Claude preservada e checkouts reduzidos de 8 para 2. Só main + T-144 com processos vivos; validar organização, sem confundir entrega de fonte com ativação de todos os chats · sistema/pesada · → threads/T-148-consolidacao-main.md @frente-consolidacao
+
+- [?] `T-143` 🔴 P0 — fonte conciliada e entregue na main/GitHub em 0.30.0 (T-148); continuidade local aprovada não para por entrega Git pendente, sem ampliar gates externos. Teste prático depois da ativação do host: pedir para continuar um card autorizado até o próximo gate específico · sistema/normal · → threads/T-143-continuidade-aprovada.md @frente-continuidade
+
+- [?] `T-089` Identidade Companion conciliada com T-131/T-143 e entregue em 0.30.0; validar após ativação: continuação mantém a mesma conversa e IDs divergentes não viram continuação. Commits Claude preservados, sem repetir probes · sistema/normal · → threads/T-089-companion-resume.md @frente-companion-runtime
+
+- [?] `T-090` Absorvido no T-089, fonte entregue em 0.30.0: `--wait` fica só no envelope, nunca no `task`. Validação prática conjunta do Companion ainda é do dono · trilha: sistema · faixa: leve · → threads/T-089-companion-resume.md @frente-companion-runtime
+
+- [?] `T-131` Fábrica de modelos e runner entregues em 0.30.0; Luna 6/Sol 6.1 por faixa e Opus 5.5 explícito. Elencos vivos/presets preservados: candidatos não viram fallback automático. Validar escolha explícita depois da ativação do host · sistema/normal · → threads/T-131-opus-55.md @frente-elenco-opus55
+
+- [?] `T-098` JEV — bancada v6 e histórico imutável entregues na main/GitHub pelo T-148; R9 GO e auditoria fechada, 31 testes/preflight reconferidos. Validar a bancada; campanha/adoção continuam com gate próprio, A2/B2 zero e scores não avaliados · sistema/pesada · → threads/T-098-jev-router.md @frente-jev-router
 
 - [?] `T-146` Medidor fase 2 — fonte conciliada em 0.30.0 (T-148); após ativação, validar lembrete único e segmento na statusline. Worktree Claude preservada enquanto há processos vivos · → threads/T-144-mods-claude-code.md @frente-mods
 - [?] `T-144` Medidor de progresso fase 1 — fonte conciliada em 0.30.0 (T-148); validar acompanhamento do plano sem confundir 100% com DONE. Ledger/chave locais preservados · → threads/T-144-mods-claude-code.md @frente-mods
@@ -145,7 +152,6 @@
 - [~] `T-087` Adaptador determinístico monta os argumentos por código — APROVADO em 2026-09-08; o intermediário deixa de montar a chamada · trilha: sistema · faixa: pesada @claude · → docs/plano_coexistencia_hosts.md
 - [ ] `T-088` A guarda do `T-080` derruba a suíte se o perfil ativo não for `padrao` — o teste muta `padrao` fixo · trilha: sistema · faixa: leve · → threads/_notas-de-cards.md
 - [!] `T-093` 🔴 Atualizar o plugin MATA a sessão viva do Codex — o cache antigo é apagado e o hook resolvido no boot aponta pro que sumiu · trilha: sistema · faixa: pesada · → memory/gotchas.md
-- [?] `T-090` Absorvido no T-089, fonte entregue em 0.30.0: `--wait` fica só no envelope, nunca no `task`. Validação prática conjunta do Companion ainda é do dono · trilha: sistema · faixa: leve · → threads/T-089-companion-resume.md @frente-companion-runtime
 - [ ] `T-001` Hooks de segurança — PreToolUse em Bash negando push, merge, deploy e SQL de escrita · → threads/_notas-de-cards.md
 - [ ] `T-002` Hooks de processo — PreToolUse sobre o KANBAN: mover para [?] sem review existente é bloqueado · → threads/_notas-de-cards.md
 - [ ] `T-004` Workflows determinísticos em JS — três workflows separados: plan-card, implement-card, finalize-card · → threads/_notas-de-cards.md

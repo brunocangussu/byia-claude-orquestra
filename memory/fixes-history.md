@@ -2403,3 +2403,24 @@ chave privados permanecem locais/ignorados. Worktree Claude do medidor
 será mantida enquanto houver processos com cwd nela; nenhum processo foi
 encerrado para produzir uma aparência de limpeza. Bancada JEV e experimentos
 de papéis continuam distintos de inferência/adoção em produção.
+
+## 2026-10-05 — T-148: evidências, ancestralidade e limpeza entregues
+
+`d67cd99` entregou 119 arquivos allowlistados de recibos, baselines e
+handoffs; 115 artefatos congelados, 1.543.720 bytes, com SHA por arquivo.
+Nenhum drift ou vazamento da chave privada do medidor. Os avisos históricos
+de whitespace ficaram registrados, sem alterar pacotes ou pareceres.
+Gate fresco: 838 testes, manifesto, lint e diff-check do produto exit 0;
+bancada T-098: 31 testes/preflight exit 0, scores ainda não avaliados.
+
+Merges `0fc58ca` e `e4a85eb` preservaram a ancestralidade dos dois tips
+Claude sem mudar a árvore conciliada, reescrever commits ou apagar branches.
+GitHub confirmou cada push. Checkouts registrados de oito para dois:
+main e T-144 com processos vivos. Cinco snapshots nativos recuperáveis;
+T-089 removido sem --force, com thread pública e backup local idênticos.
+Nenhum processo foi encerrado, e ledger/chave do medidor foram preservados.
+
+Board/MEMORY alinhados ao estado VALIDATE dos cards entregues. Handoff em
+`docs/handoff-T148-main-organizada-2026-10-05.md`. Sem instalação, release
+ou restart por esta frente; não declarar todos os chats atualizados,
+T-047 resolvido ou JEV/papéis adotados por causa da entrega Git.

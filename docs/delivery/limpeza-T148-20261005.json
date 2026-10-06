@@ -1,0 +1,73 @@
+{
+  "schema": "t148-cleanup-v1",
+  "source_product_commit": "d760069dac3c599a3192fe627c47e3121c5a3faa",
+  "evidence_commit": "d67cd9969ceb2d84cd6ac2e52a41722601705c1a",
+  "ancestry_merges": [
+    {
+      "before_tree": "2c14495ff3fd5b87d3d3754afc6065f034bc3e64",
+      "after_tree": "2c14495ff3fd5b87d3d3754afc6065f034bc3e64",
+      "sha": "0fc58ca3e6d8fa864de2c416b8065dbb114df81a"
+    },
+    {
+      "before_tree": "2c14495ff3fd5b87d3d3754afc6065f034bc3e64",
+      "after_tree": "2c14495ff3fd5b87d3d3754afc6065f034bc3e64",
+      "sha": "e4a85eb7604d97f99e13080f3b8e32122f6d3c98"
+    }
+  ],
+  "registered_checkouts_before": 8,
+  "registered_checkouts_after": 2,
+  "retained": [
+    {
+      "root": "/Users/brunocangucu/Projetos DEV - Cursor/byia-claude-orquestra",
+      "branch": "main"
+    },
+    {
+      "root": "/Users/brunocangucu/Projetos DEV - Cursor/byia-claude-orquestra-worktrees/t144-medidor-progresso",
+      "branch": "claude/t144-medidor-progresso",
+      "tip": "064e7262ad1182a4ecb0712e9369cb38239c7748",
+      "reason": "14 processos com cwd observados antes da limpeza; preservar sessao viva"
+    }
+  ],
+  "archived_worktrees": [
+    {
+      "id": "01a10a1f-66ae-7e80-9b9b-727f119f13f1",
+      "root": "/Users/brunocangucu/.codex/worktrees/t131-elenco-sol61-luna6/byia-claude-orquestra",
+      "recovery": "restore_worktree com este root exato"
+    },
+    {
+      "id": "01a10a1f-6981-7253-aa17-9b3d6c247bba",
+      "root": "/Users/brunocangucu/.codex/worktrees/t143-continuidade-aprovada/byia-claude-orquestra",
+      "recovery": "restore_worktree com este root exato"
+    },
+    {
+      "id": "01a10a1f-6c01-79f2-ba37-840fb1719249",
+      "root": "/Users/brunocangucu/.codex/worktrees/t098-jev-candidata-r5/byia-claude-orquestra",
+      "recovery": "restore_worktree com este root exato"
+    },
+    {
+      "id": "01a10a1f-6e81-7df2-8646-fcf8a0eb5864",
+      "root": "/Users/brunocangucu/.codex/worktrees/t139-role-skills/byia-claude-orquestra",
+      "recovery": "restore_worktree com este root exato"
+    },
+    {
+      "id": "01a10e7c-9b8c-7d72-b72f-a599b64cddab",
+      "root": "/Users/brunocangucu/.codex/worktrees/consolidacao-main-20261004/byia-claude-orquestra",
+      "recovery": "restore_worktree com este root exato"
+    }
+  ],
+  "t089": {
+    "branch": "claude/t089-companion-identidade",
+    "tip": "53dabd69417bf15d502cb9343cb23451fe179e10",
+    "checkout_removed_without_force": true,
+    "public_handoff": "docs/delivery/owner-handoffs/T-089-companion-resume.md",
+    "ignored_backup": ".orq/progress/worktree-archives/untracked/T-089-companion-resume.md",
+    "bytes": 20527,
+    "sha256": "dcbb8c8236106d4421a5f0b6ca022f3a7f2d6403b8a3592769cd9ad827ec422d"
+  },
+  "ignored_files_preserved_before_archiving": 15,
+  "medidor_ledger_modified_by_this_front": false,
+  "private_medidor_owner_key_published": false,
+  "installation_performed_by_this_front": false,
+  "restart_performed": false,
+  "release_published": false
+}

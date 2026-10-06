@@ -1,0 +1,42 @@
+{
+  "label": "T148-main-organizada-20261005",
+  "root": "/Users/brunocangucu/Projetos DEV - Cursor/byia-claude-orquestra",
+  "utc": "2026-10-06T00:01:15.596174+00:00",
+  "source_sha256_before": "1950b35871cd71b2f43a9472b96770ef6957915a778608669969f3c3d4b73548",
+  "source_sha256_after": "1950b35871cd71b2f43a9472b96770ef6957915a778608669969f3c3d4b73548",
+  "source_unchanged": true,
+  "gates": [
+    {
+      "gate": "suite",
+      "exit": 0,
+      "tests": 838,
+      "seconds": 206.699,
+      "output_sha256": "2e558d36f75917c99656cf3837edce04862c3151c76a8623461d376ecd917727",
+      "diagnostic": "\n  function, args, kwargs = self._cleanups.pop()\nResourceWarning: Enable tracemalloc to get the object allocation traceback\n............................................................................................................................\n----------------------------------------------------------------------\nRan 838 tests in 206.415s\n\nOK\n"
+    },
+    {
+      "gate": "manifest",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.829,
+      "output_sha256": "a1f5f27dd736b914b139033d439795ea43c71e6cd76bdb10527103fcb9ab13b4",
+      "diagnostic": "Validating plugin manifest: /Users/brunocangucu/Projetos DEV - Cursor/byia-claude-orquestra/orq/.claude-plugin/plugin.json\n\n✔ Validation passed\n"
+    },
+    {
+      "gate": "lint",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.19,
+      "output_sha256": "2aea349869ffa0286e9120ffcf6e59865eb83ce89edd4af6326655f10f8b8ece",
+      "diagnostic": "✓ coerência interna ok — 20 nomes conferidos, memory/ ignorado (exceto 2 páginas vivas nominais)\n"
+    },
+    {
+      "gate": "diff",
+      "exit": 0,
+      "tests": null,
+      "seconds": 0.02,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diagnostic": ""
+    }
+  ]
+}
