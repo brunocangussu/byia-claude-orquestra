@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "card": "T-150",
+  "state": "LOCAL_CORRECTED_PENDING_R3_GATE",
+  "verified_at_utc": "2026-10-08T02:15:33Z",
+  "baseline": "4cdbcbc9f8a54ea33292bd7cd0407a36f995bb8c",
+  "branch": "codex/t150-alinhamento-operacional",
+  "source_version": "0.31.0",
+  "product_sha256": "721d4e833a9ab7b83513810c18f6c632587d594f8b3aa78029245b98768fa0e6",
+  "product_digest_recipe": "sha256 do JSON UTF-8 compacto do mapa de caminhos ordenados para sha256 de cada arquivo",
+  "product_files": {
+    "orq/agents/orq-planner.md": "e6e899573c639435da2431ec85336b73d6f89e39d47e488bbd3e5f072b174eb2",
+    "orq/commands/dormir.md": "2cc694866547800655cdda36865c60745c4a51e659fde40360f33017e7876cff",
+    "orq/commands/implement-next.md": "ec06179aa63f61190ebe3f7db236c8e89e3a498cf32d873353afa40156310e52",
+    "orq/commands/plan-next.md": "653fe8314c3c92175b31a181592346075ec74a760d960a8f4666a366ccd36db2",
+    "orq/commands/revisar.md": "6307037d148f9946dd3e56212c581c9b9ee9eca0c6349926ea4df040a0eaf0e5",
+    "orq/references/continuidade-evidencias.md": "72398ff6127e1c04543d300264e5c6246c94994943bd3cdd39dc9b4c71708cc8",
+    "orq/scripts/planner_coordination.py": "d933d7b4ea7ed9a25c317e2982cc14b1c9e76cad2d6bf710d7f8b41ceccf2a49",
+    "orq/scripts/test_continuidade_aprovada.py": "b21a63257c4a7821bed658ef70e1c92d2a2470f222763f78be76a273d84a7d57",
+    "orq/scripts/test_planner_coordination.py": "b67609429e246da6d75a1a5dc709e33213d2cafe3ebd0223eac55c5b89668cd4",
+    "orq/scripts/test_work_evidence.py": "f77a932fc2c87689797f4ca0ad8f45cdc460afebadc9b8f6b009cf8ab1a3daf2",
+    "orq/scripts/work_evidence.py": "72ac9000a54b67369b01e3fb064da5ff7209341198d6c43aa5675fe3b6694a2e",
+    "orq/skills/orq/SKILL.md": "fe1eded26eacc9d3000ed7d9c4eff0b791f87a7c2ff6c57b6cf393626bed73da"
+  },
+  "roster_sha256": "676dc191665c758d079d2cc0b42b75110ccdf01c6de6422e78d39772a5c6373a",
+  "runner_sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4",
+  "red": {
+    "python": "3.9.6",
+    "commands": [
+      "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -s orq/scripts -p 'test_planner_coordination.py'",
+      "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -m unittest discover -s orq/scripts -p 'test_work_evidence.py'"
+    ],
+    "tests": 46,
+    "exits": [1, 1],
+    "assertion_failures_including_subtests": 15,
+    "infrastructure_errors": 0
+  },
+  "focused_green": {
+    "modules": ["test_planner_coordination.py", "test_work_evidence.py", "test_continuidade_aprovada.py"],
+    "python_versions": ["3.9.6", "3.14.7"],
+    "tests_per_runtime": 64,
+    "exits": [0, 0, 0, 0, 0, 0],
+    "instruction_guards_are_static_not_llm_behavior": true
+  },
+  "first_full_suite": {
+    "python": "3.9.6",
+    "tests": 916,
+    "exit": 1,
+    "seconds": 263.504,
+    "handle": 66089,
+    "handle_terminal": true,
+    "reason": "guarda textual ainda esperava teto de revisão; ajustada para teto externo registrado",
+    "corrected_by": "orq/scripts/test_continuidade_aprovada.py"
+  },
+  "full_suite": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'",
+    "python": "3.9.6",
+    "tests": 916,
+    "exit": 0,
+    "seconds": 259.863,
+    "handle": 98537,
+    "handle_terminal": true,
+    "resource_warnings": 2,
+    "warnings_present_in_previous_baseline": true
+  },
+  "strict_manifest": {"command": "claude plugin validate ./orq --strict", "exit": 0},
+  "coherence": {"command": "python3 orq/scripts/lint-coerencia.py .", "exit": 0},
+  "ruff": {"files": 6, "exit": 0},
+  "diff_check": {"command": "git diff --check", "exit": 0},
+  "mutations": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 docs/T-150-mutation-checks.py",
+    "total": 28,
+    "killed": 28,
+    "infrastructure_errors": 0,
+    "product_writes": 0,
+    "network_calls": 0
+  },
+  "harness_format": {
+    "offline_cases": 6,
+    "passed": 6,
+    "external_calls": 0,
+    "original_receipt_preserved": true,
+    "is_not_independent_review": true
+  },
+  "replay": {"total": 10, "passed": 10, "external_calls": 0, "actual_jev_responses": 0, "benefit_proved": false},
+  "r2": {"authorized_calls": 1, "consumed_calls": 1, "verdict": "REPROVADO", "retry": false},
+  "r3": {"authorized_calls": 0, "consumed_calls": 0, "state": "NEEDS_OWNER_GATE"},
+  "bump": false,
+  "stage": false,
+  "commit": false,
+  "push": false,
+  "integration": false,
+  "publication": false,
+  "installation": false,
+  "restart": false,
+  "host_behavior_proved": false,
+  "claude_worktree_preserved": true,
+  "main_roster_preserved": true
+}

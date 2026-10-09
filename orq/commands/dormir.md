@@ -59,12 +59,23 @@ Ao receber o plano:
 
 Depois de cada card: grave no board e siga pro próximo. **Uma tarefa travada nunca trava a fila.**
 
-## 4. Parar (qualquer uma destas encerra o modo)
+## 4. Continuidade e encerramento
 
-- Atingiu `cards_max` ou `horas_max`
-- **Duas rodadas seguidas sem progresso verificável**
-- Erro repetido no mesmo card (1 retry, não mais)
-- O dono mandou parar
+O orçamento do manifesto, a parada humana ou a ausência de card elegível
+encerram este modo.
+Estagnação ou erro local estacionam a dependência, não a fila inteira.
+
+- **Encerra:** atingiu `cards_max` ou `horas_max`.
+- **Encerra:** não há card elegível dentro da autoridade e do manifesto: encerre com relatório,
+  sem inventar trabalho ou reabrir cards estacionados para preencher o tempo.
+- **Não encerra por si só:** duas rodadas seguidas sem progresso verificável exigem diagnóstico e mudança
+  de estratégia, conforme `ORQ_PACKAGE_ROOT/references/continuidade-evidencias.md`.
+  Se não houver ação útil autorizada naquele card, estacione-o e siga a fila;
+  esse contador sozinho não encerra o modo.
+- **Não encerra por si só:** erro repetido no mesmo procedimento local: no máximo uma nova tentativa
+  justificável; depois, estacione a dependência e continue cards elegíveis.
+  Isso não autoriza retry ou chamada nova de modelo/serviço externo.
+- **Encerra:** o dono mandou parar.
 
 Ao encerrar, escreva o **relatório** no manifesto: o que planejou · o que estacionou (com as
 perguntas) · o que pulou e por quê · quanto tempo levou.

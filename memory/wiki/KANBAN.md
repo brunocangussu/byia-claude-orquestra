@@ -28,6 +28,8 @@
 
 ## 🟡 Fazendo
 
+- [~] `T-150` Alinhamento operacional — entrega Git allowlistada e limpeza T-144 autorizadas pelo dono. R3 Opus 5.5/high aprovada com ressalvas e auditada, sem bloqueadores; 1/1 consumida, sem retry. Bump candidato 0.32.0 nos quatro anchors; gates frescos antes de integrar/push. T-144 removida localmente sem force, commits/ledger preservados. Haiku só piloto Claude; Codex mantém OpenAI. Sem publicação/instalação/restart · sistema/pesada · → threads/T-150-alinhamento.md @frente-alinhamento @codex
+
 
 
 
@@ -63,7 +65,7 @@
 
 - [?] `T-098` JEV — bancada v6 e histórico imutável entregues na main/GitHub pelo T-148; R9 GO e auditoria fechada, 31 testes/preflight reconferidos. Validar a bancada; campanha/adoção continuam com gate próprio, A2/B2 zero e scores não avaliados · sistema/pesada · → threads/T-098-jev-router.md @frente-jev-router
 
-- [?] `T-146` Medidor fase 2 — fonte conciliada em 0.30.0 (T-148); após ativação, validar lembrete único e segmento na statusline. Worktree Claude preservada enquanto há processos vivos · → threads/T-144-mods-claude-code.md @frente-mods
+- [?] `T-146` Medidor fase 2 — fonte conciliada em 0.30.0 (T-148); após ativação, validar lembrete único e segmento na statusline. Checkout histórico removido com autorização no T-150; ledger privado preservado · → threads/T-144-mods-claude-code.md @frente-mods
 - [?] `T-144` Medidor de progresso fase 1 — fonte conciliada em 0.30.0 (T-148); validar acompanhamento do plano sem confundir 100% com DONE. Ledger/chave locais preservados · → threads/T-144-mods-claude-code.md @frente-mods
 - [?] `T-075` claude-mem nos 2 hosts — patch, restart, caches e canários verificados; pool 3 provado com quatro sessões reais; falta validação prática do dono · sistema/pesada · → threads/T-072-claude-mem.md @frente-economia
 

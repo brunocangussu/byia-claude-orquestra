@@ -2452,3 +2452,29 @@ front Claude ou ledger privado. Gates repetidos na main: 870/870,
 manifesto/lint exit 0; dois avisos de recurso não fechado registrados.
 T-149 movido pelo Manager para VALIDATE, com handoff e snapshot próprio
 recuperável. Nenhuma publicação, instalação ou reinicialização executada.
+
+## 2026-10-08 — T-150: candidato 0.32.0 e limpeza histórica T-144
+
+O dono autorizou entrega Git allowlistada da T-150 e remoção local exata
+T-144. Candidato 0.32.0 nos quatro anchors, após R3 Opus 5.5/high
+APROVADO_COM_RESSALVAS auditada sem bloqueadores, 1/1 consumida, sem retry.
+Os 12 arquivos funcionais e o elenco correspondem ao snapshot R3; nenhuma
+nova inferência ou mudança de modelo/effort foi feita na preparação Git.
+
+Continuidade: removido teto global de duas revisões; estagnação exige
+diagnóstico/mudança de estratégia sem criar autoridade ou saldo externo.
+Coordenação técnica é opt-in no mesmo Planner. Helper de evidências/JEV
+permanece offline e consultivo; benefício A2/B2 não comprovado.
+Oito papéis Codex comprovados e conciliados à fábrica; Manager, Host Claude,
+presets e vias desligadas preservados. Haiku 5.5: só proposta de piloto Claude.
+
+Gates frescos da candidata: 916 testes, 273,586 s, Python 3.9.6; manifesto
+estrito, lint, Ruff e diff-check exit 0. Dois ResourceWarnings observados,
+sem falha de teste. Ruff local 3.12.12 usado após o shim padrão informar
+comando ausente; nada foi instalado ou alterado no ambiente global.
+
+Checkout/branch local claude/t144-medidor-progresso removidos sem force,
+com prova de ancestralidade, limpeza inclusive ignorados e ausência de cwd
+vivo. ba523e9/064e726 permanecem na main; ledger T-146 byte a byte preservado.
+Cards T-144/T-146 continuam VALIDATE; T-147 não foi implementado.
+Preparação de entrega não é publicação, instalação ou validação dos chats.

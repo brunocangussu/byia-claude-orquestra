@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "snapshot_sha256": "c1eb3b7a5a9267abf38fd603a1722e51d3a04fc69941da254eb1b6e35e62c5d5",
+  "risk": "pesada",
+  "review_rounds": 0,
+  "stalled_rounds": 0,
+  "blockers": 0,
+  "snapshot_changed": false,
+  "defect_class": "unknown",
+  "evidence_gap": "independence",
+  "progress": [],
+  "verification": {
+    "targeted": "passed",
+    "suite": "passed",
+    "mutations": "passed"
+  },
+  "review": {
+    "state": "missing",
+    "snapshot_current": false
+  },
+  "authority": {
+    "local_work": true,
+    "external_remaining": 0,
+    "external_covered": false
+  }
+}

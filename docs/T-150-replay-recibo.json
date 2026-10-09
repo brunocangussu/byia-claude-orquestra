@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "card": "T-150",
+  "state": "OFFLINE_REPLAY_VERIFIED",
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 docs/T-150-replay-offline.py",
+  "exit": 0,
+  "cases": 8,
+  "passed": 8,
+  "input": "docs/T-150-evidencias-replay.json",
+  "input_sha256": "82649cf55c4e1176caeb4d9524a99d70796fe0db7a22e29987c95708024b4229",
+  "product_sha256": "c1eb3b7a5a9267abf38fd603a1722e51d3a04fc69941da254eb1b6e35e62c5d5",
+  "request_bytes": 1344,
+  "request_sha256": "f1ed543bdb585c182af556dcaf50629ba140868641a9229c0443c2978441d867",
+  "actual_snapshot_case": "prepare_review_gate",
+  "synthetic_controls": {
+    "two_stalled_rounds": "diagnose_and_change_strategy",
+    "third_review_with_progress": "fix_and_test",
+    "mock_JEV_adds_discriminating_test": "accepted_without_permissions",
+    "mock_JEV_unbudgeted_review": "rejected",
+    "mock_JEV_low_confidence": "abstained",
+    "mock_JEV_stale_snapshot": "rejected",
+    "mock_JEV_wrong_model": "rejected"
+  },
+  "ruff_exit": 0,
+  "external_calls": 0,
+  "actual_JEV_responses": 0,
+  "benefit_proved": false,
+  "independent_review": false,
+  "product_changed_in_replay": false,
+  "scope": "Reprodução local do snapshot declarado e controles sintéticos; não é benchmark do JEV ou nova revisão externa."
+}

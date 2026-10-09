@@ -16,9 +16,12 @@ Preserve os gates de capacidade, autoridade, independência e continuidade já d
 
 **Planner·interface via Claude CLI no host Codex:** o runner é transporte read-only genérico,
 não persona de reviewer. Antes da chamada, o Manager reúne a investigação local necessária
-e prepara briefing sanitizado/autorizado com objetivo, evidências por arquivo/linha, escopo,
+e prepara briefing sanitizado/autorizado com objetivo, trechos de memória e evidências
+inline por arquivo/linha, escopo,
 restrições, perguntas e critérios. Declare o papel `planner·interface` e peça diagnóstico,
 passos verificáveis com arquivos/porte, testes, riscos e decisões do dono — não um parecer.
+Declare `planner_input_mode: packet-only`; o pacote é autocontido, caminhos não são
+instruções de leitura e lacunas não autorizam ferramentas ou bytes adicionais.
 O subprocesso não lê arquivos nem grava o plano: o **Manager** audita a resposta e grava o
 arquivo da fase de planejamento. Respeite o gate de envio/bytes da Matriz; pacote acima do
 teto não é truncado nem dividido/repetido em silêncio. Sem capacidade, estacione somente
@@ -135,8 +138,25 @@ Modelo, CLI ou override indisponível → não troque de modelo em silêncio. Ma
 PLANNING, registre a capacidade ausente e peça ao dono a escolha do fallback.
 
 No prompt, inclua:
+- **coordenação técnica explícita:** `coordination_mode: off` por padrão,
+  em cada chamada. Para card `sistema` com dependências/fronteiras reais,
+  o Manager pode justificar `technical` e produzir o contrato com
+  `python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/planner_coordination.py" --mode technical --track sistema`.
+  Substitua o marcador pelo caminho absoluto do pacote já comprovado; não
+  dependa de variável de shell não definida. Confira exit 0 e JSON válido;
+  acrescente a linha `coordination_mode: technical` usando o campo
+  `coordination_mode` devolvido e o conteúdo do campo `instructions`, não o
+  JSON inteiro, ao briefing da **mesma** chamada do `planner·sistema`.
+  Erro de composição não autoriza despacho com contrato parcial. Não cria outro
+  agente, troca perfil ou autoriza workers; orçamento e inspeção cobrem
+  também esses bytes. Em trilha interface, mantenha `off`; não mude trilha
+  só para ligar o modo.
 - o card (ID, título, notas) e **por que ele existe**;
-- os arquivos-âncora e páginas de wiki relevantes que você já conhece — poupa a investigação dele;
+- **modo de entrada:** `planner_input_mode: workspace-read` na via nativa
+  delimitada, `packet-only` na via sem ferramentas. Nesta última, inclua os
+  trechos de memória/âncoras necessários inline dentro do envelope aprovado;
+  o Manager grava o plano devolvido. Na via nativa, liste os arquivos e leituras
+  autorizadas. Evidência faltante é lacuna, não licença de investigação adicional;
 - restrições do projeto (build, testes, o que quebra deploy, o que é intocável);
 - o que **não** está no escopo;
 - **exigência de handoff**: o plano precisa terminar com passos verificáveis, riscos, critério de
@@ -168,6 +188,9 @@ Quando o plano voltar, **não repasse cru**. Avalie:
   ao planner — em trilha cruzada esse é o modo de falha esperado, não uma surpresa.
 - **a tabela de passos existe e fecha?** IDs únicos, tamanho `S`/`M`/`L`, critério de aceite
   verificável em cada linha. Sem tabela, volta ao Planner.
+- **se houve coordenação técnica:** dependências, dono por arquivo, contratos
+  e integração/testes estão explícitos? Sugestão de paralelismo não é despacho
+  autorizado nem permissão para um worker iniciar outro worker.
 
 Se estiver fraco, **devolva ao Planner com o apontamento** antes de levar ao dono.
 

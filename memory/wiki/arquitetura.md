@@ -1,7 +1,8 @@
 # Arquitetura do Orquestra
 
-> Como o plugin funciona **hoje** (`0.31.0`). Página de consulta — organizada por pergunta, não por
+> Como o plugin funciona **hoje** na fonte (`0.32.0`). Página de consulta — organizada por pergunta, não por
 > ordem de leitura. Reescrever quando o desenho mudar; histórico é `fixes-history.md`, não aqui.
+> Entrega de fonte não significa instalação, restart ou ativação em sessões já abertas.
 
 ## O princípio
 
@@ -21,6 +22,17 @@ todo passo termina gravando no board e na wiki. É isso que elimina a necessidad
 | `orq-implementer` | subagente | fresco a cada card | ✅ código, em worktree isolado |
 | `orq-reviewer` | subagente | fresco a cada revisão | ❌ read-only, aponta e não corrige |
 | `orq-docs` | subagente | fresco a cada card | ✅ docs sobre o código já pronto |
+
+Os poderes da tabela dependem da via comprovada. Um Planner chamado por via
+read-only devolve o plano ao Manager, que o persiste; não se eleva a permissão
+da chamada para satisfazer a coluna de escrita.
+
+**Coordenação técnica opt-in — T-150:** é um modo do mesmo `orq-planner`, não
+um sexto agente, outro Manager ou outra chamada automática. Organiza tarefas,
+dependências, propriedade de arquivos, testes e integração. O contrato tipado
+é validado por `orq/scripts/planner_coordination.py`; o Manager conserva
+decisões, board, autorização e despacho. O compositor T-139 continua piloto;
+ganhos gerais de custo ou qualidade não estão comprovados.
 
 **Por que o Manager não é subagente:** existe exatamente um lugar que move cards e fala com o dono.
 Se fosse spawn, haveria duas fontes de verdade sobre "onde estamos". Veio direto da fonte original —
@@ -681,3 +693,19 @@ O contrato canônico está em `orq/skills/orq/SKILL.md`, na seção
 independentes: o registro humano durável por card sustenta somente a execução
 local no escopo aprovado. Checkpoint e compactação preservam o registro e seus
 limites; não transformam plano, READY, reviewer, log ou pacote em autoridade.
+
+**T-150:** não há teto global de duas revisões. Duas consecutivas sem progresso
+verificável exigem diagnóstico e mudança de estratégia, não encerramento
+automático da meta ou da fila. Depois da mudança, o Manager audita o progresso;
+contador de rodadas e consumo externo não são zerados para criar saldo.
+Gate humano delimitado, orçamento, proteção de dados e parada explícita
+continuam obrigatórios. Sem autoridade para uma dependência, avance somente
+nas outras ações aprovadas e elegíveis.
+
+Política completa: `orq/references/continuidade-evidencias.md`. O helper
+`orq/scripts/work_evidence.py` recomenda a próxima ação a partir de metadata
+auditada. Prepara e interpreta pacotes JEV, mas não chama API, não lê chave,
+não modifica ledger e não aprova código, review ou release. A campanha real
+A2/B2 e a vantagem comparativa JEV permanecem pendentes; replay offline não
+substitui essa medição. Haiku 5.5 permanece proposta de piloto no Host Claude;
+nenhum trigger ou writer/scout cross-vendor foi adicionado ao Host Codex.

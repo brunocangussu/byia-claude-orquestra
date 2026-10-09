@@ -92,7 +92,7 @@ autorizada. Não faça retry automático nem reinicie o consumo; gate externo
 consumido não se reabre sozinho. A aprovação de implementação local não substitui
 este gate, e sua ausência não cancela a correção local dentro do escopo aprovado.
 Sem ação local elegível, registre o impedimento real e escale ao dono; não alargue
-o teto de revisão para compensar a falta de saldo.
+o teto externo registrado para compensar a falta de saldo.
 
 ## 2. Disparar o revisor titular
 
@@ -314,7 +314,8 @@ Se nada relevante apareceu, diga em uma linha. **Não invente achado pra parecer
 
 ## Regras
 - Revisor **não corrige** — quem implementou aplica. Você (Manager) roteia as correções.
-- Máximo **2 rodadas** de correção+revisão; persistindo, escale pro dono.
+- Não há teto global de duas rodadas. Siga `ORQ_PACKAGE_ROOT/references/continuidade-evidencias.md`:
+  estagnação exige diagnóstico e estratégia diferente; tetos externos explícitos não se renovam.
 - Nunca mande segredo/credencial no briefing do revisor.
 
 ## Continuidade de execução aprovada

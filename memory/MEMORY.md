@@ -4,7 +4,44 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.31.0 — fonte do T-149 entregue na main/local e em origin/main (`a81026f`), com elenco padrão versionado, R2 aprovada com ressalvas documentais encerradas e gates frescos verdes (870 testes, manifesto e lint). Instalação e validação prática permanecem separadas. Sem publicação, instalação ou restart nesta frente. A versão 0.27.10 foi publicada em `origin/main` no commit `df98d9c`, instalada e verificada nos hosts Claude e Codex em 2026-09-22. Processos novos carregam a versão instalada; sessões já abertas continuam no cache anterior até o próprio restart. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-06 (T-149) · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.32.0 — candidata T-150, com entrega Git allowlistada autorizada: continuidade aprovada, coordenação técnica opt-in no mesmo Planner e evidências consultivas offline. R3 aprovada com ressalvas, sem bloqueadores. Instalação, publicação e validação prática permanecem separadas. Caches observados antes da entrega: Codex 0.31.0 e Claude 0.27.10; fonte nova não atualiza chats vivos. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-08 (T-150) · **host padrão a partir de 2026-08-09: Codex**.
+
+**T-150, 2026-10-08 — entrega Git autorizada; R3 aprovada e auditada:**
+- Oito papéis Codex comprovados contextualmente; adoção candidata derivada
+  da fábrica 0.31.0. Manager, Host Claude, presets e vias desligadas intactos.
+- Continuidade aprovada sem teto global de duas revisões. Duas sem progresso
+  exigem diagnóstico/mudança de estratégia, preservando gates e consumo.
+- Coordenação técnica opt-in no mesmo Planner, sem segundo Manager ou chamada
+  extra. T-139 continua piloto; qualidade/economia gerais não comprovadas.
+- JEV: apoio consultivo offline para testes/revisões implementado e testado,
+  sem API ativa. Campanha A2/B2 e benefício comparativo ainda pendentes.
+- R1/R2 reprovadas, achados auditados/corrigidos e originais preservados.
+  Pós-R2: 916/916 testes, manifesto/lint/Ruff/diff-check e 28/28 mutações
+  verdes; dez replays offline. Recibo: `../docs/T-150-verificacoes-pos-R2.json`.
+- R3 consumida 1/1, sem retry: 131.019 bytes, teto 128 KiB, SHA
+  `1d4cd33b76faeaf9eaacb8ec22bd37e7671e307483e353218f165b23ba73a343`.
+  Opus 5.5/high via Claude CLI: APROVADO_COM_RESSALVAS, sem bloqueadores;
+  riscos auditados. Produto/elenco iguais ao snapshot revisto, sem R4.
+  Recibo público: `../docs/T-150-R3-recibo-publico.json`; auditoria e parecer
+  em `../docs/reviews/`. Recibos de conta e harnesses privados ficam locais.
+- Haiku 5.5 confirmado pelo dono somente para planejamento/piloto Claude.
+  Sonnet mantido nas moderadas; implementer/docs/scout Codex continuam OpenAI.
+  Guarda offline comprovada: ID 5.5 recusado antes de stdin/CLI/processos;
+  alias atual espera 4.5. Zero inferência/rede; não prova worker Claude 5.5.
+- Limpeza autorizada T-144 executada: checkout limpo e branch local removidos
+  sem force; commits ba523e9/064e726 continuam na main. Ledger T-146 intacto.
+  As seis outras branches integradas já foram removidas; T-149 arquivado
+  nativamente e recuperável. T-150 e seus originais locais preservados.
+- Main/GitHub antes da entrega: 4cdbcbc, fonte 0.31.0; gates frescos 870/
+  manifesto/lint verdes. Cache Codex verificado contra fonte remota limpa;
+  Claude encontrado somente no cache 0.27.10. Não é prova de todos os chats.
+- Gate humano atual: resposta “Autorizo as duas ações” à pergunta delimitada
+  de entrega T-150 e limpeza T-144, registrada na thread dona. Versão livre
+  0.32.0 nos quatro anchors; repetir gates antes de commit/integrar/push.
+  Sem publicação, instalação, restart, Haiku/JEV ou revisão externa nova.
+- Retomar pelo resolver na worktree própria e ler a thread obrigatória:
+  `THREAD_ROOT/threads/T-150-alinhamento.md`. Medidor 6/6 do plano local;
+  entrega Git não significa validação prática nem DONE.
 
 **T-149, 2026-10-06 — elenco padrão versionado entregue:**
 - Fonte 0.31.0 em `a81026f`, integrada por fast-forward e confirmada no GitHub.
@@ -649,7 +686,7 @@ Ver `wiki/KANBAN.md` para o estado exato de cada card.
 | [`wiki/threads/T-054-pareceres.md`](wiki/threads/T-054-pareceres.md) | **Evidência durável** — o parecer cross-vendor íntegro e a auditoria do Manager, que corrigiu um achado e confirmou outro |
 | [`wiki/threads/T-148-consolidacao-main.md`](wiki/threads/T-148-consolidacao-main.md) | **Entregue, validar organização** — conciliação 0.30.0, evidências, ancestralidade Claude e limpeza recuperável; main pronta, T-144 vivo preservado |
 | [`wiki/threads/T-149-elenco-padrao-versionado.md`](wiki/threads/T-149-elenco-padrao-versionado.md) | **Fonte 0.31.0 entregue na main/GitHub** — `a81026f`, R2 aprovada/auditada, gates frescos 870 verdes nas duas árvores. Em VALIDATE: ativação e uso prático separados. Sem publicação, instalação, restart ou migração do elenco ativo |
-| [`wiki/threads/T-144-mods-claude-code.md`](wiki/threads/T-144-mods-claude-code.md) | **Fonte 0.30.0 entregue, validação prática pendente (`@frente-mods`)** — medidor portátil, fases 1–2 conciliadas; branch/ledger T-146 e sessão viva preservados |
+| [`wiki/threads/T-144-mods-claude-code.md`](wiki/threads/T-144-mods-claude-code.md) | **Fonte 0.30.0 entregue, validação prática pendente (`@frente-mods`)** — medidor portátil, fases 1–2 conciliadas; checkout/branch local T-144 removidos com autorização no T-150, commits e ledger T-146 preservados |
 | [`wiki/threads/T-072-claude-mem.md`](wiki/threads/T-072-claude-mem.md) | **No gate** — o papel do claude-mem, a fiação de busca que nunca existiu, e a correção de uma medição minha que estava 4,4× errada |
 | [`wiki/threads/T-078-ai-memory.md`](wiki/threads/T-078-ai-memory.md) | **Ativa** — o AI-Memory 2.0: parecer do planner, revisão que derrubou o piloto, os 3 estágios, a decisão do dono contra a recomendação, e o root cause do Codex não capturar |
 | [`wiki/threads/_notas-de-cards.md`](wiki/threads/_notas-de-cards.md) | As notas longas que saíram do board na migração do `T-056`, íntegras, por ID de card. **Não é thread** — não tem RETOMAR AQUI |

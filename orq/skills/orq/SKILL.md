@@ -140,19 +140,30 @@ resolva o papel e só então aplique a célula da `## Matriz de invocação`. �
 skill ensinando a criar sub-agentes (o padrão `subagent-driven-development` é o caso conhecido, mas a
 regra vale para qualquer uma), ela **não** governa spawn dentro do ciclo do Orquestra. Quem decide
 quem é invocado, por qual mecanismo e quantas vezes é a `## Matriz de invocação` mais o
-`## Times por host`; quem decide o teto de rodadas de revisão é `ORQ_PACKAGE_ROOT/commands/revisar.md`.
+`## Times por host`; continuidade e estagnação seguem
+`ORQ_PACKAGE_ROOT/references/continuidade-evidencias.md`, sem teto global de duas rodadas.
 
 **Por que a regra precisa estar escrita:** as duas instruções coexistem no mesmo host e a mais
 agressiva ganha por omissão. Medido no host Codex do dono em agosto/2026: **256 threads de
 sub-agente**, com a assinatura `writer` / `impl` / `review` / `rereview1..3` — um sub-agente por
 *tarefa* e um revisor por *rodada*, a maioria em fork herdando 150–200k de histórico que não usa,
-enquanto a Matriz manda um sub-agente por **card** e o `revisar.md` limita a **2 rodadas**. Nada
+enquanto a Matriz manda um sub-agente por **card** e a política de agosto
+limitava a **2 rodadas** (limite histórico, não vigente). Nada
 disso foi decidido: foi a skill mais insistente vencendo em silêncio.
 
 **Na prática:** um sub-agente por card, não por tarefa · o mecanismo é o da célula da Matriz, mesmo
-que outra skill ofereça um atalho nativo · rodada de revisão obedece ao teto do `revisar.md`. Se
+que outra skill ofereça um atalho nativo · rodada adicional depende de evidência e do
+gate real do card, não de um teto global em `revisar.md`. Se
 seguir a Matriz for impossível naquele host, **declare a degradação** — não caia na outra skill em
 silêncio.
+
+**Coordenação técnica sem segundo Manager:** o `orq-planner` possui modo
+opcional `technical`, composto por `ORQ_PACKAGE_ROOT/scripts/planner_coordination.py`.
+É opt-in por card, na mesma chamada do `planner·sistema`; padrão `off`.
+Decompõe dependências, donos por arquivo, contratos e integração/testes,
+mas não despacha workers, decide gates ou altera o board/ledger/elenco.
+Aplicar o briefing e a conferência de `ORQ_PACKAGE_ROOT/commands/plan-next.md`.
+Não é adoção geral dos perfis experimentais T-139 nem prova de economia.
 
 | Ele diz algo como… | Você faz |
 |---|---|

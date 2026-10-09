@@ -198,7 +198,7 @@ class ContinuidadeAprovadaContractTest(unittest.TestCase):
             "avance a ação local elegível",
             "não faça retry automático nem reinicie o consumo",
             "gate externo consumido não se reabre sozinho",
-            "não alargue o teto de revisão",
+            "não alargue o teto externo registrado",
         ):
             self.assertIn(normalizar(trecho), normalizar(gate_externo), trecho)
         self.assertNotIn("t-143", normalizar(gate_externo))
@@ -212,7 +212,12 @@ class ContinuidadeAprovadaContractTest(unittest.TestCase):
             normalizar("Antes de cada operação de entrega Git, confira a citação ou referência verificável"),
             normalizar(loop_b),
         )
-        self.assertIn("Máximo **2 rodadas**", self.texto(REVISAR))
+        self.assertIn("Não há teto global de duas rodadas", self.texto(REVISAR))
+        self.assertIn(
+            "ORQ_PACKAGE_ROOT/references/continuidade-evidencias.md",
+            self.texto(REVISAR),
+        )
+        self.assertNotIn("Máximo **2 rodadas**", self.texto(REVISAR))
         for relativo in (PLAN_NEXT, IMPLEMENT_NEXT, REVISAR):
             secao = extrair_secao(self.texto(relativo), TITULO_REFERENCIA)
             self.assertIn(

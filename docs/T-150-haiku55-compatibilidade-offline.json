@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "card": "T-150",
+  "recorded_at_utc": "2026-10-09T00:23:52Z",
+  "kind": "LOCAL_MOCKED_GUARD_NOT_MODEL_CAPABILITY",
+  "source_version": "0.31.0",
+  "runner_sha256": "c753ce7992548d29ccd5673082bbac5672ab41e9a20099a1bb60d87d74ae13c4",
+  "explicit_id_case": {
+    "requested_model": "claude-haiku-5-5",
+    "requested_effort": "medium",
+    "main_exit": 2,
+    "error_code": "MODEL_ALIAS_DESCONHECIDO",
+    "stdin_read_calls": 0,
+    "cli_resolution_calls": 0,
+    "subprocess_popen_calls": 0,
+    "subprocess_run_calls": 0,
+    "result": "PASS"
+  },
+  "identity_cases": [
+    {"requested_alias": "haiku", "observed_fixture": "claude-haiku-5-5", "accepted": false, "result": "PASS"},
+    {"requested_alias": "haiku", "observed_fixture": "claude-haiku-4-5-20251001", "accepted": true, "result": "PASS"}
+  ],
+  "real_model_calls": 0,
+  "network_calls": 0,
+  "source_changes": false,
+  "haiku_model_capability_proven": false,
+  "claude_native_worker_capability_proven": false,
+  "codex_implementer_vendor_changed": false,
+  "factory_contains_haiku55": false,
+  "interpretation": "O runner read-only atual não homologa Haiku 5.5; a guarda funciona e não deve ser relaxada. Isso não é prova sobre disponibilidade ou escrita de um worker nativo no Host Claude. Host Codex mantém OpenAI nos papéis de escrita/scout."
+}

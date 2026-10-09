@@ -157,7 +157,9 @@ dispensa a revisão. Titular indisponível ou dado sensível no diff mudam o des
 degradada, ou ausência de revisor declarada): quem decide isso é o `/orq:revisar` — regra lá.
 
 **Aplicar as correções é do implementer**, não do reviewer. Achado grave → devolva ao implementer e
-revise de novo. Máximo 2 rodadas; persistindo, escale pro dono. Achado que desfaz um passo já
+revise de novo dentro da autoridade registrada, sem teto global de duas rodadas.
+Consulte `ORQ_PACKAGE_ROOT/references/continuidade-evidencias.md`: duas rodadas
+estagnadas exigem estratégia diferente, não parada da meta. Achado que desfaz um passo já
 concluído: `reopen` desse passo; trabalho novo dentro do escopo aprovado: passo novo (`add`).
 
 ## 3. Documentar (sobre o código FINAL)

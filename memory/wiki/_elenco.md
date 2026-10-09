@@ -38,9 +38,10 @@ réguas") — aqui ela é resumida, não redefinida.
 **Quem pode vir de outro vendor:** só **`planner`** (pelo domínio) e **`reviewer`** (pela
 independência, e obrigatoriamente do vendor oposto). Aceitam qualquer vendor com célula na
 `## Matriz de invocação`, **desde que o mecanismo daquela célula execute aquele modelo** — a
-célula Anthropic×Codex é o runner Anthropic parametrizado por `--model <alias>`: só entra alias
-presente no mapa de prova do runner (`opus`·`fable`·`sonnet`·`haiku`), com o prefixo daquele alias
-comprovado no `modelUsage` antes de virar parecer. **`implementer`, `docs`
+célula Anthropic×Codex é o runner Anthropic parametrizado por `--model <alias-ou-id>`: só entra
+valor presente no mapa de prova (`claude-opus-5-5`·`opus`·`fable`·`sonnet`·`haiku`), com identidade
+exata para o ID completo ou prefixo do alias comprovado no `modelUsage` antes de virar parecer.
+Modelo e effort seguem a linha ativa do papel. **`implementer`, `docs`
 e `scout` ficam no vendor do host**: os dois primeiros porque escrevem; o `scout` porque leitura
 ampla e barata não compra aptidão de domínio e ainda pagaria transferência para terceiro.
 Scout cross-vendor é recusa com motivo. A metade de **escrita** cross-vendor do `T-021` segue fora do
@@ -65,7 +66,7 @@ Regras, cada uma escrita 1×:
 | Via | Vendor | Consumida por | Estado | Registro |
 |---|---|---|---|---|
 | codex | OpenAI | **host Claude**: `planner·sistema` e `reviewer`. No host Codex não é via — é o vendor nativo | **ativo** | subagente `codex:codex-rescue` → `codex-companion.mjs task` · modelo e effort conforme `## Times por host` (hoje `gpt-6.1-sol` @ `xhigh`, desde 2026-10-04) · `jobId` + `threadId` sustentam o reúso exato, aceito só com `threadId` devolvido igual ao solicitado · ver **Matriz de invocação** |
-| runner-opus | Anthropic | **host Codex**: `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `orq/scripts/run-opus-reviewer.py --model <alias>` · comprova o prefixo do alias pedido · 16 KiB por lote · timeout 600s · sonda real com `--model fable` em 2026-09-05 comprovou `claude-fable-5-1` (thread `T-079`) |
+| runner-opus | Anthropic | **host Codex**: `planner·interface` e `reviewer`. No host Claude não é via — é o vendor nativo | **ativo** | `<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py --model claude-opus-5-5 --effort high` · identidade exata no `modelUsage` · 16 KiB/lote por padrão; teto maior exige gate delimitado · timeout 600s · provas e limites em `docs/T-150-adocao-elenco.md`; capacidade CLI não aprova o produto |
 
 A coluna **Consumida por** existe para o efeito de ligar/desligar ser anunciável sem chute: a via
 só afeta os papéis listados, nos hosts listados.
@@ -121,8 +122,8 @@ uma vez, não repetido) · `não testado`.
 
 | Vendor do modelo | host Claude | host Codex |
 |---|---|---|
-| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias>` — aliases `opus`·`fable`·`sonnet`·`haiku`, **prova o prefixo do alias pedido** (pedir `fable` e receber Opus, ou receber `claude-fable-5-0`, reprova com exit 7), limita 16 KiB/lote e aplica timeout. `opus` comprovado em 2026-08-09; `fable` habilitado no `T-077` (2026-09-04) e **comprovado com chamada real em 2026-09-05** (`OPUS_MODEL=claude-fable-5-1`, thread `T-079`) |
-| **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | a primitiva exposta na sessão não aceita override de modelo/effort; use `codex exec` com modelo, effort e sandbox explícitos |
+| **Anthropic** | spawn nativo (Task + `model:`) — comprovado | `printf '%s' "$BRIEFING_SANITIZADO" \| python3 "<ORQ_PACKAGE_ROOT-resolvido>/scripts/run-opus-reviewer.py" --model <alias-ou-id> --effort <effort-resolvido>` — identidade exata para `claude-opus-5-5`, prefixo para aliases legados do mapa. Limite padrão 16 KiB/lote, timeout 600s; `--max-input-bytes` maior só com gate explícito para os bytes reais. Perfis atuais Opus 5.5/high comprovados em 2026-10-07 pela CLI, sem ferramentas/customizações/MCP, cwd vazio e sem retry. Modelo observado no `modelUsage`; effort enviado, não observado no servidor |
+| **OpenAI** | **OpenAI × host Claude:** subagente `codex:codex-rescue` → `codex-companion.mjs task --model <modelo> --effort <effort>`; primeira chamada por `card+papel` usa `--fresh --json`, continuação usa `--resume-thread <threadId> --json`; persistir `rawOutput`, `jobId`, `threadId` e `status`; continuação só é aceita com `threadId` devolvido igual ao solicitado. O modelo e o effort foram comprovados como revisor; como planner, o Loop A completo ainda é o teste real. Escrita cross-vendor: fora do desenho | `codex exec` com modelo, effort e sandbox explícitos é obrigatório; primitiva nativa só com override efetivo comprovado e registrado. Os recibos atuais comprovam a CLI, não o Companion ou spawn nativo |
 
 ⚠️ **Nunca acrescente `--write`.** O read-only desta chamada vem da ausência dessa flag: com ela, o sandbox do Companion vira `workspace-write` e o papel deixa de ser read-only.
 
@@ -199,21 +200,35 @@ Motor: a sessão Codex. A linha `manager` é expectativa verificável, não coma
 | Papel | Modelo | Por quê |
 |---|---|---|
 | manager | modelo da sessão (`/model`) | sessão principal; **sempre escolha do dono** — verificar o modelo real antes de anunciar |
-| planner·interface | `gpt-6-astra@max` | decisão do dono em 2026-09-05 (`T-079`); `max` comprovado no `codex exec` em 2026-09-07 (`T-083`), read-only |
-| planner·sistema | `gpt-6-astra@max` | mesma prova do `T-083`; read-only |
-| implementer·pesada | `gpt-5.6-terra@xhigh` | `workspace-write`, writer único em worktree |
-| implementer·normal | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-08-09; writer único em worktree |
-| implementer·leve | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03: as três faixas no mesmo modelo. O smoke do `gpt-5.6-luna` fica no histórico, mas o degrau não o usa mais |
-| reviewer | `opus` | vendor oposto ao host; runner Anthropic, read-only, sem ferramentas. Invocar com `--model opus`; a prova exige o prefixo `claude-opus-5` no `modelUsage`, comprovado em 2026-08-09 |
-| docs | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
-| scout | `gpt-5.6-terra@xhigh` | decisão do dono em 2026-09-03 |
+| planner·interface | `claude-opus-5-5@high` | read-only via Claude CLI; domínio perceptual, pacote autocontido e plano persistido pelo Manager |
+| planner·sistema | `gpt-6.1-sol@xhigh` | read-only via Codex CLI; domínio comportamental, perfil condicionado à prova contextual |
+| implementer·pesada | `gpt-6.1-sol@xhigh` | alto risco/desenho aberto; writer único em worktree, escrita sintética comprovada |
+| implementer·normal | `gpt-6.1-sol@high` | implementação e testes usuais; writer único em worktree, escrita sintética comprovada |
+| implementer·leve | `gpt-6-luna@medium` | resultado determinado/verificação mecânica; escrita sintética comprovada |
+| reviewer | `claude-opus-5-5@high` | vendor oposto; Claude CLI sem ferramentas, identidade exata exigida antes de aceitar o parecer |
+| docs | `gpt-6-luna@low` | escrita objetiva no vendor do host; escrita sintética comprovada |
+| scout | `gpt-6-luna@medium` | investigação delimitada, read-only no vendor do host |
 
-⚠️ **Com `planner·interface` e `planner·sistema` os dois em Astra, a trilha deixa de escolher vendor
-neste host** — ela continua governando classificação e cerimônia (e o piso de Alto risco), mas não
-espere modelo ou executor diferente por trilha aqui. É o mesmo efeito que as três faixas de
-`implementer` já produzem no host Claude desde 2026-09-03. A via `runner-opus` perdeu
-`planner·interface` como consumidor neste host (ver `## Revisores externos`); a via `codex` ganhou
-`planner·sistema` do host Claude com este mesmo modelo (ver `## Matriz de invocação`).
+**Origem:** `orquestra-version` · versão `0.31.0` · adoção local candidata em
+no candidato T-150 · `catalog_sha256`:
+`5996dab63533113049c15ee6778110b4b99a9248ed3b6f3beebc1b0221d70bd3`.
+As oito linhas são uma **substituição candidata** do perfil Codex anterior,
+autorizada localmente no T-150; integrar/adotar na raiz principal ainda depende
+da validação/gate do dono. Não declarar que faltavam decisões humanas: Astra
+dos planners (T-079/T-083), Terra dos implementers (`2026-08-09`/`2026-09-03`)
+e docs/scout (`2026-09-03`), além do reviewer Opus legado (`2026-08-09`), permanecem documentados na
+origem e no rollback. Detalhes e fonte humana: `docs/T-150-adocao-elenco.md`.
+Nenhum override fora dessas oito linhas, via desligada, Manager, Host Claude
+ou preset foi alterado. Relatos históricos da seção Claude sobre o Codex
+não substituem a tabela candidata deste host. Recibos e rollback usam o
+caminho durável `docs/T-150-adocao-elenco.md`, relativo à raiz do projeto.
+
+**Capacidade contextual:** seis provas Codex CLI 0.160.1, uma sonda planner interface
+e uma R1 reviewer Claude CLI 2.1.290; ambas Anthropic em Opus 5.5/high. No Codex,
+modelo/effort/sandbox foram observados no cliente; no Anthropic, modelo em
+`modelUsage` e effort enviado, não observado no servidor. Não é prova de qualidade,
+economia, spawn nativo ou ativação de outros chats. Workers já vivos mantêm o
+perfil anterior. A raiz principal não foi migrada nesta adoção local candidata.
 
 **Perfil ativo:** — este host não tem presets; o ajuste aqui é papel a papel, e criar um `## Perfis`
 para ele é pedido do dono, não iniciativa. Os presets de `## Perfis` são do host Claude e **não** se

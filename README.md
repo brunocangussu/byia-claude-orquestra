@@ -470,7 +470,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.31.0` — elenco padrão versionado T-149: catálogo de fábrica por host, modelo e effort explícitos, adoção por intenção natural e prova contextual antes do despacho. Elencos ativos e modelo do Manager são preservados. Instalação e validação prática dos hosts permanecem separadas.
+`0.32.0` — alinhamento operacional T-150: continuidade dentro do escopo aprovado, sem teto global de duas revisões; estagnação exige diagnóstico e mudança de estratégia, não nova autoridade. Coordenação técnica opt-in no mesmo Planner e evidências consultivas offline, sem API JEV ativa. Elenco Codex conciliado com a fábrica versionada; Manager, Host Claude e presets preservados. Instalação e validação prática dos hosts permanecem separadas.
 · **medidor de progresso portátil** (fase do board + percentual dos passos do plano, `show`/`watch` em qualquer host, segmento na statusline do Claude e lembrete consultivo por hook nos dois hosts)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar

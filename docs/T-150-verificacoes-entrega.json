@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "card": "T-150",
+  "source_version": "0.32.0",
+  "phase": "CANDIDATE_VERIFIED_PENDING_INTEGRATION",
+  "review": {
+    "round": "R3",
+    "verdict": "APROVADO_COM_RESSALVAS",
+    "confirmed_blockers": 0,
+    "consumed_calls": 1,
+    "authorized_calls": 1,
+    "retry": false,
+    "public_receipt": "docs/T-150-R3-recibo-publico.json",
+    "product_sha256": "721d4e833a9ab7b83513810c18f6c632587d594f8b3aa78029245b98768fa0e6",
+    "roster_sha256_at_review": "676dc191665c758d079d2cc0b42b75110ccdf01c6de6422e78d39772a5c6373a"
+  },
+  "candidate_gates": {
+    "python": "3.9.6",
+    "bytecode_disabled": true,
+    "suite": {"exit": 0, "tests": 916, "seconds": 273.586},
+    "manifest_strict": {"exit": 0},
+    "coherence": {"exit": 0},
+    "ruff": {"exit": 0, "local_python_environment": "3.12.12"},
+    "diff_check": {"exit": 0},
+    "resource_warnings": 2
+  },
+  "main_gates": null,
+  "cleanup_T144": {
+    "authorized_by_human": true,
+    "clean_including_ignored": true,
+    "no_live_cwd_users": true,
+    "checkout_removed": true,
+    "local_branch_removed": true,
+    "force": false,
+    "commits_preserved_in_main": ["ba523e9", "064e726"],
+    "T146_ledger_sha256_before_and_after": "5e6b9f1202cebced080f2c18ca8f8eca3d55afbb0c9f8449cea72564a739c17a"
+  },
+  "publication": false,
+  "installation": false,
+  "restart": false,
+  "behavior_of_all_open_chats_proven": false,
+  "Haiku55_adopted": false,
+  "JEV_API_active": false,
+  "private_receipts_excluded": true
+}
