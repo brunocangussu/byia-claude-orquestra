@@ -2478,3 +2478,32 @@ com prova de ancestralidade, limpeza inclusive ignorados e ausência de cwd
 vivo. ba523e9/064e726 permanecem na main; ledger T-146 byte a byte preservado.
 Cards T-144/T-146 continuam VALIDATE; T-147 não foi implementado.
 Preparação de entrega não é publicação, instalação ou validação dos chats.
+
+## 2026-10-08 — T-150: entrega de fonte confirmada e checkpoint
+
+3cfac6291b22d380c5631326f98ab74eb74ac4ce entregue na main/local e
+origin/main; 39 arquivos allowlistados, fast-forward, push da main sem tags.
+Pull --rebase pós-push confirmou árvore atualizada. Recibos privados ficaram
+na worktree; checkpoints anteriores da raiz preservados em stashes locais.
+Sem reescrever commits do Claude nem restaurar arquivos de outra frente.
+
+Main 0.32.0: descoberta completa 916/916, 238,205 s, Python 3.14.7 registrado
+junto do comando; manifesto estrito, lint, Ruff e diff-check exit 0.
+Dois ResourceWarnings, como na verificação anterior. Corrige a atribuição
+anterior da candidata a Python 3.9.6: esse valor veio de subprocesso Node
+separado; não houve captura do interpretador junto da descoberta candidata.
+O resultado 916/273,586 s da candidata continua válido, sem inventar versão.
+
+Guarda local inicialmente rejeitou os quatro arquivos esperados porque trim
+removeu espaço do porcelain; nenhuma escrita naquele passo. Parser NUL
+confirmado com RED/GREEN. Verificação prematura da raiz antiga foi cancelada
+e descartada; não conta nos gates da 0.32.0. Produto revisado não foi alterado.
+
+Promoção documental conserva oito combinações de papel/modelo/effort/via,
+Manager, seção Host Claude e presets. Fonte dos 12 arquivos funcionais
+continua no digest R3. Recibo original R3 permanece imutável, sem retry/R4.
+T-150 em VALIDATE, medidor 6/6 pausado nessa fase; não é DONE no produto.
+T-144 checkout/branch local removidos, commits e ledger T-146 preservados.
+Diretórios de cache reconferidos: Codex 0.31.0; Claude 0.27.10/0.31.0;
+nenhum 0.32.0. Presença não prova habilitação/carga. Sem publicação,
+instalação ou restart. Handoff: docs/handoff-T150-entrega-0.32.0.md.

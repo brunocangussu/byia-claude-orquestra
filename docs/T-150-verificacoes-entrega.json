@@ -2,7 +2,7 @@
   "schema": 1,
   "card": "T-150",
   "source_version": "0.32.0",
-  "phase": "CANDIDATE_VERIFIED_PENDING_INTEGRATION",
+  "phase": "SOURCE_DELIVERED_PENDING_PRACTICAL_VALIDATION",
   "review": {
     "round": "R3",
     "verdict": "APROVADO_COM_RESSALVAS",
@@ -15,7 +15,8 @@
     "roster_sha256_at_review": "676dc191665c758d079d2cc0b42b75110ccdf01c6de6422e78d39772a5c6373a"
   },
   "candidate_gates": {
-    "python": "3.9.6",
+    "python": null,
+    "python_note": "Interpretador não registrado com o comando da descoberta; observação em subprocesso Node separado não é atribuída a esta suíte.",
     "bytecode_disabled": true,
     "suite": {"exit": 0, "tests": 916, "seconds": 273.586},
     "manifest_strict": {"exit": 0},
@@ -24,7 +25,12 @@
     "diff_check": {"exit": 0},
     "resource_warnings": 2
   },
-  "main_gates": null,
+  "main_gates": {"python":"3.14.7","bytecode_disabled":true,"suite":{"exit":0,"tests":916,"seconds":238.205},"manifest_strict":{"exit":0},"coherence":{"exit":0},"ruff":{"exit":0,"local_python_environment":"3.12.12"},"diff_check":{"exit":0},"resource_warnings":2},
+  "checkpoint_instruction_gates": {"python":"3.14.7","bytecode_disabled":true,"suite":{"exit":0,"tests":916,"seconds":277.321},"manifest_strict":{"exit":0},"coherence":{"exit":0},"ruff":{"exit":0},"diff_check":{"exit":0},"resource_warnings":2,"functional_changes":false},
+  "git": {"source_commit":"3cfac6291b22d380c5631326f98ab74eb74ac4ce","parent":"4cdbcbc9f8a54ea33292bd7cd0407a36f995bb8c","source_paths":39,"fast_forward":true,"pushed_main":true,"remote_source_sha_verified":true,"tags_pushed":false},
+  "post_review_promotion": {"functional_product_unchanged":true,"eight_role_settings_unchanged":true,"manager_claude_and_presets_unchanged":true,"roster_notes_only":true,"roster_sha256":"d39ec2e34bf9004f45dd51ec04881861d1a74e36b9e66c7ecc28357be78eb56b"},
+  "cache_directories_observed": {"codex":["0.31.0"],"claude":["0.27.10","0.31.0"],"release032_absent":true,"enabled_or_loaded_versions_verified":false},
+  "progress": {"tasks_local_done":6,"tasks_local_total":6,"phase":"validate","lifecycle":"paused","card_done":false},
   "cleanup_T144": {
     "authorized_by_human": true,
     "clean_including_ignored": true,

@@ -1,19 +1,22 @@
-# T-150 — adoção Codex aplicada somente na worktree candidata
+# T-150 — adoção Codex entregue na fonte da raiz principal
 
-**Estado atual, 08/10:** oito papéis comprovados e aplicados na candidata;
+**Estado atual, 08/10:** oito papéis comprovados e integrados na fonte 0.32.0;
 R3 APROVADO_COM_RESSALVAS auditada, sem bloqueadores. O dono autorizou entrega
-Git allowlistada e integração do T-150, registrada na thread dona. A entrega
-está em execução; publicação, instalação e ativação de chats não estão
+Git allowlistada e integração do T-150, registrada na thread dona. A fonte
+`3cfac62` está na main e no GitHub; publicação, instalação e ativação de chats não estão
 cobertas. As seções de preflight abaixo preservam os marcos históricos.
 
 Fonte: fábrica do pacote carregado 0.31.0, digest canônico
 `5996dab63533113049c15ee6778110b4b99a9248ed3b6f3beebc1b0221d70bd3`.
-O elenco da raiz principal permanece intacto; o SHA-256 anterior é
+O elenco anterior da raiz principal ficou preservado no histórico e nos
+checkpoints locais; seu SHA-256 era
 `af55312bf6c2419e48c4697fde3207c55ec20e11624109fa7bff57fa8b0e7f60`.
 O Host Claude, Manager, presets, desvios fora das oito linhas-alvo e vias
 desligadas não foram alterados. As oito linhas e referências operacionais Codex foram aplicadas
-somente na worktree T-150, após prova contextual completa em 2026-10-07.
-Este registro é evidência de adoção candidata, não outro catálogo.
+inicialmente na worktree T-150, após prova contextual completa em 2026-10-07,
+e entregues à raiz principal por fast-forward autorizado. A promoção altera
+apenas notas de estado: os oito modelos/efforts/vias são os mesmos da R3.
+Este registro é evidência de adoção na fonte, não outro catálogo nem ativação.
 
 | Papel Codex | Projeção da fábrica |
 |---|---|

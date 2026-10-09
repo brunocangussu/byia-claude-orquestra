@@ -28,7 +28,6 @@
 
 ## 🟡 Fazendo
 
-- [~] `T-150` Alinhamento operacional — entrega Git allowlistada e limpeza T-144 autorizadas pelo dono. R3 Opus 5.5/high aprovada com ressalvas e auditada, sem bloqueadores; 1/1 consumida, sem retry. Bump candidato 0.32.0 nos quatro anchors; gates frescos antes de integrar/push. T-144 removida localmente sem force, commits/ledger preservados. Haiku só piloto Claude; Codex mantém OpenAI. Sem publicação/instalação/restart · sistema/pesada · → threads/T-150-alinhamento.md @frente-alinhamento @codex
 
 
 
@@ -50,6 +49,8 @@
 ---
 
 ## 🟣 Validar
+
+- [?] `T-150` Alinhamento operacional — fonte 0.32.0 entregue na main/GitHub em `3cfac62`; R3 Opus 5.5/high aprovada com ressalvas e auditada sem bloqueadores. Gates frescos 916/manifesto/lint/Ruff verdes nas duas árvores. Elenco Codex conciliado; continuidade sem teto global de duas revisões, coordenação técnica opt-in e evidências/JEV offline. T-144 removida localmente sem force, commits/ledger preservados. Validar uso após ativação autorizada; Haiku só piloto Claude. Sem publicação/instalação/restart · sistema/pesada · → threads/T-150-alinhamento.md @frente-alinhamento
 
 - [?] `T-149` Elenco padrão versionado — fonte 0.31.0 em `a81026f`, integrada na main e confirmada no GitHub; R2 Opus 5.5 aprovada com ressalvas encerradas, gates frescos 870/manifesto/lint verdes no worktree e na main. Validar adoção por intenção natural após ativação autorizada do host. Sem publicação, instalação, restart ou elenco ativo alterado · sistema/normal · → threads/T-149-elenco-padrao-versionado.md @frente-elenco-padrao
 

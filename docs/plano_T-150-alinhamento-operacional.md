@@ -1,7 +1,7 @@
 # T-150 — alinhamento operacional da Orquestra
 
 **Data:** 2026-10-06 · **Trilha:** sistema · **Faixa:** pesada.
-**Estado atual, 08/10:** R3 consumida 1/1: APROVADO_COM_RESSALVAS, sem bloqueadores, auditoria encerrada. Entrega Git allowlistada e limpeza local T-144 autorizadas pelo dono; candidata 0.32.0 nos quatro anchors. Produto/elenco iguais ao snapshot revisto (916 testes/28 mutações pós-R2); gates frescos antes da entrega. Sem publicação, instalação, restart ou revisão adicional.
+**Estado atual, 08/10:** fonte 0.32.0 entregue na main/GitHub em `3cfac62`; R3 consumida 1/1: APROVADO_COM_RESSALVAS, sem bloqueadores, auditoria encerrada. Entrega Git allowlistada e limpeza local T-144 concluídas sob autorização do dono. Doze arquivos funcionais e oito combinações de papéis/LLMs/efforts preservados; 916 testes e manifesto/lint/Ruff verdes na candidata e na main. Em VALIDATE, sem publicação, instalação, restart ou revisão adicional.
 **Frente:** `@frente-alinhamento`, host Codex. Base inspecionada: main `4cdbcbc`, fonte 0.31.0.
 
 ## Pedido e interpretação

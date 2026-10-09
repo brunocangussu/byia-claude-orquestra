@@ -209,18 +209,18 @@ Motor: a sessão Codex. A linha `manager` é expectativa verificável, não coma
 | docs | `gpt-6-luna@low` | escrita objetiva no vendor do host; escrita sintética comprovada |
 | scout | `gpt-6-luna@medium` | investigação delimitada, read-only no vendor do host |
 
-**Origem:** `orquestra-version` · versão `0.31.0` · adoção local candidata em
-no candidato T-150 · `catalog_sha256`:
+**Origem:** `orquestra-version` · fábrica comprovada `0.31.0` · projeção
+adotada na fonte `0.32.0` pelo T-150 (`3cfac62`) · `catalog_sha256`:
 `5996dab63533113049c15ee6778110b4b99a9248ed3b6f3beebc1b0221d70bd3`.
-As oito linhas são uma **substituição candidata** do perfil Codex anterior,
-autorizada localmente no T-150; integrar/adotar na raiz principal ainda depende
-da validação/gate do dono. Não declarar que faltavam decisões humanas: Astra
+As oito linhas substituem o perfil Codex anterior na fonte da raiz principal,
+com entrega Git e integração autorizadas pelo dono no T-150. Ativação do plugin
+e validação prática dos hosts continuam separadas. Não declarar que faltavam decisões humanas: Astra
 dos planners (T-079/T-083), Terra dos implementers (`2026-08-09`/`2026-09-03`)
 e docs/scout (`2026-09-03`), além do reviewer Opus legado (`2026-08-09`), permanecem documentados na
 origem e no rollback. Detalhes e fonte humana: `docs/T-150-adocao-elenco.md`.
 Nenhum override fora dessas oito linhas, via desligada, Manager, Host Claude
 ou preset foi alterado. Relatos históricos da seção Claude sobre o Codex
-não substituem a tabela candidata deste host. Recibos e rollback usam o
+não substituem a tabela vigente deste host. Recibos e rollback usam o
 caminho durável `docs/T-150-adocao-elenco.md`, relativo à raiz do projeto.
 
 **Capacidade contextual:** seis provas Codex CLI 0.160.1, uma sonda planner interface
@@ -228,7 +228,8 @@ e uma R1 reviewer Claude CLI 2.1.290; ambas Anthropic em Opus 5.5/high. No Codex
 modelo/effort/sandbox foram observados no cliente; no Anthropic, modelo em
 `modelUsage` e effort enviado, não observado no servidor. Não é prova de qualidade,
 economia, spawn nativo ou ativação de outros chats. Workers já vivos mantêm o
-perfil anterior. A raiz principal não foi migrada nesta adoção local candidata.
+perfil anterior. A raiz principal recebeu a projeção por fast-forward; isso
+não configura nem reinicia o harness de nenhum chat já aberto.
 
 **Perfil ativo:** — este host não tem presets; o ajuste aqui é papel a papel, e criar um `## Perfis`
 para ele é pedido do dono, não iniciativa. Os presets de `## Perfis` são do host Claude e **não** se

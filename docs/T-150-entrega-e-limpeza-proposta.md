@@ -1,21 +1,23 @@
-# T-150 — entrega e limpeza propostas
+# T-150 — entrega e limpeza executadas
 
 **Estado:** R3 terminal APROVADO_COM_RESSALVAS, auditada e sem bloqueadores;
 entrega Git allowlistada e limpeza local T-144 autorizadas pelo dono na
 resposta “Autorizo as duas ações”, registrada na thread dona. Publicação,
-instalação e restart permanecem fora. A versão candidata livre é 0.32.0.
+instalação e restart permanecem fora. Fonte 0.32.0 entregue na main/GitHub
+em `3cfac62`, SHA remoto reconferido; card em VALIDATE para uso prático.
 
 ## Resultado já conferido
 
-- Main local e remoto consultado por `git ls-remote` em
-  `4cdbcbc9f8a54ea33292bd7cd0407a36f995bb8c`, fonte 0.31.0.
+- Main local e remoto após entrega consultados por `git ls-remote` em
+  `3cfac6291b22d380c5631326f98ab74eb74ac4ce`, fonte 0.32.0.
 - Seis referências locais já integradas foram removidas com `branch -d`,
   sem force; checkout T-149 limpo foi arquivado nativamente, recuperável.
 - Permanecem main e candidato T-150 Codex. T-144 integrada, limpa e sem
   processos com cwd no checkout foi removida com autorização, sem force;
   os dois commits continuam na main e o ledger T-146 foi preservado.
-- T-150 tem diff não commitado: mesmo HEAD que a main **não** prova integração.
-  Tags/snapshots históricos e referências remotas ficaram intactos.
+- T-150 foi commitado com 39 arquivos allowlistados e integrado por fast-forward;
+  produto e recibos públicos estão na main. Originais privados permanecem
+  locais na worktree T-150. Tags/snapshots e outras referências ficaram intactos.
 - R1 e sete sondas consumidas continuam registradas. A R2 tem gate próprio,
   uma chamada, pacote exato 78.999 bytes; não renovou o gate anterior.
 - R3 consumida 1/1: pacote 131.019 bytes, Opus 5.5/high, sem retry;

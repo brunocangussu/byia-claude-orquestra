@@ -1,7 +1,7 @@
 # T-150 — alinhamento operacional
 
 **Frente dona:** `@frente-alinhamento` · **Host:** Codex.
-**Trilha/faixa:** sistema/pesada. **Estado:** DEV_REVIEW, implementação local aprovada.
+**Trilha/faixa:** sistema/pesada. **Estado:** VALIDATE, fonte 0.32.0 entregue; ativação e uso prático separados.
 
 ## Pedido do dono — 2026-10-06
 
@@ -701,3 +701,44 @@ elenco permanece 676dc191665c758d079d2cc0b42b75110ccdf01c6de6422e78d39772a5c6373
 Quatro anchors candidatos 0.32.0; índices Git vazios na raiz e na candidata.
 Nenhuma revisão, inferência, ativação ou migração de ledger foi executada
 nesta recuperação. Próximo passo: gates frescos da candidata.
+
+### Entrega de fonte verificada — 08/10
+
+Commit próprio 3cfac6291b22d380c5631326f98ab74eb74ac4ce: 39 arquivos
+allowlistados, quatro anchors 0.32.0, sem recibos privados ou hunks de
+outra frente. Integração fast-forward na main e push somente da main;
+ls-remote devolveu o mesmo SHA. Pull --rebase pré-checkpoint: up to date.
+Checkpoint anterior da raiz preservado no stash local
+23eec0f0b38e755969d8f37631d1aca6561c3ff6; não reaplicar indiscriminadamente.
+
+Gates frescos: candidata 916 testes/273,586 s, main 916/238,205 s;
+manifesto estrito, lint, Ruff e diff-check exit 0 nas duas árvores.
+Interpretador registrado junto da descoberta na main: Python 3.14.7.
+A versão da execução da candidata não foi capturada com seu comando;
+Python 3.9.6 observado em subprocesso separado não deve ser atribuído a ela.
+Dois ResourceWarnings em cada suíte, sem falhas; sem nova inferência/review.
+Uma guarda local de integração rejeitou os quatro arquivos esperados por
+remover espaço inicial do porcelain com trim. Nenhuma escrita naquela
+tentativa; reprodução RED/GREEN confirmou parser NUL correto. Checagem
+prematura da raiz antiga foi cancelada/descartada e não conta como gate 0.32.
+
+Os 12 arquivos funcionais mantêm o digest R3; a promoção documental do
+elenco conserva exatamente as oito combinações papel/modelo/effort/via,
+Manager, Host Claude e presets. R3/recibo original não foram reescritos.
+Checkout/branch local T-144 ausentes; commits e ledger T-146 preservados.
+Worktree T-150 permanece com originais privados, não enviados ao GitHub.
+Reconferência de diretórios: Codex 0.31.0; Claude 0.27.10/0.31.0; nenhum
+cache 0.32.0. Isso não verifica quais plugins/versões estão carregados.
+
+⏭️ RETOMAR AQUI: fonte entregue, card em VALIDATE. Publicação, instalação,
+restart e teste comportamental dos hosts dependem de gate próprio e não
+foram executados. Haiku 5.5 só piloto Claude; JEV API/campanha A2/B2 não
+ativados. Não repetir R3 nem renovar automaticamente gate consumido.
+Handoff: docs/handoff-T150-entrega-0.32.0.md. O objetivo desta entrega Git
+não exige nem autoriza fechar T-150, T-144 ou T-146 como DONE no produto.
+
+Checkpoint de instruções finais reconferido: 916/916 testes, 277,321 s,
+Python 3.14.7; manifesto/lint/Ruff/diff-check exit 0, dois ResourceWarnings.
+Onze arquivos documentais próprios na allowlist, sem mudança em orq/ ou
+nas nove linhas da tabela Codex (Manager + oito papéis). Não houve nova
+revisão externa. Ledger T-150 revisão 39, paused/validate; T-146 preservado.
