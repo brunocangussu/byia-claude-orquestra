@@ -1,7 +1,7 @@
 {
   "card": "T-151",
   "recorded_at": "2026-10-10T00:36:29.222Z",
-  "state": "LOCAL_GATES_PASSED_GIT_PENDING",
+  "state": "SOURCE_DELIVERED_VALIDATE",
   "source_version": "0.33.0",
   "base_sha": "6c8482a8b3deca31ecdc330c38d675c39f14058c",
   "integration_method": "Manager port of the exact reviewed uncommitted functional snapshot into main; no feature-branch merge",
@@ -103,8 +103,14 @@
     "comparative_gain_proved": false
   },
   "git": {
-    "commit": null,
-    "remote_verified": false
+    "commit": "0b998e44c7eae72d13fe4f93841a5be2dc43c841",
+    "branch": "main",
+    "remote": "origin/main",
+    "remote_observed_sha": "0b998e44c7eae72d13fe4f93841a5be2dc43c841",
+    "remote_verified": true,
+    "push_exit": 0,
+    "commit_scope": "31 arquivos e trechos do T-151; rascunhos T-150/T-152 preservados",
+    "feature_branch_merged": false
   },
   "boundaries": {
     "publication": false,

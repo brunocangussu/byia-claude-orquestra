@@ -8,6 +8,8 @@
 
 ## ⏸️ Esperando você
 
+- [?] `T-151` Autonomia técnica por meta e paralelismo — fonte 0.33.0 entregue na main/GitHub em 0b998e4, SHA remoto confirmado; R1 Opus 5.5/high GO, dez ressalvas auditadas/zero bloqueadores. Gates locais: 936 testes e manifesto/lint/Ruff/diff-check verdes. Validar uso após ativação autorizada; piloto proativo A/B só proposto em docs/plano_piloto_T-151-manager-subagentes.md, aguardando aprovação antes de executar. Sem ganho comparativo demonstrado; elenco/roteadores intactos; sem publicação/instalação/restart. Handoff docs/handoff-T151-entrega-0.33.0.md · sistema/pesada · → threads/T-151-autonomia-por-meta.md @frente-alinhamento
+
 
 
 
@@ -28,7 +30,6 @@
 
 ## 🟡 Fazendo
 
-- [~] `T-151` Autonomia técnica por meta e paralelismo — R1 Opus 5.5/high GO, 1/1 sem retry, dez ressalvas auditadas/zero bloqueadores. Snapshot funcional preservado e portado pelo Manager à main; quatro anchors 0.33.0. Gates frescos: 936 testes, manifesto/lint/Ruff/diff-check verdes. Entrega Git allowlistada autorizada, confirmação remota pendente; sem publicação/instalação/restart. Piloto proativo A/B apenas proposto em docs/plano_piloto_T-151-manager-subagentes.md, aguardando aprovação antes de executar; elenco/roteadores intactos · sistema/pesada · → threads/T-151-autonomia-por-meta.md @frente-alinhamento @codex
 
 
 

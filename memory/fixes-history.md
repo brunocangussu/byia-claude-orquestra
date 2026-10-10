@@ -2507,3 +2507,28 @@ T-144 checkout/branch local removidos, commits e ledger T-146 preservados.
 Diretórios de cache reconferidos: Codex 0.31.0; Claude 0.27.10/0.31.0;
 nenhum 0.32.0. Presença não prova habilitação/carga. Sem publicação,
 instalação ou restart. Handoff: docs/handoff-T150-entrega-0.32.0.md.
+
+## 2026-10-09 — T-151: autonomia por meta entregue na fonte 0.33.0
+
+Entrega concluída em 10/10 UTC (09/10 local), sob autorização explícita do
+dono para a R1 única e, se aprovada, bump/commit/push/integração allowlistados.
+R1 Opus 5.5/high via Claude CLI: GO, dez ressalvas auditadas, zero bloqueadores,
+modelo comprovado `claude-opus-5-5`, exit 0/332,369 s, sem retry. Parecer e
+auditoria preservados; saldo 1/1, sem novo review ou mudança funcional.
+
+Manager portou os dez arquivos revisados à main, preservou elenco/runner e
+bumpou os quatro anchors para 0.33.0. Gates frescos: descoberta 936/266,475 s/OK,
+manifesto/coerência/Ruff/diff-check 0. O exit final do handle da descoberta
+não foi retido após compactação; log terminal OK vinculado por digest.
+Commit `0b998e4`, 31 arquivos/trechos T-151; push 0 e SHA remoto exato.
+Stage seletivo preservou os rascunhos/trechos T-150/T-152. Não foi merge
+da branch candidata; worktree/pacote congelados seguem preservados.
+
+Fonte permite aceite técnico de complementos cobertos e despacho por
+entregas independentes, com ownership disjunto, supervisão e integração
+pelo Manager único. Não cria aprovador/roteador nem authority de uma LLM.
+Sondas 8/8 nos dois lados não provaram ganho; piloto pequeno proposto antes
+da execução, conforme o dono: quatro runs, métricas pareadas e falha local.
+Nenhum run do piloto, egress adicional, publicação, instalação ou restart.
+Card em VALIDATE, medidor 5/5 r17 pausado; 100% do plano não é DONE.
+Handoff: docs/handoff-T151-entrega-0.33.0.md.

@@ -544,3 +544,38 @@ T-150/T-152 no índice/board; stage seletivo, nunca `git add .`.
 Só então mover T-151 para VALIDATE, sem fechá-lo como DONE. O piloto segue
 apenas proposto, aguardando a apresentação/aprovação do plano e orçamento;
 nenhum run/worker/inferência nova. Sem publicação, instalação ou restart.
+
+### Entrega Git e gate do piloto — 2026-10-10, 00:43 UTC
+
+Fonte **0.33.0** em `0b998e44c7eae72d13fe4f93841a5be2dc43c841`:
+31 arquivos/trechos allowlistados, quatro anchors no mesmo commit,
+push exit 0 e SHA exato confirmado em `origin/main`. Stage dos arquivos
+compartilhados reconstruído sobre HEAD apenas com a linha de versão,
+a seção/card T-151; não entrou a seção/card T-152 nem os rascunhos T-150.
+Digests dos quatro arquivos alheios preservados antes e após a entrega.
+Índice conferido, diff-check 0, nenhum `git add .`, force ou amend.
+
+Integração por port cirúrgico do Manager na main, não merge da branch
+candidata. Os dez digests funcionais permaneceram iguais ao snapshot R1.
+Elenco e runner inalterados. O worktree de origem e o pacote congelado
+foram preservados; nenhuma remoção de branch/checkout neste gate.
+Handoff vivo: `docs/handoff-T151-entrega-0.33.0.md`; recibo vivo:
+`docs/T-151-verificacoes-entrega.json`. Handoff da candidata de 09/10
+permanece histórico: seu gate “sem Git” foi substituído pela autorização
+R1/entrega registrada nesta thread, não por decisão autônoma de uma LLM.
+
+Medidor no mesmo run: docs r14, P05 done r15, validate r16 e pause r17,
+todos exit 0. **5/5, peso 9/9, 100% do plano autorizado**, não DONE no
+produto. Card T-151 movido pelo Manager para `[?]` VALIDATE, marca de host
+removida como exige T-086. Lint pós-movimento exit 0. O ledger local
+pausado em validação não pausa nem encerra uma meta nativa do Codex.
+
+⏭️ RETOMAR AQUI: apresentar ao dono o plano comparativo pedido nesta
+mensagem, sem executar antes de aprovado. Dois cenários × dois braços,
+até quatro runs/16 chamadas OpenAI/60 min de execução; tempo, consumo,
+retrabalho, intervenções e falha local simulada. Não muda elenco, não
+acrescenta roteadores, não transfere modelos entre hosts nem repete R1.
+Falta prova de benefício comparativo e smokes futuros Claude/Orca.
+Fonte entregue não instala/carrega a 0.33.0 nos chats: sessão ainda 0.32.0,
+sem publicação, instalação ou restart. T-098/T-150/T-152 permanecem como
+estavam; esta frente não fecha as campanhas ou validações práticas deles.

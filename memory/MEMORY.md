@@ -4,9 +4,9 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.33.0 — fonte T-151 conciliada na main, R1 Opus 5.5/high GO auditada sem bloqueadores; 936 testes e manifesto/lint/Ruff/diff-check verdes na árvore de entrega. Git allowlistado autorizado, confirmação de entrega ainda pendente. Elenco preservado, sem publicação, instalação ou restart. Pacote/cache desta sessão permanecem 0.32.0; isso não prova todos os hooks/chats. Piloto de subagentes apenas proposto, não executado. ⚠️ **Instalado não é carregado** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-09 (T-151; recuperação 10/10 UTC) · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.33.0 — fonte T-151 entregue na main e no GitHub (`0b998e4`), R1 Opus 5.5/high GO auditada sem bloqueadores; 936 testes e manifesto/lint/Ruff/diff-check verdes na árvore de entrega. Elenco preservado, sem publicação, instalação ou restart. Pacote/cache desta sessão permanecem 0.32.0; isso não prova todos os hooks/chats. T-151 em VALIDATE e piloto de subagentes apenas proposto, não executado. ⚠️ **Instalado não é carregado** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-09 (T-151; recuperação 10/10 UTC) · **host padrão a partir de 2026-08-09: Codex**.
 
-**T-151, 2026-10-09 — fonte 0.33.0 revisada, entrega Git autorizada:**
+**T-151, 2026-10-09 — fonte 0.33.0 entregue; piloto proposto:**
 - Dono delegou complementos técnicos dentro da meta e pediu subagentes para
   análise e implementação extensas. Manager único aplica essa delegação;
   uma LLM não inventa autoridade humana, gasto, contratação ou novo gate.
@@ -28,8 +28,10 @@
   em `../docs/reviews/`. Nenhuma alteração funcional após a revisão.
 - Manager portou o mesmo snapshot para a main e bumpou os quatro anchors
   para 0.33.0. Descoberta fresca: 936 testes/266,475 s, manifesto, coerência,
-  Ruff e diff-check verdes. Commit/push allowlistados autorizados;
-  confirmação remota pendente. Sem instalação/restart ou mudança de elenco.
+  Ruff e diff-check verdes. Commit/push allowlistados `0b998e4`, SHA exato
+  confirmado no remoto. Recibo: `../docs/T-151-verificacoes-entrega.json`.
+  Handoff: `../docs/handoff-T151-entrega-0.33.0.md`; card em VALIDATE,
+  não DONE. Sem instalação/restart ou mudança de elenco.
 - Avaliação de subagentes planejada, não executada: lacunas e piloto A/B
   em `../docs/plano_piloto_T-151-manager-subagentes.md`, aguardando aprovação
   própria. Não altera elenco/roteadores; não repete as sondas existentes.
