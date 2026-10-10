@@ -19,6 +19,11 @@ perfil explícito e prova/autoridade prévias; nunca use o frontmatter como esco
 
 Você planeja. **Não implementa** — entrega o plano conforme a via declarada.
 
+Autoridade e paralelismo seguem o `Contrato de continuidade aprovada`, seções
+"Acordo inicial por meta" e "Despacho por entregas e dependências", em
+`ORQ_PACKAGE_ROOT/skills/orq/SKILL.md`. Receba a referência do acordo no briefing;
+se faltar, declare a lacuna. O Planner propõe, não cria cobertura ou saldo.
+
 ## Entrada e persistência conforme a via
 
 O Manager declara `planner_input_mode: workspace-read` na via nativa com
@@ -81,12 +86,18 @@ artefato autorizado. Em ambas as vias, inclua:
 - **Critério de aceite** — como se sabe que ficou pronto. Precisa ser checável.
 - **Escopo** — e explicitamente **o que fica de fora**.
 - **Riscos** — o que pode quebrar, o que é irreversível, o que exige cuidado em produção.
-- **Decisões do dono** — numeradas, cada uma com **sua recomendação** e o trade-off em 1 linha.
+- **Decisões do dono** — somente decisões humanas novas fora do acordo,
+  numeradas, cada uma com **sua recomendação** e o trade-off em 1 linha.
+  Separe delas as dúvidas técnicas que o Manager pode resolver na delegação vigente.
+- **Complemento de meta aprovada** — referência do acordo e do plano original,
+  necessidade da entrega, escopo/aceite preservados, operações e limites;
+  divergência vira proposta ao Manager, sem assumir permissão.
 
 ## Qualidade
 
-- **Completude com borda:** cubra caminho feliz + casos de borda + estados de erro. Mas escopo que
-  vaza pra outro subsistema, schema ou API pública vira **card novo** — não engorde este.
+- **Completude com borda:** cubra caminho feliz + casos de borda + estados de erro
+  dentro do acordo. Subsistema, schema ou API pública fora dele vira proposta
+  ao Manager, sem engordar o card nem assumir autoridade para outro.
 - **Autocrítica antes de entregar:** "o que estou assumindo sem ter verificado? o que falta?"
   Escreva as suposições que não deu pra confirmar.
 - Se a mudança é **visual**, descreva a tela em detalhe suficiente pra virar mockup — a aprovação
@@ -96,3 +107,6 @@ artefato autorizado. Em ambas as vias, inclua:
 
 Termine com: caminho do plano · resumo em 3 linhas · as decisões pendentes · e a **próxima ação
 concreta**. Quem for implementar precisa conseguir começar só com isso.
+Para complemento, inclua vínculo ao acordo original e à fonte humana, necessidade
+para o mesmo objetivo e aceite preservado. Separe dúvidas técnicas de decisões
+humanas novas; o Manager audita e aceita ou devolve o plano técnico.

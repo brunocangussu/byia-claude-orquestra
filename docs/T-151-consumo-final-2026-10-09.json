@@ -1,0 +1,122 @@
+{
+  "card": "T-151",
+  "kind": "SONDA_CONTROLADA_CONSUMO_FINAL_NAO_REVIEW",
+  "recorded_at": "2026-10-09T23:45:07Z",
+  "source_stage": "snapshot final após remissões e exceções de AGENTS/CLAUDE",
+  "client_turn_context": {
+    "model": "gpt-6-luna",
+    "effort": "medium",
+    "sandbox": "read-only",
+    "cli_version": "0.160.1"
+  },
+  "thread_id": "01a12306-5233-79d0-b993-6af64b8c9209",
+  "terminal_exit": 0,
+  "handle": "75230",
+  "cases_sha256": "4fe9e1e833b5e8fdb79ff725a4a202a812d567b952fa6a089b03eee535eeb16d",
+  "oracle_sha256": "98a460152b095d6215f00f81685afb42e1fa36fdfd89e93e09cdd61ce97d3025",
+  "output_sha256": "455354241f5d5c65880764e0d09252efc040bff6520dd5df59efa55d08e09f19",
+  "policy_files": [
+    {
+      "file": "orq/skills/orq/SKILL.md",
+      "sha256": "4c1b68e6e8a1c5f08414d73c740eb8de3f0f15f36bb9d7b679fc3ae4cbd12f35"
+    },
+    {
+      "file": "orq/commands/plan-next.md",
+      "sha256": "15bf852d520fd198c1603ecf50bb5f15b9fef05f137125d1e4f3d919888176b3"
+    },
+    {
+      "file": "orq/commands/implement-next.md",
+      "sha256": "6ab09d908ca59b0c6f148bc7546761370a153375105bdf924e603c01400dabce"
+    },
+    {
+      "file": "orq/references/continuidade-evidencias.md",
+      "sha256": "72398ff6127e1c04543d300264e5c6246c94994943bd3cdd39dc9b4c71708cc8"
+    },
+    {
+      "file": "AGENTS.md",
+      "sha256": "98e5270888d8b24cc9cebae727e10d1afeb334f82587530ed46ac750954f6081"
+    },
+    {
+      "file": "CLAUDE.md",
+      "sha256": "98e5270888d8b24cc9cebae727e10d1afeb334f82587530ed46ac750954f6081"
+    }
+  ],
+  "policy_hashes_stable_during_probe": true,
+  "oracle_exposed_to_probe": false,
+  "scores": [
+    {
+      "id": "C01",
+      "observed_choice": "A",
+      "expected_choice": "A",
+      "correct": true
+    },
+    {
+      "id": "C02",
+      "observed_choice": "B",
+      "expected_choice": "B",
+      "correct": true
+    },
+    {
+      "id": "C03",
+      "observed_choice": "B",
+      "expected_choice": "B",
+      "correct": true
+    },
+    {
+      "id": "C04",
+      "observed_choice": "B",
+      "expected_choice": "B",
+      "correct": true
+    },
+    {
+      "id": "C05",
+      "observed_choice": "B",
+      "expected_choice": "B",
+      "correct": true
+    },
+    {
+      "id": "C06",
+      "observed_choice": "B",
+      "expected_choice": "B",
+      "correct": true
+    },
+    {
+      "id": "C07",
+      "observed_choice": "A",
+      "expected_choice": "A",
+      "correct": true
+    },
+    {
+      "id": "C08",
+      "observed_choice": "B",
+      "expected_choice": "B",
+      "correct": true
+    }
+  ],
+  "correct": 8,
+  "total": 8,
+  "baseline_correct": 8,
+  "early_candidate_correct": 8,
+  "usage": {
+    "input_tokens": 91174,
+    "cached_input_tokens": 56576,
+    "output_tokens": 1440,
+    "reasoning_output_tokens": 171
+  },
+  "limits": [
+    "escolhas sintéticas, sem executar efeitos dos cenários",
+    "mesmo vendor: não é review independente",
+    "baseline também 8/8: não demonstra ganho causal nem economia",
+    "baseline leu quatro fontes; final também incluiu AGENTS/CLAUDE, portanto entradas não são iguais",
+    "C01 atribuiu frase literal a arquivo incorreto; SKILL possui semântica equivalente, não a citação exata",
+    "modelo/effort observados no cliente, não comprovados no servidor"
+  ],
+  "source_files": {
+    "cases": "/private/tmp/orq-t151-impl.BYGZ70/consumer-cases.json",
+    "oracle": "/private/tmp/orq-t151-impl.BYGZ70/consumer-oracle.json",
+    "output": "/private/tmp/orq-t151-impl.BYGZ70/consumer-final.json"
+  },
+  "external_review_started": false,
+  "git_delivery_performed": false,
+  "installed_cache_changed": false
+}

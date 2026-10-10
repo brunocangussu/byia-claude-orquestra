@@ -40,6 +40,11 @@ escopo, proibições e orçamento de chamadas separado por gate, com limite e
 consumo. O registro da thread é transcrição, não fonte: a captura registra a
 verificação da fonte real, não uma nota autodeclarada.
 
+Confira "Acordo inicial por meta" no `Contrato de continuidade aprovada` pela
+remissão ao fim deste command: complemento necessário recebe aceite
+técnico do Manager e vínculo ao mesmo acordo, mantendo propósito, frente, card,
+aceite e operações. Isso não cria aprovação inicial, envio, saldo ou entrega.
+
 Se o registro estiver ausente ou incompatível, recupere a fonte humana original
 na conversa ou em documento humano explicitamente endossado e transcreva-a
 quando ela provar a aprovação. Nunca invente a aprovação. Se houver prova
@@ -73,9 +78,14 @@ entrega.
 
 ## 0b. Abrir o medidor de progresso
 
-Com o plano aprovado e **antes de despachar**, abra o medidor. Leia
+Com o plano aprovado e **antes do primeiro despacho**, abra o medidor. Leia
 `ORQ_PACKAGE_ROOT/skills/orq/references/progress.md`: ele traz os comandos, o ownership e os códigos
 de saída.
+
+Em retomada ou complemento, reutilize o run e os passos existentes pelo
+procedimento de retomada dessa referência; não repita `begin` ou `plan` para
+reiniciar o trabalho. Registre somente os passos novos/reabertos cobertos e
+preserve IDs, ownership e consumo. A sequência abaixo é para a abertura inicial.
 
 1. `begin --kind card` com `--root` igual ao `front_root` devolvido pelo resolver (nunca o worktree
    do implementer), `--board` com `BOARD_CANONICO`, `--thread-root` com `THREAD_ROOT`, `--card`,
@@ -103,8 +113,10 @@ reporte o marco como progresso não registrado.
 
 ## 1. Implementar
 
-Confirme primeiro que existe **worktree dedicado** ao card. Nunca execute o writer no checkout do
-Manager.
+Confirme primeiro o **checkout isolado por writer**, preparado pelo Manager
+dentro do acordo. Nunca execute o writer no checkout do Manager. Aplique
+"Despacho por entregas e dependências" do contrato central antes de abrir
+trabalho paralelo; preserve a tabela de ownership e dependências aprovada.
 
 **Quem escreve é sempre do vendor do host** — escrita cross-vendor está fora do desenho. O que varia
 é o **degrau**, dado pela **faixa** do card (`pesada` | `normal` | `leve`), registrada na nota em
@@ -127,8 +139,13 @@ O briefing inclui: `BOARD_CANONICO=<board>` e `THREAD_ROOT=<thread_root>` absolu
 (build/teste), o que está fora de escopo, os **IDs dos passos** que cabem ao worker, a fonte humana literal e ponteiro
 verificável, o escopo permitido, proibições e limites consumidos por gate. Diga
 explicitamente: **Git não está autorizado neste gate** salvo a referência humana
-original específica já verificada; workers não movem o board, não re-resolvem a
+original específica já verificada para a operação do Manager; workers não
+despacham agentes nem fazem entrega Git, não criam/removem refs ou worktrees.
+Workers não movem o board, não re-resolvem a
 raiz e não alargam o escopo.
+Para cada entrega, inclua contexto curto e fresco, objetivo, entregável,
+arquivos permitidos/exclusivos, dono, interfaces, dependências, checkout,
+proibições e handoff. Não replique o histórico inteiro nem delegue por arquivo.
 O worker **não escreve o ledger** do medidor e não recebe o `session_key`.
 O worker não lê nem usa a chave de dono, mesmo se encontrar o ledger local. Essa é uma fronteira de
 instrução e ownership, não uma ACL contra outro processo com o mesmo usuário.
@@ -136,6 +153,21 @@ instrução e ownership, não uma ACL contra outro processo com o mesmo usuário
 Exija de volta: o que foi feito, como testou, o que **não** conseguiu fazer, e as decisões tomadas
 no caminho — e, por ID de passo, a referência da evidência (caminho de arquivo, nome de teste:
 identificador, nunca saída colada).
+
+## 1a. Coletar e integrar
+
+O Manager confere os diffs de cada entrega contra ownership, interfaces,
+critérios e o vínculo ao acordo. Preserva resultados e o handle de cada
+execução; aguarda somente handle vivo comprovado e não relança por timeout.
+Uma falha estaciona só o trecho dependente; entregue o apontamento ao mesmo
+worker quando a continuação estiver coberta, preservando consumo e resultados.
+
+O Manager integra os artefatos locais dentro da autoridade existente, confere
+os contratos entre as partes e executa os gates finais do projeto no resultado
+integrado antes de seguir para revisão. Falha de integração volta ao trecho
+responsável; testes individuais verdes não substituem essa verificação.
+Nenhuma coleta ou integração local autoriza entrega Git, dispensa revisão
+independente ou prova validação prática.
 
 ## 2. Revisar (parecer independente, read-only)
 Antes de disparar a revisão, confira o gate externo específico: citação ou
@@ -195,8 +227,9 @@ pendente. Se algo precisa de decisão dele, destaque.
 
 ## Regras
 - Falhou o build ou o teste → **não** feche o card. Reporte com o erro real.
-- Descobriu um bug fora do escopo → card novo no BACKLOG (você decide) ou inclua se for pequeno e
-  da mesma causa raiz. Registre no board de qualquer jeito.
+- Descobriu um bug fora do escopo → card novo no BACKLOG (você decide). Pequeno
+  da mesma causa raiz só entra no card atual se coberto pelo acordo central.
+  Registre no board de qualquer jeito.
 - Nunca marque DONE sozinho, salvo se o dono tiver delegado explicitamente aquele card.
 
 ## Continuidade de execução aprovada

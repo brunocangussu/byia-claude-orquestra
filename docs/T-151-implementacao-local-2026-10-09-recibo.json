@@ -1,0 +1,182 @@
+{
+  "card": "T-151",
+  "recorded_at": "2026-10-09T23:45:07Z",
+  "state": "CANDIDATA_LOCAL_PARA_REVISAO",
+  "branch": "codex/t151-autonomia-meta",
+  "base_sha": "6c8482a8b3deca31ecdc330c38d675c39f14058c",
+  "source_version": "0.32.0",
+  "version_bump": false,
+  "approval_source": "threads/T-151-autonomia-por-meta.md#aprovacao-local-2026-10-09",
+  "snapshot": [
+    {
+      "file": "AGENTS.md",
+      "sha256": "98e5270888d8b24cc9cebae727e10d1afeb334f82587530ed46ac750954f6081"
+    },
+    {
+      "file": "CLAUDE.md",
+      "sha256": "98e5270888d8b24cc9cebae727e10d1afeb334f82587530ed46ac750954f6081"
+    },
+    {
+      "file": "orq/skills/orq/SKILL.md",
+      "sha256": "4c1b68e6e8a1c5f08414d73c740eb8de3f0f15f36bb9d7b679fc3ae4cbd12f35"
+    },
+    {
+      "file": "orq/commands/plan-next.md",
+      "sha256": "15bf852d520fd198c1603ecf50bb5f15b9fef05f137125d1e4f3d919888176b3"
+    },
+    {
+      "file": "orq/commands/implement-next.md",
+      "sha256": "6ab09d908ca59b0c6f148bc7546761370a153375105bdf924e603c01400dabce"
+    },
+    {
+      "file": "orq/agents/orq-planner.md",
+      "sha256": "b46dd84e0796a01c0ca70f55d4792ba376fe870e1ed8b93bcc939e9fb07887fb"
+    },
+    {
+      "file": "orq/scripts/test_work_evidence.py",
+      "sha256": "a60c868f22237f480034f7e43cb01efe0362c953bcd92dc14609604c31ca22aa"
+    },
+    {
+      "file": "orq/scripts/test_planner_coordination.py",
+      "sha256": "2d6786f6bda0effd38032fa93410e781d38edf6d850ec544859f0eba66e19cb2"
+    },
+    {
+      "file": "orq/agents/orq-implementer.md",
+      "sha256": "1c6be9c2e7a8fb0bfda55b02c5333cf4c67b01eb92bbe3eb7d84bcdcb7fd02c1"
+    },
+    {
+      "file": "orq/scripts/test_implementer_worker_boundary.py",
+      "sha256": "577aa53184af33a2ea010c6cf3f3c040843892ca3e8b77b198fa7ecab41b1999"
+    }
+  ],
+  "worker": {
+    "model_requested": "gpt-6.1-sol",
+    "effort_requested": "xhigh",
+    "client_turn_context_observed": {
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "sandbox": "workspace-write",
+      "cli_version": "0.160.1"
+    },
+    "proof_boundary": "configuração observada no cliente, não identidade garantida no servidor",
+    "thread_id": "01a122f4-3836-7702-b798-752033f64751",
+    "terminal_exit": 0,
+    "handle": "63893",
+    "completed": true,
+    "original_handoff": "/tmp/orq-t151-worker.s3M6L2/handoff-T151-worker.txt",
+    "usage": {
+      "input_tokens": 6715369,
+      "cached_input_tokens": 6506368,
+      "output_tokens": 56965,
+      "reasoning_output_tokens": 29192
+    },
+    "ownership": "fontes centrais, planner, AGENTS/CLAUDE e dois módulos existentes; Manager integrou apenas consumidor implementer e módulo novo disjuntos"
+  },
+  "tdd": {
+    "worker_initial_red": {
+      "tests": 16,
+      "failing_assertions_including_subcases": 21
+    },
+    "parent_initial_red": {
+      "tests": 3,
+      "failures": 3
+    },
+    "parent_repo_gate_red": {
+      "tests": 4,
+      "failing_subcases": 2
+    },
+    "mutations": {
+      "worker_detected": 31,
+      "parent_detected": 10,
+      "total_detected": 41,
+      "kind": "guardas contratuais de instruções; não prova geral da LLM"
+    }
+  },
+  "verification": {
+    "full_discovery": {
+      "tests": 936,
+      "failures": 0,
+      "seconds": 272.039,
+      "exit": 0,
+      "command": "PATH=\"/Library/Developer/CommandLineTools/usr/bin:$PATH\" PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_*.py'",
+      "interpreter_observed_in_log": "CommandLineTools Python 3.9",
+      "log": "/tmp/orq-t151-worker.s3M6L2/discover-final.log",
+      "scope": "todos os módulos descobertos, snapshot final"
+    },
+    "manager_fresh_focused": {
+      "tests": 66,
+      "failures": 0,
+      "exit": 0,
+      "python": "3.14.7",
+      "modules": {
+        "test_work_evidence": 46,
+        "test_planner_coordination": 16,
+        "test_implementer_worker_boundary": 4
+      }
+    },
+    "manager_fresh_mutations": {
+      "detected": 10,
+      "exit": 0,
+      "script": "/private/tmp/orq-t151-impl.BYGZ70/mutation-worker-boundary.py"
+    },
+    "fresh_gate_exits": {
+      "strict_manifest": 0,
+      "coherence": 0,
+      "ruff": 0,
+      "diff_check": 0,
+      "skill_format": 0
+    },
+    "ruff_binary": "/Users/brunocangucu/.pyenv/versions/3.12.12/bin/ruff",
+    "skill_format_runtime": "Python 3.12.12 existente; sem dependência instalada",
+    "previous_runs": [
+      {
+        "tests": 935,
+        "failures": 3,
+        "seconds": 195.397,
+        "causes": [
+          "remissão duplicada alterou alvo de mutação legada",
+          "Git do macOS gerou systmp/xcrun_db em dois cenários de ambiente"
+        ]
+      },
+      {
+        "tests": 936,
+        "failures": 2,
+        "seconds": 271.022,
+        "causes": [
+          "guarda nova da exceção de acordo coberto em AGENTS/CLAUDE"
+        ]
+      }
+    ],
+    "repairs": [
+      "remissões únicas, guarda legada mantida",
+      "PATH restrito ao comando usa Git direto de CommandLineTools; DEVELOPER_DIR sozinho não resolveu",
+      "worker dono explicitou exceção coberta em AGENTS/CLAUDE antes do handoff"
+    ],
+    "production_progress_code_changed": false,
+    "guards_weakened": false,
+    "resource_warnings": "arquivos do runtime de teste não fechados; não causaram falhas"
+  },
+  "consumer_probe": {
+    "receipt": "docs/T-151-consumo-final-2026-10-09.json",
+    "baseline_correct": 8,
+    "final_correct": 8,
+    "total": 8,
+    "comparative_gain_proven": false,
+    "token_savings_proven": false,
+    "citation_limitation": "C01 acertou decisão mas atribuiu à SKILL uma frase literal de AGENTS/CLAUDE"
+  },
+  "boundaries": {
+    "independent_review_started": false,
+    "anthropic_or_typesafe_call": false,
+    "staged": false,
+    "commit": false,
+    "push": false,
+    "main_product_changed": false,
+    "publication": false,
+    "installation": false,
+    "restart": false,
+    "production": false,
+    "activated_in_projects": false
+  },
+  "next": "congelar pacote sanitizado sem envio; revisão independente requer autorização própria; não confundir candidata com release ou VALIDATE/DONE"
+}

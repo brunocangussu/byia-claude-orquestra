@@ -28,6 +28,8 @@
 
 ## 🟡 Fazendo
 
+- [~] `T-151` Autonomia técnica por meta e paralelismo — R1 Opus 5.5/high GO, 1/1 sem retry, dez ressalvas auditadas/zero bloqueadores. Snapshot funcional preservado e portado pelo Manager à main; quatro anchors 0.33.0. Gates frescos: 936 testes, manifesto/lint/Ruff/diff-check verdes. Entrega Git allowlistada autorizada, confirmação remota pendente; sem publicação/instalação/restart. Piloto proativo A/B apenas proposto em docs/plano_piloto_T-151-manager-subagentes.md, aguardando aprovação antes de executar; elenco/roteadores intactos · sistema/pesada · → threads/T-151-autonomia-por-meta.md @frente-alinhamento @codex
+
 
 
 

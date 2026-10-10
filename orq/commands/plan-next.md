@@ -36,14 +36,30 @@ board local. THREAD_ROOT é o `thread_root` absoluto devolvido pelo resolver: `m
 Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente de `ok`, `exists` não booleano, ou `board`/`thread_root` ausentes ou não absolutos, trate como `state: erro`, declare indisponível e não use cópia local. Sem JSON, informe `exit` e `stderr`; com JSON de erro, informe `code`.
 Com `state: ok` com `exists: false`, pare antes de criar ou marcar card e encaminhe para `/orq:init`; só continue com um board existente.
 
+## 0. Acordo inicial ou complemento técnico
+
+Leia o `Contrato de continuidade aprovada`, seção "Acordo inicial por meta", na
+skill `orq` já carregada, pelo caminho da remissão ao fim deste command.
+Antes do despacho, identifique se é meta
+inicial ou complemento de um card da frente dona. Recupere fonte humana e
+delegação já verificadas, sem inventar cobertura. Meta inicial exige acordo do
+dono; complemento coberto permanece no card e no acordo originais. Card novo,
+frente alheia ou propósito novo não recebem esse vínculo por conveniência.
+Consolide no plano os campos do acordo central para apresentar somente as
+decisões humanas realmente ausentes. A chamada de planejamento continua sujeita
+à autoridade e à capacidade anteriores ao próprio plano.
+
 ## 1. Escolher o card
+- Complemento coberto identificado no passo 0 → use o card do acordo original
+  e preserve seu estado; não crie card nem reinicie PLANNING por um subplano.
+- As escolhas abaixo são para planejamento inicial:
 - `$ARGUMENTS` com `T-NNN` → esse card.
 - `$ARGUMENTS` com texto livre → **crie** o card no BACKLOG primeiro (ID novo) e planeje ele.
 - Vazio → o primeiro `[ ]` do BACKLOG (respeitando 🔴 e a ordem).
 - Nada no backlog → diga isso e ofereça criar um card. **Não invente trabalho.**
 
 Card novo é somente o criado nesta invocação; escolha um slug conceitual estável, registre a frente dona no fim da nota como `@frente-<slug>` e só então crie sua thread. Card legado do BACKLOG é pré-existente, sem ponteiro/thread e sem `@frente-<slug>`: esta frente o reivindica e marca antes de criar a thread. Não derive o slug do basename do diretório. Card já marcado para outra frente para e relata indisponibilidade independentemente de a thread existir. Card existente com ponteiro cuja thread falta em `THREAD_ROOT` também para e relata indisponibilidade — não cria, duplica, troca de frente nem usa fallback.
-Marque o card como `[>]` PLANNING no `BOARD_CANONICO` somente depois dessa checagem de posse; a criação permitida vem depois da marcação que registra a reivindicação.
+Marque o card como `[>]` PLANNING no `BOARD_CANONICO` somente no planejamento inicial e depois dessa checagem de posse; a criação permitida vem depois da marcação que registra a reivindicação.
 
 ## 2. Classificar o card nos dois eixos
 
@@ -56,6 +72,10 @@ critério aqui nem improvise um seu.
 Grave `trilha: … · faixa: …` na nota do card. Card sem registro vale `sistema · normal`.
 
 ## 3. Despachar o Planner
+
+Em complemento coberto, falha de capacidade estaciona somente o despacho
+dependente; preserve o estado do card e continue as entregas elegíveis.
+Menções a manter PLANNING neste passo valem para planejamento inicial.
 
 Antes de despachar, **identifique o host** da sessão atual: Claude ou Codex. Leia
 `memory/wiki/_elenco.md`, resolva a linha `planner` **da trilha do card** em `## Times por host` e
@@ -151,6 +171,10 @@ No prompt, inclua:
   agente, troca perfil ou autoriza workers; orçamento e inspeção cobrem
   também esses bytes. Em trilha interface, mantenha `off`; não mude trilha
   só para ligar o modo.
+- o acordo vigente e a referência humana verificável, ou a lacuna de autoridade;
+  para complemento, inclua o plano original, sua necessidade e os limites
+  preservados. Em `packet-only`, prepare os trechos elegíveis inline, sem
+  transformar os ponteiros em autorização de leitura adicional;
 - o card (ID, título, notas) e **por que ele existe**;
 - **modo de entrada:** `planner_input_mode: workspace-read` na via nativa
   delimitada, `packet-only` na via sem ferramentas. Nesta última, inclua os
@@ -171,6 +195,11 @@ No prompt, inclua:
   `M` ou `L` (peso relativo 1, 2, 3 — não é minuto); critério de aceite que prova o passo (`A01`…).
   Trabalhos paralelos ficam em linhas separadas. O Planner só entrega a tabela e **não escreve o
   ledger**: o Manager registra os passos depois da aprovação, no Loop B.
+- **ownership e dependências:** para entregas delegáveis, traga a tabela
+  `Entrega | Arquivos permitidos/exclusivos | Dono | Interface | Dependências | Checkout | Aceite`.
+  Explicite interfaces fechadas ou investigação pendente e o trecho que precisa
+  esperar; não converta arquivos em agentes. A decisão de despacho segue
+  "Despacho por entregas e dependências" no contrato central.
 
 ⚠️ **Trilha cruzada — quando o vendor do planner é diferente do vendor de quem vai escrever** (é o
 caso normal do host Claude num card `sistema`, e o simétrico no Codex), exija também uma seção
@@ -180,6 +209,10 @@ outro lado e não compartilha as premissas dele.
 
 ## 4. Receber e avaliar
 Quando o plano voltar, **não repasse cru**. Avalie:
+- **é complemento necessário da meta aprovada?** Confira necessidade, escopo,
+  operações, limites e aceite pelo contrato central. O vínculo ao mesmo acordo
+  deve apontar à fonte humana original; aceitar ou devolver esse subplano é
+  decisão técnica do Manager, registrada na thread, não aprovação criada pelo Planner.
 - resolve a causa raiz ou só o sintoma?
 - o escopo tem borda, ou virou reforma geral?
 - os critérios de aceite são verificáveis?
@@ -192,9 +225,15 @@ Quando o plano voltar, **não repasse cru**. Avalie:
   e integração/testes estão explícitos? Sugestão de paralelismo não é despacho
   autorizado nem permissão para um worker iniciar outro worker.
 
-Se estiver fraco, **devolva ao Planner com o apontamento** antes de levar ao dono.
+Se estiver fraco, **devolva ao Planner com o apontamento**. Separe lacuna técnica
+de decisão humana nova; leve ao dono somente o acordo inicial ou a decisão
+realmente fora da cobertura existente.
 
 ## 5. Levar ao dono (o gate)
+Complemento coberto segue pelo aceite técnico do Manager, com registro do
+vínculo, sem repetir o gate humano. Neste passo chegam o acordo inicial e as
+decisões humanas novas, conforme "Acordo inicial por meta".
+
 Apresente **condensado** (o plano completo fica no arquivo):
 - o que será feito e por quê, em linguagem direta;
 - o que muda pro usuário do produto;
@@ -203,10 +242,12 @@ Apresente **condensado** (o plano completo fica no arquivo):
 
 Se a mudança for **visual**, o plano precisa vir com mockup antes da aprovação.
 
-**PARE aqui.** Plano não aprovado não vira implementação.
+**PARE aqui para o acordo inicial ou decisão humana nova.** Sem autoridade
+humana verificável não há implementação; aceite técnico de complemento coberto
+preserva a aprovação original e não amplia operações.
 
 ## 6. Fechar o loop
-- Aprovado → antes de marcar `[~]` READY, grave na thread dona o caminho do
+- Acordo inicial aprovado pelo dono → antes de marcar `[~]` READY, grave na thread dona o caminho do
   plano, a fonte humana literal e seu ponteiro verificável, ou seja, a citação
   ou referência verificável da evidência humana, o escopo permitido, as
   proibições e o orçamento de chamadas separado por gate, com limite e consumo.
@@ -223,8 +264,14 @@ Se a mudança for **visual**, o plano precisa vir com mockup antes da aprovaçã
   **Revalide a faixa antes de fechar**, pela reavaliação da régua canônica — que tem **piso**: card
   Alto risco continua `pesada` mesmo com o plano fechado. Atualize `trilha: … · faixa: …` na nota
   do card se mudou.
-- Precisa de mais informação → `[!]` AWAITING_OWNER **com a pergunta exata escrita no card**.
-- Rejeitado → volta a `[ ]` BACKLOG com o motivo registrado (pra não repetir o erro depois).
+- Complemento coberto aceito tecnicamente → grave o vínculo e a compatibilidade
+  exigidos pelo contrato central; preserve aprovação, estado, ownership e
+  limites do acordo original. Atualize os passos no medidor existente pelo
+  Loop B, sem abrir outro run ou pedir novamente o gate humano coberto.
+- Complemento devolvido ao Planner preserva o estado do card; registre o
+  apontamento e estacione somente a entrega dependente se faltar autoridade.
+- Acordo inicial com decisão humana pendente → `[!]` AWAITING_OWNER **com a pergunta exata escrita no card**.
+- Acordo inicial rejeitado pelo dono → volta a `[ ]` BACKLOG com o motivo registrado (pra não repetir o erro depois).
 
 Termine dizendo qual é o próximo passo concreto (normalmente `/orq:implement-next`).
 
@@ -235,3 +282,5 @@ Consulte o `Contrato de continuidade aprovada` em
 Planejamento e READY não são aprovação: só a evidência humana durável na thread
 dona autoriza implementação local. Um plano pode delimitar o próximo gate, mas
 não consome nem renova limites de ações externas ou de Git.
+O acordo inicial e o aceite de complementos seguem "Acordo inicial por meta"
+nesse contrato; reusar cobertura comprovada não é criar aprovação.

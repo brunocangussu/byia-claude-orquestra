@@ -1,0 +1,44 @@
+{
+  "card": "T-151",
+  "kind": "sonda_controlada_de_consumo_nao_revisao",
+  "base_sha": "6c8482a8b3deca31ecdc330c38d675c39f14058c",
+  "client_version": "codex-cli 0.160.1",
+  "model_requested": "gpt-6-luna",
+  "model_observed_client": "gpt-6-luna",
+  "effort_requested": "medium",
+  "effort_observed_client": "medium",
+  "sandbox_observed_client": "read-only",
+  "approval_policy": "never",
+  "thread_id": "01a122f3-24ce-7d32-8a40-3fd208d9ccb0",
+  "cli_exit": 0,
+  "cases": 8,
+  "correct_choices": 8,
+  "case_choices": {"C01":"A","C02":"B","C03":"B","C04":"B","C05":"B","C06":"B","C07":"A","C08":"B"},
+  "cases_sha256": "4fe9e1e833b5e8fdb79ff725a4a202a812d567b952fa6a089b03eee535eeb16d",
+  "oracle_sha256": "98a460152b095d6215f00f81685afb42e1fa36fdfd89e93e09cdd61ce97d3025",
+  "oracle_exposed_to_probe": false,
+  "output_sha256": "2908ea68bfc5be6352507125b7cc1d3f209d7c905a75e752b48b79b2961db1ee",
+  "input_tokens_reported": 84110,
+  "cached_input_tokens_reported": 54528,
+  "output_tokens_reported": 1119,
+  "reasoning_output_tokens_reported": 150,
+  "contradiction": {
+    "case": "C02",
+    "decision": "Dois writers disjuntos em paralelo, cada um com checkout e dono; Manager integra.",
+    "policy_cited_verbatim": "um sub-agente por card, não por tarefa",
+    "meaning": "A escolha foi correta pelo oráculo, mas a justificativa citou a regra absoluta contrária. O RED contratual precisa retirar essa contradição, não fingir falha da escolha."
+  },
+  "originals_dir": "/private/tmp/orq-t151-impl.BYGZ70",
+  "prelaunch_error": {
+    "model_started": false,
+    "events": 0,
+    "exit": 1,
+    "reason": "Diretório descartável sem Git; faltava --skip-git-repo-check. Corrigido o argumento de preflight antes da chamada efetiva."
+  },
+  "limits": [
+    "Modelo, effort e sandbox observados no cliente, não no servidor interno.",
+    "Um ensaio com oito casos não mede melhoria causal, qualidade geral, economia ou funcionamento de todos os chats.",
+    "Não é aprovação cross-vendor nem autorização para entrega/ativação.",
+    "Nenhuma chamada Anthropic, TypeSafe ou JEV."
+  ]
+}

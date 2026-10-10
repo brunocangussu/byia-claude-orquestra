@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "card": "T-151",
+  "phase": "planning",
+  "date": "2026-10-09",
+  "source_commit": "6c8482a8b3deca31ecdc330c38d675c39f14058c",
+  "source_version": "0.32.0",
+  "host": "codex",
+  "cli_version": "0.160.1",
+  "authority": {
+    "source_ref": "memory/wiki/threads/T-151-autonomia-por-meta.md#pedido-atual-e-recuperação-verificada--0910",
+    "covered_action": "Duas análises read-only pedidas pelo dono, uma por papel, sem retry.",
+    "not_executed": [
+      "implementação do produto",
+      "review Anthropic",
+      "bump",
+      "commit",
+      "push",
+      "publicação",
+      "instalação",
+      "restart"
+    ]
+  },
+  "cache": {
+    "registered_version": "0.32.0",
+    "enabled": true,
+    "clean_source_detached": true,
+    "clean_before_and_after": true,
+    "verify_host": "codex",
+    "verify_exit": 0,
+    "verify_result": "installed cache matches source"
+  },
+  "agents": [
+    {
+      "role": "planner·sistema",
+      "mechanism": "codex-cli",
+      "model_requested": "gpt-6.1-sol",
+      "effort_requested": "xhigh",
+      "model_observed_client": "gpt-6.1-sol",
+      "effort_observed_client": "xhigh",
+      "sandbox_observed": "read-only",
+      "approval_policy_observed": "never",
+      "thread_id": "01a12077-24f4-7c42-8782-4dd292204a72",
+      "cli_exit": 0,
+      "terminal": "turn.completed",
+      "retry": false,
+      "result_bytes": 9285,
+      "result_sha256": "05b1f709efc5691a3cc97fb962be9ac4919351672d6f1bcc6b5d8aefc62517d2",
+      "usage_reported": {
+        "input_tokens": 3936691,
+        "cached_input_tokens": 3860992,
+        "output_tokens": 11354,
+        "reasoning_output_tokens": 4933
+      }
+    },
+    {
+      "role": "scout",
+      "mechanism": "codex-cli",
+      "model_requested": "gpt-6-luna",
+      "effort_requested": "medium",
+      "model_observed_client": "gpt-6-luna",
+      "effort_observed_client": "medium",
+      "sandbox_observed": "read-only",
+      "approval_policy_observed": "never",
+      "thread_id": "01a12077-250a-7a33-a78a-c26545e5b310",
+      "cli_exit": 0,
+      "terminal": "turn.completed",
+      "retry": false,
+      "result_bytes": 5724,
+      "result_sha256": "bbdd5f20a73a12fc6c417e0b606d8128e9e8602a5f0c27fa4728efad650c82c4",
+      "usage_reported": {
+        "input_tokens": 166938,
+        "cached_input_tokens": 117760,
+        "output_tokens": 2472,
+        "reasoning_output_tokens": 52
+      }
+    }
+  ],
+  "limits": {
+    "client_metadata_not_server_model_proof": true,
+    "not_cross_vendor_review": true,
+    "no_quality_or_economic_gain_proven": true,
+    "not_other_chats_validation": true
+  },
+  "originals_ref": "memory/wiki/threads/T-151-autonomia-por-meta.md"
+}

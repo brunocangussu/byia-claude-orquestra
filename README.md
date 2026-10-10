@@ -470,7 +470,7 @@ são cada passo do fluxo. Os **agents** são os papéis.
 
 ## Status
 
-`0.32.0` — alinhamento operacional T-150: continuidade dentro do escopo aprovado, sem teto global de duas revisões; estagnação exige diagnóstico e mudança de estratégia, não nova autoridade. Coordenação técnica opt-in no mesmo Planner e evidências consultivas offline, sem API JEV ativa. Elenco Codex conciliado com a fábrica versionada; Manager, Host Claude e presets preservados. Instalação e validação prática dos hosts permanecem separadas.
+`0.33.0` — autonomia técnica por meta T-151: acordo inicial verificável, complementos cobertos aceitos pelo Manager, despacho por entregas independentes e ownership disjunto, supervisão e integração local. Sem agente aprovador ou roteador adicional; elenco preservado. R1 independente GO auditada; benefício comparativo dos subagentes ainda não demonstrado. Piloto proposto antes de executar, sem instalação ou restart.
 · **medidor de progresso portátil** (fase do board + percentual dos passos do plano, `show`/`watch` em qualquer host, segmento na statusline do Claude e lembrete consultivo por hook nos dois hosts)
 · **revisão independente por um revisor só, sempre do vendor oposto ao host** · **elenco em dois eixos**
 (trilha escolhe quem pensa, faixa escolhe quem escreve) · stack complementar

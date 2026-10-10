@@ -1,0 +1,41 @@
+{
+  "card": "T-151",
+  "kind": "sonda_controlada_de_consumo_nao_revisao",
+  "model_requested": "gpt-6-luna",
+  "model_observed_client": "gpt-6-luna",
+  "effort_requested": "medium",
+  "effort_observed_client": "medium",
+  "sandbox_observed_client": "read-only",
+  "thread_id": "01a122fa-6020-7e21-8e23-e16ce2fd59f6",
+  "cli_exit": 0,
+  "cases": 8,
+  "correct_choices": 8,
+  "oracle_exposed_to_probe": false,
+  "cases_sha256": "4fe9e1e833b5e8fdb79ff725a4a202a812d567b952fa6a089b03eee535eeb16d",
+  "oracle_sha256": "98a460152b095d6215f00f81685afb42e1fa36fdfd89e93e09cdd61ce97d3025",
+  "output_sha256": "940fdcf8af83ca2d83bfc30ff1c7afbda4f5842a4fd29a14b690f6ba12ffee6b",
+  "policies_stable_before_after_probe": true,
+  "policies_sha256": {
+    "orq/skills/orq/SKILL.md": "8c1db2c27f6960b05a83a51878b5aea7ad2aa6f92d6cd1fb3c3828e693c4f903",
+    "orq/commands/plan-next.md": "5daebebcdcb3869095c45d63b82f8588d07745e54d4a4a7aee08e8bc8b6ce036",
+    "orq/commands/implement-next.md": "09db9f03e1fab3d673a76f16f4ba22775c4998635d81a4fb091274921ebc44b7",
+    "orq/references/continuidade-evidencias.md": "72398ff6127e1c04543d300264e5c6246c94994943bd3cdd39dc9b4c71708cc8"
+  },
+  "parallel_case": {
+    "case": "C02",
+    "choice": "B",
+    "policy_cited": "Dois writers com ownership disjunto, interfaces fechadas e sem dependência serial — Podem avançar juntos, cada um em checkout isolado e com dono explícito.",
+    "contrary_agent_per_card_rule_cited": false
+  },
+  "input_tokens_reported": 133274,
+  "cached_input_tokens_reported": 92160,
+  "output_tokens_reported": 1424,
+  "reasoning_output_tokens_reported": 304,
+  "originals_dir": "/private/tmp/orq-t151-impl.BYGZ70",
+  "limits": [
+    "O baseline também acertou 8/8; a diferença observada foi a justificativa coerente no caso de paralelismo, não aumento medido de acerto.",
+    "Não constitui revisão independente, benchmark econômico ou prova de todos os consumidores.",
+    "Nenhuma execução das ações dos casos ou chamada Anthropic/TypeSafe/JEV.",
+    "Modelo e effort observados no contexto do cliente; não no servidor interno."
+  ]
+}

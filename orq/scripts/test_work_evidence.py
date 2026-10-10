@@ -1,7 +1,10 @@
 """Contratos observáveis do apoio consultivo, sem modelo, rede ou credenciais."""
 import json
 import hashlib
+from contextlib import contextmanager
 from pathlib import Path
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -9,6 +12,207 @@ import unittest
 from unittest.mock import patch
 
 import work_evidence as support
+from test_continuidade_aprovada import extrair_secao, normalizar
+
+
+class InstructionSnapshot:
+    """Cópia descartável das instruções; nunca muda fonte, main ou cache."""
+
+    def __init__(self, test, relatives):
+        temporary = tempfile.TemporaryDirectory(prefix="orq-t151-")
+        test.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        source = Path(__file__).resolve().parents[2]
+        for relative in relatives:
+            destination = self.root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source / relative, destination)
+
+    def read(self, relative, heading=None):
+        text = (self.root / relative).read_text(encoding="utf-8")
+        return normalizar(extrair_secao(text, heading) if heading else text)
+
+    @contextmanager
+    def mutate(self, relative, old, new):
+        path = self.root / relative
+        original = path.read_text(encoding="utf-8")
+        pattern = r"\s+".join(re.escape(word) for word in old.split())
+        changed, count = re.subn(pattern, lambda match: new, original, flags=re.IGNORECASE)
+        if count != 1:
+            raise AssertionError(f"âncora de mutação ambígua/ausente: {old} ({count})")
+        try:
+            path.write_text(changed, encoding="utf-8")
+            yield
+        finally:
+            path.write_text(original, encoding="utf-8")
+
+
+GOAL_POLICY = "orq/skills/orq/SKILL.md"
+GOAL_HEADING = "### Acordo inicial por meta"
+DISPATCH_HEADING = "### Despacho por entregas e dependências"
+PLAN_COMMAND = "orq/commands/plan-next.md"
+IMPLEMENT_COMMAND = "orq/commands/implement-next.md"
+PLANNER_AGENT = "orq/agents/orq-planner.md"
+
+
+class GoalAgreementInstructionTest(unittest.TestCase):
+    """Guardas T-151 de instrução, sem inferência nem prova de economia."""
+
+    def setUp(self):
+        self.snapshot = InstructionSnapshot(self, (
+            GOAL_POLICY, PLAN_COMMAND, IMPLEMENT_COMMAND, PLANNER_AGENT,
+            "orq/references/continuidade-evidencias.md", "AGENTS.md", "CLAUDE.md",
+        ))
+
+    def require(self, text, clauses, invariant):
+        for clause in clauses:
+            self.assertTrue(normalizar(clause) in text,
+                            f"{invariant}: cláusula ausente: {clause}")
+
+    def assert_human_agreement(self):
+        self.require(self.snapshot.read(GOAL_POLICY, GOAL_HEADING), (
+            "fonte humana literal e ponteiro verificável",
+            "propósito, frente dona, card e critérios de aceite",
+            "escopo permitido e exclusões",
+            "delegação técnica ao Manager",
+            "operações locais permitidas",
+            "operações externas e de entrega discriminadas",
+            "proibições, limites e consumo por gate",
+            "Aprovação de agente não substitui autoridade humana",
+            "Somente a fonte humana verificada comprova a delegação e as operações cobertas",
+        ), "autoridade humana")
+
+    def assert_same_agreement(self):
+        self.require(self.snapshot.read(GOAL_POLICY, GOAL_HEADING), (
+            "O Manager aceita ou devolve subplanos técnicos necessários ao mesmo objetivo",
+            "mesmo propósito, frente, card e aceite",
+            "dentro do escopo e das operações permitidas, sem cruzar exclusões ou limites",
+            "registra na thread o vínculo ao mesmo acordo e à fonte humana original",
+            "sem nova pergunta por subpasso coberto",
+        ), "mesmo acordo")
+        self.require(self.snapshot.read(PLAN_COMMAND, "## 4. Receber e avaliar"), (
+            "complemento necessário",
+            "vínculo ao mesmo acordo",
+            "decisão técnica do Manager",
+        ), "mesmo acordo")
+        self.require(self.snapshot.read(PLAN_COMMAND, "## 5. Levar ao dono (o gate)"), (
+            "Complemento coberto segue pelo aceite técnico do Manager",
+            "sem repetir o gate humano",
+        ), "mesmo acordo")
+        self.require(self.snapshot.read(PLAN_COMMAND, "## 1. Escolher o card"), (
+            "não crie card nem reinicie PLANNING por um subplano",
+        ), "mesmo acordo")
+        self.require(self.snapshot.read(PLAN_COMMAND, "## 6. Fechar o loop"), (
+            "Complemento devolvido ao Planner preserva o estado do card",
+        ), "mesmo acordo")
+        self.require(self.snapshot.read(PLAN_COMMAND, "## 3. Despachar o Planner"), (
+            "Em complemento coberto, falha de capacidade estaciona somente o despacho dependente",
+            "Menções a manter PLANNING neste passo valem para planejamento inicial",
+        ), "mesmo acordo")
+
+    def assert_no_inheritance(self):
+        self.require(self.snapshot.read(GOAL_POLICY, GOAL_HEADING), (
+            "Sem meta ou delegação verificável, não presuma cobertura",
+            "Propósito novo, frente alheia ou card novo não herdam autoridade silenciosamente",
+            "mudança material exige decisão humana",
+            "Nunca crie aprovação, saldo ou permissão por aceite técnico",
+        ), "fronteira de autoridade")
+
+    def assert_balance_and_operations(self):
+        contract = self.snapshot.read(GOAL_POLICY, "## Contrato de continuidade aprovada")
+        self.require(contract, (
+            "permissões local, externa e Git são independentes",
+            "Registrar digest novo não renova saldo",
+            "Saldo é o limite menos as tentativas já iniciadas",
+            "gate externo consumido não se reabre sozinho",
+            "Tentativa incerta ou falha preserva consumo e handle",
+            "Aceite técnico não autoriza envio externo, produção ou entrega Git ausentes do acordo",
+        ), "saldo e operações")
+
+    def assert_recovery(self):
+        self.require(self.snapshot.read(GOAL_POLICY, GOAL_HEADING), (
+            "Reutilize a thread e o medidor existentes",
+            "não crie ledger ou sistema de aprovação adicional",
+            "recupere o acordo, a fonte humana, o plano, o ownership, o consumo e os handles",
+            "sem zerar limites, trocar modelo ou buscar outra thread como fallback",
+        ), "recuperação sem novo ledger")
+        self.require(self.snapshot.read(IMPLEMENT_COMMAND, "## 0b. Abrir o medidor de progresso"), (
+            "Em retomada ou complemento, reutilize o run e os passos existentes",
+            "não repita `begin` ou `plan` para reiniciar o trabalho",
+        ), "recuperação sem novo ledger")
+
+    def test_initial_agreement_consolidates_human_purpose_scope_and_limits(self):
+        self.assert_human_agreement()
+
+    def test_necessary_subplan_uses_same_agreement_without_repeated_owner_gate(self):
+        self.assert_same_agreement()
+
+    def test_absent_goal_or_new_purpose_front_card_does_not_inherit_authority(self):
+        self.assert_no_inheritance()
+
+    def test_technical_acceptance_and_new_digest_do_not_renew_balance_or_operations(self):
+        self.assert_balance_and_operations()
+
+    def test_recovery_preserves_one_thread_meter_ownership_consumption_and_handle(self):
+        self.assert_recovery()
+
+    def test_consumers_refer_to_one_policy_and_planner_separates_human_decisions(self):
+        for relative in (PLAN_COMMAND, IMPLEMENT_COMMAND, PLANNER_AGENT, "AGENTS.md", "CLAUDE.md"):
+            with self.subTest(consumer=relative):
+                self.require(self.snapshot.read(relative), (
+                    "Contrato de continuidade aprovada", "Acordo inicial por meta",
+                ), "remissão única")
+        self.require(self.snapshot.read(PLAN_COMMAND, "## 0. Acordo inicial ou complemento técnico"), (
+            "fonte humana", "delegação", "sem inventar cobertura",
+        ), "acordo antes do despacho")
+        self.require(self.snapshot.read(PLANNER_AGENT, "## Handoff (obrigatório)"), (
+            "vínculo ao acordo original", "necessidade para o mesmo objetivo",
+            "dúvidas técnicas", "decisões humanas novas",
+        ), "handoff do Planner")
+
+    def test_mutations_break_the_specific_authority_agreement_balance_or_recovery_guard(self):
+        mutations = (
+            (GOAL_POLICY, "fonte humana literal e ponteiro verificável",
+             "nota do Manager como única fonte", self.assert_human_agreement, "autoridade humana"),
+            (GOAL_POLICY, "Aprovação de agente não substitui autoridade humana",
+             "Aprovação de agente substitui autoridade humana", self.assert_human_agreement, "autoridade humana"),
+            (GOAL_POLICY, "Somente a fonte humana verificada comprova a delegação e as operações cobertas",
+             "A proposta do Manager comprova a delegação e as operações cobertas", self.assert_human_agreement, "autoridade humana"),
+            (GOAL_POLICY, "subplanos técnicos necessários ao mesmo objetivo",
+             "subplanos técnicos de qualquer objetivo", self.assert_same_agreement, "mesmo acordo"),
+            (GOAL_POLICY, "mesmo propósito, frente, card e aceite",
+             "qualquer propósito, frente, card e aceite", self.assert_same_agreement, "mesmo acordo"),
+            (PLAN_COMMAND, "Complemento coberto segue pelo aceite técnico do Manager",
+             "Complemento coberto exige aprovação humana repetida", self.assert_same_agreement, "mesmo acordo"),
+            (PLAN_COMMAND, "não crie card nem reinicie PLANNING por um subplano",
+             "crie card e reinicie PLANNING por um subplano", self.assert_same_agreement, "mesmo acordo"),
+            (PLAN_COMMAND, "Complemento devolvido ao Planner preserva o estado do card",
+             "Complemento devolvido ao Planner volta o card inteiro ao BACKLOG", self.assert_same_agreement, "mesmo acordo"),
+            (PLAN_COMMAND, "Em complemento coberto, falha de capacidade estaciona somente o despacho dependente",
+             "Em complemento coberto, falha de capacidade estaciona a meta inteira", self.assert_same_agreement, "mesmo acordo"),
+            (GOAL_POLICY, "Sem meta ou delegação verificável, não presuma cobertura",
+             "Sem meta ou delegação verificável, presuma cobertura", self.assert_no_inheritance, "fronteira de autoridade"),
+            (GOAL_POLICY, "card novo não herdam autoridade silenciosamente",
+             "card novo herdam autoridade silenciosamente", self.assert_no_inheritance, "fronteira de autoridade"),
+            (GOAL_POLICY, "Registrar digest novo não renova saldo",
+             "Registrar digest novo renova saldo", self.assert_balance_and_operations, "saldo e operações"),
+            (GOAL_POLICY, "Tentativa incerta ou falha preserva consumo e handle",
+             "Tentativa incerta ou falha zera consumo e descarta handle", self.assert_balance_and_operations, "saldo e operações"),
+            (GOAL_POLICY, "Aceite técnico não autoriza envio externo, produção ou entrega Git ausentes do acordo",
+             "Aceite técnico autoriza envio externo, produção e entrega Git", self.assert_balance_and_operations, "saldo e operações"),
+            (GOAL_POLICY, "não crie ledger ou sistema de aprovação adicional",
+             "crie ledger e sistema de aprovação adicional", self.assert_recovery, "recuperação sem novo ledger"),
+            (GOAL_POLICY, "sem zerar limites, trocar modelo ou buscar outra thread como fallback",
+             "zerando limites, trocando modelo e buscando outra thread como fallback", self.assert_recovery, "recuperação sem novo ledger"),
+            (IMPLEMENT_COMMAND, "não repita `begin` ou `plan` para reiniciar o trabalho",
+             "repita `begin` e `plan` para reiniciar o trabalho", self.assert_recovery, "recuperação sem novo ledger"),
+        )
+        for _, _, _, guard, _ in mutations:
+            guard()
+        for relative, old, new, guard, invariant in mutations:
+            with self.subTest(mutation=new), self.snapshot.mutate(relative, old, new):
+                with self.assertRaisesRegex(AssertionError, invariant):
+                    guard()
 
 
 def evidence():

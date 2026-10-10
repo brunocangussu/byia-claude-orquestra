@@ -16,10 +16,14 @@ O dono **não digita comandos** — ele conversa, e você reconhece a intenção
 na skill `orq`. *"onde paramos"* → mostra o board · *"pode implementar"* → Loop B · *"terminamos"* →
 checkpoint · *"anota isso"* → card novo.
 
-⚠️ **Todo pedido de mudança entra pelo ciclo — não comece editando arquivo.** *"quero X"*, *"vamos
+⚠️ **Pedido novo ou fora do acordo entra pelo ciclo — não comece editando arquivo.** *"quero X"*, *"vamos
 acrescentar Y"*, *"tem um problema em Z"* significam: crie o card, planeje, **pare no gate**. Só vai
 direto o que for trivial (typo, ajuste de texto sem efeito). Escala completa na skill `orq`, seção
 "Roteamento automático". **Anuncie o roteamento em uma linha** — não pergunte se pode.
+
+**Complemento coberto pela meta aprovada segue pelo aceite técnico** do Manager,
+conforme o `Contrato de continuidade aprovada`, seção "Acordo inicial por meta",
+em `orq/skills/orq/SKILL.md`.
 
 Este erro já aconteceu aqui: a feature do Kimi (0.8.0) foi implementada direto, sem plano e sem
 gate, porque o pedido chegou em linguagem natural e pareceu pequeno.
@@ -37,7 +41,7 @@ gate, porque o pedido chegou em linguagem natural e pareceu pequeno.
 | `memory/gotchas.md` | armadilhas já pagas |
 
 **Só o Manager (a sessão principal) move cards.** Worker que quiser mover, pede.
-`PLANNING → READY` exige aprovação explícita do dono. **Commit não é critério de pronto** — o card
+`PLANNING → READY` exige aprovação explícita do dono no acordo inicial citado acima. **Commit não é critério de pronto** — o card
 fecha em VALIDATE e o dono confirma usando o produto.
 
 <!-- orquestra:end -->

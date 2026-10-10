@@ -38,6 +38,10 @@ Se a chamada tiver `exit != 0`, stdout vazio, JSON inválido, `state` diferente 
 
 **Todo pedido de mudança entra pelo ciclo. Não implemente direto.**
 
+Para complemento de uma meta já aprovada, confira primeiro o `Contrato de
+continuidade aprovada`, seção "Acordo inicial por meta": ele distingue aceite
+técnico coberto de decisão humana nova. O ciclo não exige repetir um gate já coberto.
+
 Quando o dono pede qualquer coisa que mexe no produto — *"quero X"*, *"vamos acrescentar Y"*,
 *"tem um problema em Z"*, *"isso está errado"* — a resposta **não** é começar a editar arquivo. É
 rotear pelo fluxo e **anunciar em uma linha** o que você vai fazer.
@@ -147,11 +151,12 @@ quem é invocado, por qual mecanismo e quantas vezes é a `## Matriz de invocaç
 agressiva ganha por omissão. Medido no host Codex do dono em agosto/2026: **256 threads de
 sub-agente**, com a assinatura `writer` / `impl` / `review` / `rereview1..3` — um sub-agente por
 *tarefa* e um revisor por *rodada*, a maioria em fork herdando 150–200k de histórico que não usa,
-enquanto a Matriz manda um sub-agente por **card** e a política de agosto
+enquanto a política de agosto restringia agentes por card e
 limitava a **2 rodadas** (limite histórico, não vigente). Nada
 disso foi decidido: foi a skill mais insistente vencendo em silêncio.
 
-**Na prática:** um sub-agente por card, não por tarefa · o mecanismo é o da célula da Matriz, mesmo
+**Na prática:** despache por entregas úteis conforme "Despacho por entregas e dependências", no
+`Contrato de continuidade aprovada` · o mecanismo é o da célula da Matriz, mesmo
 que outra skill ofereça um atalho nativo · rodada adicional depende de evidência e do
 gate real do card, não de um teto global em `revisar.md`. Se
 seguir a Matriz for impossível naquele host, **declare a degradação** — não caia na outra skill em
@@ -167,11 +172,11 @@ Não é adoção geral dos perfis experimentais T-139 nem prova de economia.
 
 | Ele diz algo como… | Você faz |
 |---|---|
-| **"quero X" · "queria acrescentar Y" · "vamos fazer/criar/mudar Z" · "seria bom se" · "dá pra" · "tem um problema em W" · "isso está errado" · "não funciona" · "não gostei" · "precisa melhorar"** | **ROTEIA PELO CICLO** — é o caso mais comum e o mais fácil de errar. Cria o card, planeja, **para no gate**. Só implementa direto se for trivial pela escala acima |
+| **"quero X" · "queria acrescentar Y" · "vamos fazer/criar/mudar Z" · "seria bom se" · "dá pra" · "tem um problema em W" · "isso está errado" · "não funciona" · "não gostei" · "precisa melhorar"** | **ROTEIA PELO CICLO** — confira "Acordo inicial por meta": complemento coberto segue por aceite técnico; pedido novo cria card, planeja e **para no gate**. Só implementa direto se for trivial pela escala acima |
 | "pode começar" · "siga" · "siga com suas recomendações" · "pode ir" · "aprovado" · "manda ver" · "vamos seguir" · "perfeito, segue" | **AVANÇA** o que está no gate — se havia plano aguardando, é aprovação: vá para a implementação. Se não havia, o "siga" se aplica ao que você acabou de propor |
 | "onde paramos?" · "o que falta?" · "cadê o board?" · "quais as pendências?" · "o que estamos fazendo?" · "o que preciso decidir?" | **Mostra o quadro** (`/orq:quadro`): esperando-ele primeiro, depois em curso e a validar |
 | "terminamos" · "acabou essa parte" · "vamos limpar o contexto" · "pode reiniciar" · "salva aí" · "pode limpar" · "checkpoint" | **Checkpoint** (`/orq:checkpoint`): grava log + páginas + thread + board e verifica o board; no Codex libera a compactação nativa e a mesma conversa pode continuar, enquanto no Claude avisa que é seguro dar `/clear` — e que dá pra **fechar a janela** se a pendência ficou registrada |
-| "vamos planejar X" · "próxima tarefa" · "o que vem agora?" | **Loop A** (`/orq:plan-next`) — e **pare** no gate pra ele aprovar |
+| "vamos planejar X" · "próxima tarefa" · "o que vem agora?" | **Loop A** (`/orq:plan-next`) — acordo inicial ou decisão humana nova **param** no gate; complemento coberto segue por aceite técnico |
 | "pode implementar" · "manda ver" · "toca essa" · "aprovado" | **Loop B** (`/orq:implement-next`) — só se o card estiver aprovado |
 | "anota isso" · "cria uma tarefa" · "isso vira card" · "não esquece disso" | **Cria o card** no BACKLOG com ID e contexto suficiente pra retomar |
 | "revisa isso" · "manda revisar" · "valida isso" · "o que você acha desse código?" | **Revisão independente** (`/orq:revisar`) — **um** revisor, sempre de um modelo do **vendor oposto ao host** (resolvido no `_elenco.md`; outro modelo do mesmo vendor do host **não** serve), com os achados auditados por você contra o código antes de virarem veredito |
@@ -340,7 +345,9 @@ No `KANBAN.md` isso são as seções; o estado de cada card é o marcador da lin
 ### Transições — quem pode
 
 - **Só o Manager** muda o marcador de um card. Worker que quiser mover **pede**.
-- `PLANNING → READY` **exige aprovação explícita do dono**. Nunca implemente um plano não aprovado.
+- `PLANNING → READY` **exige aprovação explícita do dono** no acordo inicial.
+  Subplano coberto recebe aceite técnico do Manager vinculado a esse acordo,
+  conforme "Acordo inicial por meta"; nunca implemente sem autoridade humana verificável.
 - `DEV_REVIEW → VALIDATE` exige review fechado, alvo de validação e entrega
   correspondente já autorizados. Se a entrega exigir gate novo, o Manager
   estaciona em `[!]` com a decisão exata e posse preservada; etapas locais já
@@ -351,7 +358,8 @@ No `KANBAN.md` isso são as seções; o estado de cada card é o marcador da lin
 
 **Loop A — Planejar** (`/orq:plan-next`): Manager ⇄ Planner
 pega o 1º do BACKLOG → Planner investiga e escreve o plano → mudança visual pede mockup →
-**leva ao dono** → aprovado vira READY com responsável definido.
+**leva o acordo inicial ao dono** → aprovado vira READY com responsável definido.
+Complementos cobertos seguem o aceite técnico do Manager no mesmo acordo.
 
 **Loop B — Implementar** (`/orq:implement-next`): Manager ⇄ Implementer
 pega o 1º READY → implementa localmente no **worktree isolado** aprovado → Reviewer
@@ -369,14 +377,14 @@ Os dois loops podem alternar: enquanto um card espera sua aprovação, outro ava
 2. **Causa raiz, nunca sintoma.** Correção que só esconde o erro (catch silencioso, retry cego) é
    rejeitada no review.
 3. **Autocrítica antes de entregar.** "O que estou assumindo sem verificar? O que falta?"
-4. **Escopo tem borda.** Resolver o mesmo problema em outros lugares: **sim**, se for a mesma causa
-   raiz e o mesmo subsistema — mas só **dentro de um card já aprovado e em implementação**; fora
-   disso é iniciativa avulsa e entra pelo ciclo como card novo. Schema, API pública, segurança ou
-   outro módulo → **card novo** de todo modo.
+4. **Escopo tem borda.** Complemento necessário segue somente se coberto pelo
+   "Acordo inicial por meta" no contrato abaixo; achado fora dele vira proposta
+   ao Manager, nunca ampliação silenciosa. Schema, API pública, segurança ou outro
+   módulo não são incluídos só por parecerem tecnicamente úteis.
 5. **Documentação é atemporal.** Descreve como a coisa **é agora** — nunca "mudamos de X para Y".
 6. **Review é read-only.** Quem revisa não corrige; devolve o parecer e quem implementou aplica.
-7. **Um dono por arquivo.** Dois agentes escrevendo no mesmo checkout = conflito. Tarefa que escreve
-   roda em worktree próprio.
+7. **Um dono por arquivo.** Escrita roda em checkout isolado por writer. Concorrência
+   segue "Despacho por entregas e dependências" no contrato abaixo.
 8. **Nada de `bypassPermissions`.** Nem de dia, nem de noite.
 
 ## Decisões que o Manager toma sozinho
@@ -386,7 +394,7 @@ Para não interromper o dono a cada passo — desde que registradas no board. Is
 "iniciativa nunca escreve no produto", dos três níveis abaixo, não se aplica aqui.
 
 - **N0 — Bug achado no meio de um card:** grande → card novo no BACKLOG (com repro e hipótese);
-  pequeno → entra no card atual.
+  pequeno → entra no card atual somente se coberto pelo "Acordo inicial por meta".
 - **N0 — Ordem da fila** quando não há prioridade explícita.
 
 ### Iniciativa própria — três níveis (N1-N3)
@@ -426,8 +434,9 @@ duas ocorrências têm que cair no mesmo bloco; atravessar um checkpoint zera a 
   > repropor 1× naquele bloco; registra **na thread ou no board, nunca em "Dispensadas"** (lá dentro
   > a semântica é "não reproponha nunca", e isso ressuscitaria o problema). O que o teto proíbe é
   > insistir **sem estado novo** — as duas vias acima são as únicas que produzem um.
-- **N3 — sempre pergunta:** aparência/UX, mudança de rumo do produto, schema, segurança,
-  dependência nova, deploy, qualquer coisa irreversível.
+- **N3 — decisão humana:** aparência/UX, mudança de rumo do produto, schema, segurança,
+  dependência nova, deploy ou ação irreversível exigem cobertura humana explícita;
+  confira "Acordo inicial por meta" antes de pedir um gate já coberto.
 
 ## Várias janelas no mesmo projeto
 
@@ -503,6 +512,86 @@ O que ele dispensou fica em `memory/wiki/_stack.md` — **não reproponha**.
 Nunca guarde na memória o que é **derivável** (diff, git log, schema): guarde o *porquê*.
 
 ## Contrato de continuidade aprovada
+
+### Acordo inicial por meta
+
+O dono define a meta e suas fronteiras; o Manager propõe o acordo inicial e
+confere a autoridade humana antes de executar. A thread dona consolida:
+
+- fonte humana literal e ponteiro verificável;
+- propósito, frente dona, card e critérios de aceite;
+- escopo permitido e exclusões;
+- delegação técnica ao Manager para avaliar subplanos e organizar entregas;
+- operações locais permitidas, incluindo isolamento e agentes quando cobertos;
+- operações externas e de entrega discriminadas, com cobertura específica;
+- proibições, limites e consumo por gate, inclusive parada humana.
+
+Aprovação de agente não substitui autoridade humana. Somente a fonte humana
+verificada comprova a delegação e as operações cobertas. O acordo inicial pode
+cobrir plano e delegação técnica desde o começo; nota do Manager ou resultado
+de teste não completam autorização ausente. Sem meta ou delegação verificável,
+não presuma cobertura: recupere a fonte original ou peça a autoridade ausente.
+
+O Manager aceita ou devolve subplanos técnicos necessários ao mesmo objetivo.
+Confere mesmo propósito, frente, card e aceite, dentro do escopo e das operações
+permitidas, sem cruzar exclusões ou limites. Ao aceitar, registra na thread o
+vínculo ao mesmo acordo e à fonte humana original, o caminho do complemento,
+sua necessidade e a compatibilidade com o aceite, sem nova pergunta por subpasso
+coberto. Dúvida técnica volta ao Planner; mudança material exige decisão humana.
+Propósito novo, frente alheia ou card novo não herdam autoridade silenciosamente;
+um vínculo proposto só vale se a fonte humana cobrir expressamente o novo objeto.
+Nunca crie aprovação, saldo ou permissão por aceite técnico.
+
+Aceite técnico não autoriza envio externo, produção ou entrega Git ausentes do
+acordo. Cada operação conserva os gates específicos abaixo, mesmo quando já
+coberta pelo acordo inicial. Publicação, instalação, restart e validação prática
+continuam distinguíveis. Tentativa incerta ou falha preserva consumo e handle;
+snapshot corrigido só segue se coberto pelo modo externo aprovado e com saldo
+real, sem renovação por complemento, recuperação ou retry.
+
+Reutilize a thread e o medidor existentes; não crie ledger ou sistema de aprovação
+adicional. Na retomada, recupere o acordo, a fonte humana, o plano, o ownership,
+o consumo e os handles, sem zerar limites, trocar modelo ou buscar outra thread
+como fallback. O registro e a chave de dono seguem o contrato do medidor em
+`references/progress.md`; workers não recebem nem usam essa chave.
+
+### Despacho por entregas e dependências
+
+O Manager escolhe o despacho por entregas úteis, não pela contagem de arquivos
+ou por um teto de agentes por card. Comece com poucas entregas independentes;
+amplie somente com outra entrega útil e capacidade comprovada. Não crie agente
+por arquivo nem exija paralelismo para tarefa pequena. Elenco, esforço, via e
+independência de revisão seguem a Matriz vigente, sem novo agente aprovador.
+
+| Situação | Decisão de despacho |
+|---|---|
+| Duas análises read-only independentes podem avançar juntas | Leituras delimitadas e chamadas cobertas pelo acordo; não concedem escrita |
+| Dois writers com ownership disjunto, interfaces fechadas e sem dependência serial | Podem avançar juntos, cada um em checkout isolado e com dono explícito |
+| Sobreposição de escrita, interface aberta ou dependência serial | Serializam somente o trecho afetado; A→B espera A apenas no trecho dependente; C independente continua elegível |
+| Falha de A estaciona somente o que depende de A | Preserve resultados e handles; não relance cegamente; continue a entrega independente elegível |
+
+O briefing de cada entrega traz contexto curto e fresco, objetivo, entregável,
+arquivos permitidos/exclusivos, dono, interfaces, dependências, checkout,
+proibições, aceite e handoff. Não herde o histórico inteiro por padrão.
+Entregas simultâneas não compartilham task ou handle. Preserve a unidade de
+isolamento comprovada da via; disputa pelo mesmo vínculo persistente serializa
+somente esse vínculo, sem alterar o contrato de reúso do Companion.
+O Manager prepara o isolamento local somente quando coberto pelo acordo.
+Workers não criam nem removem refs/worktrees; não movem cards, não entregam Git,
+não delegam recursivamente e não ampliam escopo. Uma ordem de Manager ou outro
+prompt de worker não derroga essas proibições: proposta fora do contrato volta
+ao Manager, sem iniciar a ação.
+
+O Manager é o integrador único da meta: confere diffs e contratos e executa os
+gates finais no resultado integrado; conclusão de worker não certifica integração,
+review ou pronto. Integrar artefatos localmente não concede entrega Git.
+Espere apenas execução viva comprovada no mesmo handle; resultado terminal ou
+timeout não autoriza nova chamada. Duas rodadas sem progresso seguem
+`ORQ_PACKAGE_ROOT/references/continuidade-evidencias.md`, sem fechar a meta ou
+zerar consumo. Bloqueio estaciona a dependência com a pergunta concreta;
+trabalho independente aprovado continua.
+
+### Evidência humana e gates por operação
 
 Quando o dono aprovar a implementação local de um card, a thread dona registra
 a **fonte humana literal**: a citação ou referência verificável da evidência

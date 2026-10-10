@@ -4,7 +4,35 @@
 > Contexto é descartável; isto aqui não é.
 
 **Projeto:** Orquestra (`orq`) — framework multi-host para desenvolvimento orientado a board.
-**Versão:** 0.32.0 — fonte T-150 entregue na main/local e em origin/main (`3cfac62`), com R3 aprovada/auditada e gates frescos 916/manifesto/lint/Ruff verdes. Elenco Codex conciliado; continuidade aprovada, coordenação técnica opt-in no mesmo Planner e evidências consultivas offline. Publicação, instalação e validação prática permanecem separadas. Reconferidos apenas diretórios de cache: Codex 0.31.0, Claude 0.27.10/0.31.0; nenhum 0.32.0. Isso não prova quais versões estão carregadas. ⚠️ **Instalado não é carregado:** cada host só roda uma versão nova depois do próprio restart · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-08 (T-150) · **host padrão a partir de 2026-08-09: Codex**.
+**Versão:** 0.33.0 — fonte T-151 conciliada na main, R1 Opus 5.5/high GO auditada sem bloqueadores; 936 testes e manifesto/lint/Ruff/diff-check verdes na árvore de entrega. Git allowlistado autorizado, confirmação de entrega ainda pendente. Elenco preservado, sem publicação, instalação ou restart. Pacote/cache desta sessão permanecem 0.32.0; isso não prova todos os hooks/chats. Piloto de subagentes apenas proposto, não executado. ⚠️ **Instalado não é carregado** · **board instalado em** 2026-07-26 · **último checkpoint:** 2026-10-09 (T-151; recuperação 10/10 UTC) · **host padrão a partir de 2026-08-09: Codex**.
+
+**T-151, 2026-10-09 — fonte 0.33.0 revisada, entrega Git autorizada:**
+- Dono delegou complementos técnicos dentro da meta e pediu subagentes para
+  análise e implementação extensas. Manager único aplica essa delegação;
+  uma LLM não inventa autoridade humana, gasto, contratação ou novo gate.
+- Análises reais Planner Sol 6.1/xhigh e Scout Luna 6/medium concluídas;
+  implementação Sol 6.1/xhigh e consumidor disjunto integrado pelo Manager.
+  Plano em `../docs/plano_T-151-autonomia-por-meta.md`; candidata em
+  worktree `t151-autonomia-meta`, base `6c8482a`, 10 arquivos congelados.
+- Reusar T-143/T-150 e acordo inicial por meta, sem perguntas por etapa
+  coberta. Threads e recuperação: `wiki/threads/T-151-autonomia-por-meta.md`.
+- Dono confirmou T-151 (não T-180) e autorizou desenvolvimento local.
+  Snapshot final: 936 testes da descoberta completa, 66 testes frescos do
+  Manager e 41 mutações contratuais; manifesto/lint/Ruff/formato verdes.
+  Recibo: `../docs/T-151-implementacao-local-2026-10-09-recibo.json`.
+- Sonda final 8/8, mas baseline também 8/8: sem ganho causal/economia
+  demonstrados. R1 Opus 5.5/high consumida 1/1 em 10/10 UTC, 187.361 bytes,
+  sem retry; exit 0, GO com dez ressalvas auditadas e nenhum bloqueador.
+  Modelo comprovado `claude-opus-5-5`; tools/MCP/customizações desativados.
+  Recibo em `../docs/T-151-R1-envio-2026-10-10.json`; parecer e auditoria
+  em `../docs/reviews/`. Nenhuma alteração funcional após a revisão.
+- Manager portou o mesmo snapshot para a main e bumpou os quatro anchors
+  para 0.33.0. Descoberta fresca: 936 testes/266,475 s, manifesto, coerência,
+  Ruff e diff-check verdes. Commit/push allowlistados autorizados;
+  confirmação remota pendente. Sem instalação/restart ou mudança de elenco.
+- Avaliação de subagentes planejada, não executada: lacunas e piloto A/B
+  em `../docs/plano_piloto_T-151-manager-subagentes.md`, aguardando aprovação
+  própria. Não altera elenco/roteadores; não repete as sondas existentes.
 
 **T-150, 2026-10-08 — fonte 0.32.0 entregue; validar uso prático:**
 - Oito papéis Codex comprovados contextualmente; adoção na fonte derivada

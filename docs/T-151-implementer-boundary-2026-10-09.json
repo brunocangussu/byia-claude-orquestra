@@ -1,0 +1,21 @@
+{
+  "card": "T-151",
+  "kind": "guardas_de_instrucao_nao_prova_comportamental",
+  "owner": "Manager, consumidor disjunto do worker",
+  "files": ["orq/agents/orq-implementer.md", "orq/scripts/test_implementer_worker_boundary.py"],
+  "red": {"tests": 3, "failures": 3, "exit": 1, "before_product_change": true},
+  "green": {"tests": 3, "failures": 0, "exit": 0},
+  "mutation": {
+    "kind": "em_memoria_com_read_text_controlado",
+    "count": 6,
+    "killed": 6,
+    "exit": 0,
+    "cases": ["worker-git", "worker-stage", "worker-recursive", "worker-ownership", "failure-global", "blind-relaunch"]
+  },
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s orq/scripts -p 'test_implementer_worker_boundary.py'",
+  "mutation_script": "/private/tmp/orq-t151-impl.BYGZ70/mutation-worker-boundary.py",
+  "full_suite_pending": true,
+  "independent_review_started": false,
+  "git_delivery_performed": false,
+  "installed_cache_changed": false
+}

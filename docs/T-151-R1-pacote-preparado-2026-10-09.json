@@ -1,0 +1,19 @@
+{
+  "card": "T-151",
+  "state": "PREPARADO_SEM_AUTORIZACAO_DE_ENVIO",
+  "path": "/Users/brunocangucu/.codex/worktrees/t151-autonomia-meta/byia-claude-orquestra/docs/reviews/T-151-R1-sanitizado.md",
+  "bytes": 187361,
+  "sha256": "5d8d15f974f53826966f01db1c7aef65ea19183c929f62cdf3678eed42a0c70a",
+  "cap_bytes": 196608,
+  "source_blocks": 11,
+  "sanitization_check_passed": true,
+  "egress": false,
+  "review_call_count": 0,
+  "review_verdict": null,
+  "requested_reviewer_future": "Opus 5.5/high via Claude CLI/Anthropic; validar capacidade antes de enviar",
+  "external_calls_authorized_in_current_gate": 0,
+  "attempts_spent": 0,
+  "independent_review_started": false,
+  "source_snapshot_receipt": "docs/T-151-implementacao-local-2026-10-09-recibo.json",
+  "next_gate": "autorização humana de snapshot/bytes/budget para revisão; uma chamada sem retry se autorizada; não entrega Git nem ativação"
+}

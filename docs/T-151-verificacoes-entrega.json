@@ -1,0 +1,115 @@
+{
+  "card": "T-151",
+  "recorded_at": "2026-10-10T00:36:29.222Z",
+  "state": "LOCAL_GATES_PASSED_GIT_PENDING",
+  "source_version": "0.33.0",
+  "base_sha": "6c8482a8b3deca31ecdc330c38d675c39f14058c",
+  "integration_method": "Manager port of the exact reviewed uncommitted functional snapshot into main; no feature-branch merge",
+  "snapshot": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "98e5270888d8b24cc9cebae727e10d1afeb334f82587530ed46ac750954f6081",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "98e5270888d8b24cc9cebae727e10d1afeb334f82587530ed46ac750954f6081",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/skills/orq/SKILL.md",
+      "sha256": "4c1b68e6e8a1c5f08414d73c740eb8de3f0f15f36bb9d7b679fc3ae4cbd12f35",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/commands/plan-next.md",
+      "sha256": "15bf852d520fd198c1603ecf50bb5f15b9fef05f137125d1e4f3d919888176b3",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/commands/implement-next.md",
+      "sha256": "6ab09d908ca59b0c6f148bc7546761370a153375105bdf924e603c01400dabce",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/agents/orq-planner.md",
+      "sha256": "b46dd84e0796a01c0ca70f55d4792ba376fe870e1ed8b93bcc939e9fb07887fb",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/agents/orq-implementer.md",
+      "sha256": "1c6be9c2e7a8fb0bfda55b02c5333cf4c67b01eb92bbe3eb7d84bcdcb7fd02c1",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/scripts/test_work_evidence.py",
+      "sha256": "a60c868f22237f480034f7e43cb01efe0362c953bcd92dc14609604c31ca22aa",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/scripts/test_planner_coordination.py",
+      "sha256": "2d6786f6bda0effd38032fa93410e781d38edf6d850ec544859f0eba66e19cb2",
+      "equals_reviewed_candidate": true
+    },
+    {
+      "path": "orq/scripts/test_implementer_worker_boundary.py",
+      "sha256": "577aa53184af33a2ea010c6cf3f3c040843892ca3e8b77b198fa7ecab41b1999",
+      "equals_reviewed_candidate": true
+    }
+  ],
+  "review": {
+    "round": "R1",
+    "verdict": "GO",
+    "confirmed_blockers": 0,
+    "receipt": "docs/T-151-R1-envio-2026-10-10.json",
+    "audit": "docs/reviews/T-151-R1-auditoria-local.md",
+    "calls": 1,
+    "retry": false
+  },
+  "gates": {
+    "discover": {
+      "tests": 936,
+      "seconds": 266.475,
+      "result": "OK",
+      "process_exit_retained": false,
+      "log_sha256": "f307d8f743f0452e89f06a5bf8c2f533d760f0cff266ea37d5711768540fd397",
+      "interpreter": "Python from Command Line Tools via local PATH",
+      "dont_write_bytecode": true
+    },
+    "manifest": {
+      "exit": 0
+    },
+    "coherence": {
+      "exit": 0
+    },
+    "ruff": {
+      "exit": 0,
+      "scope": [
+        "orq/scripts/test_work_evidence.py",
+        "orq/scripts/test_planner_coordination.py",
+        "orq/scripts/test_implementer_worker_boundary.py"
+      ],
+      "no_cache": true
+    },
+    "diff_check": {
+      "exit": 0
+    }
+  },
+  "roster_changed": false,
+  "functional_changes_after_review": false,
+  "pilot": {
+    "plan": "docs/plano_piloto_T-151-manager-subagentes.md",
+    "state": "PROPOSED_NOT_EXECUTED",
+    "comparative_gain_proved": false
+  },
+  "git": {
+    "commit": null,
+    "remote_verified": false
+  },
+  "boundaries": {
+    "publication": false,
+    "installation": false,
+    "restart": false,
+    "other_cards_not_committed": true
+  }
+}
